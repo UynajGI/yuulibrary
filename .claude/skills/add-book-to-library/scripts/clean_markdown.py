@@ -14,9 +14,9 @@ def clean(text):
     new_text = re.sub(r'\{\s+', '{', new_text)
     new_text = re.sub(r'\s+\}', '}', new_text)
 
-    # 3. Fix \text { -> \text{, collapse internal spaces
-    new_text = re.sub(r'\\text\s+\{', r'\\text{', new_text)
-    new_text = re.sub(r'(\\text\{[^}]+?)\s{2,}([^}]*\})', lambda m: m.group(1) + ' ' + m.group(2), new_text)
+    # 3. Fix \<cmd> { -> \<cmd>{ for all LaTeX commands
+    new_text = re.sub(r'\\([a-zA-Z]+)\s+\{', r'\\\1{', new_text)
+    new_text = re.sub(r'(\\(?:text|mathrm|mathbf|boldsymbol|mathit|mathcal|mathbb)\{[^}]+?)\s{2,}([^}]*\})', lambda m: m.group(1) + ' ' + m.group(2), new_text)
 
     # 4. Remove footnote superscripts ($^{N}$)
     new_text, n = re.subn(r'\s*\\\$\^\{(\d+)\}\\\$', '', new_text)

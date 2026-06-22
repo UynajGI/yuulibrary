@@ -156,8 +156,9 @@ mkdir -p docs/<type>/<category>/<book-slug>/images
 1. **OCR 错误** — 数学符号被误识别（λ→入、∑→Σ 空、∈→E）、中文字符混入公式
 2. **算法伪代码格式** — 行是否被错误合并、缩进是否保留、变量名是否正确
 3. **表格和图标题** — `表N.N　标题` 是否独立成行、`图N.N　标题` 是否正确关联
-4. **标题层级** — 代码注释 `#` 是否被识别为 H1、节标题层级是否正确
-5. **交叉引用** — 文中 `第N章` 是否已转为链接
+4. **Mermaid 伪流程图** — 删除 `<details><summary>flowchart</summary>\`\`\`mermaid` 块，保留原图 `![](images/xxx.jpg)`
+5. **标题层级** — 代码注释 `#` 是否被识别为 H1、节标题层级是否正确
+6. **交叉引用** — 文中 `第N章` 是否已转为链接
 
 每个 agent 返回：修复后的章节内容 + 修复清单。
 
@@ -195,27 +196,43 @@ mkdir -p docs/<type>/<category>/<book-slug>/images
 
 #### 算法伪代码
 
-使用 pseudocode.js（LaTeX algorithmic 语法）：
+使用 pseudocode.js（npm `pseudocode@2.4.1`）。**实际语法是小写无斜杠**，非 LaTeX algorithmic：
 
 ```html
 <pre class="pseudocode">
 \begin{algorithm}
 \caption{算法 1: Sarsa算法}
 \begin{algorithmic}
-\STATE 输入: episodes, α, γ
-\FOR{each episode in episodes}
-    \STATE S ← first state of episode
-    \REPEAT
-        \STATE A = policy(Q, S)
-        \STATE Q(S, A) ← Q(S, A) + α(R + γQ(S', A') - Q(S, A))
-    \UNTIL{S is terminal state}
-\ENDFOR
+state 输入: episodes, α, γ
+state 输出: Q
+for{each episode in episodes}
+    state S ← first state
+    repeat
+        state R, S' = perform\_action(S, A)
+        state Q(S, A) ← Q(S, A) + α(R + γQ(S', A') - Q(S, A))
+    until{S is terminal state}
+endfor
 \end{algorithmic}
 \end{algorithm}
 </pre>
 ```
 
-`_` 需转义为 `\_`。Phase 4.5 的 Haiku agent 负责将纯文本伪代码转换为上述格式。
+| pseudocode.js 命令 | LaTeX algorithmic 等价 |
+|---|---|
+| `state` | `\STATE` |
+| `for{...} ... endfor` | `\FOR{...} ... \ENDFOR` |
+| `if{...} ... endif` | `\IF{...} ... \ENDIF` |
+| `while{...} ... endwhile` | `\WHILE{...} ... \ENDWHILE` |
+| `repeat ... until{...}` | `\REPEAT ... \UNTIL{...}` |
+| `return{...}` | `\RETURN{...}` |
+| `procedure{name}{params} ... endprocedure` | `\PROCEDURE{name}{params}` |
+| `function{name}{params} ... endfunction` | `\FUNCTION{name}{params}` |
+| `call{name}{args}` | `\CALL{name}{args}` |
+| `require` / `ensure` / `input` / `output` | `\REQUIRE` / `\ENSURE` / `\INPUT` / `\OUTPUT` |
+| `// comment` | `\COMMENT{comment}` |
+
+**依赖**：KaTeX CDN + pseudocode.min.css + pseudocode.min.js + pseudocode-render.js。
+Phase 4.5 的 Haiku agent 负责将 OCR 伪代码转为此格式。
 
 #### 表格标题
 
@@ -345,6 +362,7 @@ mkdocs build
 | 9 | `\boldsymbol` 不渲染 | `tex-mml-chtml.js` 不含 boldsymbol 包 → 红色未识别 | 用 `tex-chtml-full.js` CDN |
 | 10 | 超宽公式出滚动条 | 用户不接受滚动条 | 用 `\begin{aligned}` 手动断行 |
 | 11 | 表格数据挤在一起 | 默认表格无居中、无 padding | CSS `td { text-align: center; padding: .4rem .8rem; }` |
+| 12 | 删图片引用 | 图片是书中的原始插图，删了不可逆 | **永远只删 `<details>` 和 mermaid 块，不碰 `![](images/)` 引用** |
 
 ---
 
@@ -355,27 +373,28 @@ mkdocs build
 ### 基础设施要求
 
 1. **MathJax CDN 必须用 `tex-chtml-full.js`** — `tex-mml-chtml.js` 缺少 `\boldsymbol` 等扩展包
-2. **pseudocode.js 算法渲染** — 需要 CDN CSS + JS + `docs/javascripts/pseudocode-render.js`
-3. **lefthook pre-commit** — `mkdocs build --strict` 阻断有 broken link 的提交
-4. **mathjax.js** — `$`/`$$` 分隔符 + `document$.subscribe` 兼容 instant navigation
+2. **pseudocode.js 依赖 KaTeX** — `katex.min.js` 必须在 pseudocode.min.js 之前加载
+3. **pseudocode.js npm 语法** — 小写无斜杠（`state`/`for{}`/`if{}`），非 LaTeX `\STATE`/`\IF{}`
+4. **lefthook pre-commit** — `mkdocs build --strict` 阻断有 broken link 的提交
+5. **mathjax.js** — `$`/`$$` 分隔符 + `document$.subscribe` + `clearCache`/`typesetClear`/`texReset` 兼容 instant nav
 
-### 算法伪代码格式
+### 算法伪代码格式（npm `pseudocode@2.4.1`）
 
 ```html
 <pre class="pseudocode">
 \begin{algorithm}
 \caption{算法 1: 名称}
 \begin{algorithmic}
-\STATE 输入: ...
-\FOR{each episode}
-    \STATE ...
-\ENDFOR
+state 输入: ...
+for{each episode}
+    state ...
+endfor
 \end{algorithmic}
 \end{algorithm}
 </pre>
 ```
 
-注意 `_` 转义为 `\_`。
+**关键**：npm 包使用小写无斜杠命令（`state`/`for{}/`if{}/`repeat`/`until{}`），非 LaTeX 的 `\STATE`/`\FOR{}`。
 
 ### 常见 OCR 误识别
 
@@ -390,3 +409,13 @@ mkdocs build
 - 格子世界（4×4 等）：`<table class="grid-world">` + CSS 固定格子
 - 数据表格：文字居中、padding
 - 表注：`<p class="caption">表N.N 标题</p>`，置 `<table>` 上方
+
+### Mermaid 流程图清理
+
+MinerU 输出中流程图会被双重输出：原图栅格化 PNG + `<details><summary>flowchart</summary>\`\`\`mermaid...\`\`\`</details>`（MinerU OCR 重建）。
+
+**处理**：删除 `<details>` 包装和 `\`\`\`mermaid` 块，保留 `![](images/xxx.jpg)` 原图。原图是 PDF 精确渲染，mermaid 是 OCR 重建质量差。
+
+### 版权信息清理
+
+Phase 2 清洗时删除：ISBN、版权声明、客服热线/邮箱、作者联系方式、源代码下载链接（保留 GitHub 链接）。

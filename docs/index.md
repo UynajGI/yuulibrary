@@ -14,6 +14,16 @@
 
 <div class="grid cards" markdown>
 
+-   :material-book-open-variant: __强化学习入门：从原理到实践__
+
+    ---
+
+    *叶强 · 闫维新 · 黎斌 · 中文*
+
+    从基础概念到 Alpha Zero，涵盖动态规划、无模型控制、深度强化学习、探索与利用等核心主题，附 Python 代码实现。
+
+    [:octicons-arrow-right-24: 开始阅读](books/ml/rl-intro/index.md)
+
 -   :material-book-open-variant: __量化金融面试实用指南__
 
     ---
