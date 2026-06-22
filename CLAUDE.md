@@ -24,6 +24,7 @@ yuulibrary/
 │   │           └── ...
 │   ├── papers/                    # 论文
 │   └── notes/                     # 笔记
+├── pdfs/                          # PDF 源文件（本地，不入库）
 └── .github/workflows/deploy.yml   # 自动部署到 gh-pages
 ```
 
