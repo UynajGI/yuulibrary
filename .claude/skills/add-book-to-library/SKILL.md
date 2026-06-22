@@ -107,6 +107,12 @@ mineru-open-api extract book.pdf -o out_part2/ -f md --model vlm --language en -
 
 **失败分支**：脚本报错 → 检查输入是否为 MinerU VLM 输出格式，手动检查第一处报错行的原始内容。
 
+**中文书注意**：`clean_markdown.py` 主要处理英文 LaTeX 问题。中文书额外手动清理：
+- OCR 伪影（空字母碎片如 `A\nB C\nD`）
+- 重复的标题/作者行
+- ISBN、版权声明、客服联系方式
+- 源代码下载链接和客服邮箱（保留 GitHub 链接即可）
+
 🔴 **CHECKPOINT**：清洗完成后，展示前 50 行的 before/after 对比。用户确认清洗质量后继续。
 
 **Phase 2 完成后**：写入 `current_phase: "phase_2_done"`，`phase_2.status: "done"`。
@@ -137,6 +143,8 @@ mkdir -p docs/<type>/<category>/<book-slug>/images
 
 页码 ≤ 15 的薄书不拆分，合并为一个文件。
 
+**修复代码注释被误识别为标题**：遍历所有 `ch*.md`，将代码块（` ``` ` 包裹区域内）中以 `# ` 开头的行降级为 `## `，防止 Python 注释 `# 这是一段说明` 被渲染为 H1。
+
 **失败分支**：`## Chapter` 模式匹配不到 → 改用 `# Chapter` 或 `### Chapter` 匹配；仍失败则让用户提供章节边界关键词。
 
 **Phase 4 完成后**：写入 `current_phase: "phase_4_done"`，`phase_4.status: "done"`。
@@ -149,9 +157,33 @@ mkdir -p docs/<type>/<category>/<book-slug>/images
 - 居中书名、作者、封面图片
 - 双栏目录表格：左列章节链接，右列小节链接
 
-#### 符号说明（`notations.md`，可选）
+#### 符号说明（`notations.md`）
 
-4 栏 markdown 表格：`| 符号 | 含义 | 符号 | 含义 |`
+**强制**：4 栏 markdown 表格：
+
+```markdown
+| 符号 | 含义 | 符号 | 含义 |
+|------|------|------|------|
+| E | 期望 | π | 策略 |
+```
+
+#### 算法列表（`algorithms.md`，如有）
+
+**强制**：表格带章节链接：
+
+```markdown
+| # | 算法 | 章节 |
+|---|------|------|
+| 1 | Q 学习算法 | [第5章](ch05.md) |
+```
+
+#### 跨页面交叉引用
+
+**强制**：遍历所有 `ch*.md`，将正文中的「第 N 章」转为可点击链接：
+```
+第3章 → [第3章](ch03.md)
+```
+不替换标题行（`# 第N章`）和已有链接。**链接用 `.md` 后缀，mkdocs 构建时自动转为 `.html`。**
 
 #### 解答块
 
@@ -164,9 +196,9 @@ mkdir -p docs/<type>/<category>/<book-slug>/images
 </div>
 ```
 
-**失败分支**：`</div>` 漏写 → build 时 HTML 错乱。每个 `解答：` 出现次数应等于 `<div class="solution">` 出现次数，Phase 6 build 失败时优先排查此项。
+**失败分支**：`</div>` 漏写 → build 时 HTML 错乱。每个 `解答：` 出现次数应等于 `<div class="solution">` 出现次数。
 
-#### 索引（`index_term.md`，可选）
+#### 索引（`index_term.md`）
 
 6 栏表格：`| 术语 | 章节 | 术语 | 章节 | 术语 | 章节 |`
 
@@ -254,3 +286,4 @@ mkdocs build
 | 5 | 章节标题用 `##` | mkdocs 侧边栏 H2 会缩进过深 | 章节标题用 `#`，节用 `##` |
 | 6 | 不 build 直接手写锚点 | mkdocs slug 规则与直觉不同（去除中文标点等） | `mkdocs build` → 从 HTML 提取 `id` |
 | 7 | PDF 源文件放入 docs/ | 会发布到网站上，浪费带宽和存储 | 放 `pdfs/`（已 gitignore） |
+| 8 | 交叉引用用 `.html` 后缀 | mkdocs build 会报 warning，期望 `.md` | 统一用 `.md` 后缀，mkdocs 构建时自动转换 |
