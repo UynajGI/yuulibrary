@@ -3,20 +3,6 @@
 ![](images/534a9ce115889dbe74401e2322874d3035caa1aa9b9f8cf3df785ef6a24758b9.jpg)
 
 
-第一版
-
-周欣峰
-
-由Brett Jiu编辑
-
-# 谨以此书纪念我的妹妹，周心丽
-
-© Copyright 2008 by Xinfeng Zhou, http://www.quantfinanceinterviews.com
-
-版权所有。
-
-未经出版商书面许可，不得以任何形式或任何方式（包括电子或机械方式、影印、录制或任何信息存储和检索系统）复制或传播本书的任何部分，法律允许的情况除外。
-
 ## 目录
 
 <table style="width:100%;">
