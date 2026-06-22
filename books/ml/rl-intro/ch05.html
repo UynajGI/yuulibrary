@@ -1,0 +1,2435 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="个人的数字图书馆">
+      
+      
+        <meta name="author" content="Yuunagi">
+      
+      
+        <link rel="canonical" href="https://uynajgi.github.io/yuulibrary/books/ml/rl-intro/ch05.html">
+      
+      
+        <link rel="prev" href="ch04.html">
+      
+      
+        <link rel="next" href="ch06.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>第5章 · 无模型的控制 - Yuunagi Library</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="../../../assets/external/fonts.googleapis.com/css.868af38d.css">
+        <style>:root{--md-text-font:"Noto Sans SC";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../../assets/external/cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+    
+      <link rel="stylesheet" href="../../../assets/external/cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#5" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../index.html" title="Yuunagi Library" class="md-header__button md-logo" aria-label="Yuunagi Library" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Yuunagi Library
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              第5章 · 无模型的控制
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="切换深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="切换浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="分享" aria-label="分享" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="index.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  书籍
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../index.html" title="Yuunagi Library" class="md-nav__button md-logo" aria-label="Yuunagi Library" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Yuunagi Library
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    书籍
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    书籍
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    机器学习
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    机器学习
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    强化学习入门
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    强化学习入门
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="preface.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    前言
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="notations.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    常用符号
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="algorithms.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法列表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch01.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第1章 · 概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch02.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第2章 · 从一个示例到马尔可夫决策过程
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch03.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第3章 · 动态规划寻找最优策略
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch04.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第4章 · 不基于模型的预测
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第5章 · 无模型的控制
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="ch05.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第5章 · 无模型的控制
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 行为价值函数的重要性
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 贪婪策略
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#53" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 同策略蒙特卡罗控制
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#54" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 同策略时序差分控制
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#541-sarsa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.1 Sarsa算法
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#542-sarsa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.2 Sarsa（λ）算法
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#543-sarsasarsa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.3 比较Sarsa和Sarsa（λ）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#55-q" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 异策略Q学习算法
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#56-21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 编程实践：蒙特卡罗学习求解21点游戏的最优策略
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#57-gym" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 编程实践：构建基于gym的有风的格子世界及个体
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#571-gym" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7.1 gym库简介
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#572" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7.2 状态序列的管理
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#582-sarsa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8.2 Sarsa（λ）算法
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#583-q" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8.3 Q学习算法
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch06.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第6章 · 价值函数的近似表示
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch07.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第7章 · 基于策略梯度的深度强化学习
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch08.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第8章 · 基于模型的学习和规划
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch09.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第9章 · 探索与利用
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch10.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第10章 · Alpha Zero算法实战
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    金融经济
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    金融经济
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../finance/quant-finance-interview/index.html" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    量化金融面试实用指南
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 行为价值函数的重要性
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 贪婪策略
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#53" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 同策略蒙特卡罗控制
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#54" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 同策略时序差分控制
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#541-sarsa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.1 Sarsa算法
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#542-sarsa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.2 Sarsa（λ）算法
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#543-sarsasarsa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4.3 比较Sarsa和Sarsa（λ）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#55-q" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 异策略Q学习算法
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#56-21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 编程实践：蒙特卡罗学习求解21点游戏的最优策略
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#57-gym" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 编程实践：构建基于gym的有风的格子世界及个体
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#571-gym" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7.1 gym库简介
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#572" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7.2 状态序列的管理
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#582-sarsa" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8.2 Sarsa（λ）算法
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#583-q" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8.3 Q学习算法
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="导航栏" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../../../index.html" class="md-path__link">
+        
+  <span class="md-ellipsis">
+    首页
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      
+  
+  
+    
+    
+      
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="index.html" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    书籍
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+    
+    
+      
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="index.html" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    机器学习
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="index.html" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    强化学习入门
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="5">第5章 无模型的控制<a class="headerlink" href="#5" title="Permanent link">&para;</a></h1>
+<p>前一章内容讲解了个体在不依赖模型的情况下如何进行预测，也就是求解在给定策略下的状态价值或行为价值函数。本章主要讲解在无模型的条件下如何通过个体的学习优化价值函数，同时改善自身行为的策略，以最大化获得累积奖励的过程（这一过程称作“无模型的控制”）。</p>
+<p>生活中有很多关于优化控制的问题，比如控制一个大厦内的多部电梯使得效率更高，控制直升机的特技飞行、机器人足球世界杯上控制机器人球员、围棋游戏等。这些问题要么环境复杂，我们对其环境动力学的特点无法掌握，例如无法精确地描述直升机特技飞行时的空气流动特征、球场上每一个机器人球员位置和姿态；要么虽然问题的规则容易精确描述，也就是环境动力学特征是已知的，但是问题的规模太大，以至于计算机根据一般算法无法高效地求解。例如，围棋游戏的规则很简单，但是这一规则会形成规模极其庞大的棋局。如果使用传统的方法来构建一个智能的围棋手是极其困难的。从强化学习的角度来说，描述围棋问题的状态空间极其宏大。不过无论问题属于以上何种情况，使用最先进的强化学习技术目前都能较好地解决。</p>
+<p>在学习用动态规划进行策略评估、优化时，我们能体会到个体在与环境进行交互时，其实际交互的行为需要基于一个策略来产生。在评估一个状态或行为的价值时，也需要基于一个策略，因为不同的策略下同一个“状态”或“状态-行为对”（State-Action Pair）的价值是不同的。我们把用来指导个体产生与环境进行实际交互行为的策略称为行为策略，把用来评价状态或行为价值的策略或者待优化的策略称为目标策略。如果个体在学习过程中优化的策略与自己的行为策略是同一个策略，那么这种学习方式就称为同策略学习（On-policyLearning）。如果个体在学习过程中优化的策略与自己的行为策略是不同的策略，那么这种学习方式就称为异策略学习（Off-policyLearning，或称为离策略学习）。</p>
+<p>从已知模型、基于全宽度采样的动态规划学习转至模型未知的、基于采样的蒙特卡罗或时序差分学习，所进行的控制是高效解决中等规模实际问题的一个突破。基于这些思想产生了一些经典的理论和算法，如不完全贪婪搜索策略、同策略蒙特卡罗控制、同策略时序差分学习、属于异策略学习算法的Q学习等。下文将详细论述。</p>
+<h2 id="51">5.1 行为价值函数的重要性<a class="headerlink" href="#51" title="Permanent link">&para;</a></h2>
+<p>在无模型的控制时，因为无法精确知晓状态间的转移概率，所以无法使用基于状态转移概率来改善贪婪策略，公式如下：</p>
+<div class="arithmatex">\[
+\pi^{\prime} (s) = \underset{a \in A} {\arg \max} \left(R_{s} ^{a} + P_{s s^{\prime}} ^{a} V (s^{\prime})\right)
+\]</div>
+<p>这不难理解，就拿第2章提到的学生学习一门课的马尔可夫决策过程的例子来说，假设我们需要在贪婪策略下确定学生处在“第三节课”时的价值，就需要比较学生在“第三节课”后所能采取的“学习”和“泡吧”这两个行为之后状态的价值。对于继续“学习”比较简单，在获得一个价值为10的即时奖励之后，进入价值恒为0的“退出休息”状态，此时得到在“第三节课”后选择继续“学习”的价值为+10；而选择“泡吧”时，计算就没那么简单了，因为在“泡吧”过后学生自己并不确定将回到哪个状态，因此无法直接用某一个状态的价值来计算“泡吧”行为的价值。环境按照一定的概率（分别为0.2、0.4、0.4）把学生重新分配至“第一节课”“第二节课”或“第三节课”。也只有在知道这3个概率值后，我们才能根据后续这3个状态的价值计算出“泡吧”行为的价值为+9.4，根据贪婪策略，学生在“第三节课”的价值为+10。在基于采样的强化学习时，我们无法事先精确知道这些状态之间在不同行为下的转移概率，因而无法单独基于状态的价值来改善我们的贪婪策略。</p>
+<p>生活中也是如此，有时一个人给自己制定了一个价值很高的目标，却发现不知采取什么行为来达到这个目标。与其花时间比较目标与现实的差距，倒不如立足于当下，在所有可用的行为中选择一个最高价值的行为。因此，如果能够确定某个状态下所有可能的行为的价值，那么自然比较容易从中选出一个最优价值的行为。实践证明，在无模型的强化学习问题中，确定“状态行为对”的价值要容易很多。</p>
+<p>生活中有些人喜欢做事但不善于总结，这类人一般要比那些勤于总结的人进步慢，从策略迭代的角度看，这类人的策略更新迭代周期较长；有些人在总结经验上过于勤快，甚至在一件事情还没有完全定论时就急于总结并推理过程之间的关系，这种总结得到的经验有可能是错误的。强化学习中的个体也是如此，为了让个体尽早找到最优策略，可以适当加快策略迭代的速度，但是在一个不完整的状态序列学习中则要注意不能过多地依赖状态序列中相邻“状态-行为对”的关系。基于蒙特卡罗方法的学习所利用的是完整的状态序列，为了加快学习速度，可以在只经历一个完整状态序列后就进行策略迭代；在进行基于时序差分的学习时，虽然学习速度可以更快，但是要注意减少对事件估计的偏差。</p>
+<h2 id="52">5.2 贪婪策略<a class="headerlink" href="#52" title="Permanent link">&para;</a></h2>
+<p>在前文讲解动态规划进行策略迭代时，初始阶段我们选择的是均匀随机策略（Uniform Random Policy），而进行过一次迭代后，我们选择了贪婪策略（Greedy Policy），即每一次只选择能到达具有最大价值的状态所对应的行为，在随后的每一次迭代中都使用这个贪婪策略。实验发现，这样能够明显加快找到最优策略的速度。贪婪搜索策略在基于模型的动态规划算法中能收敛至最优策略（价值），但这在无模型、基于采样的蒙特卡罗或时序差分学习中却通常不能收敛至最优策略。这3种算法都采用通过后续状态价值回溯的办法来确定当前状态价值，不过动态规划算法还是考虑了一个状态后续所有状态的价值，而后其他两种算法仅能考虑到在学习过程中有限次数的、通过采样经历过的状态，那些事实存在但还没经历过的状态，对于蒙特卡罗和时序差分算法来说，都是未探索的、不被考虑的状态，有些状态虽然在学习过程中经历过，但是经历次数不多，对其价值的估计也不一定准确。试想一下，有一些事实上价值较高的状态，个体由于一些原因从未经历过，此时使用贪婪算法将始终无法探索到这些状态，因而也“无缘”经历这些状态了。同样的道理，使用贪婪算法，那些曾经经历过但被算法认为价值较低的状态也很难再次被个体选择并继续“光顾”。这两种情况都将导致无法得到一个最优的策略。</p>
+<p>举个例子：假设你刚搬到一个街区，街上有两家餐馆，你决定去两家都尝试一下并给自己的就餐体验打个分，分值在0～10分之间，分值越高表明你对就餐体验的满意度越高。你先体验了第一家，觉得一般，给了5分；过了几天你去了第二家，觉得不错，给了8分。此时，如果选择贪婪策略来指导你选择下次就餐要去的餐馆，则你将只会去评分高的那家餐馆就餐，也就是下一次你将继续选择去第二家餐馆。假设第二次去这家餐馆，你的满意度没有上一次好，给了6分。经过了这3次体验后，你对第一家餐馆的评分为5分，对第二家的评分平均下来是7分。之后你仍然选择贪婪策略，下一次体验仍然是去第二家，假设体验为7分，那么经过这4次体验之后，你能确认对你来说第二家餐馆就一定比第一家好吗？答案是否定的，原因在于你只去了一次第一家餐馆，仅靠这一次的体验是不可靠的。贪婪策略并不意味着你今后就一定无法选择去第一家就餐，但是只有在你去过一定次数的第二家餐馆，并且平均的满意度低于第一家的评分5分时，那么下一次你才会选择去第一家餐馆。如果你对第二家餐馆的平均体验评分一直在第一家的5分之上，依据贪婪策略，你将不会再去第一家餐馆体验。也许你第一次去第一家餐馆就餐时恰好碰到他们刚开业，各方面服务还不完善，但是现在已经做得很好了。贪婪策略有可能使你错失在第一家餐馆就餐的美好体验。</p>
+<p>采取贪婪策略还有一个问题，就是如果这条街上新开了一家餐馆，且你对没有去过的餐馆评分为最低的0，那就将永远不会去尝试这</p>
+<p>家新开的餐馆。</p>
+<p>贪婪策略产生问题的根源是无法保证持续地探索。为了解决这个问题，一种不完全的贪婪（ϵ-Greedy）搜索策略被提出来，它的基本思想就是保证能做到持续的探索，具体通过设置一个较小的ϵ值，使用1-ϵ的概率贪婪地选择目前认为是最大价值的行为，而用ϵ的概率随机地从所有m个可选行为中选择行为，即</p>
+<div class="arithmatex">\[
+\pi (a | s) = \left\{\begin{array}{l l} \epsilon / m + 1 - \epsilon &amp; \text{如果} a^{*} = \underset{a \in A} {\operatorname{argmax}} Q (s, a) \\ \epsilon / m &amp; \text{其他} \end{array} \right. \tag{5.1}
+\]</div>
+<h2 id="53">5.3 同策略蒙特卡罗控制<a class="headerlink" href="#53" title="Permanent link">&para;</a></h2>
+<p>同策略蒙特卡罗控制在通过ϵ贪婪策略采样一个或多个完整的状态序列后，平均得出某一“状态-行为对”（State-Action Pair）的价值，并持续进行策略的评估和改善。通常可以在仅得到一个完整状态序列后就进行一次策略迭代以加速迭代过程。</p>
+<p>使用ϵ贪婪策略进行同策略蒙特卡罗控制仍然只能得到基于该策略的近似行为价值函数，这是因为该策略一直在进行探索，没有一个终止条件。因此我们必须关注以下两个方面：一方面，我们不想丢掉任何更好的信息和状态；另一方面，随着策略的改善，我们最终希望能终止于某一个最优策略。为此引入了一个理论概念：GLIE（Greedy inthe Limit with Infinite Exploration，也就是在有限时间内进行无限可能的探索）。它包含两层意思：</p>
+<p>一是所有的“状态-行为对”（State-Action Pair）会被无限次探索：</p>
+<div class="arithmatex">\[
+\lim_{k \rightarrow \infty} N_{k} (s, a) = \infty
+\]</div>
+<p>二是随着采样趋向无穷多，策略收敛至一个贪婪策略：</p>
+<div class="arithmatex">\[
+\lim_{k \rightarrow \infty} \pi_{k} (a \mid s) = 1 \left(a = \underset{a^{\prime} \in A} {\arg \max} Q_{k} (s, a^{\prime})\right)
+\]</div>
+<p>存在如下的定理：</p>
+<p>基于GLIE的蒙特卡罗控制能收敛至最优的“状态-行为”价值函数：</p>
+<div class="arithmatex">\[
+Q (s, a) \rightarrow q^{*} (s, a)
+\]</div>
+<p>如果在使用ϵ贪婪策略时能令ϵ随采样次数的无限增加而趋向于0，就符合GLIE。这样基于GLIE的蒙特卡罗控制流程如下：</p>
+<p>（1）基于给定策略π，采样第k个完整的状态序列 。
+（2）对于该状态序列中出现的每一“状态-行为对” ，更新其计数N和行为价值函数Q：</p>
+<div class="arithmatex">\[
+N \left(S_{t}, A_{t}\right) \leftarrow N \left(S_{t}, A_{t}\right) + 1
+\]</div>
+<div class="arithmatex">\[
+Q (S_{t}, A_{t}) \leftarrow Q (S_{t}, A_{t}) + \frac{1}{N (S_{t} , A_{t})} (G_{t} - Q (S_{t}, A_{t})) \tag{5.2}
+\]</div>
+<p>（3）基于新的行为价值函数Q以如下方式改善策略：</p>
+<div class="arithmatex">\[
+\epsilon \leftarrow 1 / k
+\]</div>
+<div class="arithmatex">\[
+\pi \leftarrow \epsilon - \text{greedy} (Q) \tag{5.3}
+\]</div>
+<p>在实际应用中，ϵ的取值可不局限于取1/k，只要符合GLIE特性的设计均可以收敛至最优策略（价值）。</p>
+<h2 id="54">5.4 同策略时序差分控制<a class="headerlink" href="#54" title="Permanent link">&para;</a></h2>
+<p>通过上一章关于预测的学习，我们体会到时序差分（TD）学习相比蒙特卡罗（MC）学习有很多优点：低变异性（即方差小），可以在线实时学习，可以学习不完整状态序列等。在控制问题上使用TD学习同样具备上述优点。在本节的同策略TD学习中，我们将介绍Sarsa算法和Sarsa（λ）算法，在下一节的异策略TD学习中将详细介绍Q学习算法。</p>
+<h2 id="541-sarsa">5.4.1 Sarsa算法<a class="headerlink" href="#541-sarsa" title="Permanent link">&para;</a></h2>
+<p>Sarsa的名称来源于图5.1所示的序列描述：针对一个状态S，个体通过行为策略产生一个行为A，执行该行为产生一个“状态-行为对”（S,A），环境收到个体的行为后会告诉个体即时奖励R以及后续进入的状态S'；个体在状态S'时遵循当前的行为策略产生一个新行为A'，个体此时并不执行该行为，而是通过行为价值函数得到后一个“状态-行为对”（S',A'）的价值，利用这个新的价值和即时奖励R来更新前一个“状态-行为对”（S,A）的价值。</p>
+<p><img alt="" src="images/c19cd40d3fd7d3a0bff1377b635533face7fd702576aa5506e69976aae12b1aa.jpg" /></p>
+<p class="caption">图5.1　Sarsa 算法示意图</p>
+
+<p>与MC算法不同的是，Sarsa算法在单个状态序列内的每一个时间步内，在状态S下采取一个行为A到达状态S'后都要更新“状态-行为对”（S,A）的价值Q（S,A）。这一过程同样使用ϵ贪婪策略进行策略迭代：</p>
+<div class="arithmatex">\[
+Q (S, A) \leftarrow Q (S, A) + \alpha \left(R + \gamma Q (S^{\prime}, A^{\prime}) - Q (S, A)\right) \tag{5.4}
+\]</div>
+<p>Sarsa的算法流程如算法1所述。</p>
+<pre class="pseudocode">
+\begin{algorithm}
+\caption{算法 1: Sarsa算法}
+\begin{algorithmic}
+state 输入: episodes, $\alpha$, $\gamma$
+state 输出: $Q$
+state 初始化: set $Q(s, a)$ arbitrarily, for each $s \in S$ and $a \in A(s)$; set $Q(terminal\ state, \cdot) = 0$
+for{each episode}
+    state $S \leftarrow$ first state of episode
+    state $A = policy(Q, S)$ (e.g. $\varepsilon$-greedy policy)
+    repeat
+        state $R, S' = perform\_action(S, A)$
+        state $A' = policy(Q, S')$ (e.g. $\varepsilon$-greedy policy)
+        state $Q(S, A) \leftarrow Q(S, A) + \alpha(R + \gamma Q(S', A') - Q(S, A))$
+        state $S \leftarrow S'$; $A \leftarrow A'$
+    until{$S$ is terminal state}
+endfor
+\end{algorithmic}
+\end{algorithm}
+</pre>
+
+<p>在Sarsa算法中，Q（S,A）的值使用一张大表来存储，这不是很适合解决规模很大的问题；对于每一个状态序列，在S状态时采取的行为A是基于当前行为策略的，也就是该行为是与环境进行交互实际使用的行为。在更新“状态-行为对”（S,A）的价值的循环里，个体状态<span class="arithmatex">\(S'\)</span> 下也依据该行为策略产生了一个行为 <span class="arithmatex">\(A'\)</span> ，该行为在当前循环周期内用来得到”状态-行为对”（S',A'）的价值，并借此来更新”状态-行为对”（S,A）的价值，在下一个循环周期（时间步）内，状态 <span class="arithmatex">\(S'\)</span> 和行为A'将转换身份为当前状态和当前行为，该行为将被执行。</p>
+<p>在更新行为价值时，参数α是学习速率参数，γ是衰减因子。当行为策略满足前文所述的GLIE特性，同时学习速率参数α满足 <span class="arithmatex">\(\sum_{t = 1} ^{\infty} \alpha_{t} = \infty\)</span> ，且 <span class="arithmatex">\(\sum_{t = 1} ^{\infty} \alpha_{t} ^{2} &lt; \infty\)</span> 时，Sarsa算法将收敛至最优策略和最优价值函数。</p>
+<p>我们使用一个经典环境的、有风的格子世界来解释Sarsa算法的学习过程。如图5.2所示，在一个10×7的长方形格子世界，标记一个起始位置S和一个目标位置G，格子下方的数字表示对应的列中有一定强度的风。当个体进入该列的某个格子时，会按图中箭头所示的方向自动移动数字表示的格数，借此来模拟格子世界中设定的风的作用。同样格子世界是有边界的，个体任意时刻只能处在格子世界内部的一个格子中。个体并不清楚这个格子世界的构造以及存在风的效应，也就是说它不知道格子是长方形的，也不知道边界在哪里，还不知道自己在里面移动一步后下一个格子与之前格子的相对位置关系，当然它也不清楚起始位置、终止目标的具体位置。但是，个体会记住曾经经过的格子，下次在进入这个格子时，它能准确地辨认出这个格子曾经什么时候来过。个体可以执行的行为是朝上、下、左、右移动一步。现在要求解的问题是个体应该遵循怎样的策略才能尽快从起始位置到达目标位置。</p>
+<p>为了用计算机程序解决这个问题，我们首先要将这个问题用强化学习的语言再描述一遍。这是一个无模型的控制问题，也就是要在不掌握马尔可夫决策过程的情况下寻找最优策略。环境世界中每一个格子可以用水平和垂直坐标来描述，如此构成拥有70个状态的状态空间S。行为空间A具有4个基本行为。环境的动力学特征（即环境规则）不被个体掌握，但个体每执行一个行为就会进入一个新的状态，该状态由环境告知个体，但环境不会直接告诉个体该状态的坐标位置。即时奖励是根据任务目标来设定的，现要求尽快从起始位置移动到目标位置，我们可以设定每移动一步只要不是进入目标位置就给予一个-1的惩罚，直至进入目标位置后获得奖励0同时永久停留在该位置。</p>
+<p><img alt="" src="images/8ffb4db084253c2f8544bf7f04bd4f848a49967222484b5049a594bb3e0bbe8b.jpg" /></p>
+<p class="caption">图5.2　有风的格子世界环境</p>
+
+<p>我们将在编程实践环节给出用Sarsa算法解决有风的格子世界问题的完整代码，这里先给出最优策略为依次采取右、右、右、右、右、右、右、右、右、下、下、下、下、左、左的行为序列。个体找到该最优策略的进度以及最优策略下个体从起始状态到目标状态的行为轨迹如图5.3所示。</p>
+<p><img alt="" src="images/6502fe304a18e3ba9f57c8c6888b1d9a12e0ea8d0f5312c4052f21b6d4149465.jpg" /></p>
+<p class="caption">图5.3　有风的格子世界最优路径和Sarsa算法学习曲线</p>
+
+<p>从图5.3中可以看出，个体在一开始的几百步甚至上千步都在尝试各种操作而没有完成一次从起始位置到目标位置的学习经历。不过一旦个体找到一次目标位置后，它的学习过程将明显加速，最终找到一条只需要15步的最短路径。由于格子世界的构造以及其内部存在风效应的影响，个体两次利用风的影响，先向右并向北漂移，到达最右上角后折返南下再左移才找到这条最短路径。其他路径均比该路径所花费的步数要多。</p>
+<h2 id="542-sarsa">5.4.2 Sarsa（λ）算法<a class="headerlink" href="#542-sarsa" title="Permanent link">&para;</a></h2>
+<p>在前一章，我们学习了n步收获，这里类似地引出一个n步Sarsa的概念。观察表5.1中所列的式子。</p>
+<p>表5.1　n步Q收获</p>
+<table><tr><td>n值</td><td>算法</td><td>n步收获的计算</td></tr><tr><td>1</td><td>Sarsa</td><td> $q_{t}^{(1)} = R_{t+1} + \gamma Q(S_{t+1}, A_{t+1})$ </td></tr><tr><td>2</td><td></td><td> $q_{t}^{(2)} = R_{t+1} + \gamma R_{t+2} + \gamma^{2}V(S_{t+2}, A_{t+2})$ </td></tr><tr><td>...</td><td>...</td><td>...</td></tr><tr><td>∞</td><td>MC</td><td> $q_{t}^{(\infty)} = R_{t+1} + \gamma R_{t+2} + \cdots + \gamma^{T-1}R_{T}$ </td></tr></table>
+
+<p>这里的 <span class="arithmatex">\(\mathrm{q_{t}}\)</span> 对应的是一个“状态-行为对” <span class="arithmatex">\(\left( s_{t} , a_{t} \right)\)</span> ，表示在某个状态下采取某个行为的价值大小。如果n=1，就表示“状态-行为对” <span class="arithmatex">\(\left( s_{t} , a_{t} \right)\)</span> 的价值Q可以用两部分来表示：一部分是离开状态 <span class="arithmatex">\(\mathrm{s_{t}}\)</span> 得到的即时奖励<span class="arithmatex">\(\mathrm{R} _{\mathrm{t} + 1}\)</span> （即时奖励仅与状态有关，与该状态下采取的行为无关）；另一部分是考虑了衰减因子的“状态-行为对”（ <span class="arithmatex">\(( \mathbf{\boldsymbol{s}} _{\mathrm{t + 1}} , \mathbf{\boldsymbol{a}} _{\mathrm{t + 1}} )\)</span> ）的价值，即环境给了个体一个后续状态 <span class="arithmatex">\(\boldsymbol{s} _{\mathrm{t + 1}}\)</span> ，观察在该状态基于当前策略得到的行为<span class="arithmatex">\(\mathrm{a} _{\mathrm{t} + 1}\)</span> 时的价值Q <span class="arithmatex">\(( \mathbf{\boldsymbol{s}} _{\mathrm{t + 1}} , \mathbf{\boldsymbol{a}} _{\mathrm{t + 1}} )\)</span> ）。当n=2时，就向前用2步的即时奖励，然后用后续的Q <span class="arithmatex">\(( \mathbf{\boldsymbol{s}} _{\mathrm{t + 2}} , \mathbf{\boldsymbol{a}} _{\mathrm{t + 2}} )\)</span> 代替。如果n趋向于无穷大，就表示一直用带衰减因子的即时奖励计算Q值，直至状态序列结束。定义n步Q收获（Q-return）为：</p>
+<div class="arithmatex">\[
+q_{t} ^{(n)} = R_{t + 1} + \gamma R_{t + 2} + \dots + \gamma^{n - 1} R_{t + n} + \gamma^{n} Q (S_{t + n}, A_{t + n}) \tag{5.5}
+\]</div>
+<p>有了如上定义，可以把n步Sarsa用n步Q收获来表示：</p>
+<div class="arithmatex">\[
+Q \left(S_{t}, A_{t}\right) \leftarrow Q \left(S_{t}, A_{t}\right) + \alpha \left(q_{t} ^{(n)} - Q \left(S_{t}, A_{t}\right)\right) \tag{5.6}
+\]</div>
+<p>类似于TD（λ），可以给n步Q收获中的每一步收获分配一个权重，并按权重对每一步Q收获求和，那么将得到 <span class="arithmatex">\(q_t^{\lambda}\)</span> 收获，它结合了所有n步Q收获：</p>
+<div class="arithmatex">\[
+q_{t} ^{\lambda} = (1 - \lambda) \sum_{n = 1} ^{\infty} \lambda^{n - 1} q_{t} ^{(n)} \tag{5.7}
+\]</div>
+<p>如果使用某一状态的 <span class="arithmatex">\(q_{t} ^{\lambda}\)</span> 收获来更新“状态-行为对”的Q值，那么可以表示成如下形式：</p>
+<div class="arithmatex">\[
+Q \left(S_{t}, A_{t}\right) \leftarrow Q \left(S_{t}, A_{t}\right) + \alpha \left(q_{t} ^{(\lambda)} - Q \left(S_{t}, A_{t}\right)\right) \tag{5.8}
+\]</div>
+<p>式（5.8）即为Sarsa（λ）的前视法，使用它更新Q价值需要经历完整的状态序列。与TD（λ）类似，我们也可以反向理解Sarsa（λ）。同样引入效用迹（Eligibility Trace，ET），不同的是这次的E值针对的不是一个状态，而是一个“状态-行为对”：</p>
+<div class="arithmatex">\[
+\begin{array}{l} E_{0} (s, a) = 0 \\ E_{t} (s, a) = \gamma \lambda E_{t - 1} (s, a) + 1 \left(S_{t} = s, A_{t} = a\right) \quad \gamma , \lambda \in [ 0, 1 ] \end{array} \tag{5.9}
+\]</div>
+<p>它体现的是一个结果与某一个或某一些“状态-行为对”的因果关系，表明那些离该结果近的“状态-行为对”和在得到该结果之前那些频繁发生的“状态-行为对”对于得到这个结果的影响最大。</p>
+<p>引入ET概念之后的Sarsa（λ）算法中对Q值更新的描述如下：</p>
+<div class="arithmatex">\[
+\delta_{t} = R_{t + 1} + \gamma Q (S_{t + 1}, A_{t + 1}) - Q (S_{t}, A_{t}) \tag{5.10}
+\]</div>
+<div class="arithmatex">\[
+Q (s, a) \leftarrow Q (s, a) + \alpha \delta_{t} E_{t} (s, a)
+\]</div>
+<p>式（5.10）便是后视法的Sarsa（λ），基于后视法的Sarsa（λ）算法将可以有效地在线学习，数据学习完即可丢弃。</p>
+<p>Sarsa（λ）的算法流程如算法2所述。</p>
+<pre class="pseudocode">
+\begin{algorithm}
+\caption{算法 2: Sarsa($\lambda$)算法}
+\begin{algorithmic}
+state 输入: episodes, $\alpha$, $\gamma$
+state 输出: $Q$
+state 初始化: set $Q(s, a)$ arbitrarily, for each $s \in S$ and $a \in A(s)$; set $Q(terminal\ state, \cdot) = 0$
+for{each episode}
+    state $E(s, a) = 0$ for each $s \in S$, $a \in A(s)$
+    state $S \leftarrow$ first state of episode
+    state $A = policy(Q, S)$ (e.g. $\varepsilon$-greedy policy)
+    repeat
+        state $R, S' = perform\_action(S, A)$
+        state $A' = policy(Q, S')$ (e.g. $\varepsilon$-greedy policy)
+        state $\delta \leftarrow R + \gamma Q(S', A') - Q(S, A)$
+        state $E(S, A) \leftarrow E(S, A) + 1$
+        for{all $s \in S$, $a \in A(s)$}
+            state $Q(s, a) \leftarrow Q(s, a) + \alpha \delta E(s, a)$
+            state $E(s, a) \leftarrow \gamma \lambda E(s, a)$
+        endfor
+        state $S \leftarrow S'$; $A \leftarrow A'$
+    until{$S$ is terminal state}
+endfor
+\end{algorithmic}
+\end{algorithm}
+</pre>
+
+<p>需要提及的是E（s,a），在每浏览完一个状态序列后需要重新置0，这体现了效用迹仅在一个状态序列中发挥作用；另外，算法更新Q和E的时候针对的不是某个状态序列中的Q或E，而是针对个体掌握的整个状态空间和行为空间产生的Q和E。算法为什么这么做，留给读者思考。我们将会在编程实践部分实现Sarsa（λ）算法。</p>
+<h2 id="543-sarsasarsa">5.4.3 比较Sarsa和Sarsa（λ）<a class="headerlink" href="#543-sarsasarsa" title="Permanent link">&para;</a></h2>
+<p>图5.4用格子世界的例子具体解释了Sarsa和Sarsa（λ）算法的区别。假设图5.4最左侧描述的路线是个体采取两种算法中的一个所得到的一个完整状态序列的路径，为了下文更方便地描述、解释两个算法之间的区别，先做几个合理的约定：</p>
+<p>（1）认定每一步的即时奖励为0，直到终点处即时奖励为1。
+（2）根据算法，除了终点以外的任何“状态-行为对”的Q值都可以在初始时设为任意值，但我们设定所有的Q值均为0。
+（3）该路线是个体第一次找到终点的路线。</p>
+<p>Sarsa算法：由于是同策略学习，刚开始个体对环境一无所知，即所有的Q值均为0，因此它将随机选取移步行为。在到达终点前的每一个位置S，个体依据当前策略产生一个移步行为，执行该行为，环境会将其放置到一个新位置S'，同时给予即时奖励0。在这个新位置上，根据当前的策略它会产生新位置下的一个行为，个体不执行该行为，仅仅在表中查找新状态下新行为的Q值。由于Q=0，依据更新公式，它将把刚才离开的位置以及对应行为的“状态-行为对”的价值Q更新为0。如此直至个体最后到达终点位置 <span class="arithmatex">\(\mathrm{. S_{G}}\)</span> ，获得一个即时奖励1，此时个体会依据公式，更新其到达终点位置前所在位置（暂用 <span class="arithmatex">\(S_H\)</span> 表示，也就是终点位置下方，向上的箭头所在的位置）采取向上移步的“状态-行为对”的价值Q <span class="arithmatex">\(( \mathrm{S_{H} , A_{u p} )}\)</span> ），它将不再是0，这是个体在这个状态序列中唯一一次用非0数值来更新Q值。这样完成一个状态序列，此时个体已经并且只进行了一次有意义（非零）的行为价值函数的更新；同时依据新的价值函数产生了新的策略。这个策略绝大多数与之前的策略相同，只是当个体处在特殊位置 <span class="arithmatex">\(S_{\mathrm{H}}\)</span> 时将会有一个近乎确定的向上的移步行为。这里不要误认为Sarsa算法只在经历一个完整的状态序列之后才更新，在这个例子中，由于我们的设定，它每走一步都会更新，只是多数时候更新的数据和原来一样罢了。</p>
+<p><img alt="" src="images/0f7867f9a04b53d9c9571dd15f1b4383f427b2269689a5e69eadf1b692fd499f.jpg" /></p>
+<p class="caption">图5.4　图解Sarsa和Sarsa（λ）算法的区别</p>
+
+<p>此时，如果要求个体继续学习，环境将个体再次放入起点。个体的第二次寻路过程一开始与首次一样都是盲目且随机的，直到其进入终点位置下方的位置 <span class="arithmatex">\(S_H\)</span> 。在这个位置，个体更新的策略将使其有非常大的概率选择向上的移步行为，于是直接进入终点位置 <span class="arithmatex">\(S_G\)</span> 。</p>
+<p>同样，经过第二次寻路，个体了解到到达终点下方的位置 <span class="arithmatex">\(S_{\mathrm{H}}\)</span> 的价值比较大，因为在这个位置直接采取向上的移步行为就可以拿到到达终点的即时奖励。因此，它会将那些通过移动一步就可以到达 <span class="arithmatex">\(S_{\mathrm{H}}\)</span> 位置的其他位置以及相应的到达该位置所要采取的行为集合所对应的价值进行提升。如此反复，如果采用贪婪策略进行更新，那么个体最终将得到一条到达终点的路径，不过这条路径的倒数第二步永远是在终点位置的下方。如果采用ϵ贪婪策略进行更新，那么个体还会尝试到终点位置的左、上、右等其他方向的相邻位置，如果价值也比较大，那么个体每次完成的路径就可能都不一样。通过重复多次搜索，这种实质上有意义的Q值更新将覆盖越来越多的“状态-行为对”，个体在早期采取的随机行为的步数将越来越少，直至最终实质性的更新覆盖到起始位置。此时个体将能直接给出一条确定的从起点到终点的路径。</p>
+<p>Sarsa（λ）算法：该算法同时还针对每一次状态序列维护一个关于“状态-行为对”（S,A）的E表，初始时E表值均为0。当个体首次在起点 <span class="arithmatex">\(S_0\)</span> 决定移动一步 <span class="arithmatex">\(A_0\)</span> （假设向右）时，它被环境告知新位置为 <span class="arithmatex">\(S_1\)</span> ，此时发生如下事情：首先，个体会做一个标记，使E <span class="arithmatex">\((S_0, A_0)\)</span> ）的值增加</p>
+<p>1，表明个体刚刚经历过这个事件 <span class="arithmatex">\((S_0, A_0)\)</span> ）；其次，它要估计这个事件对于解决整个问题的价值，也就是估计TD误差，依据公式可得到结果为0，说明个体认为在起点处向右走没有什么价值。“没有什么价值”有两层含义：一是说明在 <span class="arithmatex">\(S_0\)</span> 处往右对解决问题没有积极的帮助，二是表明个体认为所有能够到达 <span class="arithmatex">\(S_0\)</span> 状态的“状态-行为对”的价值没有任何积极或消极的变化。随后，个体将要更新该状态序列中所有已经经历的Q（S,A）值，由于存在E值，那些在 <span class="arithmatex">\((S_0, A_0)\)</span> ）之前近期发生或频繁发生的（S,A）的Q值将改变得比其他Q值明显些，此外个体还要更新其E值，以备下次使用。对于刚从起点出发的个体，这次更新没有使得任何Q值发生变化，仅仅在E <span class="arithmatex">\((S_0, A_0)\)</span> ）处有了一个实质的变化。随后的过程类似，个体的发现就是对路径有一个记忆，体现在E里，具体的Q值没有发生变化。这个情况直到个体到达终点位置时发生改变。此时个体得到了一个即时奖励1，它会发现这一次变化 <span class="arithmatex">\((S_H)\)</span> 采取向上移步行为 <span class="arithmatex">\(A_{up}\)</span> 到达 <span class="arithmatex">\(S_G\)</span> ）价值明显，它会计算这个TD误差为1，同时告诉整个经历过程中所有的（S,A），根据它与 <span class="arithmatex">\((S_H, A_{up})\)</span> ）的密切关系更新这些“状态-行为对”的价值Q，个体在这个状态序列中经历的所有“状态-行为对”的Q值都将得到一个非0的更新，但是那些在个体到达 <span class="arithmatex">\(S_H\)</span> 之前就近发生以及频繁发生的“状态-行为对”的价值提升得更加明显。</p>
+<p>在图示的例子中没有显示某一“状态-行为对”频发的情况，如果个体在寻路的过程中绕过一些弯，多次到达同一个位置，并在该位置采取相同的行为，最终到达终止状态，就产生了多次发生的（S,A），这时的（S,A）价值将会得到较多的提升。也就是说，个体每得到一个即时奖励，就会对所有历史事件的价值进行更新，当然那些与该事件关系紧密的事件价值改变得较为明显。这里的事件指的就是“状态-行为对”。在同一状态采取不同行为就是不同的事件。</p>
+<p>当个体重新从起点第二次出发时，它会发现起点处向右走移步的价值不再是0。如果采用贪婪策略进行更新，个体将根据上次经验得到的新策略直接选择向右移步，并且一直按照原路找到终点。如果采用ϵ贪婪策略进行更新，那么个体还会尝试新的路线。为了解释方便，这里做了一些约定，并不要求个体找到最短的一条路径，如果需要寻找最短路径，那么在每一次状态转移时给个体一个负的奖励。</p>
+<p>Sarsa（λ）算法在状态每发生一次变化后，都对整个状态空间和行为空间的Q和E值进行更新，而事实上在每一个状态序列中只有个体经历过的“状态-行为对”的E才可能不为0。那么为什么不仅仅对该状态序列涉及的“状态-行为对”进行更新呢？留给读者思考。</p>
+<h2 id="55-q">5.5 异策略Q学习算法<a class="headerlink" href="#55-q" title="Permanent link">&para;</a></h2>
+<p>同策略学习的特点是产生实际行为的策略与更新价值（评价）所使用的策略是同一个策略，而异策略学习（Off-Policy Learning）中产生指导自身行为的策略 <span class="arithmatex">\(\mu ( a | s )\)</span> 与目标策略 <span class="arithmatex">\(\pi ( a | s ) .\)</span> 是不同的策略。具体地说，个体通过策略 <span class="arithmatex">\(. \mu ( a | s )\)</span> 生成行为与环境发生实际交互，但是在更新这个“状态-行为对”的价值时使用的是目标策略 <span class="arithmatex">\(\pi ( a | s )\)</span> 。目标策略<span class="arithmatex">\(\pi ( a | s )\)</span> 多数是已经具备一定能力的策略，例如人类已有的经验或其他个体学习到的经验。异策略学习相当于站在目标策略 <span class="arithmatex">\(\pi ( {\boldsymbol{a}} | {\boldsymbol{s}} )\)</span> 的“肩膀”上学习。异策略学习根据是否经历完整的状态序列，可以分为基于蒙特卡罗的异策略和基于TD的异策略。基于蒙特卡罗的异策略学习目前认为仅有理论上的研究价值，在实际中应用中用处不大。这里主要讲解常用的异策略TD学习。</p>
+<p>异策略TD学习任务就是使用TD方法在目标策略 <span class="arithmatex">\(\pi ( {\boldsymbol{a}} | {\boldsymbol{s}} )\)</span> 的基础上更新行为价值，进而优化行为策略：</p>
+<div class="arithmatex">\[
+V \left(S_{t}\right) \leftarrow V \left(S_{t}\right) + \alpha \left(\frac{\pi \left(A_{t} \mid S_{t}\right)}{\mu \left(A_{t} \mid S_{t}\right)} \left(R_{t + 1} + \gamma V \left(S_{t + 1}\right)\right) - V \left(S_{t}\right)\right)
+\]</div>
+<p>对于上式，我们可以这样理解：个体处在状态 <span class="arithmatex">\(S_t\)</span> 中，基于行为策略μ产生了一个行为 <span class="arithmatex">\(A_t\)</span> ，执行该行为后进入新的状态 <span class="arithmatex">\(S_{t+1}\)</span> ，异策略学习要做的事情就是，比较异策略和行为策略在状态 <span class="arithmatex">\(S_t\)</span> 下产生同样的行为 <span class="arithmatex">\(A_t\)</span> 的概率的比值，如果这个比值接近1，说明两个策略在状态 <span class="arithmatex">\(S_t\)</span> 下采取的行为 <span class="arithmatex">\(A_t\)</span> 的概率差不多，此次对于状态 <span class="arithmatex">\(S_t\)</span> 价值的更新同时得到两个策略的支持。如果这一概率比值很小，则表明异策略π在状态 <span class="arithmatex">\(S_t\)</span> 下选择 <span class="arithmatex">\(A_t\)</span> 的机会要小一些，此时为了从异策略学习，我们认为这一步状态价值的更新不是很符合异策略，因而在更新时打些折扣。类似地，如果这个概率比值大于1，说明按照异策略，选择行为 <span class="arithmatex">\(A_t\)</span> 的概率要大于当前行为策略产生 <span class="arithmatex">\(A_t\)</span> 的概率，此时对该状态的价值更新就可以大胆些。</p>
+<p>异策略TD学习中一个典型的行为策略μ是基于行为价值函数<span class="arithmatex">\(\mathsf{Q}(s, a)\)</span> ）的ϵ贪婪策略，异策略π则是基于 <span class="arithmatex">\(\mathbf{Q}(S, a)\)</span> ）的完全贪婪策略，这种学习方法称为Q学习（Q Learning）。</p>
+<p>Q学习的目标是得到最优价值 <span class="arithmatex">\(\mathsf{Q}(s, a)\)</span> ），在Q学习的过程中，t时刻与环境进行实际交互的行为 <span class="arithmatex">\(A_t\)</span> 由策略μ产生：</p>
+<div class="arithmatex">\[
+A_{t} \sim \mu (\cdot | S_{t})
+\]</div>
+<p>其中，策略μ是一个ϵ贪婪策略。t+1时刻用来更新Q值的行为 <span class="arithmatex">\(A_{t + 1} ^{\prime}\)</span> 由下式产生：</p>
+<div class="arithmatex">\[
+A_{t + 1} ^{\prime} \sim \pi (\cdot | S_{t + 1})
+\]</div>
+<p>其中，策略π是一个完全贪婪策略。 <span class="arithmatex">\(Q(S_t, A_t)\)</span> ）按下式更新：</p>
+<div class="arithmatex">\[
+Q \left(S_{t}, A_{t}\right) \leftarrow Q \left(S_{t}, A_{t}\right) + \alpha \left(R_{t + 1} + \gamma Q \left(S_{t + 1}, A^{\prime}\right) - Q \left(S_{t}, A_{t}\right)\right)
+\]</div>
+<p>其中，TD目标 <span class="arithmatex">\(R_{t + 1} + \gamma Q ( S_{t + 1} , A^{\prime} )\)</span> 是基于异策略π产生的行为 <span class="arithmatex">\(A'\)</span> 得到的Q值。根据这种价值更新的方式，状态 <span class="arithmatex">\(S_t\)</span> 依据ϵ贪婪策略得到的行为 <span class="arithmatex">\(A_t\)</span> 的价值，将朝着 <span class="arithmatex">\(S_{t+1}\)</span> 状态下贪婪策略确定的最大行为价值的方向做一定比例的更新。这种算法能够使个体的行为策略μ更加接近贪婪策略，同时保证个体能持续探索并经历足够丰富的新状态，并最终收敛至最优策略和最优行为价值函数。</p>
+<p><img alt="" src="images/29f9fbd66a78d07e624a45f41b84fc98e973a2dfe7c10c3513a97c7c608f1943.jpg" /></p>
+<p class="caption">图5.5　Q学习算法示意图</p>
+
+<p>Q学习算法示意图如图5.5所示，具体的行为价值更新公式如下：</p>
+<div class="arithmatex">\[
+Q \left(S_{t}, A_{t}\right) \leftarrow Q \left(S_{t}, A_{t}\right) + \alpha \left(R + \gamma \max_{a^{\prime}} Q \left(S_{t + 1}, a^{\prime}\right) - Q \left(S_{t}, A_{t}\right)\right) \tag{5.11}
+\]</div>
+<p>Q学习的算法流程如算法3所述。</p>
+<pre class="pseudocode">
+\begin{algorithm}
+\caption{算法 3: Q学习算法}
+\begin{algorithmic}
+state 输入: episodes, $\alpha$, $\gamma$
+state 输出: $Q$
+state 初始化: set $Q(s, a)$ arbitrarily, for each $s \in S$ and $a \in A(s)$; set $Q(terminal\ state, \cdot) = 0$
+for{each episode}
+    state $S \leftarrow$ first state of episode
+    repeat
+        state $A = policy(Q, S)$ (e.g. $\varepsilon$-greedy policy)
+        state $R, S' = perform\_action(S, A)$
+        state $Q(S, A) \leftarrow Q(S, A) + \alpha\left(R + \gamma \max_{a} Q(S', a) - Q(S, A)\right)$
+        state $S \leftarrow S'$
+    until{$S$ is terminal state}
+endfor
+\end{algorithmic}
+\end{algorithm}
+</pre>
+
+<p>这里通过悬崖行走的例子（见图5.6）简要讲解Sarsa算法与Q学习算法在学习过程中的差别。任务要求个体从悬崖的一端以尽可能快的速度行走到悬崖的另一端，每多走一步给予-1的奖励。</p>
+<p><img alt="" src="images/17680c9e123762d4f86325e2436a4c4324a301056f1d7b2f066ae4bf59075909.jpg" /></p>
+<p class="caption">图5.6　悬崖行走示例</p>
+
+<p>在图5.6中，悬崖用灰色的长方形表示，一端是起点S，另一端是目标终点G。个体如果坠入悬崖将得到一个非常大的负向奖励（-100）并回到起点S。从中可以看出最优路线是贴着悬崖上方行走。Q学习算法可以较快地学习到这个最优策略，但是Sarsa算法学到的是与悬崖保持一定距离的安全路线。在两种学习算法中，由于生成行为的策略依然是ϵ贪婪策略，因此会偶尔发生坠入悬崖的情况，若ϵ贪婪策略中的ϵ随经历的增加而逐渐趋于0，则两种算法都将最后收敛至最优策略。</p>
+<h2 id="56-21">5.6 编程实践：蒙特卡罗学习求解21点游戏的最优策略<a class="headerlink" href="#56-21" title="Permanent link">&para;</a></h2>
+<p>在本节的编程实践中，我们将继续使用第4章21点游戏的例子，只是这次我们要使用基于同策略蒙特卡罗控制的方法来求解21点游戏玩家的最优策略。我们把第4章编写的Dealer、Player和Arena类保存至文件blackjack.py中，并加载这些类以及其他一些需要的库和方法：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">blackjack</span><span class="w"> </span><span class="kn">import</span> <span class="n">Player</span><span class="p">,</span> <span class="n">Dealer</span><span class="p">,</span> <span class="n">Arena</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">str_key</span><span class="p">,</span> <span class="n">set_dict</span><span class="p">,</span> <span class="n">get_dict</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">draw_value</span><span class="p">,</span> <span class="n">draw_policy</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">epsilon_greedy_policy</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+</span></code></pre></div>
+<p>目前的Player类不具备策略评估和更新策略的能力，我们基于Player类编写一个MC_Player类，使其具备使用蒙特卡罗控制算法进行策略更新的能力，代码如下：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">MC_Player</span><span class="p">(</span><span class="n">Player</span><span class="p">):</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;具备蒙特卡罗控制能力的玩家&#39;&#39;&#39;</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">自己的学习方法</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">learn_Q</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">episode</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="c1">## 从状态序列来学习Q值</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;从一个状态序列（Episode）学习&#39;&#39;&#39;</span>    <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">episode</span><span class="p">:</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">nsa</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Nsa</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">set_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Nsa</span><span class="p">,</span> <span class="n">nsa</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">q</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span><span class="n">a</span><span class="p">)</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">set_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">q</span><span class="o">+</span><span class="p">(</span><span class="n">r</span><span class="o">-</span><span class="n">q</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">nsa</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">total_learning_times</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="k">def</span><span class="w"> </span><span class="nf">reset_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;忘记既往学习经历&#39;&#39;&#39;</span>    <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">Nsa</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">total_learning_times</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="k">def</span><span class="w"> </span><span class="nf">epsilon_greedy_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dealer</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;这里的贪婪策略是带有状态序列参数的&#39;&#39;&#39;</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>    <span class="n">player_points</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_points</span><span class="p">()</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>    <span class="k">if</span> <span class="n">player_points</span> <span class="o">&gt;=</span> <span class="mi">21</span><span class="p">:</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>    <span class="k">if</span> <span class="n">player_points</span> <span class="o">&lt;</span> <span class="mi">12</span><span class="p">:</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>    <span class="n">A</span><span class="p">,</span> <span class="n">Q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>    <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_state_name</span><span class="p">(</span><span class="n">dealer</span><span class="p">)</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>    <span class="k">if</span> <span class="n">epsilon</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>    <span class="c1">#epsilon = 1.0/(self.total_learning_times+1)</span>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>    <span class="c1">#epsilon =</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>    <span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">player</span><span class="o">.</span><span class="n">total_learning_times</span><span class="p">))</span>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>    <span class="n">epsilon</span> <span class="o">=</span>
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>    <span class="mf">1.0</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="mi">4</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">player</span><span class="o">.</span><span class="n">total_learning_times</span><span class="p">))</span>
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>    <span class="k">return</span> <span class="n">epsilon_greedy_policy</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+</span></code></pre></div>
+<p>这样，MC_Player类就具备了学习Q值的方法和一个ϵ贪婪策略。接下来我们使用MC_Player类来生成对局，庄家的策略仍然不变。</p>
+<p>A = ["继续叫牌", "停止叫牌"]
+<div class="language-hcl highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="na">display</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="err">False</span>
+</span></code></pre></div></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">player</span> <span class="o">=</span> <span class="n">MC_Player</span><span class="p">(</span><span class="n">A</span> <span class="o">=</span> <span class="n">A</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="n">display</span><span class="p">)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">dealer</span> <span class="o">=</span> <span class="n">Dealer</span><span class="p">(</span><span class="n">A</span> <span class="o">=</span> <span class="n">A</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="n">display</span><span class="p">)</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">arena</span> <span class="o">=</span> <span class="n">Arena</span><span class="p">(</span><span class="n">A</span> <span class="o">=</span> <span class="n">A</span><span class="p">,</span> <span class="n">display</span><span class="o">=</span><span class="n">display</span><span class="p">)</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">arena</span><span class="o">.</span><span class="n">play_games</span><span class="p">(</span><span class="n">dealer</span><span class="o">=</span><span class="n">dealer</span><span class="p">,</span> <span class="n">player</span><span class="o">=</span><span class="n">player</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">200000</span><span class="p">,</span> <span class="n">show_statistic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># 输出结果类似如下形式:</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># 100%| 200000/200000 [00:25&lt;00:00, 7991.15it/s]</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># 共玩了200000局，玩家赢85019/和15790/输99191，胜率：0.43，不输率：0.50</span>
+</span></code></pre></div>
+<p>MC_Player学习到的行为价值函数和最优策略可以使用下面的代码绘制：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>draw_value(player.Q, useable_ace = True, is_q_dict=True, A = player.A)
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>draw_policy(epsilon_greedy_policy, player.A, player.Q, \
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>epsilon = 1e-10, useable_ace = True)
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>draw_value(player.Q, useable_ace = False, is_q_dict=True, A = player.A)
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>draw_policy(epsilon_greedy_policy, player.A, player.Q, \
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>epsilon = 1e-10, useable_ace = False)
+</span></code></pre></div>
+<p>绘制结果如图5.7所示。在策略图中，深色部分（上半部）为“停止叫牌”，浅色部分（下半部）为“继续叫牌”。基于第4章介绍的21点游戏规则，迭代20万次后得到的贪婪策略为：当玩家手中有“可用的牌A”时，牌点数达到17点，仍可选择叫牌；当玩家手中没有“可用的牌A”时，若庄家的明牌在2~7点则最好停止叫牌，若庄家的明牌为A或者超过7点则可以选择继续叫牌直至手中的牌点数到达16为止。训练次数并不多，因此策略图中还有一些零星的散点。</p>
+<p>可以编写代码生成一些对局的详细数据，观察具备MC控制能力的玩家的行为策略。</p>
+<p><img alt="" src="images/d9eb65e320515e6b2b264d5eaca7e04aa429a47d211986b8386123fd950b7552.jpg" /></p>
+<p>（a）最优策略（有可用的牌A）</p>
+<p><img alt="" src="images/41360595885b313f1f7e33d5d11ace0ccfa99947c797d54f325f73462bf20bce.jpg" /></p>
+<p>（b）行为价值（有可用的牌A）</p>
+<p><img alt="" src="images/13501e58497a9ba95982d9b13951f623ececd29a69a7901f9eddd1848898c8cd.jpg" /></p>
+<p>（c）最优策略（没有可用的牌A）</p>
+<p><img alt="" src="images/07514f3974753dcfa5c576b24fbe88ea501b1db66346e7b59a9f39f4e73afc92.jpg" /></p>
+<p>（d）行为价值（没有可用的牌A）</p>
+<p>图5.7　21点游戏蒙特卡罗控制学习结果（20万次迭代）</p>
+<h2 id="57-gym">5.7 编程实践：构建基于gym的有风的格子世界及个体<a class="headerlink" href="#57-gym" title="Permanent link">&para;</a></h2>
+<p>强化学习讲究个体与环境的交互，聚焦于如何提高个体在与环境交互中的智能水平。我们在进行编程实践时需要实现这些算法。为了验证这些算法的有效性，需要有相应的环境。我们既可以自己编写环境，像前面介绍的21点游戏那样，也可以借助一些别人编写的环境，把重点放在个体学习算法的实现上。本节将向大家介绍一个出色的基于Python的强化学习库（gym库），随后编写一个具备记忆功能的个体基类，为5.8节编写个体的各种学习算法做准备。</p>
+<h2 id="571-gym">5.7.1 gym库简介<a class="headerlink" href="#571-gym" title="Permanent link">&para;</a></h2>
+<p>gym库提供了一整套编程接口和丰富的强化学习环境，同时还提供了可视化功能，方便观察个体的训练结果。该库的核心在core.py文件中，定义了两个最基本的Env类和Space类。前者是所有环境类的基类，后者是所有空间类的基类。从Space基类派生出几个常用的空间类，其中最主要的是Discrete类和Box类。前者对应于一维离散空间，后者对应于多维连续空间。它们既可以应用在行为空间中，也可以用来描述状态空间。例如，描述第3章提到的4×4的格子世界，一共有16个状态，每个状态只需要用一个数字来描述即可，也就是说把这个问题的状态空间用Discrete（16）对象来描述就可以了，对应的行为空间可用Discrete（4）来描述。</p>
+<p>gym库的Env类包含如下几个关键的变量和方法：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Env</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    <span class="c1"># Set these in ALL subclasses</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="n">action_space</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="n">observation_space</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="c1"># Override in ALL subclasses</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span> <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;human&#39;</span><span class="p">,</span> <span class="n">close</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    <span class="k">return</span> <span class="k">def</span><span class="w"> </span><span class="nf">seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span> <span class="k">return</span> <span class="p">[]</span>
+</span></code></pre></div>
+<p>Env类是所有环境类的基类，只是定义了环境应该具备的属性和功能，具体的环境类需要重写（Override）这些方法以完成特定的功能。其中：</p>
+<p>·step()方法是最核心的方法，定义环境的动力学，确定个体的下一个状态、奖励信息、个体是否到达终止状态，以及一些额外的信息。其中，个体的下一个状态、奖励信息、个体是否到达终止状态是可以被个体用来进行强化学习训练的。</p>
+<p>·reset()方法用于重置环境，需要将个体的状态重置为初始状态并进行其他可能的一些初始化设置。环境应在个体与其交互前调用此方法。</p>
+<p>·seed()设置一些随机数的种子。</p>
+<p>·render()负责一些可视化工作。如果需要将个体与环境的交互以动画的形式展示出来，就要重写该方法。简单的UI设计可以用gym包装好的pyglet方法来实现，这些方法在rendering.py文件中定义。具体如何使用这些方法进行UI绘制，则需要了解基本的OpenGL编程思想和接口，这里就不展开了。</p>
+<p>在知道Env类的主要接口后，可以按照其接口规范编写自己的环境类用于个体训练。要使用gym库提供的功能，需要导入gym库：</p>
+<p>生成一个gym库内置的环境对象可以使用下面的代码：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">env</span> <span class="o">=</span> <span class="n">gym</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="s2">&quot;registered_env_name&quot;</span><span class="p">)</span> <span class="c1"># 参数为注册了的环境名称</span>
+</span></code></pre></div>
+<p>如果是使用自己编写的环境类，则可以像正常生成对象一样：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>env = MyEnvClassName()
+</span></code></pre></div>
+<p>个体在与gym环境进行交互时，最重要的一句代码是：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>state, reward, is_done, info = env.step(a)
+</span></code></pre></div>
+<p>在这句代码中，作为环境类的对象env执行了step（a）方法，方法的参数a是个体在当前状态时依据行为策略得到的行为。环境对象的step（a）方法返回由4个元素组成的元组，依次代表个体的下一个状态state、获得的即时奖励reward、是否到达终止状态is_done以及一个信息对象info。个体可以利用前3个元素的信息来进行训练，info对象则仅提供给编程者调试使用。</p>
+<p>我们已经编写了一个符合gym环境基类接口的格子世界环境类，并在此基础上实现了有风的格子世界环境、悬崖行走、随机行走等各种环境。为了节约篇幅，这里不再讲解格子世界的详细实现过程，有兴趣的读者可以参考本书附带的源代码。</p>
+<h2 id="572">5.7.2 状态序列的管理<a class="headerlink" href="#572" title="Permanent link">&para;</a></h2>
+<p>个体与环境进行交互时会生成一个或多个甚至大量的状态序列，如何管理好这些状态序列是编程实践环节一个比较重要的任务。状态序列是时间序列，在每一个时间步上个体与环境交互的信息包括个体的状态 <span class="arithmatex">\(( \mathrm{S} _{\mathrm{t}} )\)</span> 、采取的行为 <span class="arithmatex">\(\left( \mathrm{A} _{\mathrm{t}} \right)\)</span> 、上一个行为得到的奖励 <span class="arithmatex">\(\mathrm{R} _{\mathrm{t} + 1}\)</span> 这3个方面。描述一个完整的状态转换还应包括两个信息：下一时刻个体的状态 <span class="arithmatex">\(( \mathrm{S} _{\mathrm{t} + 1}\)</span> ）和下一时刻的状态是否是终止状态（is_end）。多个相邻的状态转换构成了一个状态序列。多个完整的状态序列形成了个体的整体记忆，用Memory或Experience表示。通常一个个体的记忆容量不是无限的，在记忆的容量用满的情况下，如果个体需要记录新发生的状态序列，可以选择忘记最早期的一些状态序列。</p>
+<p>在强化学习的个体训练中，如果使用MC学习算法，则需要学习完整的序列；如果使用TD学习，则最小的学习单位是一个状态转换。许多常用的TD学习算法刻意选择不连续的状态转换学习方式，以此来降低TD学习在一个序列中的偏差。在这种情况下是否把状态转换按时间次序以状态序列的形式进行管理就显得不那么重要了，这里为了解释一些MC学习类算法，仍然采取使用状态序列这一中间形式来管理个体的记忆。</p>
+<p>基于上述考虑，我们依次设计Transition类、Episode类和Experience类来综合管理个体与环境交互时产生的多个状态序列。限于篇幅，这里不介绍具体的实现代码，仅列出这些类中一些重要的属性和方法：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># 此段代码是不完整的代码，完整代码请参阅本书附带的源代码</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">Transition</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s0</span><span class="p">,</span> <span class="n">a0</span><span class="p">,</span> <span class="n">reward</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">is_done</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">s1</span><span class="p">):</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">s0</span><span class="p">,</span> <span class="n">a0</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">is_done</span><span class="p">,</span> <span class="n">s1</span><span class="p">]</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="c1"># ...</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="k">class</span><span class="w"> </span><span class="nc">Episode</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">total_reward</span> <span class="o">=</span> <span class="mi">0</span>    <span class="c1"># 获得总奖励值</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">trans_list</span> <span class="o">=</span> <span class="p">[]</span>    <span class="c1"># 状态转移列表</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e_id</span><span class="p">)</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>    <span class="c1"># 可以给状态序列（Episode）起个名字：&quot;成功闯关，黯然失败？&quot;</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trans</span><span class="p">:</span><span class="n">Transition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;将一个状态转换送入状态序列中，返回该序列当前的总奖励值&#39;&#39;&#39;</span>    <span class="c1"># ...</span>
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>
+</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>    <span class="nd">@property</span>
+</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">len</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a>    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trans_list</span><span class="p">)</span>
+</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a>
+</span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="__span-9-22"><a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;判断当前状态序列是否是一个完整的状态序列&#39;&#39;&#39;</span>    <span class="c1"># ...</span>
+</span><span id="__span-9-23"><a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a>
+</span><span id="__span-9-24"><a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+</span><span id="__span-9-25"><a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;从当前状态序列中随机产生一定数量不连续的状态转换&#39;&#39;&#39;</span>    <span class="c1"># ...</span>
+</span><span id="__span-9-26"><a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a>
+</span><span id="__span-9-27"><a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a><span class="k">class</span><span class="w"> </span><span class="nc">Experience</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+</span><span id="__span-9-28"><a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">20000</span><span class="p">):</span>
+</span><span id="__span-9-29"><a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a>
+</span><span id="__span-9-30"><a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a><span class="bp">self</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">capacity</span>    <span class="c1"># 容量：指的是</span>
+</span><span id="__span-9-31"><a id="__codelineno-9-31" name="__codelineno-9-31" href="#__codelineno-9-31"></a><span class="n">状态转换</span><span class="p">(</span><span class="n">trans</span><span class="p">)</span><span class="n">的总数量</span>
+</span><span id="__span-9-32"><a id="__codelineno-9-32" name="__codelineno-9-32" href="#__codelineno-9-32"></a>    <span class="n">selfEpisodes</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="__span-9-33"><a id="__codelineno-9-33" name="__codelineno-9-33" href="#__codelineno-9-33"></a>    <span class="c1"># 状态</span>
+</span><span id="__span-9-34"><a id="__codelineno-9-34" name="__codelineno-9-34" href="#__codelineno-9-34"></a><span class="n">序列</span><span class="p">(</span><span class="n">episode</span><span class="p">)</span><span class="n">列表</span>
+</span><span id="__span-9-35"><a id="__codelineno-9-35" name="__codelineno-9-35" href="#__codelineno-9-35"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">total_trans</span> <span class="o">=</span> <span class="mi">0</span>    <span class="c1"># 总的</span>
+</span><span id="__span-9-36"><a id="__codelineno-9-36" name="__codelineno-9-36" href="#__codelineno-9-36"></a><span class="n">状态转换数量</span>
+</span><span id="__span-9-37"><a id="__codelineno-9-37" name="__codelineno-9-37" href="#__codelineno-9-37"></a>
+</span><span id="__span-9-38"><a id="__codelineno-9-38" name="__codelineno-9-38" href="#__codelineno-9-38"></a><span class="k">def</span><span class="w"> </span><span class="nf">_remove_first</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-9-39"><a id="__codelineno-9-39" name="__codelineno-9-39" href="#__codelineno-9-39"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;删除第一个（最早的）状态序列&#39;&#39;&#39;</span>    <span class="c1"># ...</span>
+</span><span id="__span-9-40"><a id="__codelineno-9-40" name="__codelineno-9-40" href="#__codelineno-9-40"></a><span class="k">def</span><span class="w"> </span><span class="nf">push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trans</span><span class="p">):</span>
+</span><span id="__span-9-41"><a id="__codelineno-9-41" name="__codelineno-9-41" href="#__codelineno-9-41"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;记住一个状态转换，根据当前状态序列是否已经完整来将trans加入现有状态序列</span>
+</span><span id="__span-9-42"><a id="__codelineno-9-42" name="__codelineno-9-42" href="#__codelineno-9-42"></a><span class="sd">    还是开启一个新的状态序列&#39;&#39;&#39;</span>    <span class="c1"># ...</span>
+</span><span id="__span-9-43"><a id="__codelineno-9-43" name="__codelineno-9-43" href="#__codelineno-9-43"></a><span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+</span><span id="__span-9-44"><a id="__codelineno-9-44" name="__codelineno-9-44" href="#__codelineno-9-44"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;随机从经历中产生一定数量不连续的状态转换&#39;&#39;&#39;</span>    <span class="c1"># ...</span>
+</span><span id="__span-9-45"><a id="__codelineno-9-45" name="__codelineno-9-45" href="#__codelineno-9-45"></a><span class="k">def</span><span class="w"> </span><span class="nf">sample_episode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">episode_num</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+</span><span id="__span-9-46"><a id="__codelineno-9-46" name="__codelineno-9-46" href="#__codelineno-9-46"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;从经历中随机获取一定数量的完整状态序列&#39;&#39;&#39;</span>    <span class="c1"># ...</span>
+</span><span id="__span-9-47"><a id="__codelineno-9-47" name="__codelineno-9-47" href="#__codelineno-9-47"></a><span class="nd">@property</span>
+</span><span id="__span-9-48"><a id="__codelineno-9-48" name="__codelineno-9-48" href="#__codelineno-9-48"></a><span class="k">def</span><span class="w"> </span><span class="nf">last_episode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-9-49"><a id="__codelineno-9-49" name="__codelineno-9-49" href="#__codelineno-9-49"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;得到当前最新的一个状态序列&#39;&#39;&#39;</span>    <span class="c1">#...</span>
+</span><span id="__span-9-50"><a id="__codelineno-9-50" name="__codelineno-9-50" href="#__codelineno-9-50"></a>
+</span><span id="__span-9-51"><a id="__codelineno-9-51" name="__codelineno-9-51" href="#__codelineno-9-51"></a><span class="c1">## 5.7.3 个体基类的编写</span>
+</span><span id="__span-9-52"><a id="__codelineno-9-52" name="__codelineno-9-52" href="#__codelineno-9-52"></a>
+</span><span id="__span-9-53"><a id="__codelineno-9-53" name="__codelineno-9-53" href="#__codelineno-9-53"></a><span class="n">我们把重点放在编写一个描述个体的基类</span><span class="err">（</span><span class="n">Agent</span><span class="err">）</span><span class="n">上</span><span class="err">，</span><span class="n">为后续实现各种强化学习算法提供一个基础</span><span class="err">。</span><span class="n">这个基类符合gym库的接口规范</span><span class="err">，</span><span class="n">具备个体最基本的功能</span><span class="err">，</span><span class="n">同时希望个体具有一定容量的记忆功能</span><span class="err">，</span><span class="n">能够记住曾经经历过的一些状态序列</span><span class="err">。</span><span class="n">我们还希望个体在学习时能够记住一些学习过程</span><span class="err">，</span><span class="n">便于分析个体的学习效果等</span><span class="err">。</span><span class="n">有了个体基类之后</span><span class="err">，</span><span class="n">在讲解一个具体强化学习算法时仅需实现特定的方法即可</span><span class="err">。</span>
+</span><span id="__span-9-54"><a id="__codelineno-9-54" name="__codelineno-9-54" href="#__codelineno-9-54"></a>
+</span><span id="__span-9-55"><a id="__codelineno-9-55" name="__codelineno-9-55" href="#__codelineno-9-55"></a><span class="n">在第1章讲解强化学习初步概念时</span><span class="err">，</span><span class="n">已对个体类进行了一个初步的建模</span><span class="err">，</span><span class="n">这次要构建的是符合gym接口规范的Agent基类</span><span class="err">，</span><span class="n">其中一个最基本的要求是个体类的对象在构造时接受环境对象作为参数</span><span class="err">，</span><span class="n">内部也创建一个成员变量引用这个环境对象</span><span class="err">。</span><span class="n">在我们设计的个体基类中</span><span class="err">，</span><span class="n">它的成员变量包括对环境对象的应用</span><span class="err">、</span><span class="n">状态和行为空间</span><span class="err">、</span><span class="n">与环境交互产生的经历</span><span class="err">、</span><span class="n">当前状态等</span><span class="err">。</span>
+</span><span id="__span-9-56"><a id="__codelineno-9-56" name="__codelineno-9-56" href="#__codelineno-9-56"></a>
+</span><span id="__span-9-57"><a id="__codelineno-9-57" name="__codelineno-9-57" href="#__codelineno-9-57"></a><span class="n">此外对于个体来说</span><span class="err">，</span><span class="n">还应具备的能力有遵循策略产生一个行为</span><span class="err">、</span><span class="n">执行一个行为与环境交互</span><span class="err">、</span><span class="n">采用什么学习方法</span><span class="err">、</span><span class="n">具体如何学习</span><span class="err">，</span><span class="n">其中最关键的是个体执行行为与环境进行交互的方法</span><span class="err">。</span><span class="n">下面的代码实现了我们的需求</span><span class="err">。</span>
+</span><span id="__span-9-58"><a id="__codelineno-9-58" name="__codelineno-9-58" href="#__codelineno-9-58"></a>
+</span><span id="__span-9-59"><a id="__codelineno-9-59" name="__codelineno-9-59" href="#__codelineno-9-59"></a><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">env</span><span class="p">:</span><span class="n">Env</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">capacity</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">):</span>
+</span><span id="__span-9-60"><a id="__codelineno-9-60" name="__codelineno-9-60" href="#__codelineno-9-60"></a>    <span class="c1"># 保存一些个体（Agent）可以观测到的环境信息以及已经学到的经验</span>
+</span><span id="__span-9-61"><a id="__codelineno-9-61" name="__codelineno-9-61" href="#__codelineno-9-61"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">env</span> <span class="o">=</span> <span class="n">env</span>    <span class="c1"># 建立对环境对象的引用</span>
+</span><span id="__span-9-62"><a id="__codelineno-9-62" name="__codelineno-9-62" href="#__codelineno-9-62"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">obs_space</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">observation_space</span> <span class="k">if</span> <span class="n">env</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+</span><span id="__span-9-63"><a id="__codelineno-9-63" name="__codelineno-9-63" href="#__codelineno-9-63"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">action_space</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span> <span class="k">if</span> <span class="n">env</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+</span><span id="__span-9-64"><a id="__codelineno-9-64" name="__codelineno-9-64" href="#__codelineno-9-64"></a>    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_space</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="n">gym</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Discrete</span><span class="p">]:</span>
+</span><span id="__span-9-65"><a id="__codelineno-9-65" name="__codelineno-9-65" href="#__codelineno-9-65"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">S</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_space</span><span class="o">.</span><span class="n">n</span><span class="p">)]</span>
+</span><span id="__span-9-66"><a id="__codelineno-9-66" name="__codelineno-9-66" href="#__codelineno-9-66"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">n</span><span class="p">)]</span>
+</span><span id="__span-9-67"><a id="__codelineno-9-67" name="__codelineno-9-67" href="#__codelineno-9-67"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-9-68"><a id="__codelineno-9-68" name="__codelineno-9-68" href="#__codelineno-9-68"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">S</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+</span><span id="__span-9-69"><a id="__codelineno-9-69" name="__codelineno-9-69" href="#__codelineno-9-69"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">experience</span> <span class="o">=</span> <span class="n">Experience</span><span class="p">(</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">capacity</span><span class="p">)</span>
+</span><span id="__span-9-70"><a id="__codelineno-9-70" name="__codelineno-9-70" href="#__codelineno-9-70"></a>    <span class="c1"># 有一个变量记录个体agent当前的状态state相对来说还是比较方便的，</span>
+</span><span id="__span-9-71"><a id="__codelineno-9-71" name="__codelineno-9-71" href="#__codelineno-9-71"></a>    <span class="c1"># 要注意对该变量的维护和更新</span>
+</span><span id="__span-9-72"><a id="__codelineno-9-72" name="__codelineno-9-72" href="#__codelineno-9-72"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="kc">None</span>    <span class="c1"># 个体的当前状态</span>
+</span><span id="__span-9-73"><a id="__codelineno-9-73" name="__codelineno-9-73" href="#__codelineno-9-73"></a>
+</span><span id="__span-9-74"><a id="__codelineno-9-74" name="__codelineno-9-74" href="#__codelineno-9-74"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Q</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="__span-9-75"><a id="__codelineno-9-75" name="__codelineno-9-75" href="#__codelineno-9-75"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;均匀随机策略&#39;&#39;&#39;</span>    <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span><span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="__span-9-76"><a id="__codelineno-9-76" name="__codelineno-9-76" href="#__codelineno-9-76"></a>
+</span><span id="__span-9-77"><a id="__codelineno-9-77" name="__codelineno-9-77" href="#__codelineno-9-77"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">perform_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">Q</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">):</span>
+</span><span id="__span-9-78"><a id="__codelineno-9-78" name="__codelineno-9-78" href="#__codelineno-9-78"></a>    <span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">policy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+</span><span id="__span-9-79"><a id="__codelineno-9-79" name="__codelineno-9-79" href="#__codelineno-9-79"></a>    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+</span><span id="__span-9-80"><a id="__codelineno-9-80" name="__codelineno-9-80" href="#__codelineno-9-80"></a>
+</span><span id="__span-9-81"><a id="__codelineno-9-81" name="__codelineno-9-81" href="#__codelineno-9-81"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">act</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a0</span><span class="p">):</span>
+</span><span id="__span-9-82"><a id="__codelineno-9-82" name="__codelineno-9-82" href="#__codelineno-9-82"></a>    <span class="n">s0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span>
+</span><span id="__span-9-83"><a id="__codelineno-9-83" name="__codelineno-9-83" href="#__codelineno-9-83"></a>    <span class="n">s1</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">is_done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span>
+</span><span id="__span-9-84"><a id="__codelineno-9-84" name="__codelineno-9-84" href="#__codelineno-9-84"></a>    <span class="n">trans</span> <span class="o">=</span> <span class="n">Transition</span><span class="p">(</span><span class="n">s0</span><span class="p">,</span> <span class="n">a0</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">is_done</span><span class="p">,</span> <span class="n">s1</span><span class="p">)</span>
+</span><span id="__span-9-85"><a id="__codelineno-9-85" name="__codelineno-9-85" href="#__codelineno-9-85"></a>    <span class="n">total_reward</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">experience</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">trans</span><span class="p">)</span>
+</span><span id="__span-9-86"><a id="__codelineno-9-86" name="__codelineno-9-86" href="#__codelineno-9-86"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">s1</span>
+</span><span id="__span-9-87"><a id="__codelineno-9-87" name="__codelineno-9-87" href="#__codelineno-9-87"></a>    <span class="k">return</span> <span class="n">s1</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">is_done</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">total_reward</span>
+</span><span id="__span-9-88"><a id="__codelineno-9-88" name="__codelineno-9-88" href="#__codelineno-9-88"></a>
+</span><span id="__span-9-89"><a id="__codelineno-9-89" name="__codelineno-9-89" href="#__codelineno-9-89"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">learning_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lambda_</span> <span class="o">=</span> <span class="mf">0.9</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.9</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+</span><span id="__span-9-90"><a id="__codelineno-9-90" name="__codelineno-9-90" href="#__codelineno-9-90"></a>    <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-9-91"><a id="__codelineno-9-91" name="__codelineno-9-91" href="#__codelineno-9-91"></a>
+</span><span id="__span-9-92"><a id="__codelineno-9-92" name="__codelineno-9-92" href="#__codelineno-9-92"></a><span class="sd">&#39;&#39;&#39;这是一个没有学习能力的学习方法</span>
+</span><span id="__span-9-93"><a id="__codelineno-9-93" name="__codelineno-9-93" href="#__codelineno-9-93"></a>
+</span><span id="__span-9-94"><a id="__codelineno-9-94" name="__codelineno-9-94" href="#__codelineno-9-94"></a><span class="sd">具体针对某算法的学习方法，返回值需要是一个二维元组：(一个状态序列的时间步、该状态序列的总奖励值)&#39;&#39;&#39;</span>
+</span><span id="__span-9-95"><a id="__codelineno-9-95" name="__codelineno-9-95" href="#__codelineno-9-95"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</span><span id="__span-9-96"><a id="__codelineno-9-96" name="__codelineno-9-96" href="#__codelineno-9-96"></a><span class="n">s0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span>
+</span><span id="__span-9-97"><a id="__codelineno-9-97" name="__codelineno-9-97" href="#__codelineno-9-97"></a><span class="k">if</span> <span class="n">display</span><span class="p">:</span>
+</span><span id="__span-9-98"><a id="__codelineno-9-98" name="__codelineno-9-98" href="#__codelineno-9-98"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+</span><span id="__span-9-99"><a id="__codelineno-9-99" name="__codelineno-9-99" href="#__codelineno-9-99"></a><span class="n">a0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">perform_policy</span><span class="p">(</span><span class="n">s0</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+</span><span id="__span-9-100"><a id="__codelineno-9-100" name="__codelineno-9-100" href="#__codelineno-9-100"></a><span class="n">time_in_episode</span><span class="p">,</span> <span class="n">total_reward</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+</span><span id="__span-9-101"><a id="__codelineno-9-101" name="__codelineno-9-101" href="#__codelineno-9-101"></a><span class="n">is_done</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="__span-9-102"><a id="__codelineno-9-102" name="__codelineno-9-102" href="#__codelineno-9-102"></a><span class="k">while</span> <span class="ow">not</span> <span class="n">is_done</span><span class="p">:</span>
+</span><span id="__span-9-103"><a id="__codelineno-9-103" name="__codelineno-9-103" href="#__codelineno-9-103"></a>    <span class="n">s1</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">is_done</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">total_reward</span> <span class="o">=</span>
+</span><span id="__span-9-104"><a id="__codelineno-9-104" name="__codelineno-9-104" href="#__codelineno-9-104"></a><span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span>
+</span><span id="__span-9-105"><a id="__codelineno-9-105" name="__codelineno-9-105" href="#__codelineno-9-105"></a>    <span class="k">if</span> <span class="n">display</span><span class="p">:</span>
+</span><span id="__span-9-106"><a id="__codelineno-9-106" name="__codelineno-9-106" href="#__codelineno-9-106"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+</span><span id="__span-9-107"><a id="__codelineno-9-107" name="__codelineno-9-107" href="#__codelineno-9-107"></a>    <span class="n">a1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">perform_policy</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+</span><span id="__span-9-108"><a id="__codelineno-9-108" name="__codelineno-9-108" href="#__codelineno-9-108"></a>    <span class="n">s0</span><span class="p">,</span> <span class="n">a0</span> <span class="o">=</span> <span class="n">s1</span><span class="p">,</span> <span class="n">a1</span>
+</span><span id="__span-9-109"><a id="__codelineno-9-109" name="__codelineno-9-109" href="#__codelineno-9-109"></a>    <span class="n">time_in_episode</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="__span-9-110"><a id="__codelineno-9-110" name="__codelineno-9-110" href="#__codelineno-9-110"></a>    <span class="k">if</span> <span class="n">display</span><span class="p">:</span>
+</span><span id="__span-9-111"><a id="__codelineno-9-111" name="__codelineno-9-111" href="#__codelineno-9-111"></a>    <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">experience</span><span class="o">.</span><span class="n">last_episode</span><span class="p">)</span>
+</span><span id="__span-9-112"><a id="__codelineno-9-112" name="__codelineno-9-112" href="#__codelineno-9-112"></a>    <span class="k">return</span> <span class="n">time_in_episode</span><span class="p">,</span> <span class="n">total_reward</span>
+</span><span id="__span-9-113"><a id="__codelineno-9-113" name="__codelineno-9-113" href="#__codelineno-9-113"></a>
+</span><span id="__span-9-114"><a id="__codelineno-9-114" name="__codelineno-9-114" href="#__codelineno-9-114"></a><span class="k">def</span><span class="w"> </span><span class="nf">learning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lambda_</span> <span class="o">=</span> <span class="mf">0.9</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-9-115"><a id="__codelineno-9-115" name="__codelineno-9-115" href="#__codelineno-9-115"></a>    <span class="n">decaying_epsilon</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.9</span><span class="p">,</span>
+</span><span id="__span-9-116"><a id="__codelineno-9-116" name="__codelineno-9-116" href="#__codelineno-9-116"></a>    <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">max_episode_num</span> <span class="o">=</span> <span class="mi">800</span><span class="p">,</span>
+</span><span id="__span-9-117"><a id="__codelineno-9-117" name="__codelineno-9-117" href="#__codelineno-9-117"></a><span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-9-118"><a id="__codelineno-9-118" name="__codelineno-9-118" href="#__codelineno-9-118"></a>    <span class="n">total_time</span><span class="p">,</span> <span class="n">episode_reward</span><span class="p">,</span> <span class="n">num_episode</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+</span><span id="__span-9-119"><a id="__codelineno-9-119" name="__codelineno-9-119" href="#__codelineno-9-119"></a>    <span class="n">total_times</span><span class="p">,</span> <span class="n">episode_rewards</span><span class="p">,</span> <span class="n">num_episodes</span> <span class="o">=</span> <span class="p">[],</span>
+</span><span id="__span-9-120"><a id="__codelineno-9-120" name="__codelineno-9-120" href="#__codelineno-9-120"></a><span class="p">[],</span> <span class="p">[]</span>
+</span><span id="__span-9-121"><a id="__codelineno-9-121" name="__codelineno-9-121" href="#__codelineno-9-121"></a><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">max_episode_num</span><span class="p">)):</span>
+</span><span id="__span-9-122"><a id="__codelineno-9-122" name="__codelineno-9-122" href="#__codelineno-9-122"></a>    <span class="k">if</span> <span class="n">epsilon</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-9-123"><a id="__codelineno-9-123" name="__codelineno-9-123" href="#__codelineno-9-123"></a>    <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">1e-10</span>
+</span><span id="__span-9-124"><a id="__codelineno-9-124" name="__codelineno-9-124" href="#__codelineno-9-124"></a>    <span class="k">elif</span> <span class="n">decaying_epsilon</span><span class="p">:</span>
+</span><span id="__span-9-125"><a id="__codelineno-9-125" name="__codelineno-9-125" href="#__codelineno-9-125"></a>    <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">num_episode</span><span class="p">)</span>
+</span><span id="__span-9-126"><a id="__codelineno-9-126" name="__codelineno-9-126" href="#__codelineno-9-126"></a>    <span class="n">time_in_episode</span><span class="p">,</span> <span class="n">episode_reward</span> <span class="o">=</span>
+</span><span id="__span-9-127"><a id="__codelineno-9-127" name="__codelineno-9-127" href="#__codelineno-9-127"></a><span class="bp">self</span><span class="o">.</span><span class="n">learning_method</span><span class="p">(</span>
+</span><span id="__span-9-128"><a id="__codelineno-9-128" name="__codelineno-9-128" href="#__codelineno-9-128"></a>    <span class="n">lambda_</span> <span class="o">=</span> <span class="n">lambda_</span><span class="p">,</span>
+</span><span id="__span-9-129"><a id="__codelineno-9-129" name="__codelineno-9-129" href="#__codelineno-9-129"></a>    <span class="n">gamma</span><span class="o">=</span><span class="n">gamma</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span>
+</span><span id="__span-9-130"><a id="__codelineno-9-130" name="__codelineno-9-130" href="#__codelineno-9-130"></a>    <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">,</span>
+</span><span id="__span-9-131"><a id="__codelineno-9-131" name="__codelineno-9-131" href="#__codelineno-9-131"></a>    <span class="n">display</span><span class="o">=</span><span class="n">display</span><span class="p">)</span>
+</span><span id="__span-9-132"><a id="__codelineno-9-132" name="__codelineno-9-132" href="#__codelineno-9-132"></a>    <span class="n">total_time</span> <span class="o">+=</span> <span class="n">time_in_episode</span>
+</span><span id="__span-9-133"><a id="__codelineno-9-133" name="__codelineno-9-133" href="#__codelineno-9-133"></a>    <span class="n">num_episode</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="__span-9-134"><a id="__codelineno-9-134" name="__codelineno-9-134" href="#__codelineno-9-134"></a>    <span class="n">total_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">total_time</span><span class="p">)</span>
+</span><span id="__span-9-135"><a id="__codelineno-9-135" name="__codelineno-9-135" href="#__codelineno-9-135"></a>    <span class="n">episode_rewards</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">episode_reward</span><span class="p">)</span>
+</span><span id="__span-9-136"><a id="__codelineno-9-136" name="__codelineno-9-136" href="#__codelineno-9-136"></a>    <span class="n">num_episodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">num_episode</span><span class="p">)</span>
+</span><span id="__span-9-137"><a id="__codelineno-9-137" name="__codelineno-9-137" href="#__codelineno-9-137"></a><span class="c1"># self.experience.last_episode.print_detail()</span>
+</span><span id="__span-9-138"><a id="__codelineno-9-138" name="__codelineno-9-138" href="#__codelineno-9-138"></a>
+</span><span id="__span-9-139"><a id="__codelineno-9-139" name="__codelineno-9-139" href="#__codelineno-9-139"></a><span class="k">return</span> <span class="n">total_times</span><span class="p">,</span> <span class="n">episode_rewards</span><span class="p">,</span> <span class="n">num_episodes</span>
+</span><span id="__span-9-140"><a id="__codelineno-9-140" name="__codelineno-9-140" href="#__codelineno-9-140"></a>
+</span><span id="__span-9-141"><a id="__codelineno-9-141" name="__codelineno-9-141" href="#__codelineno-9-141"></a><span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">64</span><span class="p">):</span>
+</span><span id="__span-9-142"><a id="__codelineno-9-142" name="__codelineno-9-142" href="#__codelineno-9-142"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;随机取样&#39;&#39;&#39;</span>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">experience</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">batch_size</span><span class="p">)</span>
+</span><span id="__span-9-143"><a id="__codelineno-9-143" name="__codelineno-9-143" href="#__codelineno-9-143"></a>
+</span><span id="__span-9-144"><a id="__codelineno-9-144" name="__codelineno-9-144" href="#__codelineno-9-144"></a><span class="nd">@property</span>
+</span><span id="__span-9-145"><a id="__codelineno-9-145" name="__codelineno-9-145" href="#__codelineno-9-145"></a><span class="k">def</span><span class="w"> </span><span class="nf">total_trans</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-9-146"><a id="__codelineno-9-146" name="__codelineno-9-146" href="#__codelineno-9-146"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;得到Experience里记录的状态转换总数&#39;&#39;&#39;</span><span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">experience</span><span class="o">.</span><span class="n">total_trans</span>
+</span><span id="__span-9-147"><a id="__codelineno-9-147" name="__codelineno-9-147" href="#__codelineno-9-147"></a>
+</span><span id="__span-9-148"><a id="__codelineno-9-148" name="__codelineno-9-148" href="#__codelineno-9-148"></a><span class="k">def</span><span class="w"> </span><span class="nf">last_episode_detail</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-9-149"><a id="__codelineno-9-149" name="__codelineno-9-149" href="#__codelineno-9-149"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">experience</span><span class="o">.</span><span class="n">last_episode</span><span class="o">.</span><span class="n">print_detail</span><span class="p">()</span>
+</span><span id="__span-9-150"><a id="__codelineno-9-150" name="__codelineno-9-150" href="#__codelineno-9-150"></a>
+</span><span id="__span-9-151"><a id="__codelineno-9-151" name="__codelineno-9-151" href="#__codelineno-9-151"></a><span class="n">不难看出Agent类的策略是最原始的均匀随机策略</span><span class="err">，</span><span class="n">不具备学习能力</span><span class="err">，</span><span class="n">不过已经具备了与gym环境进行交互的能力</span><span class="err">。</span><span class="n">该个体不具备学习能力</span><span class="err">，</span><span class="n">可以编写如下代码来观察均匀随机策略下个体在有风的格子世界里的交互情况</span><span class="err">：</span>
+</span><span id="__span-9-152"><a id="__codelineno-9-152" name="__codelineno-9-152" href="#__codelineno-9-152"></a>
+</span><span id="__span-9-153"><a id="__codelineno-9-153" name="__codelineno-9-153" href="#__codelineno-9-153"></a><span class="c1"># 测试个体基类和有风的格子世界环境</span>
+</span><span id="__span-9-154"><a id="__codelineno-9-154" name="__codelineno-9-154" href="#__codelineno-9-154"></a><span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
+</span><span id="__span-9-155"><a id="__codelineno-9-155" name="__codelineno-9-155" href="#__codelineno-9-155"></a><span class="kn">from</span><span class="w"> </span><span class="nn">gym</span><span class="w"> </span><span class="kn">import</span> <span class="n">Env</span>
+</span><span id="__span-9-156"><a id="__codelineno-9-156" name="__codelineno-9-156" href="#__codelineno-9-156"></a><span class="kn">from</span><span class="w"> </span><span class="nn">gridworld</span><span class="w"> </span><span class="kn">import</span> <span class="n">WindyGridWorld</span>    <span class="c1"># 导入有风的格子世界环境</span>
+</span><span id="__span-9-157"><a id="__codelineno-9-157" name="__codelineno-9-157" href="#__codelineno-9-157"></a><span class="kn">from</span><span class="w"> </span><span class="nn">core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Agent</span>    <span class="c1">#</span>
+</span><span id="__span-9-158"><a id="__codelineno-9-158" name="__codelineno-9-158" href="#__codelineno-9-158"></a><span class="n">导入个体基类</span>
+</span><span id="__span-9-159"><a id="__codelineno-9-159" name="__codelineno-9-159" href="#__codelineno-9-159"></a>
+</span><span id="__span-9-160"><a id="__codelineno-9-160" name="__codelineno-9-160" href="#__codelineno-9-160"></a><span class="n">env</span> <span class="o">=</span> <span class="n">WindyGridWorld</span><span class="p">()</span>    <span class="c1"># 生成有风的格子世界环境对象</span>
+</span><span id="__span-9-161"><a id="__codelineno-9-161" name="__codelineno-9-161" href="#__codelineno-9-161"></a><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>    <span class="c1">#</span>
+</span><span id="__span-9-162"><a id="__codelineno-9-162" name="__codelineno-9-162" href="#__codelineno-9-162"></a><span class="n">重置环境对象</span>
+</span><span id="__span-9-163"><a id="__codelineno-9-163" name="__codelineno-9-163" href="#__codelineno-9-163"></a><span class="n">env</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>    <span class="c1">#</span>
+</span><span id="__span-9-164"><a id="__codelineno-9-164" name="__codelineno-9-164" href="#__codelineno-9-164"></a><span class="n">显示环境对象可视化界面</span>
+</span><span id="__span-9-165"><a id="__codelineno-9-165" name="__codelineno-9-165" href="#__codelineno-9-165"></a><span class="n">agent</span><span class="o">=</span><span class="n">Agent</span><span class="p">(</span><span class="n">env</span><span class="p">,</span><span class="n">capacity</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>    <span class="c1"># 创建个体Agent对象</span>
+</span><span id="__span-9-166"><a id="__codelineno-9-166" name="__codelineno-9-166" href="#__codelineno-9-166"></a><span class="n">data</span><span class="o">=</span><span class="n">agent</span><span class="o">.</span><span class="n">learning</span><span class="p">(</span><span class="n">max_episode_num</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span><span class="n">display</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-9-167"><a id="__codelineno-9-167" name="__codelineno-9-167" href="#__codelineno-9-167"></a><span class="c1"># env.close()    #</span>
+</span><span id="__span-9-168"><a id="__codelineno-9-168" name="__codelineno-9-168" href="#__codelineno-9-168"></a><span class="n">关闭可视化界面</span>
+</span><span id="__span-9-169"><a id="__codelineno-9-169" name="__codelineno-9-169" href="#__codelineno-9-169"></a>
+</span><span id="__span-9-170"><a id="__codelineno-9-170" name="__codelineno-9-170" href="#__codelineno-9-170"></a><span class="n">运行上述代码将显示如图5</span><span class="mf">.8</span><span class="n">所示的一个有风的格子世界交互界面</span><span class="err">。</span><span class="n">图中多数格子用粉红色绘制</span><span class="err">（</span><span class="n">因为本书黑白印刷</span><span class="err">，</span><span class="n">读者看到的应该为灰色</span><span class="err">），</span><span class="n">表示个体在离开该格子时将获得</span><span class="o">-</span><span class="mi">1</span><span class="n">的即时奖励</span><span class="err">，</span><span class="n">白色的格子对应的即时奖励为0</span><span class="err">；</span><span class="n">有黑色边框的格子是个体的起始状态</span><span class="err">，</span><span class="n">黑色边框的白色格子是终止状态</span><span class="err">，</span><span class="n">个体用小圆形来表示</span><span class="err">。</span><span class="n">风的效果并未反映在可视化界面上</span><span class="err">，</span><span class="n">但它将实实在在地影响个体采取一个行为后的后续状态</span><span class="err">（</span><span class="n">位置</span><span class="err">）。</span>
+</span><span id="__span-9-171"><a id="__codelineno-9-171" name="__codelineno-9-171" href="#__codelineno-9-171"></a>
+</span><span id="__span-9-172"><a id="__codelineno-9-172" name="__codelineno-9-172" href="#__codelineno-9-172"></a><span class="n">由于可视化交互在进行多次尝试时浪费计算资源</span><span class="err">，</span><span class="n">因此我们在随后进行180次的尝试期间选择不显示个体的动态活动</span><span class="err">。</span><span class="n">其180次的交互信息存储在对象data内</span><span class="err">。</span><span class="n">图5</span><span class="mf">.9</span><span class="n">是依据data绘制的该个体与环境交互产生的状态序列时间步数与状态序列次数的关系图</span><span class="err">，</span><span class="n">从中可以看出个体最多用三万多步才完成一个完整的状态序列</span><span class="err">。</span>
+</span><span id="__span-9-173"><a id="__codelineno-9-173" name="__codelineno-9-173" href="#__codelineno-9-173"></a>
+</span><span id="__span-9-174"><a id="__codelineno-9-174" name="__codelineno-9-174" href="#__codelineno-9-174"></a><span class="err">!</span><span class="p">[](</span><span class="n">images</span><span class="o">/</span><span class="mi">78</span><span class="n">fc5281470e15b6fcfa91247d59d798ae0197d5acd7577b9d37e2d8958b2d91</span><span class="o">.</span><span class="n">jpg</span><span class="p">)</span>
+</span><span id="__span-9-175"><a id="__codelineno-9-175" name="__codelineno-9-175" href="#__codelineno-9-175"></a>
+</span><span id="__span-9-176"><a id="__codelineno-9-176" name="__codelineno-9-176" href="#__codelineno-9-176"></a>
+</span><span id="__span-9-177"><a id="__codelineno-9-177" name="__codelineno-9-177" href="#__codelineno-9-177"></a><span class="o">&lt;</span><span class="n">p</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;caption&quot;</span><span class="o">&gt;</span><span class="n">图5</span><span class="mf">.8</span>　<span class="n">有风的格子世界环境的可视化界面</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span id="__span-9-178"><a id="__codelineno-9-178" name="__codelineno-9-178" href="#__codelineno-9-178"></a>
+</span><span id="__span-9-179"><a id="__codelineno-9-179" name="__codelineno-9-179" href="#__codelineno-9-179"></a><span class="err">!</span><span class="p">[](</span><span class="n">images</span><span class="o">/</span><span class="mi">321</span><span class="n">cda5336e5aff7c0f89fbc4852fbf5be3dccf0cfd753e96f3112a4b6c26aaf</span><span class="o">.</span><span class="n">jpg</span><span class="p">)</span>
+</span><span id="__span-9-180"><a id="__codelineno-9-180" name="__codelineno-9-180" href="#__codelineno-9-180"></a>
+</span><span id="__span-9-181"><a id="__codelineno-9-181" name="__codelineno-9-181" href="#__codelineno-9-181"></a>
+</span><span id="__span-9-182"><a id="__codelineno-9-182" name="__codelineno-9-182" href="#__codelineno-9-182"></a><span class="o">&lt;</span><span class="n">p</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;caption&quot;</span><span class="o">&gt;</span><span class="n">图5</span><span class="mf">.9</span>　<span class="n">均匀随机策略的个体在有风的格子世界环境中的表现</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+</span><span id="__span-9-183"><a id="__codelineno-9-183" name="__codelineno-9-183" href="#__codelineno-9-183"></a>
+</span><span id="__span-9-184"><a id="__codelineno-9-184" name="__codelineno-9-184" href="#__codelineno-9-184"></a><span class="n">要让个体具备学习能力需要改写策略方法policy以及学习方法learning</span>\<span class="n">_method</span><span class="err">。</span><span class="mf">5.8</span><span class="n">节将详细介绍不同学习算法的实现并观察它们在有风的格子世界中的交互效果</span><span class="err">。</span>
+</span><span id="__span-9-185"><a id="__codelineno-9-185" name="__codelineno-9-185" href="#__codelineno-9-185"></a>
+</span><span id="__span-9-186"><a id="__codelineno-9-186" name="__codelineno-9-186" href="#__codelineno-9-186"></a><span class="c1">## 5.8 编程实践：各类学习算法的实现及与有风的格子世界的交互</span>
+</span><span id="__span-9-187"><a id="__codelineno-9-187" name="__codelineno-9-187" href="#__codelineno-9-187"></a>
+</span><span id="__span-9-188"><a id="__codelineno-9-188" name="__codelineno-9-188" href="#__codelineno-9-188"></a><span class="n">在本节的编程实践中</span><span class="err">，</span><span class="n">我们将使用自己编写的有风的格子世界环境类</span><span class="err">，</span><span class="n">在Agent基类的基础上分别建立具有Sarsa学习</span><span class="err">、</span><span class="n">Sarsa</span><span class="p">(</span><span class="n">λ</span><span class="p">)</span><span class="n">学习和Q学习能力的3个个体子类</span><span class="err">，</span><span class="n">分别实现其策略方法以及学习方法</span><span class="err">。</span>
+</span><span id="__span-9-189"><a id="__codelineno-9-189" name="__codelineno-9-189" href="#__codelineno-9-189"></a>
+</span><span id="__span-9-190"><a id="__codelineno-9-190" name="__codelineno-9-190" href="#__codelineno-9-190"></a><span class="n">对于这3类学习算法要用到贪婪策略或ϵ贪婪策略</span><span class="err">，</span><span class="n">由于我们计划使用字典来存储行为价值函数的数据</span><span class="err">，</span><span class="n">还会用到之前编写的根据状态生成键以及读取字典的方法</span><span class="err">，</span><span class="n">因此在本节中将这些方法放在一个名为utls</span><span class="o">.</span><span class="n">py的文件中</span><span class="err">，</span><span class="n">有风的格子世界环境类的实现代码在gridworld</span><span class="o">.</span><span class="n">py文件中</span><span class="err">，</span><span class="n">个体基类的实现代码在core</span><span class="o">.</span><span class="n">py中</span><span class="err">。</span><span class="n">将这3个文件存放在当前工作目录下</span><span class="err">。</span><span class="n">下面的代码将从这些文件中导入要使用的类和方法</span><span class="err">：</span>
+</span><span id="__span-9-191"><a id="__codelineno-9-191" name="__codelineno-9-191" href="#__codelineno-9-191"></a>
+</span><span id="__span-9-192"><a id="__codelineno-9-192" name="__codelineno-9-192" href="#__codelineno-9-192"></a><span class="kn">from</span><span class="w"> </span><span class="nn">random</span><span class="w"> </span><span class="kn">import</span> <span class="n">random</span><span class="p">,</span> <span class="n">choice</span>
+</span><span id="__span-9-193"><a id="__codelineno-9-193" name="__codelineno-9-193" href="#__codelineno-9-193"></a><span class="kn">from</span><span class="w"> </span><span class="nn">core</span><span class="w"> </span><span class="kn">import</span> <span class="n">Agent</span>
+</span><span id="__span-9-194"><a id="__codelineno-9-194" name="__codelineno-9-194" href="#__codelineno-9-194"></a><span class="kn">from</span><span class="w"> </span><span class="nn">gym</span><span class="w"> </span><span class="kn">import</span> <span class="n">Env</span>
+</span><span id="__span-9-195"><a id="__codelineno-9-195" name="__codelineno-9-195" href="#__codelineno-9-195"></a><span class="kn">import</span><span class="w"> </span><span class="nn">gym</span>
+</span><span id="__span-9-196"><a id="__codelineno-9-196" name="__codelineno-9-196" href="#__codelineno-9-196"></a><span class="kn">from</span><span class="w"> </span><span class="nn">gridworld</span>
+</span><span id="__span-9-197"><a id="__codelineno-9-197" name="__codelineno-9-197" href="#__codelineno-9-197"></a><span class="kn">import</span> <span class="n">WindyGridWorld</span><span class="p">,</span> <span class="n">SimpleGridWorld</span>
+</span><span id="__span-9-198"><a id="__codelineno-9-198" name="__codelineno-9-198" href="#__codelineno-9-198"></a><span class="kn">from</span><span class="w"> </span><span class="nn">utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">str_key</span><span class="p">,</span> <span class="n">set_dict</span><span class="p">,</span> <span class="n">get_dict</span>
+</span><span id="__span-9-199"><a id="__codelineno-9-199" name="__codelineno-9-199" href="#__codelineno-9-199"></a><span class="kn">from</span><span class="w"> </span><span class="nn">utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">epsilon_greedy_pi</span><span class="p">,</span>
+</span><span id="__span-9-200"><a id="__codelineno-9-200" name="__codelineno-9-200" href="#__codelineno-9-200"></a><span class="n">epsilon_greedy_policy</span>
+</span><span id="__span-9-201"><a id="__codelineno-9-201" name="__codelineno-9-201" href="#__codelineno-9-201"></a><span class="kn">from</span><span class="w"> </span><span class="nn">utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">greedy_policy</span><span class="p">,</span> <span class="n">learning_curve</span>
+</span><span id="__span-9-202"><a id="__codelineno-9-202" name="__codelineno-9-202" href="#__codelineno-9-202"></a>
+</span><span id="__span-9-203"><a id="__codelineno-9-203" name="__codelineno-9-203" href="#__codelineno-9-203"></a><span class="c1">## 5.8.1 Sarsa算法</span>
+</span><span id="__span-9-204"><a id="__codelineno-9-204" name="__codelineno-9-204" href="#__codelineno-9-204"></a>
+</span><span id="__span-9-205"><a id="__codelineno-9-205" name="__codelineno-9-205" href="#__codelineno-9-205"></a><span class="n">本章前文中的算法1给出了Sarsa算法的流程</span><span class="err">，</span><span class="n">依据流程不难得到如下实现代码</span><span class="err">：</span>
+</span><span id="__span-9-206"><a id="__codelineno-9-206" name="__codelineno-9-206" href="#__codelineno-9-206"></a>
+</span><span id="__span-9-207"><a id="__codelineno-9-207" name="__codelineno-9-207" href="#__codelineno-9-207"></a><span class="k">class</span><span class="w"> </span><span class="nc">SarsaAgent</span><span class="p">(</span><span class="n">Agent</span><span class="p">):</span>
+</span><span id="__span-9-208"><a id="__codelineno-9-208" name="__codelineno-9-208" href="#__codelineno-9-208"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span><span class="n">Env</span><span class="p">,</span> <span class="n">capacity</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">20000</span><span class="p">):</span>
+</span><span id="__span-9-209"><a id="__codelineno-9-209" name="__codelineno-9-209" href="#__codelineno-9-209"></a>    <span class="nb">super</span><span class="p">(</span><span class="n">SarsaAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">capacity</span><span class="p">)</span>
+</span><span id="__span-9-210"><a id="__codelineno-9-210" name="__codelineno-9-210" href="#__codelineno-9-210"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="p">{}</span>    <span class="c1"># 增加Q字典存储行为价值</span>
+</span><span id="__span-9-211"><a id="__codelineno-9-211" name="__codelineno-9-211" href="#__codelineno-9-211"></a>
+</span><span id="__span-9-212"><a id="__codelineno-9-212" name="__codelineno-9-212" href="#__codelineno-9-212"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
+</span><span id="__span-9-213"><a id="__codelineno-9-213" name="__codelineno-9-213" href="#__codelineno-9-213"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;使用epsilon贪婪策略&#39;&#39;&#39;</span>
+</span><span id="__span-9-214"><a id="__codelineno-9-214" name="__codelineno-9-214" href="#__codelineno-9-214"></a>    <span class="k">return</span> <span class="n">epsilon_greedy_policy</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">s</span><span class="p">,</span><span class="n">Q</span><span class="p">,</span><span class="n">epsilon</span><span class="p">)</span>
+</span><span id="__span-9-215"><a id="__codelineno-9-215" name="__codelineno-9-215" href="#__codelineno-9-215"></a>
+</span><span id="__span-9-216"><a id="__codelineno-9-216" name="__codelineno-9-216" href="#__codelineno-9-216"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">learning_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+</span><span id="__span-9-217"><a id="__codelineno-9-217" name="__codelineno-9-217" href="#__codelineno-9-217"></a>    <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+</span><span id="__span-9-218"><a id="__codelineno-9-218" name="__codelineno-9-218" href="#__codelineno-9-218"></a>    <span class="n">display</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="__span-9-219"><a id="__codelineno-9-219" name="__codelineno-9-219" href="#__codelineno-9-219"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</span><span id="__span-9-220"><a id="__codelineno-9-220" name="__codelineno-9-220" href="#__codelineno-9-220"></a>    <span class="n">s0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span>
+</span><span id="__span-9-221"><a id="__codelineno-9-221" name="__codelineno-9-221" href="#__codelineno-9-221"></a>    <span class="k">if</span> <span class="n">display</span><span class="p">:</span>
+</span><span id="__span-9-222"><a id="__codelineno-9-222" name="__codelineno-9-222" href="#__codelineno-9-222"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+</span><span id="__span-9-223"><a id="__codelineno-9-223" name="__codelineno-9-223" href="#__codelineno-9-223"></a>    <span class="n">a0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">perform_policy</span><span class="p">(</span><span class="n">s0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+</span><span id="__span-9-224"><a id="__codelineno-9-224" name="__codelineno-9-224" href="#__codelineno-9-224"></a>    <span class="c1"># print(self.action_t.name)</span>
+</span><span id="__span-9-225"><a id="__codelineno-9-225" name="__codelineno-9-225" href="#__codelineno-9-225"></a>    <span class="n">time_in_episode</span><span class="p">,</span> <span class="n">total_reward</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+</span><span id="__span-9-226"><a id="__codelineno-9-226" name="__codelineno-9-226" href="#__codelineno-9-226"></a>    <span class="n">is_done</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="__span-9-227"><a id="__codelineno-9-227" name="__codelineno-9-227" href="#__codelineno-9-227"></a>    <span class="k">while</span> <span class="ow">not</span> <span class="n">is_done</span><span class="p">:</span>
+</span><span id="__span-9-228"><a id="__codelineno-9-228" name="__codelineno-9-228" href="#__codelineno-9-228"></a>    <span class="n">s1</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">is_done</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">total_reward</span> <span class="o">=</span>
+</span><span id="__span-9-229"><a id="__codelineno-9-229" name="__codelineno-9-229" href="#__codelineno-9-229"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span>
+</span><span id="__span-9-230"><a id="__codelineno-9-230" name="__codelineno-9-230" href="#__codelineno-9-230"></a>    <span class="k">if</span> <span class="n">display</span><span class="p">:</span>
+</span><span id="__span-9-231"><a id="__codelineno-9-231" name="__codelineno-9-231" href="#__codelineno-9-231"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+</span><span id="__span-9-232"><a id="__codelineno-9-232" name="__codelineno-9-232" href="#__codelineno-9-232"></a>    <span class="n">a1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">perform_policy</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+</span><span id="__span-9-233"><a id="__codelineno-9-233" name="__codelineno-9-233" href="#__codelineno-9-233"></a>    <span class="n">old_q</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">s0</span><span class="p">,</span> <span class="n">a0</span><span class="p">)</span>
+</span><span id="__span-9-234"><a id="__codelineno-9-234" name="__codelineno-9-234" href="#__codelineno-9-234"></a>    <span class="n">q_prime</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">s1</span><span class="p">,</span> <span class="n">a1</span><span class="p">)</span>
+</span><span id="__span-9-235"><a id="__codelineno-9-235" name="__codelineno-9-235" href="#__codelineno-9-235"></a>    <span class="n">td_target</span> <span class="o">=</span> <span class="n">r1</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">q_prime</span>
+</span><span id="__span-9-236"><a id="__codelineno-9-236" name="__codelineno-9-236" href="#__codelineno-9-236"></a>    <span class="n">new_q</span> <span class="o">=</span> <span class="n">old_q</span> <span class="o">+</span> <span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span><span class="n">td_target</span> <span class="o">-</span> <span class="n">old_q</span><span class="p">)</span>
+</span><span id="__span-9-237"><a id="__codelineno-9-237" name="__codelineno-9-237" href="#__codelineno-9-237"></a>    <span class="n">set_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">new_q</span><span class="p">,</span> <span class="n">s0</span><span class="p">,</span> <span class="n">a0</span><span class="p">)</span>
+</span><span id="__span-9-238"><a id="__codelineno-9-238" name="__codelineno-9-238" href="#__codelineno-9-238"></a>    <span class="n">s0</span><span class="p">,</span> <span class="n">a0</span> <span class="o">=</span> <span class="n">s1</span><span class="p">,</span> <span class="n">a1</span>
+</span><span id="__span-9-239"><a id="__codelineno-9-239" name="__codelineno-9-239" href="#__codelineno-9-239"></a>    <span class="n">time_in_episode</span> <span class="o">+=</span> <span class="mi">1</span>
+</span></code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">if</span> <span class="n">display</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">experience</span><span class="o">.</span><span class="n">last_episode</span><span class="p">)</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">return</span> <span class="n">time_in_episode</span><span class="p">,</span> <span class="n">total_reward</span>
+</span></code></pre></div>
+<h2 id="582-sarsa">5.8.2 Sarsa（λ）算法<a class="headerlink" href="#582-sarsa" title="Permanent link">&para;</a></h2>
+<p>本章前文中的算法2给出了Sarsa（λ）算法的流程，依据流程不难得到如下实现代码：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">SarsaLambdaAgent</span><span class="p">(</span><span class="n">Agent</span><span class="p">):</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span><span class="n">Env</span><span class="p">,</span> <span class="n">capacity</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">20000</span><span class="p">):</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    <span class="nb">super</span><span class="p">(</span><span class="n">SarsaLambdaAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">capacity</span><span class="p">)</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>    <span class="k">return</span> <span class="n">epsilon_greedy_policy</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">learning_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>    <span class="n">s0</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>    <span class="k">if</span> <span class="n">display</span><span class="p">:</span>
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>    <span class="n">a0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">perform_policy</span><span class="p">(</span><span class="n">s0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>    <span class="c1"># print(self.action_t.name)</span>
+</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>    <span class="n">time_in_episode</span><span class="p">,</span> <span class="n">total_reward</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span><span class="mi">0</span>
+</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>    <span class="n">is_done</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="__span-11-18"><a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>    <span class="n">E</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># 效用值</span>
+</span><span id="__span-11-19"><a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>    <span class="k">while</span> <span class="ow">not</span> <span class="n">is_done</span><span class="p">:</span>
+</span><span id="__span-11-20"><a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a>    <span class="n">s1</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">is_done</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">total_reward</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span>
+</span><span id="__span-11-21"><a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>    <span class="k">if</span> <span class="n">display</span><span class="p">:</span>
+</span><span id="__span-11-22"><a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+</span><span id="__span-11-23"><a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a>    <span class="n">a1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">perform_policy</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+</span><span id="__span-11-24"><a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a>    <span class="n">q</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">s0</span><span class="p">,</span> <span class="n">a0</span><span class="p">)</span>
+</span><span id="__span-11-25"><a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a>    <span class="n">q_prime</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">s1</span><span class="p">,</span> <span class="n">a1</span><span class="p">)</span>
+</span><span id="__span-11-26"><a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a>    <span class="n">delta</span><span class="o">=</span><span class="n">r1</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">q_prime</span> <span class="o">-</span> <span class="n">q</span>
+</span><span id="__span-11-27"><a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a>
+</span><span id="__span-11-28"><a id="__codelineno-11-28" name="__codelineno-11-28" href="#__codelineno-11-28"></a>    <span class="n">e</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="n">E</span><span class="p">,</span><span class="n">s0</span><span class="p">,</span><span class="n">a0</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">e</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">set_dict</span><span class="p">(</span><span class="n">E</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">s0</span><span class="p">,</span> <span class="n">a0</span><span class="p">)</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">S</span><span class="p">:</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>    <span class="c1">## 对所有可能的 Q(s,a)进行更新</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">:</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>        <span class="n">e_value</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="n">E</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>        <span class="n">old_q</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>        <span class="n">new_q</span> <span class="o">=</span> <span class="n">old_q</span> <span class="o">+</span> <span class="n">alpha</span><span class="o">*</span><span class="n">delta</span><span class="o">*</span><span class="n">e_value</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>        <span class="n">new_e</span> <span class="o">=</span> <span class="n">gamma</span><span class="o">*</span><span class="k">lambda</span><span class="o">*</span><span class="n">e_value</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>        <span class="n">set_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">new_q</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>        <span class="n">set_dict</span><span class="p">(</span><span class="n">E</span><span class="p">,</span> <span class="n">new_e</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">s0</span><span class="p">,</span> <span class="n">a0</span> <span class="o">=</span> <span class="n">s1</span><span class="p">,</span> <span class="n">a1</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="n">time_in_episode</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="k">if</span> <span class="n">display</span><span class="p">:</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">experience</span><span class="o">.</span><span class="n">last_episode</span><span class="p">)</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="k">return</span> <span class="n">time_in_episode</span><span class="p">,</span> <span class="n">total_reward</span>
+</span></code></pre></div>
+<h2 id="583-q">5.8.3 Q学习算法<a class="headerlink" href="#583-q" title="Permanent link">&para;</a></h2>
+<p>本章前文中的算法3给出了Q学习算法的流程，依据流程不难得到如下实现代码：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">QAgent</span><span class="p">(</span><span class="n">Agent</span><span class="p">):</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">:</span><span class="n">Env</span><span class="p">,</span> <span class="n">capacity</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">20000</span><span class="p">):</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    <span class="nb">super</span><span class="p">(</span><span class="n">QAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">capacity</span><span class="p">)</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">policy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>    <span class="k">return</span> <span class="n">epsilon_greedy_policy</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">learning_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>    <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>    <span class="n">display</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">lambda_</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>    <span class="n">s0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>    <span class="k">if</span> <span class="n">display</span><span class="p">:</span>
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>    <span class="n">time_in_episode</span><span class="p">,</span> <span class="n">total_reward</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>    <span class="n">is_done</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>    <span class="k">while</span> <span class="ow">not</span> <span class="n">is_done</span><span class="p">:</span>
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">policy</span> <span class="o">=</span> <span class="n">epsilon_greedy_policy</span>
+</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>
+</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="c1">## 行为策略</span>
+</span><span id="__span-14-22"><a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a>    <span class="n">a0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">perform_policy</span><span class="p">(</span><span class="n">s0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+</span><span id="__span-14-23"><a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a>    <span class="n">s1</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">is_done</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span>
+</span><span id="__span-14-24"><a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a>    <span class="n">total_reward</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span>
+</span><span id="__span-14-25"><a id="__codelineno-14-25" name="__codelineno-14-25" href="#__codelineno-14-25"></a>    <span class="k">if</span> <span class="n">display</span><span class="p">:</span>
+</span><span id="__span-14-26"><a id="__codelineno-14-26" name="__codelineno-14-26" href="#__codelineno-14-26"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+</span><span id="__span-14-27"><a id="__codelineno-14-27" name="__codelineno-14-27" href="#__codelineno-14-27"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">policy</span> <span class="o">=</span> <span class="n">greedy_policy</span>
+</span><span id="__span-14-28"><a id="__codelineno-14-28" name="__codelineno-14-28" href="#__codelineno-14-28"></a>    <span class="n">a1</span> <span class="o">=</span> <span class="n">greedy_policy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="n">s1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">)</span> <span class="c1"># 异策略</span>
+</span><span id="__span-14-29"><a id="__codelineno-14-29" name="__codelineno-14-29" href="#__codelineno-14-29"></a>    <span class="n">old_q</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">s0</span><span class="p">,</span> <span class="n">a0</span><span class="p">)</span>
+</span><span id="__span-14-30"><a id="__codelineno-14-30" name="__codelineno-14-30" href="#__codelineno-14-30"></a>    <span class="n">q_prime</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">s1</span><span class="p">,</span> <span class="n">a1</span><span class="p">)</span>
+</span><span id="__span-14-31"><a id="__codelineno-14-31" name="__codelineno-14-31" href="#__codelineno-14-31"></a>    <span class="n">td_target</span> <span class="o">=</span> <span class="n">r1</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">q_prime</span>
+</span><span id="__span-14-32"><a id="__codelineno-14-32" name="__codelineno-14-32" href="#__codelineno-14-32"></a>    <span class="n">new_q</span><span class="o">=</span><span class="n">old_q</span><span class="o">+</span><span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span><span class="n">td_target</span> <span class="o">-</span> <span class="n">old_q</span><span class="p">)</span>
+</span><span id="__span-14-33"><a id="__codelineno-14-33" name="__codelineno-14-33" href="#__codelineno-14-33"></a>    <span class="n">set_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">new_q</span><span class="p">,</span> <span class="n">s0</span><span class="p">,</span> <span class="n">a0</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">s0</span> <span class="o">=</span> <span class="n">s1</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="n">time_in_episode</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="k">if</span> <span class="n">display</span><span class="p">:</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">experience</span><span class="o">.</span><span class="n">last_episode</span><span class="p">)</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="k">return</span> <span class="n">time_in_episode</span><span class="p">,</span> <span class="n">total_reward</span>
+</span></code></pre></div>
+<p>可借鉴Agent基类与环境交互的代码来实现拥有各种不同学习能力的子类与有风的格子世界进行交互的代码，体会3种学习算法的区别。以Sarsa（λ）算法为例，下面的代码将实现与有风的格子世界环境的交互：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="n">env</span><span class="o">=</span><span class="n">WindyGridWorld</span><span class="p">()</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="n">agent</span><span class="o">=</span><span class="n">SarsaLambdaAgent</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">capacity</span> <span class="o">=</span> <span class="mi">100000</span><span class="p">)</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="n">statistics</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">learning</span><span class="p">(</span><span class="n">lambda_</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> \
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="n">decaying_epsilon</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="n">max_episode_num</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">display</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span></code></pre></div>
+<p>如果对个体行为的可视化表现感兴趣，可以将learning方法内的参数display设置为True。下面的代码将可视化展示出个体两次完整的交互经历：</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>agent.learning(max_episode_num = 2, display = True)
+</span></code></pre></div>
+<p>需要指出的是这3种学习算法在完成第一个完整状态序列时可能会花费较长的时间步数，特别是对于Sarsa（λ）算法来说，由于在每一个时间步都要做大量的计算工作，因此花费的计算资源更多，该算法的优势是在线实时学习。</p>
+<p>gridworld.py中提供了悬崖行走环境CliffWalk类，可以直接使用这3个Agent类来观察比较它们在悬崖行走环境中的表现。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="页脚" >
+        
+          
+          <a href="ch04.html" class="md-footer__link md-footer__link--prev" aria-label="上一页: 第4章 · 不基于模型的预测">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                上一页
+              </span>
+              <div class="md-ellipsis">
+                第4章 · 不基于模型的预测
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="ch06.html" class="md-footer__link md-footer__link--next" aria-label="下一页: 第6章 · 价值函数的近似表示">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                下一页
+              </span>
+              <div class="md-ellipsis">
+                第6章 · 价值函数的近似表示
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/uynajgi/yuulibrary" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["announce.dismiss", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.path", "navigation.top", "navigation.tracking", "navigation.footer", "navigation.prune", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "search.highlight", "search.share", "search.suggest", "toc.follow", "content.code.copy", "content.code.annotate"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="../../../assets/external/cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"></script>
+      
+        <script src="../../../assets/external/cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+      
+        <script src="../../../assets/external/cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.js"></script>
+      
+        <script src="../../../javascripts/pseudocode-render.js"></script>
+      
+    
+  </body>
+</html>

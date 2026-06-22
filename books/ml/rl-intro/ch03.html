@@ -1,0 +1,1915 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="个人的数字图书馆">
+      
+      
+        <meta name="author" content="Yuunagi">
+      
+      
+        <link rel="canonical" href="https://uynajgi.github.io/yuulibrary/books/ml/rl-intro/ch03.html">
+      
+      
+        <link rel="prev" href="ch02.html">
+      
+      
+        <link rel="next" href="ch04.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>第3章 · 动态规划寻找最优策略 - Yuunagi Library</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="../../../assets/external/fonts.googleapis.com/css.868af38d.css">
+        <style>:root{--md-text-font:"Noto Sans SC";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../../assets/external/cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+    
+      <link rel="stylesheet" href="../../../assets/external/cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#3" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../index.html" title="Yuunagi Library" class="md-header__button md-logo" aria-label="Yuunagi Library" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Yuunagi Library
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              第3章 · 动态规划寻找最优策略
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="切换深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="切换浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="分享" aria-label="分享" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="index.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  书籍
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../index.html" title="Yuunagi Library" class="md-nav__button md-logo" aria-label="Yuunagi Library" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Yuunagi Library
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    书籍
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    书籍
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    机器学习
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    机器学习
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    强化学习入门
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    强化学习入门
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="preface.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    前言
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="notations.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    常用符号
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="algorithms.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法列表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch01.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第1章 · 概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch02.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第2章 · 从一个示例到马尔可夫决策过程
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第3章 · 动态规划寻找最优策略
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="ch03.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第3章 · 动态规划寻找最优策略
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 策略评估
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 策略迭代
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 价值迭代
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 异步动态规划算法
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 编程实践：动态规划求解小型格子世界最优策略
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#351-mdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.1 小型格子世界MDP建模
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch04.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第4章 · 不基于模型的预测
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch05.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第5章 · 无模型的控制
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch06.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第6章 · 价值函数的近似表示
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch07.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第7章 · 基于策略梯度的深度强化学习
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch08.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第8章 · 基于模型的学习和规划
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch09.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第9章 · 探索与利用
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch10.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第10章 · Alpha Zero算法实战
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    金融经济
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    金融经济
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../finance/quant-finance-interview/index.html" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    量化金融面试实用指南
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 策略评估
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 策略迭代
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 价值迭代
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 异步动态规划算法
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 编程实践：动态规划求解小型格子世界最优策略
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#351-mdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5.1 小型格子世界MDP建模
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="导航栏" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../../../index.html" class="md-path__link">
+        
+  <span class="md-ellipsis">
+    首页
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      
+  
+  
+    
+    
+      
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="index.html" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    书籍
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+    
+    
+      
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="index.html" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    机器学习
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="index.html" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    强化学习入门
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="3">第3章 动态规划寻找最优策略<a class="headerlink" href="#3" title="Permanent link">&para;</a></h1>
+<p>本章将详细讲解如何利用动态规划算法来解决强化学习中的规划问题。“规划”是在已知环境动力学的基础上进行评估和控制，就是在了解包括状态和行为空间、转移概率矩阵、奖励等信息的基础上判断一个给定策略的价值函数，或判断一个策略的优劣并最终找到最优策略和最优价值函数。虽然多数强化学习问题并不会给出具体的环境动力学，并且多数复杂的强化学习问题无法通过动态规划算法来快速求解，但是本章的内容仍然十分重要，包含许多非常重要的概念，例如预测和控制、策略迭代、价值迭代等。正确理解这些概念对于了解本书后续章节的内容非常重要，因而可以说本章内容是整个强化学习核心内容的引子。</p>
+<p>动态规划算法把求解复杂问题分解为求解子问题，通过求解子问题进而得到整个问题的解。在求解子问题时，其结果通常需要存储起来，以便用来求解后续的复杂问题。当问题具有下列两个性质时，通常可以考虑使用动态规划来求解：第一个性质是一个复杂问题的最优解由数个小问题的最优解构成，这样就可以通过寻找子问题的最优解来得到这个复杂问题的最优解；第二个性质是子问题在复杂问题内重复出现，使得子问题的解可以被存储起来重复利用。马尔可夫决策过程具有上述两个性质：贝尔曼方程把问题递归为求解子问题；价值函数相当于存储了一些子问题的解，可以复用。因此可以使用动态规划来求解马尔可夫决策过程。</p>
+<p>预测和控制是规划的两个重要内容：预测是对给定策略的评估过程，控制是寻找一个最优策略的过程。对预测和控制的数学描述如下：</p>
+<p>预测（Prediction）：已知一个马尔可夫决策过程 <span class="arithmatex">\(\operatorname{MDP} \langle S , A , P , R , \gamma \rangle\)</span> 和一个策略π，或者给定一个马尔可夫奖励过程 <span class="arithmatex">\(\operatorname{MRP} \langle S, P_{\pi}, R_{\pi}, \gamma \rangle\)</span> ，求解基于该策略的价值函数 <span class="arithmatex">\(v_{\pi}\)</span> 。</p>
+<p>控制（Control）：已知一个马尔可夫决策过程 <span class="arithmatex">\(\operatorname{MDP} \langle S , A , P , R , \gamma \rangle\)</span> ，求解最优价值函数 <span class="arithmatex">\(v_{*}\)</span> 和最优策略 <span class="arithmatex">\(\pi^{*}\)</span> 。</p>
+<p>下文将详细讲解如何使用动态规划算法对一个MDP问题进行预测和控制。</p>
+<h2 id="31">3.1 策略评估<a class="headerlink" href="#31" title="Permanent link">&para;</a></h2>
+<p>策略评估（Policy Evaluation）是指在给定策略下求解状态价值函数的过程。对策略评估，我们可以使用同步迭代联合动态规划的算法：从任意一个状态价值函数开始，依据给定的策略，结合贝尔曼期望方程、状态转移概率和奖励来同步迭代更新状态价值函数，直至其收敛，得到该策略下最终的状态价值函数。理解该算法的关键在于在一个迭代周期内如何更新每一个状态的价值。该迭代法可以确保收敛形成一个稳定的价值函数，关于这一点的证明涉及压缩映射原理，它超出了本书的范围，有兴趣的读者可以查阅相关文献。</p>
+<p>贝尔曼期望方程给出了如何根据状态转换关系中的后续状态S'来计算当前状态S的价值，在同步迭代法中，我们使用上一个迭代周期k内的后续状态价值来计算并更新当前迭代周期k+1内某状态s的价值：</p>
+<div class="arithmatex">\[
+v_{k + 1} (s) = \sum_{a \in A} \pi (a | s) \left(R_{s} ^{a} + \gamma \sum_{s^{\prime} \in S} P_{s s^{\prime}} ^{a} v_{k} \left(s^{\prime}\right)\right) \tag{3.1}
+\]</div>
+<p>我们可以对计算得到的新状态价值函数再次进行迭代，直至状态函数收敛，也就是迭代计算得到每一个状态的新价值与原价值之间的差别在一个很小的、可接受的范围内。</p>
+<p><img alt="" src="images/68c725d80a8ab3a62b0a63cf7d473aca5a6755465f79171cb7b994122869594d.jpg" /></p>
+<table class="grid-world"><tr><td>0</td><td>1</td><td>2</td><td>3</td></tr><tr><td>4</td><td>5</td><td>6</td><td>7</td></tr><tr><td>8</td><td>9</td><td>10</td><td>11</td></tr><tr><td>12</td><td>13</td><td>14</td><td>15</td></tr></table>
+
+<p class="caption">图3.1 4×4小型格子世界</p>
+
+<p>我们将用一个小型格子世界（见图3.1）来解释同步迭代法进行策略评估的细节。在此之前，先详细描述一下这个小型格子世界对应的强化学习问题，借此加强读者把实际问题转化为强化学习问题的能力。</p>
+<p>考虑图3.1所示的4×4的方格阵列，我们把它看成一个小世界。这个世界环境有16个状态，图中每一个小方格对应一个状态，依次用0至15标记。其中，状态0和15分别位于左上角和右下角，是终止状态，用灰色表示。假设在这个小型格子世界中有一个可以进行上、下、左、右移动的个体，它的任务是通过不断移动到达两个灰色格子中的任意一个。这个小型格子世界的环境有着自己的动力学特征（即环境规则）：当个体采取的移动行为不会导致个体离开格子世界时，个体将以100%的概率到达它移动方向上相邻的格子，之所以是相邻的格子而不能跳格，是由于环境规则约束个体每次只能移动一格，同时规定个体不能斜向移动；如果个体采取的移动行为会跳出格子世界，那么环境规则将让个体以100%的概率停留在原来的状态— 保持在原地；如果个体到达终止状态（灰色格子中的一个），任务就结束了，否则个体可以继续移动。当个体采取了一个行为后，只要这个行为是个体在非终止状态时执行的，那么不管个体随后到达哪一个状态，个体都获得环境给予的值为-1的奖励；当个体处于终止位置时，它的任何行为都将获得值为0的奖励并仍旧停留在终止位置。环境设置的这种奖励机制是赋予了个体希望获得累积最大奖励的“天性”，让个体在格子世界中用尽可能少的步数来到达终止状态，即完成任务。个体在格子世界中每多走一步，得到的奖励都是一个负值。为了简化问题，我们设置衰减因子。至此，相信读者已经了解了这个格子世界的强化学习问题。</p>
+<p>在这个小型格子世界的强化学习问题中，个体为了在完成任务时获得尽可能多的奖励（在此例中是尽可能减少负值奖励带来的惩罚），至少需要思考一个问题：“当处在格子世界中的某一个状态时，我应该采取怎样的行为才能尽快到达表示终止状态的格子。”这个问题对于拥有人类智慧的我们来说不是什么难题，因为我们知道整个世界环境的运行规则（动力学特征）；对于格子世界中的个体来说就不那么简单了，因为个体身处格子世界中，一开始并不清楚各个状态之间的位置关系，也不知道当自己处在状态4时只需要选择“向上”</p>
+<p>移动的行为就可以直接到达终止状态。此时个体能做的就是在任何一个状态时以相等的概率选择朝4个方向移动。个体想到的办法就是采用一个均匀随机策略（Uniform Random Policy）。个体遵循这个均匀随机策略，不断产生行为，执行移动动作，从格子世界环境获得奖励（大多数是-1代表的惩罚），并到达一个新的或者曾经到达的状态。长久下去，个体会发现：遵循这个均匀随机策略时，每一个状态跟自己最后能够获得的最终奖励有一定的关系，在有些状态下自己最终获得的奖励并不那么少，而在某些状态下自己获得的最终奖励少得多。个体最终发现，在这个均匀随机策略指导下，每一个状态的价值是不一样的。这是一条非常重要的信息。对于个体来说，它需要通过不停地与环境交互，多次到达终止状态后才能对各个状态的价值有一定的认识。个体形成这个认识的过程就是策略评估的过程。我们知道描述整个格子世界的信息特征，不必要像格子世界中的个体那样通过与环境不停地交互来形成这种认识，所以我们可以直接通过迭代更新状态价值的办法来评估该策略下每一个状态的价值。</p>
+<p>首先，我们假设所有除终止状态以外的14个状态的价值为0。同时，由于终止状态获得的奖励为0，根据贝尔曼方程，我们可以认为两个终止状态的价值始终保持为0。这样产生了第k=0次迭代的状态价值函数（见图3.2（a））。</p>
+<p>在随后的每一次迭代内，个体在任意状态都以均等的概率（1/4）选择朝上、下、左、右这4个方向中的1个进行移动；只要个体不处于终止状态，随后产生任意1个方向的移动后都将得到-1的奖励，并依据环境动力学100%进入行为指向的相邻格子或碰壁后留在原位，在更新某一状态的价值时需要分别计算4个行为带来的价值分量。图3.2的（b）至（f）依次给出了第1、2、3、10以及无穷多次迭代后各个状态的价值。本章的实践部分将详细演示价值迭代的计算过程。</p>
+<table class="grid-world"><tr><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr><tr><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr><tr><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr><tr><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr></table>
+
+<p>（a）k-0</p>
+<table class="grid-world"><tr><td>0.0</td><td>-1.0</td><td>-1.0</td><td>-1.0</td></tr><tr><td>-1.0</td><td>-1.0</td><td>-1.0</td><td>-1.0</td></tr><tr><td>-1.0</td><td>-1.0</td><td>-1.0</td><td>-1.0</td></tr><tr><td>-1.0</td><td>-1.0</td><td>-1.0</td><td>0.0</td></tr></table>
+
+<p>（b)k-1</p>
+<table class="grid-world"><tr><td>0.0</td><td>-1.7</td><td>-2.0</td><td>-2.0</td></tr><tr><td>-1.7</td><td>-2.0</td><td>-2.0</td><td>-2.0</td></tr><tr><td>-2.0</td><td>-2.0</td><td>-2.0</td><td>-1.7</td></tr><tr><td>-2.0</td><td>-2.0</td><td>-1.7</td><td>0.0</td></tr></table>
+
+<p>(c) -2</p>
+<table class="grid-world"><tr><td>0.0</td><td>-2.4</td><td>-2.9</td><td>-3.0</td></tr><tr><td>-2.4</td><td>-2.9</td><td>-3.0</td><td>-2.9</td></tr><tr><td>-2.9</td><td>-3.0</td><td>-2.9</td><td>-2.4</td></tr><tr><td>-3.0</td><td>-2.9</td><td>-2.4</td><td>0.0</td></tr></table>
+
+<p>(d） k=3</p>
+<table class="grid-world"><tr><td>0.0</td><td>-6.1</td><td>-8.4</td><td>-9.0</td></tr><tr><td>-6.1</td><td>-7.7</td><td>-8.4</td><td>-8.4</td></tr><tr><td>-8.4</td><td>-8.4</td><td>-7.7</td><td>-6.1</td></tr><tr><td>-9.0</td><td>-8.4</td><td>-6.1</td><td>0.0</td></tr></table>
+
+<p>（e）k-10</p>
+<table class="grid-world"><tr><td>0.0</td><td>-14</td><td>-20</td><td>-22</td></tr><tr><td>-14</td><td>-18</td><td>-20</td><td>-20</td></tr><tr><td>-20</td><td>-20</td><td>-18</td><td>-14</td></tr><tr><td>-22</td><td>-20</td><td>-14</td><td>0.0</td></tr></table>
+
+<p>（f）k=8</p>
+<p class="caption">图3.2 小型格子世界迭代中的价值函数</p>
+
+<h2 id="32">3.2 策略迭代<a class="headerlink" href="#32" title="Permanent link">&para;</a></h2>
+<p>完成对一个策略的评估，将得到基于该策略下每一个状态的价值。很明显，不同状态对应的价值一般也不同，那么个体是否可以根据得到的价值状态来调整自己的行动策略呢？例如，考虑一种贪婪策略：个体在某个状态下只选择能达到最大后续价值的状态的行为。我们以均匀随机策略下第2次迭代后产生的价值函数为例来说明这个贪婪策略（见图3.3）。</p>
+<table class="grid-world"><tr><td>0.0</td><td>-1.7</td><td>-2.0</td><td>-2.0</td></tr><tr><td>-1.7</td><td>-2.0</td><td>-2.0</td><td>-2.0</td></tr><tr><td>-2.0</td><td>-2.0</td><td>-2.0</td><td>-1.7</td></tr><tr><td>-2.0</td><td>-2.0</td><td>-1.7</td><td>0.0</td></tr></table>
+
+<p><img alt="" src="images/61710a241cbab9f00b6d32e632f6397a076faf90e7d478634ee0e54a50231410.jpg" /></p>
+<p class="caption">图3.3 小型格子世界策略的改善（k=2）</p>
+
+<p>如图3.3所示，右侧是根据左侧各状态的价值绘制的贪婪策略方案。个体处在任何一个状态时，将比较所有后续可能的状态价值，从中选择一个最大价值的状态，再选择能到达这一状态的行为；如果有多个状态价值相同且均比其他可能的后续状态价值大，那么个体则从多个最大价值的状态中随机选择一个对应的行为。</p>
+<p>在这个小型格子世界中，新的贪婪策略比之前的均匀随机策略要优秀不少，至少在靠近终止状态的几个状态中个体将有一个明确的行为，而不再是随机行为。我们从均匀随机策略下的价值函数中产生了更优秀的新策略，这是一个策略改善的过程。</p>
+<p>一般情况下，当给定一个策略π时，可以得到基于该策略的价值函数 <span class="arithmatex">\(v_{\pi}\)</span> ，基于产生的价值函数可以得到一个贪婪策略 <span class="arithmatex">\(\scriptstyle{\pi^{\prime} = \mathrm{greedy} \left( v_{\pi} \right)}\)</span> 。</p>
+<p>依据新的策略π'会得到一个新的价值函数，并产生新的贪婪策略，如此重复循环迭代将最终得到最优价值函数 <span class="arithmatex">\(v_{*}\)</span> 和最优策略 <span class="arithmatex">\(\pi^{*}\)</span>。策略在循环迭代中得到更新改善的过程称为策略迭代（Policy Iteration）。图3.4直观地显示了策略迭代的过程。</p>
+<p><img alt="" src="images/cfe5b109744bc34e554742a144d605e69238b8782c8f04ac3ede05da9f7e26e2.jpg" /></p>
+<p class="caption">图3.4 策略迭代过程示意图</p>
+
+<p>从一个初始策略π和初始价值函数V开始，基于该策略进行完整的价值评估过程，得到一个新的价值函数，随后依据新的价值函数得到新的贪婪策略，随后计算新的贪婪策略下的价值函数，这个过程反复交替进行，在这个循环过程中策略和价值函数均得到迭代更新，并最终收敛至最优价值函数和最优策略。除了初始策略外，迭代中的策略均是依据价值函数的贪婪策略。</p>
+<p>下文将证明基于贪婪策略的迭代将收敛于最优策略和最优状态价值函数。</p>
+<p>考虑一个依据确定性策略π对任意状态s产生的行为 <span class="arithmatex">\(a = \pi(s)\)</span> ，贪婪策略在同样的状态s下会得到新行为 <span class="arithmatex">\(a^{\prime} = \pi^{\prime}(s)\)</span> ，其中：</p>
+<div class="arithmatex">\[
+\pi^{\prime} (s) = \underset{a \in A} {\arg \max} q_{\pi} (s, a) \tag{3.2}
+\]</div>
+<p>假如个体在与环境交互时仅在下一步采取该贪婪策略产生的行为，而在后续步骤仍采取基于原策略产生的行为，那么下面的式子成立：</p>
+<div class="arithmatex">\[
+q_{\pi} (s, \pi^{\prime} (s)) = \max_{a \in A} q_{\pi} (s, a) \geqslant q_{\pi} (s, \pi (s)) = v_{\pi} (s)
+\]</div>
+<p>由于上式中的s对状态集S中的所有状态都成立，因此针对状态s的所有后续状态均使用贪婪策略产生的行为，不等式 将成立。这表明新策略下状态价值函数总不次于原策略下的状态价值函数。该步的推导如下：</p>
+<div class="arithmatex">\[
+\begin{array}{l} v_{\pi} (s) \leqslant q_{\pi} (s, \pi^{\prime} (s)) = \mathbb{E} _{\pi^{\prime}} \left[ R_{i + 1} + \gamma v_{\pi} \left(S_{t + 1}\right) \mid S_{t} = s \right] \\ \leqslant \mathbb{E} _{\pi^{\prime}} \left[ R_{t + 1} + \gamma q_{\pi} \left(S_{t + 1}, \pi^{\prime} \left(S_{t + 1}\right)\right) \mid S_{t} = s \right] \\ \leqslant \mathbb{E} _{\pi^{\prime}} \left[ R_{t + 1} + \gamma R_{t + 2} + \gamma^{2} q_{\pi} \left(S_{t + 2}, \pi^{\prime} \left(S_{t + 2}\right)\right) | S_{t} = s \right] \\ \leqslant \mathbb{E} _{\pi^{\prime}} \left[ R_{t + 1} + \gamma R_{t + 2} + \dots \mid S_{t} = s \right] = v_{\pi^{\prime}} (s) \\ \end{array}
+\]</div>
+<p>如果在某一个迭代周期内状态价值函数不再改善，即</p>
+<div class="arithmatex">\[
+q_{\pi} (s, \pi^{\prime} (s)) = \max_{a \in A} q_{\pi} (s, a) = q_{\pi} (s, \pi (s)) = v_{\pi} (s)
+\]</div>
+<p>就满足了贝尔曼最优方程的描述：</p>
+<div class="arithmatex">\[
+v_{\pi} = \max_{a \in A} q_{\pi} (s, a)
+\]</div>
+<p>此时，对于所有状态集内的状态 <span class="arithmatex">\(s \in S\)</span> ，满足 <span class="arithmatex">\(v_{\pi}(s) = v_{*}(s)\)</span> ，表明此时的策略π即为最优策略。至此，证明已完成。</p>
+<h2 id="33">3.3 价值迭代<a class="headerlink" href="#33" title="Permanent link">&para;</a></h2>
+<p>如果按照图3.2中第三次迭代得到的价值函数采用贪婪选择策略，该策略和最终的最优价值函数对应的贪婪选择策略是一样的，它们都对应于最优策略，如图3.5所示，而通过基于均匀随机策略的迭代法价值评估要经过数十次迭代才算收敛。这会引出一个问题：是否可以提前设置一个迭代终点来减少迭代次数而不影响得到最优策略呢？是否可以每迭代一次就进行一次策略评估呢？在回答这些问题之前，我们先从另一个角度剖析一下最优策略的意义。</p>
+<p>任何一个最优策略都可以分为两个阶段：首先，该策略要能产生当前状态下的最优行为；其次，对于最优行为到达后续状态时该策略仍然是一个最优策略。可以反过来理解这句话：如果一个策略不能在当前状态下产生一个最优行为，或者这个策略在针对当前状态的后续状态时不能产生一个最优行为，那么这个策略就不是最优策略。与价值函数对应起来，可以这样描述最优化原则：一个策略能够获得某状态s的最优价值，当且仅当该策略同时获得状态s所有可能的后续状态s'的最优价值。</p>
+<table class="grid-world"><tr><td>0.0</td><td>-14</td><td>-20</td><td>-22</td></tr><tr><td>-14</td><td>-18</td><td>-20</td><td>-20</td></tr><tr><td>-20</td><td>-20</td><td>-18</td><td>-14</td></tr><tr><td>-22</td><td>-20</td><td>-14</td><td>0.0</td></tr></table>
+
+<p><img alt="" src="images/e4191185645a0abdcb358d28ed409e1a50267aab2ea73f5447be5571dd7571e9.jpg" /></p>
+<p class="caption">图3.5 小型格子世界k=∞时的贪婪策略</p>
+
+<p>状态价值的最优化原则告诉我们，一个状态的最优价值可以由其后续状态的最优价值通过前一章所述的贝尔曼最优方程来计算：</p>
+<div class="arithmatex">\[
+v_{*} (s) = \max_{a \in A} \left(R_{s} ^{a} + \gamma \sum_{s^{\prime} \in S} P_{s s^{\prime}} ^{a} v_{*} (s^{\prime})\right)
+\]</div>
+<p>这个公式带给我们的直觉是，如果我们能知道最终状态的价值和相关奖励，可以直接计算得到最终状态的前一个所有可能状态的最优价值。更乐观的是，即使不知道最终状态是哪一个，也可以利用上述公式进行纯粹的价值迭代，不停地更新状态价值，最终得到最优价值，而且这种单纯价值迭代的方法甚至适用于存在循环的状态转换、一些随机发生的状态转换。下面我们以一个更简单的格子世界来解释什么是单纯的价值迭代。</p>
+<p>图3.6 <span class="arithmatex">\(( \mathsf{V} _{0} )\)</span> ）所示是一个在4×4格子世界中寻找最短路径的问题。与本章前述的格子世界问题唯一的不同之处在于，该世界只在左上角有一个最终状态，个体在世界中需尽可能用最少步数到达左上角的最终状态。</p>
+<p>首先考虑个体知道环境的动力学特征的情况。在这种情况下，个体可以直接计算得到与终止状态直接相邻（斜向不算）的左上角两个状态的最优价值均为-1。随后个体又可以往右下角延伸计算，得到与之前最优价值为-1的两个状态相邻的3个状态的最优价值为-2。以此类推，每一次迭代，个体将从左上角朝着右下角方向依次直接计算，得到一排斜向格子的最优价值，直至完成最右下角的一个格子的最优价值的计算。</p>
+<p>接着考虑个体不知道环境动力学特征的更广泛适用的情况。在这种情况下，个体并不知道终止状态的位置，但是它依然能够直接进行价值迭代。与之前情况不同的是，此时的个体要针对所有状态进行价值更新。为此，个体先随机地初始化所有状态价值 <span class="arithmatex">\(( \mathsf{V} _{1} )\)</span> ，示例中为了演示简便，全部初始化为0。在随后的一次迭代过程中，对于任何非终止状态，因为执行任何一个行为都将得到一个-1的奖励，而所有状态的价值都为0，所以所有的非终止状态的价值经过计算后都</p>
+<p>为-1 <span class="arithmatex">\(( \mathsf{V} _{2} )\)</span> ）。在下一次迭代中，除了与终止状态相邻的两个状态外，其余状态的价值都将因采取一个行为获得-1的奖励，以及在前次迭代中得到的后续状态价值均为-1而将自身的价值更新为-2；与终止状态相邻的两个状态，在更新价值时需将终止状态的价值0作为最高价值代入计算，因而这两个状态更新的价值仍然为- $ {- 1}  (  {V_{3}} )$ ）。以此类推，直到最右下角的状态更新为- <span class="arithmatex">\(- 6 ~ ( V_{7} )\)</span> ）后，再次迭代各状态的价值时它们将不会发生变化，完成整个价值迭代的过程。</p>
+<p><img alt="" src="images/8711cec1711fe69014b824beb5fd87825b7dd326fd420479f8d055cea6cd0636.jpg" /></p>
+<p>V0</p>
+<p><img alt="" src="images/abf62fd0b12a576c32d5df70eadb6ee15581035cb5ee4b3111227f5389e5b972.jpg" /></p>
+<table class="grid-world"><tr><td>0</td><td>-1</td><td>-1</td><td>-1</td></tr><tr><td>-1</td><td>-1</td><td>-1</td><td>-1</td></tr><tr><td>-1</td><td>-1</td><td>-1</td><td>-1</td></tr><tr><td>-1</td><td>-1</td><td>-1</td><td>-1</td></tr></table>
+
+<table class="grid-world"><tr><td>0</td><td>-1</td><td>-2</td><td>-2</td></tr><tr><td>-1</td><td>-2</td><td>-2</td><td>-2</td></tr><tr><td>-2</td><td>-2</td><td>-2</td><td>-2</td></tr><tr><td>-2</td><td>-2</td><td>-2</td><td>-2</td></tr></table>
+
+<table class="grid-world"><tr><td>0</td><td>-1</td><td>-2</td><td>-3</td></tr><tr><td>-1</td><td>-2</td><td>-3</td><td>-3</td></tr><tr><td>-2</td><td>-3</td><td>-3</td><td>-3</td></tr><tr><td>-3</td><td>-3</td><td>-3</td><td>-3</td></tr></table>
+
+<table class="grid-world"><tr><td>0</td><td>-1</td><td>-2</td><td>-3</td></tr><tr><td>-1</td><td>-2</td><td>-3</td><td>-4</td></tr><tr><td>-2</td><td>-3</td><td>-4</td><td>-4</td></tr><tr><td>-3</td><td>-4</td><td>-4</td><td>-4</td></tr></table>
+
+<table class="grid-world"><tr><td>0</td><td>-1</td><td>-2</td><td>-3</td></tr><tr><td>-1</td><td>-2</td><td>-3</td><td>-4</td></tr><tr><td>-2</td><td>-3</td><td>-4</td><td>-5</td></tr><tr><td>-3</td><td>-4</td><td>-5</td><td>-5</td></tr></table>
+
+<p>V6</p>
+<table class="grid-world"><tr><td>0</td><td>-1</td><td>-2</td><td>-3</td></tr><tr><td>-1</td><td>-2</td><td>-3</td><td>-4</td></tr><tr><td>-2</td><td>-3</td><td>-4</td><td>-5</td></tr><tr><td>-3</td><td>-4</td><td>-5</td><td>-6</td></tr></table>
+
+<p class="caption">图3.6 小型格子世界的最短路径问题</p>
+
+<p>上述两种情况的相同点都是根据后续状态的价值，利用贝尔曼最优方程来更新得到前面状态的价值。两者的差别体现在：前者每次迭代仅计算相关状态的价值，而且一次计算即得到最优状态价值；后者在每次迭代时要更新所有状态的价值。</p>
+<p>可以看出，价值迭代的目标仍然是寻找到一个最优策略，它通过贝尔曼最优方程从前次迭代的价值函数中计算得到当次迭代的价值函数。在这个反复迭代的过程中，并没有一个明确的策略参与，由于使用贝尔曼最优方程进行价值迭代时贪婪地选择了最优行为对应的后续状态的价值，因而价值迭代其实等效于策略迭代中每迭代一次，价值函数就更新一次策略的过程。需要注意的是，在纯粹的价值迭代寻找最优策略的过程中，迭代过程中产生的状态价值函数不一定对应一个策略。迭代过程中价值函数更新的公式为：</p>
+<div class="arithmatex">\[
+v_{k + 1} (s) = \max_{a \in A} \left(R_{s} ^{a} + \gamma \sum_{s^{\prime} \in S} P_{s s^{\prime}} ^{a} v_{k} (s^{\prime})\right) \tag{3.3}
+\]</div>
+<p>在上述公式和图示中，k表示迭代次数。</p>
+<p>至此，关于使用同步动态规划进行规划的内容基本讲解完毕。其中，迭代法策略评估属于预测问题，使用贝尔曼期望方程来进行求解。策略迭代和价值迭代属于控制问题：策略迭代使用贝尔曼期望方程进行一定次数的价值迭代更新，随后在产生的价值函数基础上采取贪婪选择的策略改善方法形成新的策略，如此交替迭代，不断地优化策略；价值迭代不依赖任何策略，使用贝尔曼最优方程直接对价值函数进行迭代更新。前文所述的这3类算法均是基于状态价值函数的，每一次迭代的时间复杂度为 <span class="arithmatex">\(O ( m n^{2} )\)</span> ，其中m和n分别为行为和状态空间的大小。读者也可以设计基于行为价值函数的上述算法，这种情况下每一次迭代的时间复杂度将变成 <span class="arithmatex">\(O ( m^{2} n^{2} )\)</span> ，本文不再详述。</p>
+<h2 id="34">3.4 异步动态规划算法<a class="headerlink" href="#34" title="Permanent link">&para;</a></h2>
+<p>前文所述的系列算法均为同步动态规划算法，表示所有的状态更新是同步的。与之对应的还有异步动态规划算法。在这些算法中，每一次迭代并不对所有状态的价值进行更新，而是依据一定的原则有选择性地更新部分状态的价值。这种算法能显著节约计算资源，并且只要所有状态能够持续地被访问而更新，就能确保算法收敛至最优解。比较常用的异步动态规划思想有原位动态规划、优先级动态规划和实时动态规划等。下文将简要叙述各类异步动态规划算法的特点。</p>
+<p>·原位动态规划（In-place Dynamic Programming）：与同步动态规划算法通常对状态价值保留一个额外备份不同，原位动态规划直接利用当前状态的后续状态价值来更新当前状态的价值。
+·优先级动态规划（Prioritised Sweeping）：该算法对每一个状态进行优先级分级，优先级越高，状态价值越会优先得到更新。通常使用贝尔曼误差（新状态价值与前次计算得到的状态价值差的绝对值）来评估状态的优先级。直观地说，如果一个状态价值在更新时变化特别大，那么该状态下次将得到较高的优先级再次更新。这种算法可以通过维护一个优先级队列来较轻松地实现。</p>
+<p>·实时动态规划（Real-time Dynamic Programming）：实时动态规划直接使用个体与环境交互产生的实际经历来更新状态价值，对于那些个体实际经历过的状态进行价值更新。这样个体经常访问过的状态将得到较高频次的价值更新，而与个体关系不密切、个体较少访问到的状态价值得到更新的机会较少。</p>
+<p>动态规划算法使用全宽度（Full-Width）的回溯机制来进行状态价值的更新，也就是说，无论是同步还是异步动态规划，在每一次回溯更新某个状态的价值时都要追溯到该状态所有可能的后续状态，并结合已知的马尔可夫决策过程所定义的状态转换矩阵和奖励来更新该状态的价值。这种全宽度的价值更新方式对于状态数在百万级别及以下的中等规模的马尔可夫决策问题还是比较有效的，但是当问题规模继续变大时，动态规划算法将会因贝尔曼维度灾难而无法使用，每一次的状态回溯更新都要消耗非常昂贵的计算资源。为此，需要寻找其他有效的算法，这就是后文将要介绍的采样回溯。这类算法的一大特点是不需要知道马尔可夫决策过程的定义，也就是不需要了解状态转移概率矩阵以及奖励函数，而是使用采样产生的奖励和状态转移概率。这类算法通过采样避免了维度灾难，其回溯的计算时间消耗是常数级的。由于这类算法具有非常可观的优势，因此在解决大规模实际问题时得到了广泛的应用。</p>
+<h2 id="35">3.5 编程实践：动态规划求解小型格子世界最优策略<a class="headerlink" href="#35" title="Permanent link">&para;</a></h2>
+<p>在本章的编程实践中，我们将结合4×4小型格子世界环境使用动态规划算法进行策略评估、策略迭代和价值迭代。本节将引导读者进一步熟悉马尔可夫决策过程的建模，熟悉动态规划算法的思想，巩固对贝尔曼期望方程、贝尔曼最优方程的认识，加深对均匀随机策略、贪婪策略的理解。本节使用的代码与上一节有许多相似的地方，但是也有不少细微的差别。这些差别代表着我们逐渐从单纯的马尔可夫过程的建模转向强化学习的建模和实践中。</p>
+<h2 id="351-mdp">3.5.1 小型格子世界MDP建模<a class="headerlink" href="#351-mdp" title="Permanent link">&para;</a></h2>
+<p>我们先对4×4小型格子世界的MDP进行建模。4×4格子世界环境简单、环境动力学明确，我们将不使用字典来保存状态价值、状态转移概率、奖励、策略等。我们使用列表来描述状态空间和行为空间，编写一个反映环境动力学特征的方法（接受当前状态和行为作为参数）来确定后续状态和奖励值。状态转移概率和奖励将使用函数（方法）的形式来表达。代码如下：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">S</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">16</span><span class="p">)]</span>    <span class="c1">## 状态空间</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">A</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;e&quot;</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">]</span>    <span class="c1">## 行为空间</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1">## P,R将由dynamics动态生成</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">ds</span> <span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;e&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">}</span> <span class="c1">## 行为对状态的改变</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">dynamics</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>    <span class="c1">## 环境动力学</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;模拟小型格子世界的环境动力学特征</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="sd">    s当前状态int 0 - 15</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="sd">    a行为str in [&#39;n&#39;, &#39;e&#39;, &#39;s&#39;, &#39;w&#39;] 分别表示北、东、南、西</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="sd">    Returns: tuple (s_prime, reward, is_end)</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="sd">    s_prime 后续状态</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="sd">    &#39;&#39;&#39;</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">s_prime</span> <span class="o">=</span> <span class="n">s</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="o">%</span><span class="mi">4</span><span class="o">==</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">a</span><span class="o">==</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">s</span><span class="o">&lt;</span><span class="mi">4</span> <span class="ow">and</span> <span class="n">a</span><span class="o">==</span><span class="s2">&quot;n&quot;</span><span class="p">)</span> \
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="ow">or</span> <span class="p">((</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="mi">4</span><span class="o">==</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">a</span><span class="o">==</span><span class="s2">&quot;e&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">s</span><span class="o">&gt;</span><span class="mi">11</span> <span class="ow">and</span> <span class="n">a</span><span class="o">==</span><span class="s2">&quot;s&quot;</span><span class="p">))</span> \
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="ow">or</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">15</span><span class="p">]:</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="k">pass</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">ds</span> <span class="o">=</span> <span class="n">ds_actions</span><span class="p">[</span><span class="n">a</span><span class="p">]</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n">s_prime</span> <span class="o">=</span> <span class="n">s</span> <span class="o">+</span> <span class="n">ds</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="n">reward</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">15</span><span class="p">]</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="n">is_end</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">15</span><span class="p">]</span> <span class="k">else</span> <span class="kc">False</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="k">return</span> <span class="n">s_prime</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">is_end</span>
+</span></code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">P</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">s1</span><span class="p">):</span>    <span class="c1">## 状态转移概率函数</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">s_prime</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">dynamics</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="k">return</span> <span class="n">s1</span> <span class="o">==</span> <span class="n">s_prime</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">R</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>    <span class="c1">## 奖励函数</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">_</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">dynamics</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="k">return</span> <span class="n">r</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">gamma</span> <span class="o">=</span> <span class="mf">1.00</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="n">MDP</span> <span class="o">=</span> <span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">gamma</span>
+</span></code></pre></div>
+<p>最后建立的MDP同<a href="ch02.html">第2章</a>一样是一个拥有5个元素的元组，只不过R和P都变成了函数而不是字典了。同样变成函数的还有策略。下面的代码建立均匀随机策略和贪婪策略，并给出调用这两个策略的统一接口。生成一个策略所需要的参数并不统一，比如均匀随机策略多数只需要知道行为空间即可、贪婪策略则需要知道状态的价值。为了方便程序使用相同的代码调用不同的策略，我们对参数进行统一。</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">uniform_random_pi</span><span class="p">(</span><span class="n">MDP</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">_</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">MDP</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="k">return</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">n</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">greedy_pi</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span> <span class="c1">## 贪婪策略</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="n">MDP</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">max_v</span><span class="p">,</span> <span class="n">a_max_v</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),</span> <span class="p">[]</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="k">for</span> <span class="n">a_opt</span> <span class="ow">in</span> <span class="n">A</span><span class="p">:</span> <span class="c1">## 统计后续状态的最大价值以及到达该状态的行为（可能不止一个）</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">s_prime</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">dynamics</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">a_opt</span><span class="p">)</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="n">v_s_prime</span> <span class="o">=</span> <span class="n">get_value</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">s_prime</span><span class="p">)</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="k">if</span> <span class="n">v_s_prime</span> <span class="o">&gt;</span> <span class="n">max_v</span><span class="p">:</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="n">max_v</span> <span class="o">=</span> <span class="n">v_s_prime</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="n">a_max_v</span> <span class="o">=</span> <span class="p">[</span><span class="n">a_opt</span><span class="p">]</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>    <span class="k">elif</span><span class="p">(</span><span class="n">v_s_prime</span> <span class="o">==</span> <span class="n">max_v</span><span class="p">):</span>
+</span></code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">a_max_v</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a_opt</span><span class="p">)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">a_max_v</span><span class="p">)</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="mf">0.0</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="k">return</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">n</span> <span class="k">if</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">a_max_v</span> <span class="k">else</span> <span class="mf">0.0</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_pi</span><span class="p">(</span><span class="n">Pi</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">MDP</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="k">return</span> <span class="n">Pi</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</span></code></pre></div>
+<p>在编写贪婪策略时，我们考虑到多个状态具有相同最大值的情况，此时贪婪策略将从多个具有相同最大值的行为中随机选择一个。为了能使用<a href="ch02.html">第2章</a>编写的一些方法，我们重写一下需要用到的获取状态转移概率、奖励以及显示状态价值等辅助方法：</p>
+<h1 id="_1">辅助函数<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_prob</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">s1</span><span class="p">):</span>    <span class="c1">## 获取状态转移概率</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="k">return</span> <span class="n">P</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">s1</span><span class="p">)</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_reward</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>    <span class="c1">## 获取奖励值</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="k">return</span> <span class="n">R</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">set_value</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>    <span class="c1">## 设置价值字典</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="n">V</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_value</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>    <span class="c1">## 获取状态价值</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="k">return</span> <span class="n">V</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="k">def</span><span class="w"> </span><span class="nf">display_V</span><span class="p">(</span><span class="n">V</span><span class="p">):</span>    <span class="c1">## 显示状态价值</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">16</span><span class="p">):</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[0:&gt;6.2f}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">V</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>    <span class="k">if</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>    <span class="nb">print</span><span class="p">()</span>
+</span></code></pre></div>
+<p>有了这些基础，接下来就可以很轻松地完成迭代法策略评估、策略迭代和价值迭代。在<a href="ch02.html">第2章</a>的实践环节，我们实现了完成这3个功能的方法，这里只要做少量针对性的修改即可。由于策略Pi现在不是查表式获取而是使用函数来定义的，因此我们需要做相应的修改，修改后的完整代码如下：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">compute_q</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;根据给定的MDP、价值函数V来计算状态行为对“s,a”的价值qsa    &#39;&#39;&#39;</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="n">MDP</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="n">q_sa</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="k">for</span> <span class="n">s_prime</span> <span class="ow">in</span> <span class="n">S</span><span class="p">:</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="n">q_sa</span> <span class="o">+=</span> <span class="n">get_prob</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">s_prime</span><span class="p">)</span> <span class="o">*</span> <span class="n">get_value</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">s_prime</span><span class="p">)</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="n">q_sa</span> <span class="o">=</span> <span class="n">get_reward</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">q_sa</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="k">return</span> <span class="n">q_sa</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="k">def</span><span class="w"> </span><span class="nf">compute_v</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">Pi</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;给定MDP下依据某一策略Pi和当前状态价值函数V来计算某状态s的价值    &#39;&#39;&#39;</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    <span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="n">MDP</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="n">v_s</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">A</span><span class="p">:</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>    <span class="n">v_s</span> <span class="o">+=</span> <span class="n">get_pi</span><span class="p">(</span><span class="n">Pi</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span><span class="o">*</span><span class="n">compute_q</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>    <span class="k">return</span> <span class="n">v_s</span>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="k">def</span><span class="w"> </span><span class="nf">update_V</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">Pi</span><span class="p">):</span>
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;给定一个MDP和一个策略，更新该策略下的价值函数V    &#39;&#39;&#39;</span>
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>    <span class="n">S</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">MDP</span>
+</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>    <span class="n">V_prime</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">S</span><span class="p">:</span>
+</span><span id="__span-5-22"><a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>    <span class="n">set_value</span><span class="p">(</span><span class="n">V_prime</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">compute_v</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V_prime</span><span class="p">,</span> <span class="n">Pi</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+</span><span id="__span-5-23"><a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>    <span class="k">return</span> <span class="n">V_prime</span>
+</span><span id="__span-5-24"><a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a>
+</span><span id="__span-5-25"><a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="k">def</span><span class="w"> </span><span class="nf">policy_evaluate</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">Pi</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+</span></code></pre></div>
+<p>'''使用n次迭代计算来评估一个MDP在给定策略Pi下的状态价值，初始时价值为V
+for i in range(n):
+    V = update_V(MDP, V, Pi)
+return V</p>
+<p>def policy_iterate(MDP, V, Pi, n, m):
+    for i in range(m):
+    V = policy_evaluate(MDP, V, Pi, n)
+    Pi = greedy_pi  ## 第一次迭代产生新的价值函数后随机使用贪婪策略
+    return V</p>
+<p># 价值迭代得到最优状态价值过程</p>
+<p>def compute_v_from_max_q(MDP, V, s):</p>
+<p>'''根据一个状态下所有可能的行为价值中最大的一个来确定当前状态价值</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="n">MDP</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">v_s</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">A</span><span class="p">:</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="n">qsa</span> <span class="o">=</span> <span class="n">compute_q</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="k">if</span> <span class="n">qsa</span> <span class="o">&gt;=</span> <span class="n">v_s</span><span class="p">:</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>    <span class="n">v_s</span> <span class="o">=</span> <span class="n">qsa</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="k">return</span> <span class="n">v_s</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="k">def</span><span class="w"> </span><span class="nf">update_V_without_pi</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">):</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;在不依赖策略的情况下直接通过后续状态的价值来更新状态价值    &#39;&#39;&#39;</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>    <span class="n">S</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">MDP</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>    <span class="n">V_prime</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">S</span><span class="p">:</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>    <span class="n">set_value</span><span class="p">(</span><span class="n">V_prime</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">compute_v_from_max_q</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V_prime</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>    <span class="k">return</span> <span class="n">V_prime</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="k">def</span><span class="w"> </span><span class="nf">value_iterate</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;价值迭代    &#39;&#39;&#39;</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>    <span class="n">V</span> <span class="o">=</span> <span class="n">update_V_without_pi</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>    <span class="k">return</span> <span class="n">V</span>
+</span></code></pre></div>
+<h2 id="352">3.5.2 策略评估<a class="headerlink" href="#352" title="Permanent link">&para;</a></h2>
+<p>接下来可以调用3.5.1小节中的方法进行策略评估、策略迭代和价值迭代。本小节先来评估一下均匀随机策略和贪婪策略下16个状态的最终价值：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">V</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="n">for_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">16</span><span class="p">)]</span>    <span class="c1">## 状态价值</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">V_pi</span> <span class="o">=</span> <span class="n">policy_evaluate</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">uniform_random</span><span class="p">(</span><span class="n">pi</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">display_V</span><span class="p">(</span><span class="n">V_pi</span><span class="p">)</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">V</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="n">for_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">16</span><span class="p">)]</span>    <span class="c1">## 状态价值</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="n">V_pi</span> <span class="o">=</span> <span class="n">policy_evaluate</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">greedy</span><span class="p">(</span><span class="n">pi</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="n">display_V</span><span class="p">(</span><span class="n">V</span><span class="p">(</span><span class="n">pi</span><span class="p">))</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="c1">## 将输出结果:</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c1">##    0.00 -14.00 -20.00 -22.00</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="c1">##    -14.00 -18.00 -20.00 -20.00</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="c1">##    -20.00 -20.00 -18.00 -14.00</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="c1">##    -22.00 -20.00 -14.000.00</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="c1">##    0.00 -1.00 -2.00 -3.00</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="c1">##    -1.00 -2.00 -3.00 -2.00</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="c1">##    -2.00 -3.00 -2.00 -1.00</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="c1">##    -3.00 -2.00 -1.000.00</span>
+</span></code></pre></div>
+<p>可以看出，均匀随机策略下得到的结果与图3.5显示的结果相同；在使用贪婪策略时，各状态的最终价值与均匀随机策略下的最终价值不同。这体现了状态的价值是基于特定策略的。</p>
+<h2 id="353">3.5.3 策略迭代<a class="headerlink" href="#353" title="Permanent link">&para;</a></h2>
+<p>编写如下代码进行贪婪策略迭代，每迭代一次改善一次策略，共进行100次策略改善：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">V</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="n">for_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">16</span><span class="p">)]</span> <span class="c1">## 重置状态价值</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">V_pi</span> <span class="o">=</span> <span class="n">policy_iterate</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">greedy_pi</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">display_V</span><span class="p">(</span><span class="n">V_pi</span><span class="p">)</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1">## 将输出结果:</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c1">## 0.00 -1.00 -2.00 -3.00</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="c1">## -1.00 -2.00 -3.00 -2.00</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1">## -2.00 -3.00 -2.00 -1.00</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="c1">## -3.00 -2.00 -1.000.00</span>
+</span></code></pre></div>
+<h2 id="354">3.5.4 价值迭代<a class="headerlink" href="#354" title="Permanent link">&para;</a></h2>
+<p>下面的代码展示单纯使用价值迭代的状态价值。我们把迭代次数设为4次，可以发现仅4次迭代后状态价值就和最优状态价值一致了：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">V_star</span> <span class="o">=</span> <span class="n">value_iterate</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="n">display_V</span><span class="p">(</span><span class="n">V_star</span><span class="p">)</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="c1">## 将输出结果:</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1">## 0.00 -1.00 -2.00 -3.00</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1">## -1.00 -2.00 -3.00 -2.00</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c1">## -2.00 -3.00 -2.00 -1.00</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="c1">## -3.00 -2.00 -1.000.00</span>
+</span></code></pre></div>
+<p>我们还可以编写如下代码来观察最优状态下对应的最优策略：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">greedy_policy</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>    <span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="n">MDP</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>    <span class="n">max_v</span><span class="p">,</span> <span class="n">a_max_v</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),</span> <span class="p">[]</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="k">for</span> <span class="n">a_opt</span> <span class="ow">in</span> <span class="n">A</span><span class="p">:</span> <span class="c1">## 统计后续状态的最大价值以及到达该状态的行为（可能不止一个）</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="n">s_prime</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">dynamics</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">a_opt</span><span class="p">)</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    <span class="n">v_s_prime</span> <span class="o">=</span> <span class="n">get_value</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">s_prime</span><span class="p">)</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>    <span class="k">if</span> <span class="n">v_s_prime</span> <span class="o">&gt;</span> <span class="n">max_v</span><span class="p">:</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>    <span class="n">max_v</span> <span class="o">=</span> <span class="n">v_s_prime</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>    <span class="n">a_max_v</span> <span class="o">=</span> <span class="n">a_opt</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>    <span class="k">elif</span><span class="p">(</span><span class="n">v_s_prime</span> <span class="o">==</span> <span class="n">max_v</span><span class="p">):</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>    <span class="n">a_max_v</span> <span class="o">+=</span> <span class="n">a_opt</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">a_max_v</span><span class="p">)</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="k">def</span><span class="w"> </span><span class="nf">display_policy</span><span class="p">(</span><span class="n">policy</span><span class="p">,</span> <span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">):</span>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>    <span class="n">S</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="n">MDP</span>
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">16</span><span class="p">):</span>
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[0:^6}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">policy</span><span class="p">(</span><span class="n">MDP</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">S</span><span class="p">[</span><span class="n">i</span><span class="p">])),</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>    <span class="k">if</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>print()
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>display_policy(greedy_policy, MDP, V_star)
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a># 将输出结果:
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a># nesw w w sw
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a># n nw nesw s
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a># n nesw es s
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a># ne e e nesw
+</span></code></pre></div>
+<p>上面分别用n、e、s、w表示北、东、南、西4个行为。这与图3.5显示的结果是一致的。也可以通过修改不同的参数或在迭代过程中输出价值和策略来观察价值函数和策略函数的迭代过程。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="页脚" >
+        
+          
+          <a href="ch02.html" class="md-footer__link md-footer__link--prev" aria-label="上一页: 第2章 · 从一个示例到马尔可夫决策过程">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                上一页
+              </span>
+              <div class="md-ellipsis">
+                第2章 · 从一个示例到马尔可夫决策过程
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="ch04.html" class="md-footer__link md-footer__link--next" aria-label="下一页: 第4章 · 不基于模型的预测">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                下一页
+              </span>
+              <div class="md-ellipsis">
+                第4章 · 不基于模型的预测
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/uynajgi/yuulibrary" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["announce.dismiss", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.path", "navigation.top", "navigation.tracking", "navigation.footer", "navigation.prune", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "search.highlight", "search.share", "search.suggest", "toc.follow", "content.code.copy", "content.code.annotate"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="../../../assets/external/cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"></script>
+      
+        <script src="../../../assets/external/cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+      
+        <script src="../../../assets/external/cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.js"></script>
+      
+        <script src="../../../javascripts/pseudocode-render.js"></script>
+      
+    
+  </body>
+</html>

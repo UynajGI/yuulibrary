@@ -1,0 +1,2342 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="个人的数字图书馆">
+      
+      
+        <meta name="author" content="Yuunagi">
+      
+      
+        <link rel="canonical" href="https://uynajgi.github.io/yuulibrary/books/ml/rl-intro/ch04.html">
+      
+      
+        <link rel="prev" href="ch03.html">
+      
+      
+        <link rel="next" href="ch05.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>第4章 · 不基于模型的预测 - Yuunagi Library</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="../../../assets/external/fonts.googleapis.com/css.868af38d.css">
+        <style>:root{--md-text-font:"Noto Sans SC";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../../../assets/external/cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+    
+      <link rel="stylesheet" href="../../../assets/external/cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#4" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../index.html" title="Yuunagi Library" class="md-header__button md-logo" aria-label="Yuunagi Library" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Yuunagi Library
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              第4章 · 不基于模型的预测
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="切换深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="切换浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="分享" aria-label="分享" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="index.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  书籍
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../index.html" title="Yuunagi Library" class="md-nav__button md-logo" aria-label="Yuunagi Library" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Yuunagi Library
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    书籍
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    书籍
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    机器学习
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    机器学习
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1_1" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    强化学习入门
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_1_1" id="__nav_2_1_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_1_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_1_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    强化学习入门
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="preface.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    前言
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="notations.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    常用符号
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="algorithms.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法列表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch01.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第1章 · 概述
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch02.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第2章 · 从一个示例到马尔可夫决策过程
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch03.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第3章 · 动态规划寻找最优策略
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第4章 · 不基于模型的预测
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="ch04.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第4章 · 不基于模型的预测
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 蒙特卡罗强化学习
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 时序差分强化学习
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#41_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        表4.1 驾车返家数据（单位：分钟）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#43-n" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 n步时序差分学习
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1td" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.前向认识TD（λ）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2td" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.反向认识TD（λ）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#44-21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 编程实践：蒙特卡罗学习评估21点游戏的玩家策略
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#44121" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.121点游戏规则
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#442-21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.2 将21点游戏建模为强化学习问题
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#443" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.3 游戏场景的搭建
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#444" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.4 生成对局数据
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#445" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.5 策略评估
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch05.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第5章 · 无模型的控制
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch06.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第6章 · 价值函数的近似表示
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch07.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第7章 · 基于策略梯度的深度强化学习
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch08.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第8章 · 基于模型的学习和规划
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch09.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第9章 · 探索与利用
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ch10.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第10章 · Alpha Zero算法实战
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+      
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    金融经济
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    金融经济
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+      
+        
+        
+      
+    
+    <li class="md-nav__item md-nav__item--pruned md-nav__item--nested">
+      
+        
+  
+  
+  
+    <a href="../../finance/quant-finance-interview/index.html" class="md-nav__link">
+      
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    量化金融面试实用指南
+  
+
+    
+  </span>
+  
+  
+
+      
+        <span class="md-nav__icon md-icon"></span>
+      
+    </a>
+  
+
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 蒙特卡罗强化学习
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 时序差分强化学习
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#41_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        表4.1 驾车返家数据（单位：分钟）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#43-n" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 n步时序差分学习
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1td" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.前向认识TD（λ）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2td" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.反向认识TD（λ）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#44-21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 编程实践：蒙特卡罗学习评估21点游戏的玩家策略
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#44121" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.121点游戏规则
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#442-21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.2 将21点游戏建模为强化学习问题
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#443" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.3 游戏场景的搭建
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#444" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.4 生成对局数据
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#445" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4.5 策略评估
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="导航栏" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../../../index.html" class="md-path__link">
+        
+  <span class="md-ellipsis">
+    首页
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      
+  
+  
+    
+    
+      
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="index.html" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    书籍
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+    
+    
+      
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="index.html" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    机器学习
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="index.html" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    强化学习入门
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="4">第4章 不基于模型的预测<a class="headerlink" href="#4" title="Permanent link">&para;</a></h1>
+<p>前一章讲解了如何应用动态规划算法对一个已知状态转移概率的MDP进行策略评估，或通过策略迭代或者直接的价值迭代来寻找最优策略和最优价值函数，同时也指出了动态规划算法的一些缺点。从本章开始的连续两章内容将讲解个体在不了解环境动力学规则的条件下，直接通过与环境的实际交互来评估一个策略的好坏，或者寻找最优价值函数和最优策略。本章内容的重点是策略评估，也就是预测问题；下一章的重点是利用本章的概念和原理来解决控制问题，即找出最优策略以及最优价值函数。</p>
+<p>本章分为3个部分，将分别从理论上阐述基于完整采样的蒙特卡罗强化学习、基于不完整采样的时序差分强化学习以及介于两者之间的n步时序差分学习。这部分内容比较抽象，在讲解理论的同时会通过一些精彩的实例来加深对概念和算法的理解。</p>
+<h2 id="41">4.1 蒙特卡罗强化学习<a class="headerlink" href="#41" title="Permanent link">&para;</a></h2>
+<p>蒙特卡罗强化学习（Monte-Carlo Reinforcement Learning，简称MC强化学习）：个体在不清楚MDP状态转移概率的情况下，直接从所经历过的完整状态序列（Episode）来估计状态的真实价值，并认为某状态的价值等于在多个状态序列中状态所有收获值的平均值。除非例外说明，本文出现的“MC学习”均指的是“MC强化学习”。</p>
+<p>完整的状态序列（Complete Episode）：从某一个状态开始，个体与环境交互，直到环境给出终止状态的奖励为止。完整的状态序列不要求起始状态一定是某一个特定的状态，但是要求个体最终要进入环境认可的某一个终止状态。</p>
+<p>蒙特卡罗强化学习有如下特点：不依赖状态转移概率，直接从所经历过的完整状态序列中学习，就是用平均收获值代替价值。理论上完整的状态序列越多，结果越准确。</p>
+<p>我们可以使用蒙特卡罗强化学习来评估一个给定的策略。基于特定策略π的一个状态序列（Episode）信息可以表示为如下一个序列：</p>
+<div class="arithmatex">\[
+S_{1}, A_{1}, R_{2}, S_{2}, A_{2}, \dots , S_{t}, A_{t}, R_{t + 1}, \dots , S_{k} \sim \pi
+\]</div>
+<p>t时刻状态St的收获可以表述为：</p>
+<div class="arithmatex">\[
+G_{t} = R_{t + 1} + \gamma R_{t + 2} + \dots + \gamma^{T - 1} R_{T}
+\]</div>
+<p>其中，T为终止时刻。该策略下某一状态s的价值为：</p>
+<div class="arithmatex">\[
+v_{\pi} (s) = \mathbb{E} _{\pi} \left[ G_{i} \mid S_{i} = s \right]
+\]</div>
+<p>不难发现，在运用蒙特卡罗算法评估策略时，要针对多个包含同一状态的完整状态序列求得收获值，继而取收获值的平均值。如果一个完整的状态序列中某一需要计算的状态出现在序列的多个位置，也就是说个体在与环境交互的过程中从某个状态出发后又一次或多次返回到该状态（这种现象在<a href="ch02.html">第2章</a>讲解“收获的计算”中曾介绍过：一名学生从上“第一节课”开始因“浏览手机”以及在“第三节课”选择“泡吧”后多次重新回到“第一节课”），那么根据收获的定义，在一个状态序列下不同时刻的同一状态计算得到的收获值是不一样的。很明显，在蒙特卡罗强化学习算法中，计算收获时也会碰到这种情况。我们可以采取如下的两种办法之一来应对这种情况：一种是仅把状态序列中第一次出现该状态时的收获值纳入收获平均值的计算中；另一种是针对一个状态序列中每次出现该状态时都计算对应的收获值并纳入收获平均值的计算中。两种方法对应的蒙特卡罗评估分别称为首次访问（First Visit）和每次访问（Every Visit）蒙特卡罗评估。</p>
+<p>在求解状态收获的平均值的过程中，我们介绍一种非常实用且不需要存储所有历史收获值的计算方法：累进更新平均值（IncrementalMean）。这种计算平均值的思想也是强化学习的核心思想之一，具体公式如下：</p>
+<div class="arithmatex">\[
+\begin{array}{l} \mu_{k} = \frac{1}{k} \sum_{j = 1} ^{k} x_{j} \\ = \frac{1}{k} \left(x_{k} + \sum_{j = 1} ^{k - 1} x_{j}\right) \\ = \frac{1}{k} \left(x_{k} + (k - 1) \mu_{k - 1}\right) \\ = \mu_{k - 1} + \frac{1}{k} \left(x_{k} - \mu_{k - 1}\right) \\ \end{array}
+\]</div>
+<p>累进更新平均值利用前一次的平均值和当前数据以及数据总个数来计算新的平均值：每产生一个需要计算平均值的新数据 <span class="arithmatex">\(X_{k}\)</span> 时，先计算 <span class="arithmatex">\(\mathrm{\Delta \cdot \mathrm{x_{k}}}\)</span> 与先前平均值 的差，再将这个差值乘以系数1/k后作为误差来对旧平均值进行修正。如果把该式中平均值和新数据分别看成状态的价值和该状态的收获值，那么该公式就变成递增式的蒙特卡罗法更新状态价值。其公式如下：</p>
+<div class="arithmatex">\[
+N \left(S_{t}\right) \leftarrow N \left(S_{t}\right) + 1
+\]</div>
+<div class="arithmatex">\[
+V \left(S_{t}\right) \leftarrow V \left(S_{t}\right) + \frac{1}{N \left(S_{t}\right)} \left(G_{t} - V \left(S_{t}\right)\right) \tag{4.1}
+\]</div>
+<p>在实时或者无法统计准确状态被访问的次数时，可以用一个系数α来代替状态计数的倒数，此时公式变为：</p>
+<div class="arithmatex">\[
+V \left(S_{t}\right) \leftarrow V \left(S_{t}\right) + \alpha \left(G_{t} - V \left(S_{t}\right)\right) \tag{4.2}
+\]</div>
+<p>以上就是蒙特卡罗学习方法的主要思想和说明，下文将介绍另一种强化学习方法：时序差分强化学习。</p>
+<h2 id="42">4.2 时序差分强化学习<a class="headerlink" href="#42" title="Permanent link">&para;</a></h2>
+<p>时序差分强化学习（Temporal-Difference ReinforcementLearning，简称TD学习）：个体从采样得到的不完整的状态序列进行强化学习。该方法通过合理的自举法（Bootstrapping，或称为引导法），先估计某状态在该状态序列完成后可能得到的收获，并在此基础上利用前文所述的累进更新平均值的方法得到该状态的价值，再通过不断的采样来持续更新这个价值。除非例外说明，本文出现的“TD学习”指的均是“TD强化学习”。</p>
+<p>具体地说，在TD学习中，算法在估算某一个状态的收获时用离开该状态的即刻奖励 <span class="arithmatex">\(R_{t+1}\)</span> 与下一时刻状态 <span class="arithmatex">\(S_{t+1}\)</span> 的预估状态价值乘以衰减系数γ，公式如下：</p>
+<div class="arithmatex">\[
+V \left(S_{t}\right) \leftarrow V \left(S_{t}\right) + \alpha \left(R_{t + 1} + \gamma V \left(S_{t + 1}\right) - V \left(S_{t}\right)\right) \tag{4.3}
+\]</div>
+<p>其中， <span class="arithmatex">\(R_{t + 1} + \gamma V \left( S_{t + 1} \right)\)</span> 称为TD目标值， <span class="arithmatex">\(R_{t + 1} + \gamma V {\left( S_{t + 1} \right)} - V {\left( S_{t} \right)}\)</span> 称为TD误差。</p>
+<p>自举法（Bootstrapping）：用TD目标值代替收获Gt的过程。</p>
+<p>不管是MC学习还是TD学习，都不再需要知道某一状态所有可能的后续状态以及对应的状态转移概率，因此也不再像动态规划算法那样需要通过进行全宽度的回溯来更新状态的价值。MC学习和TD学习使用的都是通过个体与环境进行实际交互所生成的一系列状态序列来更新状态的价值。这在解决大规模问题或者不清楚环境规则（动力学特征）的问题时十分有效。不过MC学习和TD学习也有着很明显的差别。下文将通过一个例子来详细阐述这两种学习方法的特点。</p>
+<p>想象一下个体如何预测下班后开车回家整个行程所花费的时间。假设在回家的路上个体会依次经过一段高速公路、普通公路和自家附近街区共3段路程，会经历在下班的路上可能发生的各种情况，例如是否下雨、高速路况的实时变化、普通公路是否堵车等。这些在3段路程上可能经历的各种情况与个体共同形成了个体的状态。当个体处于每一种状态下时，它对还需要多久才能到家有一个经验性的估计。表4.1的“既往经验预计MC（仍需耗时）”列给出了这个经验估计，基本反映了各个状态对应的价值。通常个体对下班回家总耗时的预估是30分钟。</p>
+<h2 id="41_1">表4.1　驾车返家数据（单位：分钟）<a class="headerlink" href="#41_1" title="Permanent link">&para;</a></h2>
+<table><tr><td rowspan="2">状态</td><td rowspan="2">已耗时</td><td colspan="2">既往经验预计MC</td><td colspan="2">更新 (α=1)</td><td colspan="2">TD 更新 (α=1)</td></tr><tr><td>仍需耗时</td><td>总耗时</td><td>仍需耗时</td><td>总耗时</td><td>仍需耗时</td><td>总耗时</td></tr><tr><td>离开办公室</td><td>0</td><td>30</td><td>30</td><td>43</td><td>43</td><td>40</td><td>40</td></tr><tr><td>取车时下雨</td><td>5</td><td>35</td><td>40</td><td>38</td><td>43</td><td>30</td><td>35</td></tr><tr><td>驶离高速</td><td>20</td><td>15</td><td>35</td><td>23</td><td>43</td><td>20</td><td>40</td></tr><tr><td>跟在卡车后</td><td>30</td><td>10</td><td>40</td><td>13</td><td>43</td><td>13</td><td>43</td></tr><tr><td>家附近街区</td><td>40</td><td>3</td><td>43</td><td>3</td><td>43</td><td>3</td><td>43</td></tr><tr><td>返回家中</td><td>43</td><td>0</td><td>43</td><td>0</td><td>43</td><td>0</td><td>43</td></tr></table>
+
+<p>假设现在个体下班且准备回家，当他花费了5分钟从办公室走到车旁时发现下雨了，此时根据既往经验，估计还需要35分钟才能到家，因此整个行程将预估耗时40分钟。随后进入高速公路，路况非常好，一共仅用20分钟就离开了高速公路，此时他根据经验预估通常再需要15分钟就能到家，加上已经过去的20分钟，他将这次返家预计总耗时修正为35分钟，比先前估计的少了5分钟。但是当他进入普通公路时发现交通流量较大，不得不跟在一辆卡车后面龟速行驶。这个时候距离从办公室出发已经过去了30分钟，根据以往的经验，他估计还需要10分钟才能到家，那么现在对回家总耗时的预估又回到了40分钟。最后在出发40分钟后到达家附近的街区，根据经验，他预估还需要3分钟就能到家。此后没有再出现新的情况，最终他在出发43分钟后到达家中。经过这一次完整的下班回家经历，他对处在途中各种状态下仍需耗时多久返家（对应于各状态的价值）有了新的估计，但是分别使用MC学习算法和TD学习算法得到的对于各状态的价值（即仍需耗时多久返家）的更新结果和更新时机是不一样的。</p>
+<p>如果使用MC学习算法，那么在整个驾车返家的过程中，对于所处的每一个状态（例如“取车时下雨”“离开高速公路”“被迫跟在卡车后”“进入街区”等），都不会立即更新对应的返家仍需耗时的估计，仍然分别是先前的35分钟、15分钟、10分钟和3分钟。只有当他到家发现整个行程耗时43分钟后，通过用实际总耗时减去到达某状态时的已耗时，就可以计算出在本次返家过程中实际到达各状态时仍需时间分别为：38分钟、23分钟、13分钟和3分钟。如果选择修正系数为1，那么这些新的耗时将成为今后在各状态时预估返家仍需的耗时，相应的整个行程的预估耗时被更新为43分钟。</p>
+<p>如果使用TD学习算法，则是另外一回事。当个体取车发现下雨时，根据经验会认为还需要35分钟才能返家，此时他将立刻更新返家总耗时的估计（仍需的预估35分钟加上离开办公室到取车现场花费的5分钟，即40分钟）。同理，当驶离高速公路时，根据经验对到家还需时间的预计为15分钟，但由于之前在高速公路上较为顺利，节省了不少时间，在第20分钟时已经驶离高速，实际从取车到驶离高速只花费了15分钟，则此时立即更新从取车时下雨到到家所需的时间为30分钟，而整个回家所需时间更新为35分钟。驶离高速后在普通公路上又行驶了10分钟被堵，预计还需10分钟才能返家时，对于刚才驶离高速公路返家仍需耗时又做了更新，将不再是根据既往经验预估的15分钟，而是现在的20分钟，加上从出发到驶离高速已花费的20分钟，整个行程耗时预估被更新为40分钟。直到花费了40分钟只到达家附近的街区预计还有3分钟才能到家时，更新在普通公路上对于返家仍需耗时的预计为13分钟。最终按预计3分钟后进入家门，不再更新剩下的仍需耗时。</p>
+<p>通过比较可以看出，MC学习算法仅在整个行程结束后才更新各个状态的仍需耗时，而TD学习算法每经过一个状态就会根据在这个状态与前一个状态之间实际所花时间来更新前一个状态的仍需耗时。图4.1用折线图直观地显示了分别使用MC学习和TD学习算法时预测的驾车回家总耗时的区别。需要注意的是，在这个例子中，与各状态价值相对应的指标并不是图中显示的驾车返家总耗时，而是处于某个状态时驾车返家的仍需耗时。</p>
+<p>TD学习比MC学习能更快速、灵活地更新对状态的价值估计，这在某些情况下具有非常重要的实际意义。回到驾车返家这个例子中，假如我们给驾车返家制定一个新的目标：不再以耗时多少来评估状态价值，而是要求安全平稳地返回家中。考虑如下的一次驾车回家的路上突然碰到的险情：对面开过来一辆车，感觉要迎面相撞，严重的话甚至会威胁生命，不过双方驾驶员都采取了紧急措施没有让险情实际发生，最后平安到家。如果使用蒙特卡罗学习，路上发生的这一险情可能引发的极大负值奖励将不会被考虑，不会更新在碰到此类险情时状态的价值；而在使用TD学习时，碰到这样的险情会立即大幅调低这个状态的价值，并在今后再次碰到类似情况时采取其他行为，例如降低速度等来让自身处在一个价值较高的状态中，尽可能避免意外事件的发生。</p>
+<p>蒙特卡罗学习（a=1）
+<img alt="" src="images/7a4698d65f2c9f4a703db62855444e36f0f94fff32ed223b8f5b66fe95f5fa09.jpg" /></p>
+<p>状态</p>
+<p>时序差分学习（a=1）
+<img alt="" src="images/54026b3363f6ff550722f7de2c2a907f52e5f6c7ca3a7fe1e99287617441cb01.jpg" /></p>
+<p>状态</p>
+<p class="caption">图4.1　MC学习和TD学习在驾车返家示例中的比较</p>
+
+<p>通过驾车返家这个例子，我们应该能够认识到：TD学习在知道结果之前就可以学习，也可以在没有结果时学习，还可以在持续进行的环境中学习，而MC学习要等到最后结果才能学习。TD学习在更新状态价值时使用的是TD目标值，即基于即时奖励和下一状态的预估价值来替代当前状态在状态序列结束时可能得到的收获，它是当前状态价值的有偏估计，而MC学习使用实际的收获来更新状态价值，是某一策略下状态价值的无偏估计。TD学习存在偏倚（Bias）的原因在于其更新价值时使用的也是后续状态预估的价值，如果能使用后续状态基于某策略的真实TD目标值（True TD Target）来更新当前状态价值，那么此时的TD学习得到的价值也是实际价值的无偏估计。虽然绝大多数情况下TD学习得到的价值是有偏估计的，但是其方差（Variance）却较MC学习得到的方差要低，且对初始值敏感，通常比MC学习更加高效，这也主要得益于TD学习价值更新灵活，对初始状态价值的依赖较大。我们将继续通过一个示例来剖析TD学习和MC学习的特点。</p>
+<p>假设在一个强化学习问题中有A和B两个状态，模型未知，不涉及策略和行为，仅涉及状态转移和即时奖励，衰减系数为1。现有如表4.2所示的8个完整状态序列的经历，其中除了第一个状态序列发生了状态转移外，其余7个完整的状态序列均只有一个状态。根据现有信息计算状态A、B的价值分别是多少？</p>
+<p class="caption">表4.2　A、B状态转移经历</p>
+
+<table><tr><td>序号</td><td>状态转移及即时奖励</td></tr><tr><td>1</td><td>A:0 B:0</td></tr><tr><td>2</td><td>B:1</td></tr><tr><td>3</td><td>B:1</td></tr></table>
+
+<p>（续表）</p>
+<table><tr><td>序号</td><td>状态转移及即时奖励</td></tr><tr><td>4</td><td>B:1</td></tr><tr><td>5</td><td>B:1</td></tr><tr><td>6</td><td>B:1</td></tr><tr><td>7</td><td>B:1</td></tr><tr><td>8</td><td>B:0</td></tr></table>
+
+<p>下面分别使用MC学习算法和TD学习算法来计算状态A、B的价值。</p>
+<p>先考虑MC算法，在8个完整的状态序列中，只有第一个序列中包含状态A，因此A价值仅能通过第一个序列来计算，也就等同于计算该序列中状态A的收获值：</p>
+<div class="arithmatex">\[
+V (A) = G (A) = R_{A} + \gamma R_{B} = 0
+\]</div>
+<p>状态B的价值需要通过状态B在8个序列中的收获值来平均，其结果是6/8。因此在使用MC学习算法时，状态A、B的价值分别为0和6/8。</p>
+<p>考虑应用TD学习算法。TD学习算法在计算状态序列中某状态价值时是应用其后续状态的预估价值来计算的，在8个状态序列中，状态B总是出现在终止状态中，因而直接使用终止状态时获得的奖励来计算价值，再针对状态序列数计算平均，这样得到的状态B的价值依然是6/8。状态A只存在于第一个状态序列中，直接使用包含状态B价值的TD目标值来得到状态A的价值，由于状态A的即时奖励为0，因此计算得到的状态A的价值与B的价值相同，即为6/8。</p>
+<p>TD学习算法在计算状态价值时利用了状态序列中前后状态之间的关系，由于已知信息仅有8个完整的状态序列，而且状态A的后续状态100%是状态B，而状态B始终作为终止状态，有1/4的概率获得奖励0、3/4的概率获得奖励1。符合这样状态转移概率的MDP如图4.2所示。可以看出，TD学习算法试图构建一个 <span class="arithmatex">\(\text{MDP}\langle S, A, \hat{P}, \hat{R}, \gamma\rangle\)</span> 并使得这个MDP尽可能符合已经产生的状态序列，也就是说TD学习算法将根据已有经验估计状态间的转移概率：</p>
+<div class="arithmatex">\[
+\hat{\boldsymbol{P}} _{s, s^{\prime}} ^{a} = \frac{1}{N (s , a)} \sum_{k = 1} ^{K} \sum_{t = 1} ^{T_{k}} 1 \left(S_{t} ^{k}, a_{t} ^{k}, s_{t + 1} ^{k} = s, a, s^{\prime}\right)
+\]</div>
+<p>同时估计某一状态的即时奖励：</p>
+<div class="arithmatex">\[
+\hat{R} _{s} ^{a} = \frac{1}{N (s , a)} \sum_{k = 1} ^{K} \sum_{t = 1} ^{T_{k}} 1 \left(s_{t} ^{k}, a_{t} ^{k} = s, a\right) r_{t} ^{k}
+\]</div>
+<p>最后计算该MDP的状态函数，如图4.2所示。</p>
+<p><img alt="" src="images/70e53aa4b127388c386826d05583f36f30d4d45ed38ec9411367695b1eb29bf5.jpg" /></p>
+<p class="caption">图4.2　TD算法构建的MDP</p>
+
+<p>MC学习算法直接依靠完整状态序列的奖励得到的各状态对应的收获值来计算状态价值，因而这种算法是以最小化收获值与状态价值之间均方差为目标的：</p>
+<div class="arithmatex">\[
+\sum_{k = 1} ^{K} \sum_{t = 1} ^{T_{k}} \left(G_{t} ^{k} - V \left(s_{t} ^{k}\right)\right) ^{2}
+\]</div>
+<p>通过上面的示例，我们能体会到TD学习算法与MC学习算法之间的另一个差别：TD算法使用了MDP问题的马尔可夫性质，在具有马尔可夫性质的环境下更有效；但是MC学习算法并不利用马尔可夫性质，适用范围不限于具有马尔可夫性质的环境。</p>
+<p>本章阐述的蒙特卡罗（MC）学习算法、时序差分（TD）学习算法和上一章讲述的动态规划（DP）算法都可以用来计算状态价值。它们的特点也是十分鲜明的，前两种是在不依赖模型情况下的常用方法，其中MC学习需要完整的状态序列来更新状态价值、TD学习不需要完整的状态序列；DP学习是以模型为依据来计算状态价值的方法，通过计算一个状态S所有可能的转移状态S及其转移概率以及对应的即时奖励来计算这个状态S的价值。</p>
+<p>在是否使用自举的数据上，MC学习并不使用自举的数据，而是使用实际产生的奖励值来计算状态价值；TD和DP用后续状态的预估价值作为自举的数据来计算当前状态的价值。</p>
+<p>在是否采样上，MC和TD不依赖模型，都是使用个体与环境实际交互产生的采样状态序列来计算状态价值，而DP依赖状态转移概率矩阵和奖励函数，考虑以某一个状态的所有可能后续状态这种全宽度的方式来计算状态价值。可以近似地认为DP学习是全宽度的采样，但由于是依赖概率转移矩阵来直接计算的，因此并不需要发生真实的采样。</p>
+<p>图4.3、图4.4和图4.5非常直观地展现了3种学习算法的区别。</p>
+<p>·MC学习算法：深度采样学习。一次学习经历完整的状态序列，使用实际收获值更新状态预估价值，如图4.3所示。</p>
+<p><img alt="" src="images/4035d58ed43c3450954d5a130b86850d6e71b94e0b735a0844448e0d2a861e8b.jpg" /></p>
+<p class="caption">图4.3　MC学习深度采样回溯</p>
+
+<p>·TD学习算法：浅层采样学习。一次学习可以经历不完整的状态序列，使用后续状态的预估状态价值来预估收获值，再更新当前状态价值，如图4.4所示。</p>
+<p><img alt="" src="images/cb2a51136f9d16d14eeddec6d6450afd3417da2648f86e753446406afc8a27c2.jpg" /></p>
+<p class="caption">图4.4　TD学习浅层采样回溯</p>
+
+<p>·DP学习算法：浅层全宽度学习。依据模型，全宽度地使用后续状态预估价值来更新当前状态价值，如图4.5所示。</p>
+<p><img alt="" src="images/8207ab28874138c7e7a16fb702a70a2f6bdc672de14a91d8ef9d9bc44a6106f7.jpg" /></p>
+<p class="caption">图4.5　DP学习浅层全宽度（采样）回溯</p>
+
+<p>综合上述3种学习方法的特点，可以小结如下：使用单个采样，同时不经历完整的状态序列更新价值的算法是TD学习；使用单个采样，依赖完整状态序列的算法是MC学习；考虑全宽度采样，对每一个采样经历只考虑后续一个状态时的算法是DP学习；既考虑所有状态转移的可能性又依赖完整状态序列的算法是穷举搜索法（ExhaustiveSearch）。</p>
+<h2 id="43-n">4.3 n步时序差分学习<a class="headerlink" href="#43-n" title="Permanent link">&para;</a></h2>
+<p>前面章节所介绍的TD学习算法实际上都是TD(0)算法，括号内的数字0表示的是在当前状态在后续状态中只多看下一步的状态，通过该下一步状态估计的状态价值来更新当前状态的价值。要是让算法多看2步更新状态价值会怎样？这就引入了n步预测的概念。</p>
+<p>n步预测指从状态序列的当前状态 <span class="arithmatex">\(( S_{t} )\)</span> 开始往序列终止状态方向观察至状态 <span class="arithmatex">\(\mathrm{S_{t + n - 1}}\)</span> ，使用这n个状态产生的即时奖励 <span class="arithmatex">\(( R_{\mathrm{t + 1}} , R_{\mathrm{t + 2}} , \cdots , R_{\mathrm{t + n}} )\)</span> 以及状态 <span class="arithmatex">\(S_{\mathrm{t + n}}\)</span> 预估价值来计算当前状态 <span class="arithmatex">\(\ddot{S}_t\)</span> 的价值，如图4.6所示。</p>
+<p><img alt="" src="images/6846f82267bc265bcb7343da43401cde83cb659ff5e41584261ca4f247657028.jpg" /></p>
+<p class="caption">图4.6　n步预测</p>
+
+<p>TD是TD（0）的简写，是基于1步预测的。根据n步预测的定义，可以推出当n=1、2和∞时对应的预测值如表4.3所示。从该表可以看出，MC学习是基于∞步预测的。</p>
+<p class="caption">表4.3　n步收获</p>
+
+<table><tr><td>步数</td><td>学习算法</td><td>收获</td></tr><tr><td>n=1</td><td>TD或TD(0)</td><td> $G_{t}^{(1)} = R_{t+1} + \gamma V(S_{t+1})$ </td></tr><tr><td>n=2</td><td>TD或TD(0)</td><td> $G_{t}^{(2)} = R_{t+1} + \gamma R_{t+2} + \gamma^{2}V(S_{t+2})$ </td></tr><tr><td>...</td><td>...</td><td>...</td></tr><tr><td>n=∞</td><td>MC</td><td> $G_{t}^{(\infty)} = R_{t+1} + \gamma R_{t+2} + \cdots + \gamma^{T-1}R_{T}$ </td></tr></table>
+
+<p>定义n步收获为：</p>
+<div class="arithmatex">\[
+G_{t} ^{(n)} = R_{t + 1} + \gamma R_{t + 2} + \dots + \gamma^{n - 1} R_{t + n} + \gamma^{n} V (S_{t + n}) \tag{4.4}
+\]</div>
+<p>由此可以得到n步TD学习对应的状态价值函数的更新公式为：</p>
+<div class="arithmatex">\[
+V \left(S_{t}\right) \leftarrow V \left(S_{t}\right) + \alpha \left(G_{t} ^{(n)} - V \left(S_{t}\right)\right) \tag{4.5}
+\]</div>
+<p>从式（4.4）和式（4.5）可以得到，当n=1时等同于TD（0）学习，n取无穷大时等同于MC学习。TD学习和MC学习各有优劣，那么会不会存在一个n值，使得预测能够充分利用两种学习的优点得到一个更好的预测效果呢？研究认为不同的问题对应的比较高效的步数不是一成不变的。选择多少步数作为一个较优的计算参数是需要尝试的超参数调优问题。</p>
+<p>为了能在不增加计算复杂度的情况下综合考虑所有步数的预测，我们引入一个新的参数λ，并定义：</p>
+<p>λ收获：从 <span class="arithmatex">\(n = 1\)</span> 到 <span class="arithmatex">\(\scriptstyle n=\infty\)</span> 的所有步收获的权重之和。其中，任意一个n步收获的权重被设计为 ，如图4.7所示。通过这样的权重设计，可以得到λ收获的计算公式为：</p>
+<div class="arithmatex">\[
+G_{t} ^{\lambda} = (1 - \lambda) \sum_{n = 1} ^{\infty} \lambda^{n - 1} G_{t} ^{(n)} \tag{4.6}
+\]</div>
+<p>TD()，收获
+<img alt="" src="images/de3913ecfc473745f5fff28ef6921ee61536a78bab1d6441fe15addc70edbde6.jpg" /></p>
+<p class="caption">图4.7　λ收获权重分配</p>
+
+<p>对应的TD（λ）被描述为：</p>
+<div class="arithmatex">\[
+V \left(S_{t}\right) \leftarrow V \left(S_{t}\right) + \alpha \left(G_{t} ^{(\lambda)} - V \left(S_{t}\right)\right) \tag{4.7}
+\]</div>
+<p>图4.8显示了TD（λ）中对于n收获的权重分配，左侧阴影部分是3步收获的权重值，随着n的增大，其n收获的权重呈几何级数的衰减。当在T时刻到达终止状态时，未分配的权重（右侧阴影部分）全部给予终止状态的实际收获值。如此设计可以使一个完整的状态序列中所有的n步收获的权重加起来为1，离当前状态越远的收获其权重越小。</p>
+<p><img alt="" src="images/1aff2359577819f885b50ed0353c35f8c0ed0b78b4dd40d623268295b304db20.jpg" /></p>
+<p class="caption">图4.8　TD（λ）对于权重分配的图解</p>
+
+<h2 id="1td">1.前向认识TD（λ）<a class="headerlink" href="#1td" title="Permanent link">&para;</a></h2>
+<p>TD（λ）的设计使得在状态序列中一个状态的价值V <span class="arithmatex">\(( S_{t} )\)</span> 由 <span class="arithmatex">\(G_t^{(\lambda)}\)</span> 得到，而后者又间接由所有后续状态价值计算得到，因此可以认为更新一个状态的价值需要知道所有后续状态的价值。也就是说，必须要经历完整的状态序列获得包括终止状态的每一个状态的即时奖励，才能更新当前状态的价值。这和MC算法的要求一样，因此TD（λ）算法有着和MC算法一样的劣势。λ取值区间为[0,1]，当λ=1时对应的就是MC算法，这给实际计算带来了不便。</p>
+<h2 id="2td">2.反向认识TD（λ）<a class="headerlink" href="#2td" title="Permanent link">&para;</a></h2>
+<p>反向认识TD（λ）为TD（λ）算法进行在线实时单步更新学习提供了理论依据。为了解释这一点，需要先引入“效用迹”。我们通过一个例子来解释这个概念（见图4.9）。老鼠在依次连续接受了3次响铃和1次亮灯信号后遭到了电击，那么在分析遭电击的原因时，到底是响铃的因素较重要还是亮灯的因素更重要呢？</p>
+<p><img alt="" src="images/de360ffd5e0f91da8351be008d7d57401a6d689d4ea8ef0be0077fe69ecbc90b.jpg" /></p>
+<p class="caption">图4.9　是响铃还是亮灯引起了老鼠遭电击</p>
+
+<p>如果把老鼠遭到电击的原因认为是之前接受了较多次数的响铃，就称这种归因为频率启发（Frequency Heuristic）式；而把电击归因于最近少数几次状态的影响，就称为就近启发（Recency Heuristic）式。如果给每一个状态引入一个数值效用（Eligibility，E）来表示该状态对后续状态的影响，就可以同时利用上述两种启发。所有状态的效用值总称为效用迹（Eligibility Traces，ES）。</p>
+<p>【定义】</p>
+<div class="arithmatex">\[
+E_{0} (s) = 0 \tag{4.8}
+\]</div>
+<div class="arithmatex">\[
+E_{t} (s) = \gamma \lambda E_{t - 1} (s) + \mathbf{1} (S_{t} = s) \quad \gamma , \lambda \in [ 0, 1 ]
+\]</div>
+<p>式（4.8）中的 <span class="arithmatex">\(\mathbf{1} {\bigl (} S_{t} = s {\bigr )}\)</span> 是一个真判断表达式，表示当 <span class="arithmatex">\(S_{t} = s\)</span> 时取值为1，其余条件下取值为0。图4.10给出效用E对于时间t的一个可能的曲线。</p>
+<p><img alt="" src="images/08e17c32a6851c4e96e30c957c3f4003a53a7bffb36e3c45b9a8a81c0ced5555.jpg" /></p>
+<p class="caption">图4.10　某状态一个可能的效用时间曲线</p>
+
+<p>其中，横坐标是时间，横坐标下有竖线的位置代表当前时刻的状态为s，纵坐标是效用值。从中可以看出，当某一状态连续出现时，E值会在一定衰减的基础上有一个单位数值的提高，此时认为该状态将对后续状态的影响较大，如果该状态很长时间没有被学习过程经历，那么该状态的E值将逐渐趋于0，表明该状态对于较远的后续状态价值的影响越来越少。</p>
+<p>需要指出的是，针对每一个状态存在一个E值，且E值并不需要等到状态序列到达终止状态才能计算出来，它是根据已经经过的状态序列计算而来的，并且在每一个时刻都对每一个状态进行一次更新。E值存在饱和现象，有一个瞬时最高上限：</p>
+<div class="arithmatex">\[
+E_{\mathrm{sat}} = \frac{1}{1 - \gamma \lambda}
+\]</div>
+<p>E值是一个非常符合神经科学相关理论、非常精巧的设计，可以看成神经元的一个参数，反映了神经元对某一刺激的敏感性和适应性。神经元在接受刺激时会有反馈，在持续刺激时反馈一般也比较强，当间歇一段时间不刺激时，神经元又逐渐趋于静息状态；同时不论如何增加刺激的频率，神经元都有一个最大饱和反馈。如果我们在更新状态价值时把该状态的效用考虑进来，那么价值更新可以表示为：</p>
+<div class="arithmatex">\[
+\begin{array}{l} \delta_{t} = R_{t + 1} + \gamma V (S_{t + 1}) - V (S_{t}) \\ V (s) \leftarrow V (s) + \alpha \delta_{t} E_{t} (s) \tag{4.9} \\ \end{array}
+\]</div>
+<p>当λ=0时， <span class="arithmatex">\(S_{t} = s\)</span> 一直成立，此时价值更新等同于TD（0）算法：</p>
+<div class="arithmatex">\[
+V \left(S_{t}\right) \leftarrow V \left(S_{t}\right) + \alpha \delta_{t}
+\]</div>
+<p>当λ=1时，在每完成一个状态序列后更新状态价值时，其完全等同于MC学习；在引入了效用迹后，可以每经历一个状态就更新状态的价值，这种实时更新的方法并不完全等同于MC。</p>
+<p>当 <span class="arithmatex">\(\lambda \in \left( 0 , 1 \right)\)</span> 时，在每完成一个状态序列后更新价值时，基于前向认识的TD（λ）与基于反向认识的TD（λ）完全等效，不过在进行在线实时学习时两者存在一些差别。这里就不详细展开了。</p>
+<h2 id="44-21">4.4 编程实践：蒙特卡罗学习评估21点游戏的玩家策略<a class="headerlink" href="#44-21" title="Permanent link">&para;</a></h2>
+<p>本章的编程实践将使用MC学习来评估21点游戏中一个玩家的策略。为了完成这个任务，我们需要先了解21点游戏的规则，并构建一个游戏场景让庄家和玩家在一个给定的策略下进行博弈，生成对局数据。这里的对局数据在强化学习看来就是一个个完整的状态序列组成的集合。接下来使用本章介绍的蒙特卡罗算法评估其中玩家的策略。本节的难点之一在于蒙特卡罗学习算法的实现，之二在于游戏场景的实现以及生成蒙特卡罗算法学习的多个状态序列。</p>
+<h2 id="44121">4.4.121点游戏规则<a class="headerlink" href="#44121" title="Permanent link">&para;</a></h2>
+<p>21点游戏是一个比较经典的对弈游戏，其规则也有各种版本，为了简化，本文仅介绍由一个庄家（Dealer）和一个普通玩家（Player，下文简称玩家）参与的一个符合基本规则的版本。游戏使用一副除大小王以外的52张扑克牌，游戏者的目标是使手中牌的点数之和不超过21点且尽量大。其中， <span class="arithmatex">\(2^{\sim} 10\)</span> 的数字牌点数就是牌面的数字，J、Q、K三类牌均记为10点，牌A既可以记为1点也可以记为11点，由游戏者根据目标自己决定。牌的花色对于计算点数没有影响。</p>
+<p>开局时，庄家将依次连续发两张牌给玩家和庄家，其中庄家的第一张牌是明牌，其牌面信息对玩家是开放的，庄家从第二张牌开始的其他牌的信息不对玩家开放。玩家可以根据自己手中牌的点数决定是否继续叫牌（Twist）或停止叫牌（Stick），一旦手中牌点数超过21点就必须停止叫牌。当玩家停止叫牌后，庄家可以决定是否继续叫牌。如果庄家停止叫牌，对局结束，双方亮牌计算输赢。</p>
+<p>计算输赢的规则如下：如果双方点数均超过21点或双方点数相同，则为和局；一方为21点，另一方不是21点，则点数为21点的游戏者赢；如果双方点数均不到21点，则点数离21点近的玩家赢。</p>
+<h2 id="442-21">4.4.2 将21点游戏建模为强化学习问题<a class="headerlink" href="#442-21" title="Permanent link">&para;</a></h2>
+<p>为了讲解基于完整状态序列的蒙特卡罗学习算法，我们把21点游戏建模成强化学习问题，设定由下面3个参数来集体描述一个状态：庄家的明牌（第一张牌）点数；玩家手中所有牌点数之和；玩家手中是否有可用的牌A（Ace）。前两个参数比较好理解，第三个参数与玩家策略相关，玩家是否有A这张牌比较好理解，不过“可用的牌A”指的是玩家手中的牌A按照目标最大化原则是否被计为1点，如果这张牌A没有被记为1点而是被计为了11点，则称这个牌A为“可用的牌A”，认为玩家有一张“可用的牌A”，否则认为没有“可用的牌A”；当然，如果玩家手中没有牌A，那么也认为是没有“可用的牌A”。</p>
+<p>例如，玩家手中的牌为“A，3，6”，那么此时根据目标最大化原则，A将被计为11点，总点数为20点，此时玩家手中的牌A就是“可用的牌A”。假如玩家手中的牌为“A，5，7”，那么此时的牌A不能被计为11点只能按1点计，相应总点数被计为13点，否则总点数将为23点，这时的牌A就不能被称为“可用的牌A”。</p>
+<p>根据对状态的设定，我们使用由3个元素组成的元组来描述一个状态。例如，（10，15，0）表示的状态是庄家的明牌是10，玩家手中的牌加起来点数是15，并且玩家手中没有“可用的牌A”；（A，17，1）表述的状态是庄家第一张牌为A，玩家手中牌总点数为17，玩家手中有“可用的牌A”。这样的状态设定不考虑玩家手中的具体牌面信息，也不记录庄家除第一张牌外的其他牌信息。所有可能的状态构成了状态空间。</p>
+<p>该问题的行为空间比较简单，玩家只有两种选择：“继续叫牌”或“停止叫牌”。</p>
+<p>该问题中的状态如何转换取决于游戏者的行为以及后续发给游戏者的牌，状态间的转移概率很难计算。</p>
+<p>可以设定奖励如下：当牌局未结束时，任何状态对应的奖励为0；当牌局结束时，如果玩家赢得对局则奖励值为1，如果玩家输掉对局则奖励值为-1，和局时奖励值均为0。</p>
+<p>设定本问题中的衰减因子γ=1。</p>
+<p>游戏者在选择行为时都会遵循一个策略。在本例中，庄家遵循的策略是只要手中的牌点数达到或超过17点就停止叫牌。我们先设定玩家遵循的策略是只要手中的牌点数不到20点就继续叫牌，点数达到或超过20点就停止叫牌。我们的任务是评估玩家的这个策略，即计算在该策略下的状态价值函数，也就是计算状态空间中每一个状态对应的价值。</p>
+<h2 id="443">4.4.3 游戏场景的搭建<a class="headerlink" href="#443" title="Permanent link">&para;</a></h2>
+<p>首先来搭建这个游戏场景，实现生成对局数据的功能，要实现的功能包括统计游戏者手中牌的总点数、判断当前牌局信息对应的奖励、实现庄家与玩家的策略、模拟对局的过程以生成对局数据等。为了能尽可能生成较符合实际的对局数据，我们将循环使用一副牌，对局过程中发牌、洗牌、收集已使用牌等过程将得到较为真实的模拟。我们使用面向对象的编程思想，通过构建游戏者类和游戏场景类来实现上述功能。</p>
+<p>首先我们导入一些必要的库：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">random</span><span class="w"> </span><span class="kn">import</span> <span class="n">shuffle</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">queue</span><span class="w"> </span><span class="kn">import</span> <span class="n">Queue</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mpl_toolkits.mplot3d</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes3D</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="kn">from</span><span class="w"> </span><span class="nn">utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">str_key</span><span class="p">,</span> <span class="n">set_dict</span><span class="p">,</span> <span class="n">get_dict</span>
+</span></code></pre></div>
+<p>经过初步的抽象，我们认为一个单纯的21点游戏者应该至少能记住对局过程中手中牌的信息，知道自己的行为空间，还应该能辨认单张牌的点数以及手中牌的总点数，此外游戏者能够接受发给他的牌以及一局结束后将手中的牌扔掉等。为此我们编写了一个名称为Gamer的游戏者类。代码如下：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">Gamer</span><span class="p">():</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;游戏者&#39;&#39;&#39;</span>    <span class="n">def__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">cards</span> <span class="o">=</span> <span class="p">[]</span>    <span class="c1"># 手中的牌</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">display</span> <span class="o">=</span> <span class="n">display</span>    <span class="c1"># 是否显示对局</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">文字信息</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">policy</span> <span class="o">=</span> <span class="kc">None</span>    <span class="c1"># 策略</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">learning_method</span> <span class="o">=</span> <span class="kc">None</span>    <span class="c1"># 学习方法</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">A</span>    <span class="c1"># 行为空间</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="n">def__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    <span class="n">def_value_of</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">card</span><span class="p">):</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;根据牌的字符判断牌的数值大小，牌A被输出为1，牌J、Q、K均为10，</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="sd">    其余按牌面对应的数字取值</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="sd">    Args:</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="sd">    card: 牌面信息 str</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="sd">    Return:</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="sd">    牌的大小数值 int, A 返回 1</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="sd">    &#39;&#39;&#39;</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>    <span class="n">v</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">card</span><span class="p">)</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>    <span class="k">except</span><span class="p">:</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>    <span class="k">if</span> <span class="n">card</span> <span class="o">==</span> <span class="s1">&#39;A&#39;</span><span class="p">:</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>    <span class="n">v</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>    <span class="k">elif</span> <span class="n">card</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;J&#39;</span><span class="p">,</span> <span class="s1">&#39;Q&#39;</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">]:</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>    <span class="n">v</span> <span class="o">=</span> <span class="mi">10</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>    <span class="n">v</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>    <span class="k">finally</span><span class="p">:</span>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>    <span class="k">return</span> <span class="n">v</span>
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span></code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="sd">&#39;&#39;&#39;统计一手牌的分值，如果使用了牌A的1点，同时返回True</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="sd">Args:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="sd">    cards 庄家或玩家手中牌 list [&#39;A&#39;,&#39;10&#39;,&#39;3&#39;]</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="sd">Return</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="sd">    tuple (返回牌总点数,是否使用了可用的牌A)</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="sd">    例如[&#39;A&#39;,&#39;10&#39;,&#39;3&#39;] 返回 (14, False)</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="sd">    [&#39;A&#39;,&#39;10&#39;] 返回 (21, True)</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="sd">```python</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="sd">num_of_useable_ace = 0    # 默认没有拿到</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="sd">Ace</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="sd">total_point = 0    # 总值</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="sd">cards = self.cards</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="sd">if cards is None:</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="sd">    return 0, False</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="sd">for card in cards:</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="sd">    v = self._value_of(card)</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="sd">    if v == 1:</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="sd">    num_of_useable_ace += 1</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="sd">    v = 11</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="sd">    total_point += v</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="sd">while total_point &gt; 21 and num_of_useable_ace &gt; 0:</span>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="sd">    total_point -= 10</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="sd">    num_of_useable_ace -= 1</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="sd">return total_point, bool(num_of_useable_ace)</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="sd">def receive(self, cards = []):  # 玩家获得一张或多张牌</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="sd">cards = list(cards)</span>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="sd">for card in cards:</span>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="sd">    self.cards.append(card)</span>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="sd">def discharge_cards(self):    # 玩家把手中的牌清空，扔牌</span>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="sd">self.cards.clear()</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="sd">def cards_info(self):</span>
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="sd">    &#39;&#39;&#39;</span><span class="n">显示牌面的具体信息</span><span class="s1">&#39;&#39;&#39;    self._info(&quot; </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">现在的牌: </span><span class="si">{}</span><span class="s1"> </span><span class="se">\n</span><span class="s1">&quot;.format(self.role, self,self.cards))</span>
+</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a>
+</span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a><span class="s1">def_info(self, msg):</span>
+</span><span id="__span-2-39"><a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a><span class="s1">    if self.display:</span>
+</span><span id="__span-2-40"><a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="s1">    print(msg, end=&quot;&quot;)</span>
+</span><span id="__span-2-41"><a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a>
+</span><span id="__span-2-42"><a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a><span class="s1">在上面的代码中，实例化一个游戏者可以提供3个参数，分别是该游戏者的姓名（name）、行为空间（A）和是否在终端显示具体信息（display）。其中设置第三个参数主要是由于调试和显示的需要，我们希望一方面游戏在生成大量对局信息时不要输出每一局的细节，另一方面在观察细节时希望能在终端给出某时刻庄家和玩家手中具体牌的信息以及他们的行为等。我们还给游戏者增加了一些辅助属性，比如游戏者姓名、策略、学习方法等，还设置了一个display以及一些显示信息的方法，用来在对局中在终端输出对局信息。在计算单张牌面点数时，借用了异常处理。在统计一手牌的点数时，要考虑到可能出现多张牌A的情况。读者可以输入一些测试牌的信息以观察这两个方法的输出。</span>
+</span><span id="__span-2-43"><a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a>
+</span><span id="__span-2-44"><a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a><span class="s1">在21点游戏中，庄家和玩家都是一个游戏者，我们可以从Gamer类继承出Dealer类和Player类，分别表示庄家和普通玩家。庄家和普通玩家的区别在于两者的角色不同、使用的策略不同。其中，庄家使用固定的策略，还能显示第一张明牌给其他玩家。在本章编程实践中，玩家使用最基本的策略，由于我们的玩家还要进行基于蒙特卡罗算法的策略评估，因此还需要具备构建一个状态的能力。我们扩展的庄家类如下：</span>
+</span><span id="__span-2-45"><a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a>
+</span><span id="__span-2-46"><a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a><span class="s1">class Dealer(Gamer):</span>
+</span><span id="__span-2-47"><a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a><span class="s1">    def__init__(self, name = &quot;&quot;, A = None, display = False):</span>
+</span><span id="__span-2-48"><a id="__codelineno-2-48" name="__codelineno-2-48" href="#__codelineno-2-48"></a><span class="s1">    super(Dealer, self).__init__(name, A, display)</span>
+</span><span id="__span-2-49"><a id="__codelineno-2-49" name="__codelineno-2-49" href="#__codelineno-2-49"></a>
+</span><span id="__span-2-50"><a id="__codelineno-2-50" name="__codelineno-2-50" href="#__codelineno-2-50"></a><span class="s1">self.role = &quot;庄家&quot;</span>
+</span><span id="__span-2-51"><a id="__codelineno-2-51" name="__codelineno-2-51" href="#__codelineno-2-51"></a><span class="s1">self.policy = self.dealer_policy</span>
+</span><span id="__span-2-52"><a id="__codelineno-2-52" name="__codelineno-2-52" href="#__codelineno-2-52"></a>
+</span><span id="__span-2-53"><a id="__codelineno-2-53" name="__codelineno-2-53" href="#__codelineno-2-53"></a><span class="s1">def first_card_value(self):</span>
+</span><span id="__span-2-54"><a id="__codelineno-2-54" name="__codelineno-2-54" href="#__codelineno-2-54"></a><span class="s1">    if self.cards is None or len(self.cards) == 0:</span>
+</span><span id="__span-2-55"><a id="__codelineno-2-55" name="__codelineno-2-55" href="#__codelineno-2-55"></a><span class="s1">    return 0</span>
+</span><span id="__span-2-56"><a id="__codelineno-2-56" name="__codelineno-2-56" href="#__codelineno-2-56"></a><span class="s1">    return self._value_of(self.cards[0])</span>
+</span><span id="__span-2-57"><a id="__codelineno-2-57" name="__codelineno-2-57" href="#__codelineno-2-57"></a>
+</span><span id="__span-2-58"><a id="__codelineno-2-58" name="__codelineno-2-58" href="#__codelineno-2-58"></a><span class="s1">def dealer_policy(self, Dealer = None):</span>
+</span><span id="__span-2-59"><a id="__codelineno-2-59" name="__codelineno-2-59" href="#__codelineno-2-59"></a><span class="s1">    action = &quot;&quot;</span>
+</span><span id="__span-2-60"><a id="__codelineno-2-60" name="__codelineno-2-60" href="#__codelineno-2-60"></a><span class="s1">    dealer_points, _ = self.get_points()</span>
+</span><span id="__span-2-61"><a id="__codelineno-2-61" name="__codelineno-2-61" href="#__codelineno-2-61"></a><span class="s1">    if dealer_points &gt;= 17:</span>
+</span><span id="__span-2-62"><a id="__codelineno-2-62" name="__codelineno-2-62" href="#__codelineno-2-62"></a><span class="s1">    action = self.A[1]    # &quot;停止要牌&quot;</span>
+</span><span id="__span-2-63"><a id="__codelineno-2-63" name="__codelineno-2-63" href="#__codelineno-2-63"></a><span class="s1">    else:</span>
+</span><span id="__span-2-64"><a id="__codelineno-2-64" name="__codelineno-2-64" href="#__codelineno-2-64"></a><span class="s1">    action = self.A[0]</span>
+</span><span id="__span-2-65"><a id="__codelineno-2-65" name="__codelineno-2-65" href="#__codelineno-2-65"></a><span class="s1">    return action</span>
+</span><span id="__span-2-66"><a id="__codelineno-2-66" name="__codelineno-2-66" href="#__codelineno-2-66"></a>
+</span><span id="__span-2-67"><a id="__codelineno-2-67" name="__codelineno-2-67" href="#__codelineno-2-67"></a><span class="s1">在庄家类的构造方法中声明基类是游戏者（Gamer），这样就具备了游戏者的所有属性和方法。我们给庄家贴上“庄家”角色标签，同时指定策略，在具体的策略方法中规定庄家的牌只要达到或超过17点就不再继续叫牌。</span>
+</span><span id="__span-2-68"><a id="__codelineno-2-68" name="__codelineno-2-68" href="#__codelineno-2-68"></a>
+</span><span id="__span-2-69"><a id="__codelineno-2-69" name="__codelineno-2-69" href="#__codelineno-2-69"></a><span class="s1">玩家类的代码如下：</span>
+</span><span id="__span-2-70"><a id="__codelineno-2-70" name="__codelineno-2-70" href="#__codelineno-2-70"></a>
+</span><span id="__span-2-71"><a id="__codelineno-2-71" name="__codelineno-2-71" href="#__codelineno-2-71"></a><span class="s1">class Player(Gamer):</span>
+</span><span id="__span-2-72"><a id="__codelineno-2-72" name="__codelineno-2-72" href="#__codelineno-2-72"></a><span class="s1">    def__init__(self, name = &quot;&quot;, A = None, display = False):</span>
+</span><span id="__span-2-73"><a id="__codelineno-2-73" name="__codelineno-2-73" href="#__codelineno-2-73"></a><span class="s1">    super(Player, self).__init__(name, A, display)</span>
+</span><span id="__span-2-74"><a id="__codelineno-2-74" name="__codelineno-2-74" href="#__codelineno-2-74"></a><span class="s1">    self.policy = self.naive_policy</span>
+</span><span id="__span-2-75"><a id="__codelineno-2-75" name="__codelineno-2-75" href="#__codelineno-2-75"></a><span class="s1">    self.role = &quot;玩家&quot; # &quot;庄家&quot;还是“玩家”，庄家是特殊的玩家</span>
+</span><span id="__span-2-76"><a id="__codelineno-2-76" name="__codelineno-2-76" href="#__codelineno-2-76"></a>
+</span><span id="__span-2-77"><a id="__codelineno-2-77" name="__codelineno-2-77" href="#__codelineno-2-77"></a><span class="s1">def get_state(self, dealer):</span>
+</span><span id="__span-2-78"><a id="__codelineno-2-78" name="__codelineno-2-78" href="#__codelineno-2-78"></a><span class="s1">    dealer_first_card_value =</span>
+</span><span id="__span-2-79"><a id="__codelineno-2-79" name="__codelineno-2-79" href="#__codelineno-2-79"></a><span class="s1">    dealer.first_card_value()</span>
+</span><span id="__span-2-80"><a id="__codelineno-2-80" name="__codelineno-2-80" href="#__codelineno-2-80"></a><span class="s1">    player_points, useable_ace = self.get_points()</span>
+</span><span id="__span-2-81"><a id="__codelineno-2-81" name="__codelineno-2-81" href="#__codelineno-2-81"></a><span class="s1">    return dealer_first_card_value, player_points,</span>
+</span><span id="__span-2-82"><a id="__codelineno-2-82" name="__codelineno-2-82" href="#__codelineno-2-82"></a>
+</span><span id="__span-2-83"><a id="__codelineno-2-83" name="__codelineno-2-83" href="#__codelineno-2-83"></a><span class="s1">useable_ace</span>
+</span><span id="__span-2-84"><a id="__codelineno-2-84" name="__codelineno-2-84" href="#__codelineno-2-84"></a><span class="s1">def get_state_name(self, dealer):</span>
+</span><span id="__span-2-85"><a id="__codelineno-2-85" name="__codelineno-2-85" href="#__codelineno-2-85"></a><span class="s1">    return str_key(self.get_state(dealer))</span>
+</span><span id="__span-2-86"><a id="__codelineno-2-86" name="__codelineno-2-86" href="#__codelineno-2-86"></a><span class="s1">def naive_policy(self, dealer=None):</span>
+</span><span id="__span-2-87"><a id="__codelineno-2-87" name="__codelineno-2-87" href="#__codelineno-2-87"></a><span class="s1">    player_points, _ = self.get_points()</span>
+</span><span id="__span-2-88"><a id="__codelineno-2-88" name="__codelineno-2-88" href="#__codelineno-2-88"></a><span class="s1">    if player_points &lt; 20:</span>
+</span><span id="__span-2-89"><a id="__codelineno-2-89" name="__codelineno-2-89" href="#__codelineno-2-89"></a><span class="s1">    action = self.A[0]</span>
+</span><span id="__span-2-90"><a id="__codelineno-2-90" name="__codelineno-2-90" href="#__codelineno-2-90"></a><span class="s1">    else:</span>
+</span><span id="__span-2-91"><a id="__codelineno-2-91" name="__codelineno-2-91" href="#__codelineno-2-91"></a><span class="s1">    action = self.A[1]</span>
+</span><span id="__span-2-92"><a id="__codelineno-2-92" name="__codelineno-2-92" href="#__codelineno-2-92"></a><span class="s1">    return action</span>
+</span><span id="__span-2-93"><a id="__codelineno-2-93" name="__codelineno-2-93" href="#__codelineno-2-93"></a>
+</span><span id="__span-2-94"><a id="__codelineno-2-94" name="__codelineno-2-94" href="#__codelineno-2-94"></a><span class="s1">玩家类也继承自游戏者（Gamer），指定其策略为最原始的策略（naive\_policy），规定玩家只要点数小于20点就继续叫牌。玩家同时还会根据当前局面信息得到当前局面的状态，为策略评估做准备。</span>
+</span><span id="__span-2-95"><a id="__codelineno-2-95" name="__codelineno-2-95" href="#__codelineno-2-95"></a>
+</span><span id="__span-2-96"><a id="__codelineno-2-96" name="__codelineno-2-96" href="#__codelineno-2-96"></a><span class="s1">至此，游戏者这部分的建模工作就完成了。接下来将准备游戏桌、游戏牌、组织游戏对局、判定输赢等功能。我们把所有的这些功能封装在一个名称为Arena的类中。Arena类的构造方法如下：</span>
+</span><span id="__span-2-97"><a id="__codelineno-2-97" name="__codelineno-2-97" href="#__codelineno-2-97"></a>
+</span><span id="__span-2-98"><a id="__codelineno-2-98" name="__codelineno-2-98" href="#__codelineno-2-98"></a><span class="s1">class Arena():</span>
+</span><span id="__span-2-99"><a id="__codelineno-2-99" name="__codelineno-2-99" href="#__codelineno-2-99"></a><span class="s1">    &#39;&#39;&#39;</span><span class="n">负责游戏管理</span><span class="s1">&#39;&#39;&#39;</span>
+</span><span id="__span-2-100"><a id="__codelineno-2-100" name="__codelineno-2-100" href="#__codelineno-2-100"></a><span class="s1">    def__init__(self, display = None, A = None):</span>
+</span><span id="__span-2-101"><a id="__codelineno-2-101" name="__codelineno-2-101" href="#__codelineno-2-101"></a><span class="s1">    self.cards = </span><span class="se">\</span>
+</span><span id="__span-2-102"><a id="__codelineno-2-102" name="__codelineno-2-102" href="#__codelineno-2-102"></a><span class="s1">[&#39;A&#39;, &#39;2&#39;, &#39;3&#39;, &#39;4&#39;, &#39;5&#39;, &#39;6&#39;, &#39;7&#39;, &#39;8&#39;, &#39;9&#39;, &#39;10&#39;, &#39;J&#39;, &#39;Q&#39;, &quot;K&quot;] * 4</span>
+</span><span id="__span-2-103"><a id="__codelineno-2-103" name="__codelineno-2-103" href="#__codelineno-2-103"></a><span class="s1">    self.card_q = Queue(maxsize = 52) # 洗好的牌</span>
+</span><span id="__span-2-104"><a id="__codelineno-2-104" name="__codelineno-2-104" href="#__codelineno-2-104"></a><span class="s1">    self.cards_in_pool = []</span>
+</span><span id="__span-2-105"><a id="__codelineno-2-105" name="__codelineno-2-105" href="#__codelineno-2-105"></a><span class="s1">## 已经用过的公开的牌</span>
+</span><span id="__span-2-106"><a id="__codelineno-2-106" name="__codelineno-2-106" href="#__codelineno-2-106"></a><span class="s1">    self.display = display</span>
+</span><span id="__span-2-107"><a id="__codelineno-2-107" name="__codelineno-2-107" href="#__codelineno-2-107"></a><span class="s1">    selfEpisodes = []</span>
+</span><span id="__span-2-108"><a id="__codelineno-2-108" name="__codelineno-2-108" href="#__codelineno-2-108"></a><span class="s1">## 产生的对局信息列表</span>
+</span><span id="__span-2-109"><a id="__codelineno-2-109" name="__codelineno-2-109" href="#__codelineno-2-109"></a><span class="s1">    self.load_cards(self.cards) # 把初始状态的52张牌装入发牌器</span>
+</span><span id="__span-2-110"><a id="__codelineno-2-110" name="__codelineno-2-110" href="#__codelineno-2-110"></a><span class="s1">    self.A = A</span>
+</span><span id="__span-2-111"><a id="__codelineno-2-111" name="__codelineno-2-111" href="#__codelineno-2-111"></a><span class="s1">## 获得行为空间</span>
+</span></code></pre></div>
+<p>Arena类构造函数接受两个额外参数，这两个参数与构建游戏者的参数一样。Arena包含的属性有一副不包括大小王、花色信息的牌（cards）、一个装载洗好了牌的发牌器（cards_q），一个负责收集已经使用过的废牌的池子（cards_in_pool），一个记录了对局信息的列表（episodes），还包括是否显示具体信息以及游戏的行为空间等。在构造一个Arena对象时，我们同时把一副新牌洗好并装进发牌器，这个工作在load_cards方法中完成。我们来看看这个方法的细节。</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">load</span> <span class="n">cards</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cards</span><span class="p">):</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;把收集的牌洗一洗，重新装到发牌器中    Args:</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="sd">    cards 要装入发牌器的多张牌 list</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="sd">    Return:</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="sd">    None</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="sd">    &#39;&#39;&#39;</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">shuffle</span><span class="p">(</span><span class="n">cards</span><span class="p">)</span>    <span class="c1"># 洗牌</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>    <span class="k">for</span> <span class="n">card</span> <span class="ow">in</span> <span class="n">cards</span><span class="p">:</span>    <span class="c1"># deque数据结构只能一个一个添加</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">card_q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">card</span><span class="p">)</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    <span class="n">cards</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>    <span class="c1"># 原来</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="n">的牌清空</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="k">return</span>
+</span></code></pre></div>
+<p>这个方法接受一个参数（cards），多数时候将cards_in_pool传给这个方法，也就是把桌面上已使用的废牌收集起来传给这个方法，该方法首先把这些牌的次序打乱，模拟洗牌操作，随后将洗好的牌放入发牌器。完成洗牌、装牌功能。Arena应具备根据庄家和玩家手中的牌的信息判断当前谁赢谁输的能力，该能力通过如下方法</p>
+<p>（reward_of）来实现：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">reward_of</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dealer</span><span class="p">,</span> <span class="n">player</span><span class="p">):</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;判断玩家奖励值，附带玩家、庄家的牌点信息    &#39;&#39;&#39;</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="n">dealer_points</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">dealer</span><span class="o">.</span><span class="n">get_points</span><span class="p">()</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">player_points</span><span class="p">,</span> <span class="n">useable_ace</span> <span class="o">=</span> <span class="n">player</span><span class="o">.</span><span class="n">get_points</span><span class="p">()</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="k">if</span> <span class="n">player_points</span> <span class="o">&gt;</span> <span class="mi">21</span><span class="p">:</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">reward</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="k">if</span> <span class="n">player_points</span> <span class="o">&gt;</span> <span class="n">dealer_points</span> <span class="ow">or</span> <span class="n">dealer_points</span> <span class="o">&gt;</span> <span class="mi">21</span><span class="p">:</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="n">reward</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    <span class="k">elif</span> <span class="n">player_points</span> <span class="o">==</span> <span class="n">dealer_points</span><span class="p">:</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="n">reward</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>    <span class="n">reward</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    <span class="k">return</span> <span class="n">reward</span><span class="p">,</span> <span class="n">player_points</span><span class="p">,</span> <span class="n">dealer_points</span><span class="p">,</span> <span class="n">useable_ace</span>
+</span></code></pre></div>
+<p>该方法接受庄家和玩家参数，计算对局过程中以及对局结束时牌局的输赢信息（reward），返回当前玩家、庄家具体的总点数以及玩家是否有“可用的牌A”等信息。</p>
+<p>下面的方法实现Arena对象如何向庄家或玩家发牌的功能：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">serve</span> <span class="n">card</span> <span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;给庄家或玩家发牌，如果牌不够则将公开牌池的牌洗一洗重新发牌    Args:</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="sd">    player 一个庄家或玩家</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="sd">    n 一次连续发牌的数量</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="sd">    Return:</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="sd">    None</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="sd">c</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="sd">    cards = []    # 将要发出的牌</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="sd">    for_ in range(n):</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="sd">    ## 要考虑发牌器没有牌的情况</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="sd">    if self.card_q.empty():</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="sd">    self._info(&quot;\n发牌器没牌了，整理废牌，重新洗牌；&quot;)</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="sd">    shuffle(self.cards_in_pool)</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="sd">    self._info(&quot;一共整理了{}张已用牌，重新放入发牌器\n&quot;.format(\len(self.cards_in_pool)))</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="sd">    assert(len(self.cards_in_pool) &gt; 20)</span>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="sd">    ## 通常发牌器没有牌的时候，玩家已经使用了相当数量的牌了。</span>
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="sd">    ## 如果玩家爆点了还持续叫牌，</span>
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="sd">    ## 就会导致玩家手中牌变多而发牌器和已使用的牌都很少，需避免这种情况。</span>
+</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="sd">    ## 将收集起来的用过的牌洗好送入发牌器重新使用。</span>
+</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="sd">    self.load_cards(self.cards_in_pool)</span>
+</span><span id="__span-5-22"><a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="sd">    cards.append(self.card_q.get())    # 从发牌器发出一张牌</span>
+</span><span id="__span-5-23"><a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="sd">    self._info(&quot;发了{}张牌({})给{{}};&quot;.format(\n, cards, player.role, player))</span>
+</span><span id="__span-5-24"><a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="sd">    ##self._info(msg)</span>
+</span><span id="__span-5-25"><a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="sd">    player.receive(cards)</span>
+</span><span id="__span-5-26"><a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a><span class="sd">## 牌已发给某一玩家</span>
+</span><span id="__span-5-27"><a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="sd">    player.cards_info()</span>
+</span><span id="__span-5-28"><a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a>
+</span><span id="__span-5-29"><a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a><span class="sd">    def_info(self, message):</span>
+</span><span id="__span-5-30"><a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a><span class="sd">    if self.display:</span>
+</span><span id="__span-5-31"><a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a><span class="sd">    print(message, end=&quot;&quot;)</span>
+</span><span id="__span-5-32"><a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a>
+</span><span id="__span-5-33"><a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a><span class="sd">这个方法（serve\_card\_to）接受一个玩家（player）和一个整数（n）作为参数，表示向该玩家一次发出一定数量的牌，在发牌时如果遇到发牌器里没有牌的情况时，会将已使用的牌收集起来洗好后送入发牌器，随后把需要数量的牌发给某一玩家。代码中的方法（\_info）负责根据条件在终端输出对局信息。</span>
+</span><span id="__span-5-34"><a id="__codelineno-5-34" name="__codelineno-5-34" href="#__codelineno-5-34"></a>
+</span><span id="__span-5-35"><a id="__codelineno-5-35" name="__codelineno-5-35" href="#__codelineno-5-35"></a><span class="sd">当一局结束时，Arena对象负责把玩家手中的牌回收至已使用的废牌区。这个功能由下面这个方法来完成：</span>
+</span><span id="__span-5-36"><a id="__codelineno-5-36" name="__codelineno-5-36" href="#__codelineno-5-36"></a>
+</span><span id="__span-5-37"><a id="__codelineno-5-37" name="__codelineno-5-37" href="#__codelineno-5-37"></a><span class="sd">def recycle cards(self, *players):</span>
+</span><span id="__span-5-38"><a id="__codelineno-5-38" name="__codelineno-5-38" href="#__codelineno-5-38"></a><span class="sd">    &#39;&#39;&#39;</span><span class="n">回收玩家手中的牌到公开使用过的牌池中</span><span class="s1">&#39;&#39;&#39;    if len(players) == 0:</span>
+</span><span id="__span-5-39"><a id="__codelineno-5-39" name="__codelineno-5-39" href="#__codelineno-5-39"></a><span class="s1">    return</span>
+</span><span id="__span-5-40"><a id="__codelineno-5-40" name="__codelineno-5-40" href="#__codelineno-5-40"></a><span class="s1">    for player in players:</span>
+</span><span id="__span-5-41"><a id="__codelineno-5-41" name="__codelineno-5-41" href="#__codelineno-5-41"></a><span class="s1">    for card in player.cards:</span>
+</span><span id="__span-5-42"><a id="__codelineno-5-42" name="__codelineno-5-42" href="#__codelineno-5-42"></a><span class="s1">    self.cards_in_pool.append(card)</span>
+</span><span id="__span-5-43"><a id="__codelineno-5-43" name="__codelineno-5-43" href="#__codelineno-5-43"></a><span class="s1">    player.discharge_cards() # 玩家</span>
+</span><span id="__span-5-44"><a id="__codelineno-5-44" name="__codelineno-5-44" href="#__codelineno-5-44"></a><span class="s1">手中不再留有这些牌</span>
+</span><span id="__span-5-45"><a id="__codelineno-5-45" name="__codelineno-5-45" href="#__codelineno-5-45"></a>
+</span><span id="__span-5-46"><a id="__codelineno-5-46" name="__codelineno-5-46" href="#__codelineno-5-46"></a><span class="s1">剩下一个最关键的功能就是如何让庄家和玩家进行一次对局，可编写下面的方法来实现：</span>
+</span><span id="__span-5-47"><a id="__codelineno-5-47" name="__codelineno-5-47" href="#__codelineno-5-47"></a>
+</span><span id="__span-5-48"><a id="__codelineno-5-48" name="__codelineno-5-48" href="#__codelineno-5-48"></a><span class="s1">def play_game(self, dealer, player):</span>
+</span><span id="__span-5-49"><a id="__codelineno-5-49" name="__codelineno-5-49" href="#__codelineno-5-49"></a><span class="s1">    &#39;&#39;&#39;</span><span class="n">玩一局21点</span><span class="err">，</span><span class="n">生成一个状态序列以及最终奖励</span><span class="err">（</span><span class="n">中间奖励为0</span><span class="err">）</span>
+</span><span id="__span-5-50"><a id="__codelineno-5-50" name="__codelineno-5-50" href="#__codelineno-5-50"></a>    <span class="n">Args</span><span class="p">:</span>
+</span><span id="__span-5-51"><a id="__codelineno-5-51" name="__codelineno-5-51" href="#__codelineno-5-51"></a>    <span class="n">dealer</span><span class="o">/</span><span class="n">player</span> <span class="n">庄家和玩家手中的牌</span> <span class="nb">list</span>
+</span><span id="__span-5-52"><a id="__codelineno-5-52" name="__codelineno-5-52" href="#__codelineno-5-52"></a>    <span class="n">Returns</span><span class="p">:</span>
+</span><span id="__span-5-53"><a id="__codelineno-5-53" name="__codelineno-5-53" href="#__codelineno-5-53"></a>    <span class="nb">tuple</span><span class="p">:</span> <span class="n">episode</span><span class="p">,</span> <span class="n">reward</span>
+</span><span id="__span-5-54"><a id="__codelineno-5-54" name="__codelineno-5-54" href="#__codelineno-5-54"></a><span class="w">    </span><span class="sd">&#39;&#39;&#39;    ##self.collect_player_cards()</span>
+</span><span id="__span-5-55"><a id="__codelineno-5-55" name="__codelineno-5-55" href="#__codelineno-5-55"></a><span class="sd">    self._info(&quot;========== 开始新一局 =======\n&quot;)</span>
+</span><span id="__span-5-56"><a id="__codelineno-5-56" name="__codelineno-5-56" href="#__codelineno-5-56"></a><span class="sd">    self.serve_card_to(player, n=2)  # 发两张牌给玩家</span>
+</span><span id="__span-5-57"><a id="__codelineno-5-57" name="__codelineno-5-57" href="#__codelineno-5-57"></a><span class="sd">    self.serve_card_to(dealer, n=2)  # 发两张牌给玩家</span>
+</span><span id="__span-5-58"><a id="__codelineno-5-58" name="__codelineno-5-58" href="#__codelineno-5-58"></a><span class="sd">    episode = []  # 记录一个对局信息</span>
+</span><span id="__span-5-59"><a id="__codelineno-5-59" name="__codelineno-5-59" href="#__codelineno-5-59"></a><span class="sd">    if player.policy is None:</span>
+</span><span id="__span-5-60"><a id="__codelineno-5-60" name="__codelineno-5-60" href="#__codelineno-5-60"></a><span class="sd">    self._info(&quot;玩家需要一个策略&quot;)</span>
+</span><span id="__span-5-61"><a id="__codelineno-5-61" name="__codelineno-5-61" href="#__codelineno-5-61"></a><span class="sd">    return</span>
+</span><span id="__span-5-62"><a id="__codelineno-5-62" name="__codelineno-5-62" href="#__codelineno-5-62"></a><span class="sd">    if dealer.policy is None:</span>
+</span><span id="__span-5-63"><a id="__codelineno-5-63" name="__codelineno-5-63" href="#__codelineno-5-63"></a><span class="sd">    self._info(&quot;庄家需要一个策略&quot;)</span>
+</span><span id="__span-5-64"><a id="__codelineno-5-64" name="__codelineno-5-64" href="#__codelineno-5-64"></a><span class="sd">    return</span>
+</span><span id="__span-5-65"><a id="__codelineno-5-65" name="__codelineno-5-65" href="#__codelineno-5-65"></a>
+</span><span id="__span-5-66"><a id="__codelineno-5-66" name="__codelineno-5-66" href="#__codelineno-5-66"></a><span class="sd">while True:</span>
+</span><span id="__span-5-67"><a id="__codelineno-5-67" name="__codelineno-5-67" href="#__codelineno-5-67"></a><span class="sd">    action = player.policy(dealer)</span>
+</span><span id="__span-5-68"><a id="__codelineno-5-68" name="__codelineno-5-68" href="#__codelineno-5-68"></a><span class="sd">    ## 玩家的策略产生一个行为</span>
+</span><span id="__span-5-69"><a id="__codelineno-5-69" name="__codelineno-5-69" href="#__codelineno-5-69"></a><span class="sd">    self._info(&quot;{{}}选择: {};&quot;.format(player.role, player, action))</span>
+</span><span id="__span-5-70"><a id="__codelineno-5-70" name="__codelineno-5-70" href="#__codelineno-5-70"></a><span class="sd">    ## 记录一个(s,a)</span>
+</span><span id="__span-5-71"><a id="__codelineno-5-71" name="__codelineno-5-71" href="#__codelineno-5-71"></a>
+</span><span id="__span-5-72"><a id="__codelineno-5-72" name="__codelineno-5-72" href="#__codelineno-5-72"></a><span class="sd">episode.append((player.get_state_name(dealer), action))</span>
+</span><span id="__span-5-73"><a id="__codelineno-5-73" name="__codelineno-5-73" href="#__codelineno-5-73"></a><span class="sd">    if action == self.A[0]:</span>
+</span><span id="__span-5-74"><a id="__codelineno-5-74" name="__codelineno-5-74" href="#__codelineno-5-74"></a><span class="sd">    ## 继续叫牌</span>
+</span><span id="__span-5-75"><a id="__codelineno-5-75" name="__codelineno-5-75" href="#__codelineno-5-75"></a><span class="sd">    self.serve_card_to(player)  # 发一张牌给玩家</span>
+</span><span id="__span-5-76"><a id="__codelineno-5-76" name="__codelineno-5-76" href="#__codelineno-5-76"></a><span class="sd">    else:    # 停止叫牌</span>
+</span><span id="__span-5-77"><a id="__codelineno-5-77" name="__codelineno-5-77" href="#__codelineno-5-77"></a><span class="sd">    break</span>
+</span><span id="__span-5-78"><a id="__codelineno-5-78" name="__codelineno-5-78" href="#__codelineno-5-78"></a><span class="sd">    ## 玩家停止叫牌后要计算一下玩家手中的点数，玩家如果爆了，庄家就不用继续了</span>
+</span><span id="__span-5-79"><a id="__codelineno-5-79" name="__codelineno-5-79" href="#__codelineno-5-79"></a><span class="sd">    reward, player_points, dealer_points, useable_ace = \</span>
+</span><span id="__span-5-80"><a id="__codelineno-5-80" name="__codelineno-5-80" href="#__codelineno-5-80"></a><span class="sd">    self.reward_of(dealer, player)</span>
+</span><span id="__span-5-81"><a id="__codelineno-5-81" name="__codelineno-5-81" href="#__codelineno-5-81"></a>
+</span><span id="__span-5-82"><a id="__codelineno-5-82" name="__codelineno-5-82" href="#__codelineno-5-82"></a><span class="sd">    if player_points &gt; 21:</span>
+</span><span id="__span-5-83"><a id="__codelineno-5-83" name="__codelineno-5-83" href="#__codelineno-5-83"></a><span class="sd">    self._info(&quot;玩家爆点{}输了，得分: {}\n&quot;.format(\player_points, reward))</span>
+</span><span id="__span-5-84"><a id="__codelineno-5-84" name="__codelineno-5-84" href="#__codelineno-5-84"></a><span class="sd">    self.recycle_cards(player, dealer)</span>
+</span><span id="__span-5-85"><a id="__codelineno-5-85" name="__codelineno-5-85" href="#__codelineno-5-85"></a><span class="sd">    selfEpisodes.append((episode, reward))</span>
+</span><span id="__span-5-86"><a id="__codelineno-5-86" name="__codelineno-5-86" href="#__codelineno-5-86"></a><span class="sd">    ## 预测时需要形成状态序列（episode list）后统一学习v</span>
+</span><span id="__span-5-87"><a id="__codelineno-5-87" name="__codelineno-5-87" href="#__codelineno-5-87"></a><span class="sd">    ## 在蒙特卡罗控制时，可以不需要状态序列，生成一个状态学习一个，下同</span>
+</span><span id="__span-5-88"><a id="__codelineno-5-88" name="__codelineno-5-88" href="#__codelineno-5-88"></a><span class="sd">    self._info(&quot;========== 本局结束 ===========\n&quot;)</span>
+</span><span id="__span-5-89"><a id="__codelineno-5-89" name="__codelineno-5-89" href="#__codelineno-5-89"></a><span class="sd">    return episode, reward</span>
+</span><span id="__span-5-90"><a id="__codelineno-5-90" name="__codelineno-5-90" href="#__codelineno-5-90"></a>
+</span><span id="__span-5-91"><a id="__codelineno-5-91" name="__codelineno-5-91" href="#__codelineno-5-91"></a><span class="sd">    ## 玩家并没有超过21点</span>
+</span><span id="__span-5-92"><a id="__codelineno-5-92" name="__codelineno-5-92" href="#__codelineno-5-92"></a><span class="sd">    self._info(&quot;\n&quot;)</span>
+</span><span id="__span-5-93"><a id="__codelineno-5-93" name="__codelineno-5-93" href="#__codelineno-5-93"></a><span class="sd">    while True:</span>
+</span><span id="__span-5-94"><a id="__codelineno-5-94" name="__codelineno-5-94" href="#__codelineno-5-94"></a><span class="sd">    action = dealer.policy()    # 庄家从其策略中获取一个行为</span>
+</span><span id="__span-5-95"><a id="__codelineno-5-95" name="__codelineno-5-95" href="#__codelineno-5-95"></a><span class="sd">    self._info(&quot;{{}}选择: {};&quot;.format(dealer.role, dealer, action))</span>
+</span><span id="__span-5-96"><a id="__codelineno-5-96" name="__codelineno-5-96" href="#__codelineno-5-96"></a><span class="sd">    if action == self.A[0]:    # 庄家&quot;继续要牌&quot;:</span>
+</span><span id="__span-5-97"><a id="__codelineno-5-97" name="__codelineno-5-97" href="#__codelineno-5-97"></a><span class="sd">    self.serve_card_to(dealer)</span>
+</span><span id="__span-5-98"><a id="__codelineno-5-98" name="__codelineno-5-98" href="#__codelineno-5-98"></a><span class="sd">    ## 停止要牌是针对玩家来说的，episode不记录庄家动作</span>
+</span><span id="__span-5-99"><a id="__codelineno-5-99" name="__codelineno-5-99" href="#__codelineno-5-99"></a><span class="sd">    ## 在状态只记录庄家第一张牌的信息时，可不重复记录(s,a),</span>
+</span><span id="__span-5-100"><a id="__codelineno-5-100" name="__codelineno-5-100" href="#__codelineno-5-100"></a>
+</span><span id="__span-5-101"><a id="__codelineno-5-101" name="__codelineno-5-101" href="#__codelineno-5-101"></a><span class="sd">## 因为此时玩家不再叫牌，(s,a)均相同</span>
+</span><span id="__span-5-102"><a id="__codelineno-5-102" name="__codelineno-5-102" href="#__codelineno-5-102"></a><span class="sd">## episode.append((get_state_name(dealer, player), self.A[1]))</span>
+</span><span id="__span-5-103"><a id="__codelineno-5-103" name="__codelineno-5-103" href="#__codelineno-5-103"></a><span class="sd">else:</span>
+</span><span id="__span-5-104"><a id="__codelineno-5-104" name="__codelineno-5-104" href="#__codelineno-5-104"></a><span class="sd">    break</span>
+</span><span id="__span-5-105"><a id="__codelineno-5-105" name="__codelineno-5-105" href="#__codelineno-5-105"></a><span class="sd">## 双方均停止叫牌了</span>
+</span><span id="__span-5-106"><a id="__codelineno-5-106" name="__codelineno-5-106" href="#__codelineno-5-106"></a><span class="sd">self._info(&quot;\n双方均停止了叫牌;\n&quot;)</span>
+</span><span id="__span-5-107"><a id="__codelineno-5-107" name="__codelineno-5-107" href="#__codelineno-5-107"></a><span class="sd">reward, player_points, dealer_points, useable_ace = \</span>
+</span><span id="__span-5-108"><a id="__codelineno-5-108" name="__codelineno-5-108" href="#__codelineno-5-108"></a><span class="sd">    self.reward_of(dealer, player)</span>
+</span><span id="__span-5-109"><a id="__codelineno-5-109" name="__codelineno-5-109" href="#__codelineno-5-109"></a><span class="sd">    player.cards_info()</span>
+</span><span id="__span-5-110"><a id="__codelineno-5-110" name="__codelineno-5-110" href="#__codelineno-5-110"></a><span class="sd">    dealer.cards_info()</span>
+</span><span id="__span-5-111"><a id="__codelineno-5-111" name="__codelineno-5-111" href="#__codelineno-5-111"></a><span class="sd">    if reward == +1:</span>
+</span><span id="__span-5-112"><a id="__codelineno-5-112" name="__codelineno-5-112" href="#__codelineno-5-112"></a><span class="sd">    self._info(&quot;玩家赢了!&quot;)</span>
+</span><span id="__span-5-113"><a id="__codelineno-5-113" name="__codelineno-5-113" href="#__codelineno-5-113"></a><span class="sd">    elif reward == -1:</span>
+</span><span id="__span-5-114"><a id="__codelineno-5-114" name="__codelineno-5-114" href="#__codelineno-5-114"></a><span class="sd">    self._info(&quot;玩家输了!&quot;)</span>
+</span><span id="__span-5-115"><a id="__codelineno-5-115" name="__codelineno-5-115" href="#__codelineno-5-115"></a><span class="sd">    else:</span>
+</span><span id="__span-5-116"><a id="__codelineno-5-116" name="__codelineno-5-116" href="#__codelineno-5-116"></a><span class="sd">    self._info(&quot;双方和局!&quot;)</span>
+</span><span id="__span-5-117"><a id="__codelineno-5-117" name="__codelineno-5-117" href="#__codelineno-5-117"></a><span class="sd">    self._info(&quot;玩家{}点,庄家{}点\n&quot;.format(player_points, dealer_points))</span>
+</span><span id="__span-5-118"><a id="__codelineno-5-118" name="__codelineno-5-118" href="#__codelineno-5-118"></a><span class="sd">    self._info(&quot;========== 本局结束 =======\n&quot;)</span>
+</span><span id="__span-5-119"><a id="__codelineno-5-119" name="__codelineno-5-119" href="#__codelineno-5-119"></a><span class="sd">    self.recycle_cards(player, dealer) # 回收玩家和庄家手中的牌至公开牌池</span>
+</span><span id="__span-5-120"><a id="__codelineno-5-120" name="__codelineno-5-120" href="#__codelineno-5-120"></a><span class="sd">## 将刚才产生的完整对局添加至状态序列列表，而蒙特卡罗控制则不需要</span>
+</span><span id="__span-5-121"><a id="__codelineno-5-121" name="__codelineno-5-121" href="#__codelineno-5-121"></a><span class="sd">selfEpisodes.append((episode, reward))</span>
+</span><span id="__span-5-122"><a id="__codelineno-5-122" name="__codelineno-5-122" href="#__codelineno-5-122"></a><span class="sd">return episode, reward</span>
+</span><span id="__span-5-123"><a id="__codelineno-5-123" name="__codelineno-5-123" href="#__codelineno-5-123"></a>
+</span><span id="__span-5-124"><a id="__codelineno-5-124" name="__codelineno-5-124" href="#__codelineno-5-124"></a><span class="sd">这段代码虽然比较长，但是里面包含了许多反映对局过程的信息，使得代码也比较容易理解。该方法接受以一个庄家、一个玩家为参数，产生一次对局，并返回该对局的详细信息。需要指出的是玩家的策略要做到在玩家手中的牌超过21点时强制停止叫牌。其次，在玩家停止叫牌后，Arena对局面进行一次判断，如果玩家超过21点则本局结束，否则提示庄家选择行为。当庄家停止叫牌后，Arena对局面再次进行判断，结束对局并将该对局产生的详细信息记录为一个episode对象，并附加地把包含了该局信息的episode对象联合该局的最终输赢（奖励）登记至Arena的成员属性episodes中。</span>
+</span><span id="__span-5-125"><a id="__codelineno-5-125" name="__codelineno-5-125" href="#__codelineno-5-125"></a>
+</span><span id="__span-5-126"><a id="__codelineno-5-126" name="__codelineno-5-126" href="#__codelineno-5-126"></a><span class="sd">有了生成一次对局的方法，我们编写下面的代码来一次性生成多个对局：</span>
+</span><span id="__span-5-127"><a id="__codelineno-5-127" name="__codelineno-5-127" href="#__codelineno-5-127"></a>
+</span><span id="__span-5-128"><a id="__codelineno-5-128" name="__codelineno-5-128" href="#__codelineno-5-128"></a><span class="sd">def play_games(self, dealer, player, num=2,</span>
+</span><span id="__span-5-129"><a id="__codelineno-5-129" name="__codelineno-5-129" href="#__codelineno-5-129"></a><span class="sd">show_statistic = True):</span>
+</span><span id="__span-5-130"><a id="__codelineno-5-130" name="__codelineno-5-130" href="#__codelineno-5-130"></a><span class="sd">    &#39;&#39;&#39;</span><span class="n">一次性玩多局游戏</span><span class="s1">&#39;&#39;&#39;</span>
+</span><span id="__span-5-131"><a id="__codelineno-5-131" name="__codelineno-5-131" href="#__codelineno-5-131"></a><span class="s1">    results = [0, 0, 0]    # 玩家负、和、胜局数</span>
+</span><span id="__span-5-132"><a id="__codelineno-5-132" name="__codelineno-5-132" href="#__codelineno-5-132"></a><span class="s1">    selfEpisodes.clear()</span>
+</span><span id="__span-5-133"><a id="__codelineno-5-133" name="__codelineno-5-133" href="#__codelineno-5-133"></a><span class="s1">    for i in tqdm(range(num)):</span>
+</span><span id="__span-5-134"><a id="__codelineno-5-134" name="__codelineno-5-134" href="#__codelineno-5-134"></a><span class="s1">    episode, reward = self.play_game(dealer,</span>
+</span><span id="__span-5-135"><a id="__codelineno-5-135" name="__codelineno-5-135" href="#__codelineno-5-135"></a><span class="s1">player)</span>
+</span><span id="__span-5-136"><a id="__codelineno-5-136" name="__codelineno-5-136" href="#__codelineno-5-136"></a><span class="s1">    results[1+reward] += 1</span>
+</span><span id="__span-5-137"><a id="__codelineno-5-137" name="__codelineno-5-137" href="#__codelineno-5-137"></a><span class="s1">    if player.learning_method is not None:</span>
+</span><span id="__span-5-138"><a id="__codelineno-5-138" name="__codelineno-5-138" href="#__codelineno-5-138"></a><span class="s1">    player.learning_method(episode ,reward)</span>
+</span><span id="__span-5-139"><a id="__codelineno-5-139" name="__codelineno-5-139" href="#__codelineno-5-139"></a><span class="s1">    if show_statistic:</span>
+</span><span id="__span-5-140"><a id="__codelineno-5-140" name="__codelineno-5-140" href="#__codelineno-5-140"></a><span class="s1">    print(&quot;共玩了 </span><span class="si">{}</span><span class="s1">局，玩家赢 </span><span class="si">{}</span><span class="s1">/和 </span><span class="si">{}</span><span class="s1">/输 </span><span class="si">{}</span><span class="s1">，胜率：</span>
+</span><span id="__span-5-141"><a id="__codelineno-5-141" name="__codelineno-5-141" href="#__codelineno-5-141"></a><span class="si">{:.2f}</span><span class="s1">, 不输率：</span><span class="si">{:.2f}</span><span class="s1">&quot;</span>
+</span><span id="__span-5-142"><a id="__codelineno-5-142" name="__codelineno-5-142" href="#__codelineno-5-142"></a><span class="s1">    .format(num,</span>
+</span><span id="__span-5-143"><a id="__codelineno-5-143" name="__codelineno-5-143" href="#__codelineno-5-143"></a><span class="s1">results[2], results[1], results[0], results[2]/num, </span><span class="se">\</span>
+</span><span id="__span-5-144"><a id="__codelineno-5-144" name="__codelineno-5-144" href="#__codelineno-5-144"></a><span class="s1">(results[2]+results[1])/num))</span>
+</span><span id="__span-5-145"><a id="__codelineno-5-145" name="__codelineno-5-145" href="#__codelineno-5-145"></a><span class="s1">    pass</span>
+</span></code></pre></div>
+<p>该方法接受一个庄家、一个玩家、需要产生的对局数量以及是否显示多个对局的统计信息共4个参数，生成指定数量的对局信息，这些信息都保存在Arena的episodes对象中。为了兼容具备学习能力的玩家，我们设置了在每一个对局结束后如果玩家能够从中学习，则提供玩家一次学习的机会。在本章中的玩家不具备从对局中学习改善策略的能力，这部分内容将在下一章详细讲解。如果参数设置为显示统计信息，就会在指定数量的对局结束后显示一共对局了多少局、玩家的胜率等。</p>
+<h2 id="444">4.4.4 生成对局数据<a class="headerlink" href="#444" title="Permanent link">&para;</a></h2>
+<p>至此，我们所有的准备工作就完成了。下面的代码将生成一个庄家、一个玩家、一个Arena对象，并进行20万次的对局：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">A</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;继续叫牌&quot;</span><span class="p">,</span> <span class="s2">&quot;停止叫牌&quot;</span><span class="p">]</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">display</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1">## 创建一个玩家、一个庄家，玩家使用原始策略，庄家使用固定策略</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">player</span> <span class="o">=</span> <span class="n">Player</span><span class="p">(</span><span class="n">A</span> <span class="o">=</span> <span class="n">A</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="n">display</span><span class="p">)</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">dealer</span> <span class="o">=</span> <span class="n">Dealer</span><span class="p">(</span><span class="n">A</span> <span class="o">=</span> <span class="n">A</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="n">display</span><span class="p">)</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="c1">## 创建一个场景</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="n">arena</span> <span class="o">=</span> <span class="n">Arena</span><span class="p">(</span><span class="n">A</span> <span class="o">=</span> <span class="n">A</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="n">display</span><span class="p">)</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="c1">## 生成num个完整的对局</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="n">arena</span><span class="o">.</span><span class="n">play_games</span><span class="p">(</span><span class="n">dealer</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">num</span> <span class="o">=</span> <span class="mi">200000</span><span class="p">)</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="c1">## 将输出类似如下的结果</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="c1">## 100%| [REDACTED] | 200000/200000 [00:18&lt;00:00, 11014.64it/s]</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="c1">## 共玩了200000局，玩家赢58647/和11250/输130103，胜率：0.29，不输率：0.35</span>
+</span></code></pre></div>
+<h2 id="445">4.4.5 策略评估<a class="headerlink" href="#445" title="Permanent link">&para;</a></h2>
+<p>对局生成的数据均保存在对象arena.episodes中，接下来的工作就是使用这些数据对玩家的策略进行评估，代码如下：</p>
+<p># 统计各状态的价值，衰减因子为1，中间状态的即时奖励为0，递增式蒙特卡 罗评估</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">policy_evaluate</span><span class="p">(</span><span class="n">episodes</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">Ns</span><span class="p">):</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>    <span class="k">for</span> <span class="n">episode</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">episodes</span><span class="p">:</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">episode</span><span class="p">:</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="n">ns</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="n">Ns</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="n">v</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="n">set_dict</span><span class="p">(</span><span class="n">Ns</span><span class="p">,</span> <span class="n">ns</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="n">set_dict</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">v</span> <span class="o">+</span> <span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">v</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">ns</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">s</span><span class="p">)</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="n">V</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># 状态价值字典</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="n">Ns</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># 状态被访问的次数节点</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="n">policy_evaluate</span><span class="p">(</span><span class="n">arenaEpisodes</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">Ns</span><span class="p">)</span> <span class="c1"># 学习v值</span>
+</span></code></pre></div>
+<p>其中，V和Ns保存着蒙特卡罗策略评估进程中的价值和统计次数，我们使用的是每次访问计数的方法。我们还可以编写如下方法将价值函数绘制出来：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">def</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nf">draw_value</span><span class="p">(</span><span class="n">value_dict</span><span class="p">,</span> <span class="n">useable_ace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">is_q_dict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">A</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    <span class="c1">## 定义figure</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="n">fig</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="c1">## 将figure变为3d</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>    <span class="n">ax</span><span class="o">=</span><span class="n">Axes3D</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="c1">## 定义x, y</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>    <span class="c1"># 庄家第一张牌</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>    <span class="c1"># 玩家总分数</span>
+</span></code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">## 生成网格数据</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">X</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1">## 从v字典检索z轴的高度</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">row</span><span class="p">,</span><span class="n">col</span><span class="p">))</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="k">if</span> <span class="n">is_q_dict</span><span class="p">:</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">col</span><span class="p">):</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>    <span class="n">state_name</span> <span class="o">=</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>    <span class="nb">str</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">Y</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">useable_ace</span><span class="p">)</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_q_dict</span><span class="p">:</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>    <span class="n">Z</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="n">value_dict</span><span class="p">,</span> <span class="n">state_name</span><span class="p">)</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>    <span class="k">assert</span><span class="p">(</span><span class="n">A</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">A</span><span class="p">:</span>
+</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>    <span class="n">new_state_name</span> <span class="o">=</span> <span class="n">state_name</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>    <span class="n">q</span> <span class="o">=</span> <span class="n">get_dict</span><span class="p">(</span><span class="n">value_dict</span><span class="p">,</span> <span class="n">new_state_name</span><span class="p">)</span>
+</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a>    <span class="k">if</span> <span class="n">q</span> <span class="o">&gt;=</span> <span class="n">Z</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]:</span>
+</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a>    <span class="n">Z</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span>
+</span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a>
+</span><span id="__span-9-22"><a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="c1">## 绘制3D曲面</span>
+</span><span id="__span-9-23"><a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a><span class="n">ax</span><span class="o">.</span><span class="n">plot_surface</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="n">Z</span><span class="p">,</span> <span class="n">rstride</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">cstride</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-9-24"><a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightgray&quot;</span><span class="p">)</span>
+</span><span id="__span-9-25"><a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</span><span id="__span-9-26"><a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a><span class="n">draw_value</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">useable_ace</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">A</span><span class="p">)</span> <span class="c1"># 绘制有“可用的牌A”时的状态价值图</span>
+</span><span id="__span-9-27"><a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a><span class="n">draw_value</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">useable_ace</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">A</span><span class="p">)</span> <span class="c1"># 绘制无“可用的牌A”时的状态价值图</span>
+</span></code></pre></div>
+<p>结果如图4.11所示。</p>
+<p><img alt="" src="images/7ff40e4e991a05258755c1032a31490ea48eb0e602c52e57ea97ae9f22349c09.jpg" /></p>
+<p>（a）有“可用的牌A”</p>
+<p><img alt="" src="images/30a24c909b9017dd04ce9ad43cd854c5780ceda68260d2e03dd3c2d209c7b168.jpg" /></p>
+<p>（b）没有“可用的牌 <span class="arithmatex">\(A ^{\prime \prime}\)</span></p>
+<p class="caption">图4.11 21点游戏玩家原始策略的价值函数（20万次迭代）</p>
+
+<p>我们可以设置各对象display的值为True来生成少量对局并输出对局的详细信息：</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1">## 观察几局对局信息</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">display</span> <span class="o">=</span> <span class="kc">True</span> <span class="n">player</span><span class="o">.</span><span class="n">display</span><span class="p">,</span> <span class="n">dealer</span><span class="o">.</span><span class="n">display</span><span class="p">,</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">arena</span><span class="o">.</span><span class="n">display</span> <span class="o">=</span> <span class="n">display</span><span class="p">,</span> <span class="n">display</span><span class="p">,</span> <span class="n">display</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="n">arena</span><span class="o">.</span><span class="n">play_games</span><span class="p">(</span><span class="n">dealer</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">num</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="c1">## 将输出类似如下的结果:</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="c1">## ======== 开始新一局 ========</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1">## 发了2张牌([&#39;4&#39;, &#39;8&#39;])给玩家；玩家现在的牌：[&#39;4&#39;, &#39;8&#39;]</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="c1">## 发了2张牌([&#39;10&#39;, &#39;K&#39;])给庄家；庄家现在的牌：[&#39;10&#39;, &#39;K&#39;]</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="c1">## 玩家选择：继续叫牌；发了1张牌([&#39;K&#39;])给玩家；玩家现在的牌：[&#39;4&#39;, &#39;8&#39;, &#39;K&#39;]</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="c1">## 玩家选择：停止叫牌；玩家爆点22，输了，得分：-1</span>
+</span></code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">## ======== 本局结束 ========</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="c1">## ======== 开始新一局 ========</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="c1">## 发了2张牌([&#39;9&#39;, &#39;A&#39;])给玩家；玩家现在的牌：[&#39;9&#39;, &#39;A&#39;]</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1">## 发了2张牌([&#39;5&#39;, &#39;7&#39;])给庄家；庄家现在的牌：[&#39;5&#39;, &#39;7&#39;]</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1">## 玩家选择：停止叫牌；</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="c1">## 庄家选择：继续叫牌；发了1张牌([&#39;7&#39;])给庄家；庄家现在的牌：[&#39;5&#39;, &#39;7&#39;, &#39;7&#39;]</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1">## 庄家选择：停止叫牌；</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="c1">## 双方均停止叫牌；</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="c1">## 玩家现在的牌：[&#39;9&#39;, &#39;A&#39;]</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="c1">## 庄家现在的牌：[&#39;5&#39;, &#39;7&#39;, &#39;7&#39;]</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="c1">## 玩家赢了！玩家20点，庄家19点</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="c1">## ======== 本局结束 ========</span>
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="c1">## 共玩了2局，玩家赢1/和0/输1，胜率：0.50，不输率：0.50</span>
+</span></code></pre></div>
+<p>在本节的编程实践中，我们构建了游戏者基类并扩展形成了庄家类和玩家类来模拟玩家的行为，同时构建了游戏场景类来负责对局管理。在此基础上使用蒙特卡罗算法对游戏中玩家的原始策略进行了评估。在策略评估环节，我们并没有把价值函数（字典）、计数函数（字典）以及策略评估方法设计为玩家类的成员对象和成员方法，只是为了讲解方便，完全可以将它们设计为玩家的成员变量和方法。在下一章的编程实践中，我们将继续通过21点游戏介绍如何使用蒙特卡罗控制寻找最优策略，在本节建立的Dealer、Player和Arena类将得到复用和扩展。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="页脚" >
+        
+          
+          <a href="ch03.html" class="md-footer__link md-footer__link--prev" aria-label="上一页: 第3章 · 动态规划寻找最优策略">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                上一页
+              </span>
+              <div class="md-ellipsis">
+                第3章 · 动态规划寻找最优策略
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="ch05.html" class="md-footer__link md-footer__link--next" aria-label="下一页: 第5章 · 无模型的控制">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                下一页
+              </span>
+              <div class="md-ellipsis">
+                第5章 · 无模型的控制
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/uynajgi/yuulibrary" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 3v15h3V3zm3 2 4 13 3-1-4-13zM5 5v13h3V5zM3 19v2h18v-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["announce.dismiss", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.path", "navigation.top", "navigation.tracking", "navigation.footer", "navigation.prune", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "search.highlight", "search.share", "search.suggest", "toc.follow", "content.code.copy", "content.code.annotate"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../../javascripts/mathjax.js"></script>
+      
+        <script src="../../../assets/external/cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"></script>
+      
+        <script src="../../../assets/external/cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+      
+        <script src="../../../assets/external/cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.js"></script>
+      
+        <script src="../../../javascripts/pseudocode-render.js"></script>
+      
+    
+  </body>
+</html>
