@@ -149,6 +149,22 @@ mkdir -p docs/<type>/<category>/<book-slug>/images
 
 **Phase 4 完成后**：写入 `current_phase: "phase_4_done"`，`phase_4.status: "done"`。
 
+### Phase 4.5：逐章审核（Haiku 并行）
+
+每章 spawn 一个 Haiku agent 独立校对，所有章节并行处理。每个 agent 检查：
+
+1. **OCR 错误** — 数学符号被误识别（λ→入、∑→Σ 空、∈→E）、中文字符混入公式
+2. **算法伪代码格式** — 行是否被错误合并、缩进是否保留、变量名是否正确
+3. **表格和图标题** — `表N.N　标题` 是否独立成行、`图N.N　标题` 是否正确关联
+4. **标题层级** — 代码注释 `#` 是否被识别为 H1、节标题层级是否正确
+5. **交叉引用** — 文中 `第N章` 是否已转为链接
+
+每个 agent 返回：修复后的章节内容 + 修复清单。
+
+**失败分支**：Haiku agent 不可用 → 主 agent 逐章过前 3 章，剩余章 spot-check 首尾。
+
+**Phase 4.5 完成后**：写入 `current_phase: "phase_4.5_done"`。
+
 ### Phase 5：格式化
 
 #### 封面 + 目录（`index.md`）
@@ -176,6 +192,39 @@ mkdir -p docs/<type>/<category>/<book-slug>/images
 |---|------|------|
 | 1 | Q 学习算法 | [第5章](ch05.md) |
 ```
+
+#### 算法伪代码
+
+使用 pseudocode.js（LaTeX algorithmic 语法）：
+
+```html
+<pre class="pseudocode">
+\begin{algorithm}
+\caption{算法 1: Sarsa算法}
+\begin{algorithmic}
+\STATE 输入: episodes, α, γ
+\FOR{each episode in episodes}
+    \STATE S ← first state of episode
+    \REPEAT
+        \STATE A = policy(Q, S)
+        \STATE Q(S, A) ← Q(S, A) + α(R + γQ(S', A') - Q(S, A))
+    \UNTIL{S is terminal state}
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+</pre>
+```
+
+`_` 需转义为 `\_`。Phase 4.5 的 Haiku agent 负责将纯文本伪代码转换为上述格式。
+
+#### 表格标题
+
+将 `表N.N　标题` 包裹为表格标题居中样式：
+```html
+<p class="caption">表5.1　n步Q收获</p>
+```
+
+紧接在 `<table>` 之前。
 
 #### 跨页面交叉引用
 
@@ -265,13 +314,19 @@ mkdocs build
 
 | 症状 | 一线修复 | 仍失败 |
 |------|---------|--------|
-| 公式不渲染 | `mathjax.js` 检查 inlineMath 含 `$` 分隔符 | mkdocs.yml 检查 `extra_javascript` 路径 |
+| 公式不渲染 | 检查 `mathjax.js` 的 inlineMath/displayMath 是否含 `$` 分隔符 | mkdocs.yml 是否用 `tex-chtml-full.js`（非 `tex-mml-chtml.js`） |
+| `\boldsymbol` 红色未渲染 | CDN 用 `tex-chtml-full.js`，包含所有 TeX 扩展包 | `tex-mml-chtml.js` 不含 boldsymbol 包 |
+| 超宽公式溢出 | 改用 `\begin{aligned}` 手动断行 | `chtml.linebreaks.automatic` 对极长单行公式效果有限 |
 | HTML 内 md 不解析 | mkdocs.yml 加 `md_in_html` | 改用 `<img src>` 替代 `![](path)` |
 | 解答块颜色消失 | 检查 `extra.css` 中 `.solution` 定义 | 检查 `<div>` 是否有 `markdown="1"` |
 | 嵌套解答块（问题文本也变绿） | 查 `<div>` 和 `</div>` 配对 | grep `解答：` 出现次数 = `<div class="solution">` 出现次数 |
 | 索引锚点 404 | `mkdocs build` 后从 HTML 提取 id | 手动比对 mkdocs slug 规则 |
 | 图片不显示 | 检查路径相对 `docs/` 而非文件所在目录 | `![](images/x.jpg)` 不是 `![](../images/x.jpg)` |
 | Build 报错 nav 路径 | 检查 `mkdocs.yml` 的 nav 路径文件存在 | `use_directory_urls: false` 确保 .md 链接稳定 |
+| 图注/表注未与正文区分 | 包裹 `<p class="caption">图N.N 标题</p>` | CSS `.caption { text-align: center; font-size: .8rem; }` |
+| 4×4 格子世界散落成数字 | 用 `<table class="grid-world">` 包裹 | CSS 加固定格子尺寸 + 边框 |
+| OCR 伪影：`<details>natural_image</details>` | 删除空 `<details>` 块，只留 `![](image)` | Phase 4.5 Haiku 逐章审核 |
+| OCR 错误：λ→入、S→.s. | 替换词表 + Phase 4.5 Haiku 校对 | 数学符号误识别需人工/LLM 上下文判断 |
 
 ---
 
@@ -287,3 +342,51 @@ mkdocs build
 | 6 | 不 build 直接手写锚点 | mkdocs slug 规则与直觉不同（去除中文标点等） | `mkdocs build` → 从 HTML 提取 `id` |
 | 7 | PDF 源文件放入 docs/ | 会发布到网站上，浪费带宽和存储 | 放 `pdfs/`（已 gitignore） |
 | 8 | 交叉引用用 `.html` 后缀 | mkdocs build 会报 warning，期望 `.md` | 统一用 `.md` 后缀，mkdocs 构建时自动转换 |
+| 9 | `\boldsymbol` 不渲染 | `tex-mml-chtml.js` 不含 boldsymbol 包 → 红色未识别 | 用 `tex-chtml-full.js` CDN |
+| 10 | 超宽公式出滚动条 | 用户不接受滚动条 | 用 `\begin{aligned}` 手动断行 |
+| 11 | 表格数据挤在一起 | 默认表格无居中、无 padding | CSS `td { text-align: center; padding: .4rem .8rem; }` |
+
+---
+
+## 经验总结
+
+以下是从实际转换 `强化学习入门` 全书（10 章，7565 行）中总结的关键经验。
+
+### 基础设施要求
+
+1. **MathJax CDN 必须用 `tex-chtml-full.js`** — `tex-mml-chtml.js` 缺少 `\boldsymbol` 等扩展包
+2. **pseudocode.js 算法渲染** — 需要 CDN CSS + JS + `docs/javascripts/pseudocode-render.js`
+3. **lefthook pre-commit** — `mkdocs build --strict` 阻断有 broken link 的提交
+4. **mathjax.js** — `$`/`$$` 分隔符 + `document$.subscribe` 兼容 instant navigation
+
+### 算法伪代码格式
+
+```html
+<pre class="pseudocode">
+\begin{algorithm}
+\caption{算法 1: 名称}
+\begin{algorithmic}
+\STATE 输入: ...
+\FOR{each episode}
+    \STATE ...
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+</pre>
+```
+
+注意 `_` 转义为 `\_`。
+
+### 常见 OCR 误识别
+
+| 原文 | 误识别为 | 修复 |
+|------|---------|------|
+| λ | 入 | `\(λ)` 替换 `（入）` |
+| S₁ | .s. | Phase 4.5 Haiku 上下文判断 |
+| \mathrm{S} | \mathrm {~ s ~} | `\\[a-z]+ {` → `\\\1{` |
+
+### 表格格式化
+
+- 格子世界（4×4 等）：`<table class="grid-world">` + CSS 固定格子
+- 数据表格：文字居中、padding
+- 表注：`<p class="caption">表N.N 标题</p>`，置 `<table>` 上方
