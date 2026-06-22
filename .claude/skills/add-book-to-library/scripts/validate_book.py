@@ -56,10 +56,15 @@ def validate_file(path):
     if details:
         issues.append(f"{details} <details> blocks remaining")
 
+    # 8. Pseudocode backslash commands (npm pseudocode.js uses bare: state not \state)
+    bad_cmds = re.findall(
+        r"\\(?:state|for|if|while|repeat|until|return|endfor|endif|endwhile|endprocedure|endfunction|procedure|function|label)\\b",
+        content,
+    )
+    if bad_cmds:
+        issues.append(f"{len(bad_cmds)} backslash pseudocode commands (use bare: state, not \\\\state)")
+
     return issues
-
-
-def main():
     book_dir = sys.argv[1] if len(sys.argv) > 1 else "docs/books/"
     files = glob.glob(f"{book_dir}/**/ch*.md", recursive=True)
 
