@@ -35,6 +35,50 @@ repo/
 
 ## 工作流
 
+### 🛑 强制入口：状态文件
+
+**处理任何书之前，必须先检查 `pdfs/<book-id>.state.json` 是否存在。**
+
+- 存在 → 读取 `current_phase`，从中断点恢复
+- 不存在 → **🛑 STOP，必须先完成 Phase 0 才能继续**
+
+每个 phase 完成后**强制**写入状态文件：`current_phase` 改为 `phase_N_done`，对应 phase 的 `status` 改为 `done`。
+
+---
+
+### Phase 0：归集 PDF + 创建状态文件
+
+将 PDF 复制到仓库的 `pdfs/` 目录（已 gitignore，不会发布）：
+
+```bash
+cp /path/to/book.pdf pdfs/
+```
+
+创建状态文件 `pdfs/<book-id>.state.json`，记录每本书的处理进度：
+
+```json
+{
+  "book_id": "<book-id>",
+  "pdf": "<filename>",
+  "type": null,
+  "category": null,
+  "slug": null,
+  "current_phase": "phase_0_done",
+  "phases": {
+    "phase_0": { "status": "done", "note": "PDF copied to pdfs/" },
+    "phase_1": { "status": "pending", "note": "PDF to Markdown via MinerU VLM" },
+    "phase_2": { "status": "pending", "note": "Clean markdown" },
+    "phase_3": { "status": "pending", "note": "Choose category" },
+    "phase_4": { "status": "pending", "note": "Split into chapters" },
+    "phase_5": { "status": "pending", "note": "Format special pages" },
+    "phase_6": { "status": "pending", "note": "Wire nav and homepage" },
+    "phase_7": { "status": "pending", "note": "Build and verify" }
+  }
+}
+```
+
+**Phase 0 完成后**：写入 `current_phase: "phase_0_done"`，`phase_0.status: "done"`。
+
 ### Phase 1：PDF → Markdown
 
 调用 `/mineru-document-extractor`。学术书籍带公式：
@@ -51,6 +95,8 @@ mineru-open-api extract book.pdf -o out_part2/ -f md --model vlm --language en -
 # 手动合并输出文件后继续
 ```
 
+**Phase 1 完成后**：写入 `current_phase: "phase_1_done"`，`phase_1.status: "done"`。
+
 ### Phase 2：清洗 Markdown
 
 运行 `scripts/clean_markdown.py` 处理：
@@ -63,6 +109,8 @@ mineru-open-api extract book.pdf -o out_part2/ -f md --model vlm --language en -
 
 🔴 **CHECKPOINT**：清洗完成后，展示前 50 行的 before/after 对比。用户确认清洗质量后继续。
 
+**Phase 2 完成后**：写入 `current_phase: "phase_2_done"`，`phase_2.status: "done"`。
+
 ### Phase 3：选择分类
 
 询问用户：
@@ -71,6 +119,8 @@ mineru-open-api extract book.pdf -o out_part2/ -f md --model vlm --language en -
 3. 书的 URL slug 是什么？（短横线命名，如 `quant-finance-interview`）
 
 🔴 **CHECKPOINT**：确认路径 `docs/<type>/<category>/<book-slug>/` 后继续。
+
+**Phase 3 完成后**：写入 `current_phase: "phase_3_done"`，更新 `type`、`category`、`slug` 字段。
 
 ### Phase 4：拆分章节
 
@@ -88,6 +138,8 @@ mkdir -p docs/<type>/<category>/<book-slug>/images
 页码 ≤ 15 的薄书不拆分，合并为一个文件。
 
 **失败分支**：`## Chapter` 模式匹配不到 → 改用 `# Chapter` 或 `### Chapter` 匹配；仍失败则让用户提供章节边界关键词。
+
+**Phase 4 完成后**：写入 `current_phase: "phase_4_done"`，`phase_4.status: "done"`。
 
 ### Phase 5：格式化
 
@@ -122,6 +174,8 @@ mkdir -p docs/<type>/<category>/<book-slug>/images
 
 **失败分支**：锚点 404 → 检查 mkdocs 生成的 slug 与索引中引用的 slug 是否一致（mkdocs 会去除中文标点、转小写英文）。
 
+**Phase 5 完成后**：写入 `current_phase: "phase_5_done"`，`phase_5.status: "done"`。
+
 ### Phase 6：接入导航和首页
 
 #### mkdocs.yml nav
@@ -155,6 +209,8 @@ nav:
     [:octicons-arrow-right-24: 开始阅读](books/<category>/<book-slug>/index.md)
 ```
 
+**Phase 6 完成后**：写入 `current_phase: "phase_6_done"`，`phase_6.status: "done"`。
+
 ### Phase 7：验证
 
 ```bash
@@ -167,7 +223,9 @@ mkdocs build
 - 公式在页面中正确渲染
 - 解答块样式正常
 
-🔴 **CHECKPOINT**：`mkdocs build` 通过后展示章节数、图片数、内部链接数。用户确认后 push。
+🔴 **CHECKPOINT**：`mkdocs build` 通过后展示章节数、图片数、内部链接数。用户决定何时 push。
+
+**Phase 7 完成后**：写入 `current_phase: "phase_7_done"`，`phase_7.status: "done"`。整本书处理完毕。
 
 ---
 
