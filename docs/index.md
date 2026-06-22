@@ -22,7 +22,7 @@
 
     涵盖脑筋急转弯、微积分、线性代数、概率论、随机过程、金融衍生品定价、算法与数值方法等 200+ 道真实面试题。
 
-    [:octicons-arrow-right-24: 开始阅读](quant-finance-interview/index.md)
+    [:octicons-arrow-right-24: 开始阅读](books/finance/quant-finance-interview/index.md)
 
 </div>
 
