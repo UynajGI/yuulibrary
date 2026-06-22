@@ -1,13 +1,72 @@
 # Yuunagi Library — lefthook git hooks
-# Install: lefthook install
+# Install:
+#   lefthook install
+#
+# Manual check:
+#   lefthook validate
+#   lefthook run pre-commit
+#   lefthook run pre-push
 
 pre-commit:
-  parallel: true
+  parallel: false
   jobs:
     - name: trailing-whitespace
-      glob: "*.{md,yml,yaml,css,js}"
+      glob:
+        - "**/*.md"
+        - "**/*.yml"
+        - "**/*.yaml"
+        - "**/*.css"
+        - "**/*.js"
       run: |
-        git diff --cached --name-only --diff-filter=ACM | grep -E '\.(md|yml|yaml|css|js)$' | xargs -r sed -i 's/[[:space:]]*$//'
+        python3 - <<'PY'
+        from pathlib import Path
+        import subprocess
+
+        exts = {".md", ".yml", ".yaml", ".css", ".js"}
+
+        result = subprocess.run(
+            ["git", "diff", "--cached", "--name-only", "--diff-filter=ACMR"],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        changed = []
+        for name in result.stdout.splitlines():
+            path = Path(name)
+            if path.suffix not in exts or not path.exists() or not path.is_file():
+                continue
+
+            original = path.read_bytes()
+
+            try:
+                text = original.decode("utf-8")
+            except UnicodeDecodeError:
+                continue
+
+            fixed = "\n".join(line.rstrip() for line in text.splitlines())
+
+            if text.endswith("\n"):
+                fixed += "\n"
+
+            data = fixed.encode("utf-8")
+            if data != original:
+                path.write_bytes(data)
+                changed.append(str(path))
+
+        if changed:
+            subprocess.run(["git", "add", *changed], check=True)
+            print("Trimmed trailing whitespace:")
+            for item in changed:
+                print(f"  {item}")
+        PY
+
+    - name: book-validate
+      glob:
+        - "docs/books/**/*.md"
+      run: python3 .claude/skills/add-book-to-library/scripts/validate_book.py docs/books/
+
+pre-push:
+  jobs:
     - name: mkdocs-build
-      glob: "*.{md,yml,css,js}"
-      run: mkdocs build --strict 2>&1 | grep -v "MkDocs 2.0\|squidfunk\|unlicensed\|No migration\|Closed contribution\|All plugins\|All theme"
+      run: mkdocs build --strict
