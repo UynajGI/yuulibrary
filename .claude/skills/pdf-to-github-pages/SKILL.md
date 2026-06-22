@@ -1,99 +1,109 @@
 ---
-name: pdf-to-github-pages
+name: add-book-to-library
 description: |
-  Convert academic PDF books into a multi-book MkDocs digital library deployed on GitHub Pages. Supports adding new books incrementally to an existing library. Full pipeline: PDF extraction (MinerU VLM), markdown cleanup, parallel AI translation (English→Chinese), MkDocs Material site with per-book chapter navigation + TOC + index + cross-references.
-  Use this skill whenever the user wants to digitize a PDF book, add a book to their digital library, create an online book collection, convert academic papers to web format, build a personal digital library ("个人图书馆"), or deploy docs to GitHub Pages. Triggers on "add this book to my library", "convert PDF to website", "digital library", "GitHub Pages book", "网上图书馆", "个人图书馆".
+  将 PDF 书籍转换为 MkDocs 页面并加入个人数字图书馆。完整流程：PDF 提取（MinerU VLM）→ Markdown 清洗 → 章节拆分 → 格式化 → 导航与首页接入。
+  触发词：add this book, 加入图书馆, 添加书籍, 把 PDF 转成网页, 把书加入图书馆, convert PDF to library, add book to library, 个人图书馆, digital library.
 ---
 
-# Multi-Book Digital Library on GitHub Pages
+# Add Book to Library
 
-Build and maintain a personal digital library where each PDF book becomes a section of a single MkDocs Material site.
+将一本 PDF 学术书籍加入已有的 MkDocs 数字图书馆。
 
-## Architecture
+## 架构
 
 ```
-repo/                          # One git repo = one GitHub Pages site
-├── mkdocs.yml                 # Single config, nav lists all books
+repo/
+├── mkdocs.yml
 ├── docs/
-│   ├── index.md               # Library landing page (book list)
-│   ├── stylesheets/extra.css  # Shared visual styling
-│   ├── javascripts/mathjax.js # Shared MathJax config
-│   └── <book-slug>/           # One subdirectory per book
-│       ├── index.md           # Book cover + TOC
-│       ├── preface.md
-│       ├── notations.md
-│       ├── ch01.md ~ ch0N.md
-│       ├── index_term.md
-│       └── images/
+│   ├── index.md                    # 图书馆首页（卡片式书单）
+│   ├── books/                      # 书籍（按学科分类）
+│   │   └── <category>/
+│   │       └── <book-slug>/
+│   ├── papers/                     # 论文
+│   │   └── <field>/
+│   │       └── <paper-slug>/
+│   ├── notes/                      # 笔记
+│   ├── stylesheets/extra.css
+│   └── javascripts/mathjax.js
+├── pdfs/                           # PDF 源文件（本地，不入库）
 └── .github/workflows/deploy.yml
 ```
 
-## Adding the First Book (Creates the Library)
+`<category>` 由用户在添加时指定，如 `finance`、`math`、`cs`、`physics` 等。
 
-### Step 1: Initialize Library Scaffold
+---
 
-```bash
-mkdir -p docs/stylesheets docs/javascripts .github/workflows
-# Copy templates from this skill:
-cp templates/mkdocs.yml ./mkdocs.yml
-cp templates/extra.css docs/stylesheets/
-cp templates/mathjax.js docs/javascripts/
-cp templates/deploy.yml .github/workflows/
-```
+## 工作流
 
-### Step 2: Extract PDF
+### Phase 1：PDF → Markdown
 
-See `/mineru-document-extractor` for details. For academic books with formulas:
+调用 `/mineru-document-extractor`。学术书籍带公式：
+
 ```bash
 mineru-open-api auth --verify
 mineru-open-api extract book.pdf -o out/ -f md --model vlm --language en --timeout 3600
 ```
 
-**If >200 pages**, split: `--pages 1-200` / `--pages 201-400` etc., then merge.
+**失败分支**：MinerU API 超时或不可用 → 将 PDF 按 200 页拆分重试：
+```bash
+mineru-open-api extract book.pdf -o out_part1/ -f md --model vlm --language en --timeout 3600 --pages 1-200
+mineru-open-api extract book.pdf -o out_part2/ -f md --model vlm --language en --timeout 3600 --pages 201-400
+# 手动合并输出文件后继续
+```
 
-### Step 3: Clean Markdown
+### Phase 2：清洗 Markdown
 
-Run `scripts/clean_markdown.py` on the merged output. This handles:
-- LaTeX whitespace (`x _ {i}` → `x_{i}`)
-- Digit spacing in math (`1 0 0` → `100`)
-- Stray page headers (chapter names leaked as body text)
-- Footnote superscripts (`$^{1}$`)
-- `\text {word}` → `\text{word}`
+运行 `scripts/clean_markdown.py` 处理：
+- LaTeX 空白修复（`x _ {i}` → `x_{i}`）
+- 数学内数字间距（`1 0 0` → `100`）
+- 页眉泄露（章节名混入正文）
+- 脚注上标（`$^{1}$`）
 
-### Step 4: Translate (Optional, English→Chinese)
+**失败分支**：脚本报错 → 检查输入是否为 MinerU VLM 输出格式，手动检查第一处报错行的原始内容。
 
-Split the book into 6 chunks of ~900 lines each. Dispatch 6 Haiku agents in parallel:
+🔴 **CHECKPOINT**：清洗完成后，展示前 50 行的 before/after 对比。用户确认清洗质量后继续。
 
-**Critical translation rules for each agent:**
-- Translate ONLY English prose → Simplified Chinese
-- NEVER touch: LaTeX math (`$...$`, `$$...$$`), image refs (`![](images/...)`), HTML tags, Mermaid code, URLs
-- Preserve exact line count (one output line per input line)
-- Use standard Chinese academic terminology (期权=option, 概率=probability, 布朗运动=Brownian motion, etc.)
+### Phase 3：选择分类
 
-### Step 5: Split into Chapter Files
+询问用户：
+1. 这是书籍、论文还是笔记？（决定放 `books/`、`papers/` 还是 `notes/`）
+2. 属于哪个学科分类？（如 `finance`、`math`、`cs`）
+3. 书的 URL slug 是什么？（短横线命名，如 `quant-finance-interview`）
 
-Create `<book-slug>/` under `docs/`. Extract chapter boundaries from `## 第N章` or `## Chapter N` headings. Fix heading hierarchy:
-- Chapter title: `#` (H1)
-- Section (N.M): `##` (H2)
-- Problem/topic: `###` (H3)
+🔴 **CHECKPOINT**：确认路径 `docs/<type>/<category>/<book-slug>/` 后继续。
 
-### Step 6: Format Special Pages
+### Phase 4：拆分章节
 
-**Cover + TOC** (`<book-slug>/index.md`):
-- Cover: HTML-styled centered layout with title, author, cover image
-- TOC: 2-column HTML table — left = chapter links, right = section links separated by `·`
+```bash
+mkdir -p docs/<type>/<category>/<book-slug>/images
+```
 
-**Notations** (`<book-slug>/notations.md`):
-- 4-column markdown table: symbol | meaning | symbol | meaning
+找到 `## Chapter N` 或 `## 第N章` 边界，每个章节存为 `ch01.md`、`ch02.md` ……
 
-**Index** (`<book-slug>/index_term.md`):
-- 6-column markdown table: term | ch | term | ch | term | ch
-- Each term links to correct chapter + heading anchor
-- Build anchors by running `mkdocs build` first, then extracting actual `id` attributes from HTML
+修正标题层级：
+- 章节标题 → `#`（H1）
+- 节（N.M）→ `##`（H2）
+- 问题/主题 → `###`（H3）
 
-### Step 7: Wrap Solution Blocks
+页码 ≤ 15 的薄书不拆分，合并为一个文件。
 
-Wrap text starting with `解答：` (or `Solution:`) in:
+**失败分支**：`## Chapter` 模式匹配不到 → 改用 `# Chapter` 或 `### Chapter` 匹配；仍失败则让用户提供章节边界关键词。
+
+### Phase 5：格式化
+
+#### 封面 + 目录（`index.md`）
+
+用 HTML + markdown 混排：
+- 居中书名、作者、封面图片
+- 双栏目录表格：左列章节链接，右列小节链接
+
+#### 符号说明（`notations.md`，可选）
+
+4 栏 markdown 表格：`| 符号 | 含义 | 符号 | 含义 |`
+
+#### 解答块
+
+将 `解答：` 起头的内容包裹：
 ```html
 <div class="solution" markdown="1">
 
@@ -101,67 +111,88 @@ Wrap text starting with `解答：` (or `Solution:`) in:
 
 </div>
 ```
-This gives solutions a green left-border card. Requires `md_in_html` in mkdocs.yml.
 
-### Step 8: Update mkdocs.yml Nav
+**失败分支**：`</div>` 漏写 → build 时 HTML 错乱。每个 `解答：` 出现次数应等于 `<div class="solution">` 出现次数，Phase 6 build 失败时优先排查此项。
 
-Add the book to the nav section. For a translated book:
+#### 索引（`index_term.md`，可选）
+
+6 栏表格：`| 术语 | 章节 | 术语 | 章节 | 术语 | 章节 |`
+
+跨页面锚点：先 `mkdocs build`，从 `site/` 的 HTML 提取实际 `id` 属性，再回填链接。
+
+**失败分支**：锚点 404 → 检查 mkdocs 生成的 slug 与索引中引用的 slug 是否一致（mkdocs 会去除中文标点、转小写英文）。
+
+### Phase 6：接入导航和首页
+
+#### mkdocs.yml nav
+
+在对应分类位置插入：
 ```yaml
 nav:
   - 首页: index.md
-  - BOOK_TITLE:
-    - 封面: <book-slug>/index.md
-    - 前言: <book-slug>/preface.md
-    - 符号说明: <book-slug>/notations.md
-    - 第1章: <book-slug>/ch01.md
-    - ...
-    - 索引: <book-slug>/index_term.md
+  - 书籍:
+    - <分类名>:
+      - <书名>:
+        - 封面: books/<category>/<book-slug>/index.md
+        - 第1章 · <标题>: books/<category>/<book-slug>/ch01.md
+        - ...
 ```
 
-### Step 9: Create Library Landing Page
+章节标题从每个 `ch*.md` 的 `#` 行提取，>50 字符则截断。
 
-`docs/index.md` — a styled grid/card layout listing all books with cover images and descriptions.
+#### 首页卡片
 
-## Adding Another Book
+在 `docs/index.md` 的对应分类区域添加卡片：
+```markdown
+-   :material-book-open-variant: __书名__
 
-1. Extract → Clean → Translate → Split (Steps 2-6 above) into a new `docs/<book-slug>/`
-2. Update `mkdocs.yml` nav to add the new book section
-3. Update `docs/index.md` landing page with the new book card
-4. Rebuild: `mkdocs build`
+    ---
 
-**Existing books are untouched.** Shared CSS/JS applies automatically.
+    *作者 · 语言*
 
-## Common Pitfalls
+    简介
 
-### MathJax Not Rendering Formulas
-**Cause**: `ignoreHtmlClass: ".*|"` in mathjax.js blocks everything including `arithmatex` class.
-**Fix**: Remove `ignoreHtmlClass` entirely. Default behavior works correctly.
+    [:octicons-arrow-right-24: 开始阅读](books/<category>/<book-slug>/index.md)
+```
 
-### Markdown Inside HTML Not Parsed
-**Fix**: Add `- md_in_html` to `markdown_extensions` in mkdocs.yml.
+### Phase 7：验证
 
-### Images Inside HTML Divs Not Showing
-**Cause**: `![](path)` is markdown syntax, not processed inside raw HTML.
-**Fix**: Use `<img src="path">` inside HTML divs, or close the div before markdown images.
+```bash
+mkdocs build
+```
 
-### Nested Solution Divs
-**Symptom**: Problem text appearing inside a green solution box.
-**Cause**: Missing `</div>` before a new problem starts.
-**Fix**: Ensure every `<div class="solution">` has a matching `</div>` before the next problem.
+检查：
+- 构建零错误
+- 所有内部链接可点击
+- 公式在页面中正确渲染
+- 解答块样式正常
 
-### Index Anchors 404
-**Cause**: Generated slugs don't match what mkdocs produces.
-**Fix**: Build first (`mkdocs build`), extract actual anchor IDs from built HTML, then regenerate index links.
+🔴 **CHECKPOINT**：`mkdocs build` 通过后展示章节数、图片数、内部链接数。用户确认后 push。
 
-### Admonition Blocks (`!!!`) Not Recommended
-They require exact 4-space indentation on every content line and empty blank lines. A single misformatted line breaks the entire block. Use `<div class="solution" markdown="1">` instead — more forgiving.
+---
 
-### Stray "A./B./C." Prefixes
-Sub-questions in the original book use letter prefixes. As standalone headings they look orphaned. Remove the prefix from heading text, but keep it in inline body text when part of multi-part problems.
+## 失败模式速查
 
-## Templates Included
+| 症状 | 一线修复 | 仍失败 |
+|------|---------|--------|
+| 公式不渲染 | `mathjax.js` 检查 inlineMath 含 `$` 分隔符 | mkdocs.yml 检查 `extra_javascript` 路径 |
+| HTML 内 md 不解析 | mkdocs.yml 加 `md_in_html` | 改用 `<img src>` 替代 `![](path)` |
+| 解答块颜色消失 | 检查 `extra.css` 中 `.solution` 定义 | 检查 `<div>` 是否有 `markdown="1"` |
+| 嵌套解答块（问题文本也变绿） | 查 `<div>` 和 `</div>` 配对 | grep `解答：` 出现次数 = `<div class="solution">` 出现次数 |
+| 索引锚点 404 | `mkdocs build` 后从 HTML 提取 id | 手动比对 mkdocs slug 规则 |
+| 图片不显示 | 检查路径相对 `docs/` 而非文件所在目录 | `![](images/x.jpg)` 不是 `![](../images/x.jpg)` |
+| Build 报错 nav 路径 | 检查 `mkdocs.yml` 的 nav 路径文件存在 | `use_directory_urls: false` 确保 .md 链接稳定 |
 
-- `templates/mkdocs.yml` — Base config with Material theme, MathJax, md_in_html
-- `templates/extra.css` — H3 blue cards, solution green boxes, image shadows, full-width tables
-- `templates/mathjax.js` — Minimal MathJax 3 config (NO ignoreHtmlClass)
-- `templates/deploy.yml` — GitHub Actions for automatic gh-pages deployment
+---
+
+## 反例黑名单（不要做）
+
+| # | 禁止 | 原因 | 正确做法 |
+|---|------|------|---------|
+| 1 | 跳过清洗直接翻译/拆分 | 残留 `\text {word}` 等 LaTeX 垃圾会污染全书 | Phase 2 必须在 Phase 4 之前 |
+| 2 | 用 `!!! admonition` | 每行需 4 空格缩进 + 空行，一处错整块崩 | 用 `<div class="solution" markdown="1">` |
+| 3 | 直接编辑 `site/` 下的文件 | `site/` 是构建产物，下次 build 被覆盖 | 只改 `docs/` 源文件 |
+| 4 | 翻译时动 LaTeX 公式 | `$x_i$` 变成 `$x _ i$` 直接破坏数学内容 | 翻译 prompt 明确黑名单保护 |
+| 5 | 章节标题用 `##` | mkdocs 侧边栏 H2 会缩进过深 | 章节标题用 `#`，节用 `##` |
+| 6 | 不 build 直接手写锚点 | mkdocs slug 规则与直觉不同（去除中文标点等） | `mkdocs build` → 从 HTML 提取 `id` |
+| 7 | PDF 源文件放入 docs/ | 会发布到网站上，浪费带宽和存储 | 放 `pdfs/`（已 gitignore） |
