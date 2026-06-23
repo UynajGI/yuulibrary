@@ -1,7 +1,8 @@
 {{/*
   覆盖主题 menu-filetree。
-  两级菜单：左侧只显示书名列表；当前所在的书才展开章节树（GitBook 风格）。
-  100 本书也只显示 100 行书名 + 固定入口。
+  左侧只放固定入口（书架/笔记/论文/标签）。
+  书名 + 章节树仅在「正在看那本书」时出现（IsAncestor），否则不显示任何书。
+  100 本书也不撑爆侧边栏——找书靠「书架」入口和搜索。
 */}}
 {{ $currentPage := . }}
 {{ $booksSection := .Site.GetPage "/books" }}
@@ -19,14 +20,14 @@
     </li>
   {{ end }}
 
-  {{/* 书籍：只展开当前所在书的章节，其余仅显示书名链接 */}}
+  {{/* 当前正在看的书：显示书名 + 展开章节树；不在任何书内时不显示 */}}
   {{ range $booksSection.Sections }}
-    <li>
-      {{ template "book-page-link" (dict "Page" . "CurrentPage" $currentPage) }}
-      {{ if .IsAncestor $currentPage }}
+    {{ if .IsAncestor $currentPage }}
+      <li>
+        {{ template "book-page-link" (dict "Page" . "CurrentPage" $currentPage) }}
         {{ template "book-section-children" (dict "Section" . "CurrentPage" $currentPage) }}
-      {{ end }}
-    </li>
+      </li>
+    {{ end }}
   {{ end }}
 
   {{/* 静态入口：笔记 / 论文 / 标签（含子页面时 active）*/}}
