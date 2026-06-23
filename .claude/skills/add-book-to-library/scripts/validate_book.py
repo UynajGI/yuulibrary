@@ -67,8 +67,30 @@ def validate_file(path):
     # === 标题层级检查（排除代码块内的 # 注释）===
 
     # 先把代码块内容移除，避免 Python 注释 # 被误判为标题
-    codeless = re.sub(r"```.*?```", "", content, flags=re.DOTALL)
-    codeless = re.sub(r"~~~.*?~~~", "", codeless, flags=re.DOTALL)
+    # 正确的配对剥离：```lang 开 → ``` 关（non-greedy 在连续 ```python 时会配对错误）
+    def strip_fences(text):
+        lines = text.split("\n")
+        out = []
+        in_fence = False
+        for line in lines:
+            s = line.strip()
+            if s.startswith("```") and not in_fence:
+                in_fence = True
+                continue
+            elif s == "```" and in_fence:
+                in_fence = False
+                continue
+            elif s.startswith("~~~") and not in_fence:
+                in_fence = True
+                continue
+            elif s == "~~~" and in_fence:
+                in_fence = False
+                continue
+            elif not in_fence:
+                out.append(line)
+        return "\n".join(out)
+
+    codeless = strip_fences(content)
 
     headings = re.findall(r"^(#{1,6})\s+(.+?)\s*$", codeless, re.MULTILINE)
     levels = [len(h[0]) for h in headings]
@@ -118,6 +140,40 @@ def validate_file(path):
             issues.append(f"empty/garbage heading: '# {t}'")
         elif re.match(r"^第\s*章\s*$", stripped):  # 「第 章」缺数字
             issues.append(f"missing chapter number: '# {t}'")
+
+    # === 语义检查（代码块已剥离的内容用 codeless） ===
+
+    # 13. $$ 块内中文正文——排除 \text/\mathrm 内合法中文后，检查句号/长文本
+    chinese_body = 0
+    for m in re.finditer(r"\$\$(.+?)\$\$", content, re.DOTALL):
+        block = m.group(1)
+        # 移除 LaTeX 命令体（\text{...}、\mathrm{...} 等），它们的参数可含中文
+        stripped = re.sub(r"\\[a-zA-Z]+\{[^}]*\}", "", block)
+        stripped = re.sub(r"\\[a-zA-Z]+", "", stripped)
+        # 句号、逗号、分号、顿号是正文标点，公式不用
+        if re.search(r"[，。、；：？！]", stripped):
+            chinese_body += 1
+        elif len(re.findall(r"[一-鿿]", stripped)) > 10:
+            chinese_body += 1
+    if chinese_body:
+        issues.append(f"{chinese_body} $$ blocks with Chinese body text (正文可能误包在公式内)")
+
+    # 14. 裸代码——去 fences 后残留的 Python 语句
+    bare_code = re.findall(
+        r"^(def |class |import |from \w+ import )", codeless, re.MULTILINE
+    )
+    if bare_code:
+        issues.append(f"{len(bare_code)} bare code lines (need ```python fence)")
+
+    # 15. # 注释被标为标题——常见的代码注释关键词
+    _comment_kw = r"^(设置|获取|计算|导入|定义|创建|初始化|返回|更新|显示|删除|保存|加载|生成|转换|验证|检查|调用)"
+    comment_headings = 0
+    for m in re.finditer(r"^(#{1,2})\s+(\S.*?)\s*$", codeless, re.MULTILINE):
+        text = m.group(2).strip()
+        if re.match(_comment_kw, text):
+            comment_headings += 1
+    if comment_headings:
+        issues.append(f"{comment_headings} #/## lines look like code comments (check fences)")
 
     return issues
 
