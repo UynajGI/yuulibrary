@@ -111,7 +111,10 @@ def validate_file(path):
     # 12. 空/乱码标题（单个标点、孤立章号无标题）
     for t in texts:
         stripped = t.strip()
-        if len(stripped) <= 1 and stripped and stripped not in ("A", "B", "C", "D", "E", "F"):
+        # 单字母（A-Z）是术语表字母索引，合法，跳过
+        if len(stripped) == 1 and stripped.isalpha():
+            continue
+        if len(stripped) <= 1 and stripped:
             issues.append(f"empty/garbage heading: '# {t}'")
         elif re.match(r"^第\s*章\s*$", stripped):  # 「第 章」缺数字
             issues.append(f"missing chapter number: '# {t}'")
