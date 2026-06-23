@@ -1,7 +1,9 @@
 ---
 title: "量化金融面试实用指南"
+description: "概率论、随机过程、衍生品定价、算法，200+ 道真实面试题。"
 weight: 1
 BookCollapseSection: true
+tags: ["金融", "面试"]
 ---
 # 量化金融面试实用指南
 

@@ -1,6 +1,7 @@
 {{/*
   覆盖主题 menu-filetree。
-  顶级菜单：书籍（折叠）+ 笔记 + 论文 + 标签。
+  两级菜单：左侧只显示书名列表；当前所在的书才展开章节树（GitBook 风格）。
+  100 本书也只显示 100 行书名 + 固定入口。
 */}}
 {{ $currentPage := . }}
 {{ $booksSection := .Site.GetPage "/books" }}
@@ -9,15 +10,26 @@
 {{ $tagsPage := .Site.GetPage "/tags" }}
 
 <ul>
-  {{/* 书籍：可折叠 */}}
-  {{ range $booksSection.Sections }}
+  {{/* 书架入口（仅在该页本身 active，不因子页面高亮）*/}}
+  {{ with $booksSection }}
     <li>
-      {{ template "book-page-link" (dict "Page" . "CurrentPage" $currentPage) }}
-      {{ template "book-section-children" (dict "Section" . "CurrentPage" $currentPage) }}
+      <a href="{{ .RelPermalink }}" class="{{ if eq $currentPage . }}active{{ end }}">
+        {{ partial "docs/title" . }}
+      </a>
     </li>
   {{ end }}
 
-  {{/* 静态入口：笔记 / 论文 / 标签 */}}
+  {{/* 书籍：只展开当前所在书的章节，其余仅显示书名链接 */}}
+  {{ range $booksSection.Sections }}
+    <li>
+      {{ template "book-page-link" (dict "Page" . "CurrentPage" $currentPage) }}
+      {{ if .IsAncestor $currentPage }}
+        {{ template "book-section-children" (dict "Section" . "CurrentPage" $currentPage) }}
+      {{ end }}
+    </li>
+  {{ end }}
+
+  {{/* 静态入口：笔记 / 论文 / 标签（含子页面时 active）*/}}
   {{ with $notesSection }}
     <li>{{ template "menu-static-link" (dict "Page" . "CurrentPage" $currentPage) }}</li>
   {{ end }}
