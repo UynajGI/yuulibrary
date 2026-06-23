@@ -64,6 +64,58 @@ def validate_file(path):
     if bad_cmds:
         issues.append(f"{len(bad_cmds)} backslash pseudocode commands (use bare: state, not \\\\state)")
 
+    # === 标题层级检查（排除代码块内的 # 注释）===
+
+    # 先把代码块内容移除，避免 Python 注释 # 被误判为标题
+    codeless = re.sub(r"```.*?```", "", content, flags=re.DOTALL)
+    codeless = re.sub(r"~~~.*?~~~", "", codeless, flags=re.DOTALL)
+
+    headings = re.findall(r"^(#{1,6})\s+(.+?)\s*$", codeless, re.MULTILINE)
+    levels = [len(h[0]) for h in headings]
+    texts = [h[1] for h in headings]
+    h1_texts = [texts[i] for i in range(len(levels)) if levels[i] == 1]
+
+    # 9. 多 H1（章节文件应只有 1 个 H1）
+    if len(h1_texts) > 1:
+        preview = "; ".join(h1_texts[:4])
+        issues.append(f"{len(h1_texts)} H1 headings (should be 1): {preview}")
+
+    # 10. H1 格式不一致（应为「第N章 标题」，无冒号/多余空格）
+    for h1 in h1_texts:
+        # 允许 preface/notations/algorithms/index_term 等非章节文件
+        if re.match(r"^(前言|符号|算法|索引|致谢|目录|附录)", h1):
+            continue
+        # 规范：第N章 标题（N 是数字，后一个空格，无冒号）
+        if re.match(r"^第\s*\d+\s*章\s+\S", h1):
+            # 检查「第」和数字间有无空格、章后是否冒号
+            if re.match(r"^第 \d+ 章", h1):
+                issues.append(f'H1 多余空格: "# {h1}" (应为 "第N章" 无空格)')
+            elif "：" in h1 or ":" in h1.split("章")[-1]:
+                issues.append(f'H1 含冒号: "# {h1}" (应为 "第N章 标题" 无冒号)')
+        elif not re.match(r"^(第\s*\d+\s*章|#\s*$)", h1) and not h1.startswith("#"):
+            # 不符合章节格式又不是特殊页面 → 可能是 MinerU 误标
+            if len(h1_texts) > 1:
+                pass  # 已在 #9 报告
+            else:
+                issues.append(f'H1 格式异常: "# {h1}" (应为 "第N章 标题")')
+
+    # 11. 标题层级跳跃（H1→H3 缺 H2，H2→H4 缺 H3）
+    for i in range(1, len(levels)):
+        jump = levels[i] - levels[i - 1]
+        if jump > 1:
+            issues.append(
+                f"heading skip: H{levels[i-1]}→H{levels[i]} "
+                f'("{texts[i-1][:20]}" → "{texts[i][:20]}")'
+            )
+
+    # 12. 空/乱码标题（单个标点、孤立章号无标题）
+    for t in texts:
+        stripped = t.strip()
+        if len(stripped) <= 1 and stripped and stripped not in ("A", "B", "C", "D", "E", "F"):
+            issues.append(f"empty/garbage heading: '# {t}'")
+        elif re.match(r"^第\s*章\s*$", stripped):  # 「第 章」缺数字
+            issues.append(f"missing chapter number: '# {t}'")
+
     return issues
 
 
