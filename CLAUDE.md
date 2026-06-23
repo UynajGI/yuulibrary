@@ -54,8 +54,16 @@ yuulibrary/
    ---
    ```
 5. 标题层级：`#` 章 → `##` 节 → `###` 子节（MinerU 全标 `##`，必须修复）
-6. Phase 4.5 Haiku 逐章审核 → 元素模板（example/callout/caption）→ 验证
+6. Phase 4.5 Haiku 逐章审核 → 元素模板（example/callout/caption）→ `validate_book.py` 验证
 7. `hugo server` 验证，首页书架加卡片
+
+## 质量验证
+
+```bash
+python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/books/
+```
+
+15 项机械验证（lefthook pre-commit 自动运行）：`$$` 配对/中文误包/裸代码/标题层级/fence 剥离 等。
 
 ## 语法约定
 
