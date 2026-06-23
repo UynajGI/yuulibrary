@@ -24,6 +24,16 @@
 
     [:octicons-arrow-right-24: 开始阅读](books/ml/rl-intro/index.md)
 
+-   :material-book-open-variant: __期权、期货及其他衍生产品__
+
+    ---
+
+    *约翰·赫尔（John C. Hull）· 中文第9版*
+
+    全球金融工程经典教材，涵盖期货、期权、互换、信用衍生品、波动率微笑、数值方法、利率模型等 36 章完整内容。
+
+    [:octicons-arrow-right-24: 开始阅读](books/finance/options-futures-derivatives/index.md)
+
 -   :material-book-open-variant: __量化金融面试实用指南__
 
     ---

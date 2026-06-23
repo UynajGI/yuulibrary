@@ -65,6 +65,9 @@ def validate_file(path):
         issues.append(f"{len(bad_cmds)} backslash pseudocode commands (use bare: state, not \\\\state)")
 
     return issues
+
+
+def main():
     book_dir = sys.argv[1] if len(sys.argv) > 1 else "docs/books/"
     files = glob.glob(f"{book_dir}/**/ch*.md", recursive=True)
 
