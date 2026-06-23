@@ -101,9 +101,55 @@ mineru-open-api extract book.pdf -o out/ -f md --model vlm --language en --timeo
 - 数学内数字间距（`1 0 0` → `100`）
 - 页眉泄露、脚注上标
 
+**🔴 MinerU 系统性损坏检查清单（每条都要扫，逐条处理）：**
+
+以下损坏模式在实际项目中大量出现（一本书可达成百上千处），
+**必须在 Phase 2 全部清理**，不能留到后面逐个发现：
+
+1. **`$$` 误包正文**（最严重）— MinerU 把整段中文用 `$$...$$` 包裹，
+   KaTeX 渲染时把正文拆成单字（`long hedge` → `l o n g h e d g e`）。
+   检查：每个 `$$` 块内若有中文≥4字且无 LaTeX 命令，去掉该块的 `$$`。
+
+2. **孤儿 `$$`（缺开头或结尾）** — display math 的 `$$` 被遗漏，
+   导致配对错位，连锁吞噬后续正文。
+   检查：每章 `$$` 总数为奇数→有问题；display 外遇到孤立 LaTeX 行
+   （`\frac`/`\times` 等无 `$$` 包裹）→ 补 `$$`。
+
+3. **标题全平铺**（无层级）— MinerU 不区分标题级别，
+   `第N章`、`N.M 节标题`、`N.M.K 子标题`、节内子主题全是 `##`。
+   修复规则：
+   - `# 第N章 标题`（H1，每章唯一）
+   - `## N.M 标题`（H2，节）
+   - `### N.M.K 标题`（H3，子节）
+   - 无编号但紧跟编号节的 H2 → 降 H3（是节内子主题）
+   - **例题 `## 例X-Y`** → 转 `{{< example title="例X-Y" >}}` shortcode（不是降级！）
+   - **业界事例 `## 业界事例 X-Y`** → 转 `{{< callout type="note" >}}` shortcode
+   - `小结`/`推荐阅读`/`练习题` 等功能区块保持 H2
+
+4. **章末混入下一章标题** — 删除孤立标题行。
+
+5. **标题+正文粘连** — 标题行内混入正文，拆开。
+
+6. **裸代码（无围栏）** — Python 代码包裹成 ` ```python ... ``` `。
+
+7. **代码缩进全丢** — 按 Python 语法恢复缩进。
+
+8. **转义残留** — `\_` → `_`、`\*` → `*`、`\#` → `#`（代码块内+正文内）。
+
+9. **代码注释被格式化为标题** — 代码块内的 `#`/`##` 去掉标题前缀。
+
+10. **`def__init__` 粘连** — 修复为 `def __init__`。
+
+11. **` ```txt ` 误标** — Python 代码块改为 ` ```python `。
+
+12. **行尾单 `$`** — 删除 MinerU 标记残留。
+
+13. **`mineru-algorithm` div** — 删除残留。
+
 **中文书额外手动清理**：OCR 伪影、重复标题行、ISBN/版权/客服信息。
 
 🔴 **CHECKPOINT**：展示前 50 行 before/after，用户确认后继续。
+**务必跑完上述 13 项检查再进 Phase 3。**
 
 ### Phase 3：选择 slug + 创建目录
 
@@ -337,6 +383,15 @@ hugo --gc --minify
 | 书不在菜单 | 书的 `_index.md` 存在 + `title`/`weight` 正确 | 菜单从 `content/books/` 自动生成 |
 | 图注/表注未区分 | 用 `{{< caption >}}...{{< /caption >}}` | — |
 | OCR 伪影 `<details>` | 删除空 `<details>`，留 `![](image)` | Phase 4.5 Haiku 审核 |
+| 正文显示拆字（`l o n g`）| `$$` 误包正文，去掉 `$$` | Phase 2 第 1 项 |
+| display math 吞正文 | 孤儿 `$$` 补全配对 | Phase 2 第 2 项 |
+| 公式 `_` 变 `<em>` | hugo.toml 配 passthrough delimiters | 见基础设施 |
+| 代码块无高亮颜色 | `assets/syntax.css`（chroma github 风格） | head.html 加载 |
+| 标题全同级（无层级）| `## N.M.K` → `###`；无编号子主题 → H3 | Phase 2 第 3 项 |
+| 业界事例/例题是标题 | 转 `{{< callout >}}`/`{{< example >}}` | Phase 2 第 3 项 |
+| 代码裸露无围栏 | 包裹 ` ```python ``` ` | Phase 2 第 6 项 |
+| `def__init__` 粘连 | 恢复为 `def __init__` | Phase 2 第 10 项 |
+| `\_` `\*` 显示残留 | 替换为 `_` `*` | Phase 2 第 8 项 |
 
 ---
 
@@ -357,6 +412,10 @@ hugo --gc --minify
 | 11 | .md 文件不加 front matter | 菜单不显示、排序乱 | 每文件加 `title`/`weight` |
 | 12 | 删图片引用 | 书中原始插图，删了不可逆 | 永远只删 `<details>`/mermaid，不碰 `![]()` |
 | 13 | 手写 mkdocs nav / 首页卡片接入 | Hugo 无 nav 配置，菜单自动生成 | Phase 6 已删除"接入导航"步骤 |
+| 14 | 留 `$$` 误包正文不清理 | KaTeX 把正文拆单字，全书乱 | Phase 2 必须扫完 13 项检查 |
+| 15 | 例题保持 `## 标题` 不转 shortcode | 没有框式外观，和其他元素不统一 | 转 `{{< example >}}` |
+| 16 | 代码块不加 ` ```python ` 语言标记 | 无语法高亮 | 每个代码块标 `python` |
+| 17 | 标题全用 `##` 不分级 | 菜单/TOC 层级全错 | H1 章 → H2 节 → H3 子节 |
 
 ---
 
@@ -369,6 +428,31 @@ hugo --gc --minify
 3. **全站加载** — `layouts/_partials/docs/inject/head.html` 注入 KaTeX auto-render + pseudocode 渲染
 4. **BookPortableLinks** — markdown `.md` 链接自动转 permalink（`hugo.toml` 设 `warning`）
 5. **lefthook pre-push** — `hugo --gc --minify` 阻断构建失败的提交
+6. **Goldmark passthrough** — `hugo.toml` 配 `markup.goldmark.extensions.passthrough`，
+   `$...$`/`$$...$$` 原样透传给 KaTeX，Goldmark 不解析其中的 `_`/`*`/`^`
+7. **代码语法高亮** — `assets/syntax.css`（Chroma github 风格 + 暗色模式），
+   head.html 加载。代码块必须标 ` ```python ` 才有高亮
+8. **validator** — `scripts/validate_book.py` 检查 `$$` 配对、标题层级、
+   裸 caption、`.html` 链接、空标题、标题跳跃（pre-commit 自动跑）
+
+### 元素模板系统（已就绪）
+
+统一的框式 shortcode，左边框色区分类型，圆角，柔和背景：
+
+| shortcode | 用途 | 配色 | 已用量 |
+|-----------|------|------|--------|
+| `{{< callout type="tip" >}}` | tip/note/warning/important | 蓝/灰/橙/红 | 50 |
+| `{{< example title="..." >}}` | 例题（可嵌套 solution） | 绿 | 56 |
+| `{{< solution >}}` | 解答块 | 绿 | 147 |
+| `{{< caption >}}` | 图注/表注 | — | 147 |
+| `{{< definition title="..." >}}` | 定义 | 紫 | — |
+| `{{< theorem type="定理" title="..." >}}` | 定理/引理 | 蓝 | — |
+| `{{< key-point >}}` | 要点总结 | 橙 | — |
+| `{{< algorithm title="..." >}}` | pseudocode.js 算法块 | 青 | — |
+| `{{< book-toc >}}` | 书封面页自动章节目录 | — | — |
+
+**加新书时**：业界事例转 callout、例题转 example、解答转 solution、
+图注转 caption。详见 Phase 5。
 
 ### 常见 OCR 误识别
 
