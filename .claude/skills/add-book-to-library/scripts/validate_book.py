@@ -49,7 +49,7 @@ def validate_file(path):
     # 6. Naked captions — only short lines (≤30 chars), not inline refs like "图2.1描述了一个..."
     naked = re.findall(r"^(图\d+\.\d+|表\d+\.\d+)[^\n]{0,30}$", content, re.MULTILINE)
     if naked:
-        issues.append(f'{len(naked)} naked captions (wrap in <p class="caption">)')
+        issues.append(f'{len(naked)} naked captions (wrap in {{< caption >}})')
 
     # 7. <details> blocks remaining
     details = content.count("<details>")
@@ -68,7 +68,7 @@ def validate_file(path):
 
 
 def main():
-    book_dir = sys.argv[1] if len(sys.argv) > 1 else "docs/books/"
+    book_dir = sys.argv[1] if len(sys.argv) > 1 else "content/books/"
     files = glob.glob(f"{book_dir}/**/ch*.md", recursive=True)
 
     total = 0

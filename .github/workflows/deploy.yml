@@ -1,4 +1,4 @@
-# GitHub Actions workflow: deploy MkDocs site to GitHub Pages
+# GitHub Actions workflow: deploy Hugo site to GitHub Pages
 name: Deploy Book Site
 on:
   push:
@@ -13,12 +13,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
-      - run: pip install mkdocs-material pymdown-extensions
-      - run: mkdocs build
-      - uses: peaceiris/actions-gh-pages@v3
+          submodules: true  # Hugo Book 主题（git submodule）
+          fetch-depth: 0    # enableGitInfo 需要 git 历史
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: '0.163.3'
+          extended: true
+
+      - name: Build
+        run: hugo --gc --minify
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: site
+          publish_dir: public

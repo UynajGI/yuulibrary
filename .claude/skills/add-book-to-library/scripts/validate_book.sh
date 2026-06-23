@@ -2,7 +2,7 @@
 # Mechanical validation for book markdown quality
 # Called by lefthook pre-commit, or run directly
 set -eo pipefail
-BOOK_DIR="${1:-docs/books}"
+BOOK_DIR="${1:-content/books}"
 ERRORS=0
 RED='\033[31m'; GREEN='\033[32m'; NC='\033[0m'
 

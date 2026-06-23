@@ -1,21 +1,22 @@
 # Yuunagi Library
 
-个人的数字图书馆，基于 MkDocs Material 构建，部署于 GitHub Pages。
+个人的数字图书馆，基于 [Hugo](https://gohugo.io) + [Hugo Book](https://github.com/alex-shpak/hugo-book) 主题构建，部署于 GitHub Pages。
 
 ## 结构
 
 ```
 yuulibrary/
-├── mkdocs.yml              # MkDocs 配置
-├── docs/
-│   ├── index.md            # 图书馆首页
-│   ├── <book-slug>/        # 每本书一个子目录
-│   │   ├── index.md        # 封面 + 目录
-│   │   ├── ch01.md ~ ...   # 章节
-│   │   ├── index_term.md   # 索引
-│   │   └── images/         # 图片
-│   ├── stylesheets/        # 共享样式
-│   └── javascripts/        # 共享脚本
+├── hugo.toml               # Hugo 配置
+├── content/
+│   ├── _index.md           # 图书馆首页
+│   └── books/
+│       └── <category>/<book-slug>/   # 每本书一个子目录
+│           ├── _index.md             # 封面 + 目录（section 列表页）
+│           ├── ch01.md ~ ...         # 章节
+│           ├── index_term.md         # 索引
+│           └── images/               # 图片
+├── layouts/                # 短代码 / 模板覆盖
+├── assets/custom.scss      # 全局样式
 └── .github/workflows/      # CI/CD 自动部署
 ```
 
@@ -23,13 +24,23 @@ yuulibrary/
 
 | 书名 | 语言 | 状态 |
 |------|------|------|
+| 强化学习入门：从原理到实践 | 中文 | 已上线 |
+| 期权、期货及其他衍生产品 | 中文 | 已上线 |
 | 量化金融面试实用指南 | 中文 | 已上线 |
 
 ## 本地开发
 
+需安装 [Hugo extended](https://gohugo.io/installation/)（SCSS 支持）。
+
 ```bash
-pip install mkdocs-material pymdown-extensions
-mkdocs serve -a 127.0.0.1:8000
+# 克隆（含主题子模块）
+git clone --recurse-submodules <repo>
+
+# 本地预览
+hugo server
+
+# 生产构建（输出到 public/）
+hugo --gc --minify
 ```
 
 ## 许可证
