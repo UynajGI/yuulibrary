@@ -274,6 +274,30 @@ shortcode 内部可正常写 Markdown。
 
 **失败分支**：`{{< /solution >}}` 漏写 → grep `{{< solution >}}` 出现次数应等于 `{{< /solution >}}`。
 
+#### 元素模板（统一框式元素）
+
+一套统一的 shortcode，左边框色区分类型，圆角，柔和背景：
+
+| 元素 | shortcode | 用途 | 配色 |
+|------|-----------|------|------|
+| 提示框 | `{{< callout type="tip" title="标题" >}}...{{< /callout >}}` | tip/note/warning/important | 蓝/灰/橙/红 |
+| 定义 | `{{< definition title="MDP" >}}...{{< /definition >}}` | 教材定义 | 紫 |
+| 定理 | `{{< theorem type="定理" title="贝尔曼方程" >}}...{{< /theorem >}}` | 定理/引理/命题/推论 | 蓝 |
+| 例题 | `{{< example title="赌徒破产" >}}...{{< /example >}}` | 例题，可嵌套 solution | 绿 |
+| 要点 | `{{< key-point >}}...{{< /key-point >}}` | 章节末总结 | 橙 |
+| 算法 | `{{< algorithm title="Sarsa" >}}<pre class="pseudocode">...{{< /algorithm >}}` | pseudocode.js 算法块 | 青 |
+
+#### 算法块（pseudocode.js，用 algorithm shortcode 包裹）
+
+用 `{{< algorithm >}}` 包裹 `<pre class="pseudocode">`，给统一框式外观（青色标签）。语法见下方 pseudocode.js 命令表。
+
+#### 标题层级规范
+
+- 章标题：`# 第N章 标题`（H1，每章一个，最顶部）
+- 节：`## N.M 标题`（H2）
+- 问题/子节：`### 标题`（H3）
+- **禁止**：同一文件出现多个 `#` H1（MinerU 常见错误，会把节标题也标成 H1，需 Phase 2 降级）
+
 #### 索引（`index_term.md`，如有）
 
 6 栏表格：`| 术语 | 章节 | 术语 | 章节 | 术语 | 章节 |`。
