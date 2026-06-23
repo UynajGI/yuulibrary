@@ -29,6 +29,12 @@ weight: 1
     <span class="book-row-desc">金融工程经典教材，期货、期权、互换、信用衍生品、利率模型，36 章。</span>
     <span class="book-row-arrow">›</span>
   </a>
+  <a class="book-row" href="{{< relref "/books/algo-trading/_index.md" >}}">
+    <span class="book-row-title">算法交易与套利交易</span>
+    <span class="book-row-meta">赵胜民</span>
+    <span class="book-row-desc">从投资组合理论到算法交易系统，配对交易、可转债套利、期指套利，15 章。</span>
+    <span class="book-row-arrow">›</span>
+  </a>
 </div>
 
 ## 最近笔记
