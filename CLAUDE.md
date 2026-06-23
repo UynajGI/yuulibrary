@@ -15,55 +15,58 @@ hugo --gc --minify                        # 生产构建到 public/
 yuulibrary/
 ├── hugo.toml                     # 主配置
 ├── content/
-│   ├── _index.md                 # 图书馆首页（卡片式书单，手写）
-│   └── books/
-│       ├── ml/rl-intro/          # 每本书一个目录
-│       │   ├── _index.md         # 封面 + 目录（section 列表页）
-│       │   ├── ch01.md ~ ...     # 章节（front matter: title/weight）
-│       │   ├── index_term.md     # 索引
-│       │   └── images/           # 图片（与 .md 同级，相对路径引用）
-│       └── finance/...
+│   ├── _index.md                 # 图书馆首页（卡片式书单）
+│   ├── books/
+│   │   ├── rl-intro/             # 扁平存放，按书名 slug
+│   │   │   ├── _index.md         # 封面 + 目录（section 列表页）
+│   │   │   ├── ch01.md ~ ...     # 章节（front matter: title/weight/description）
+│   │   │   ├── index_term.md     # 索引
+│   │   │   └── images/           # 图片（与 .md 同级，相对路径引用）
+│   │   ├── algo-trading/         # 无分类中间目录
+│   │   ├── options-futures-derivatives/
+│   │   └── quant-finance-interview/
+│   ├── notes/                    # 笔记（带 date/tags）
+│   ├── papers/                   # 论文笔记（带 author/year/tags）
+│   └── reference/                # 元素模板速查
 ├── layouts/
-│   ├── _shortcodes/
-│   │   ├── solution.html         # {{< solution >}} 解答块（替代 md_in_html）
-│   │   └── caption.html          # {{< caption >}} 图注/表注
-│   ├── _markup/render-image.html # 图片用相对路径原样输出
+│   ├── _shortcodes/              # book-toc/callout/definition/theorem/example 等
 │   └── _partials/docs/inject/head.html  # KaTeX + pseudocode.js 加载
-├── assets/
-│   ├── custom.scss               # 全局样式（移植自 mkdocs extra.css）
-│   └── katex.json                # KaTeX auto-render 分隔符（含 $...$）
-├── static/
-│   ├── katex/                    # KaTeX CSS/JS/字体（本地化）
-│   ├── pseudocode.min.js/.css    # 算法块渲染器
-├── scripts/
-│   ├── migrate_mkdocs_to_hugo.py # 一次性迁移脚本（docs/ → content/）
-│   └── remap_index_anchors.py    # 重映射 index_term.md 的 MkDocs 锚点
-└── .github/workflows/deploy.yml  # 自动部署到 gh-pages
+├── assets/custom.scss            # 全局样式
+├── static/katex/ + pseudocode/   # 本地化数学/算法渲染
+├── .claude/skills/add-book-to-library/  # 加书 skill
+├── .github/workflows/deploy.yml  # push main → 自动部署
+└── pdfs/                         # PDF 源文件（本地，gitignore）
 ```
 
 ## 添加新书
 
-1. 在 `content/books/<category>/` 下创建 `<book-slug>/` 子目录
-2. 创建 `_index.md`（封面 + 目录，section 列表页）
-3. 章节文件 `ch01.md` 起，**每个文件加 front matter**：
+完整流程见 `.claude/skills/add-book-to-library/SKILL.md`。核心步骤：
+
+1. MinerU VLM 提取 PDF → 合并 → 清洗
+2. 在 `content/books/<book-slug>/` 下创建扁平目录（**无分类子目录**）
+3. `_index.md`：`<section class="book-cover">` + `{{< book-toc >}}`，必须加 `description` + `tags`
+4. 每章文件 `ch01.md` 起，**front matter 含 `description`**：
    ```yaml
    ---
    title: "第1章 · 引言"
    weight: 10
+   description: "收益计算、风险评估——投资决策的基础。"
    ---
    ```
-4. 图片放入 `images/` 子目录，用相对路径 `![](images/xxx.jpg)` 引用
-5. 左侧菜单从目录结构 + weight 自动生成，无需手写 nav
-6. `hugo server` 验证
+5. 标题层级：`#` 章 → `##` 节 → `###` 子节（MinerU 全标 `##`，必须修复）
+6. Phase 4.5 Haiku 逐章审核 → 元素模板（example/callout/caption）→ 验证
+7. `hugo server` 验证，首页书架加卡片
 
 ## 语法约定
 
-- **解答块**：`{{< solution >}}` ... `{{< /solution >}}`（绿色左边框，内部可写 Markdown）
+- **元素模板**：`{{< callout >}}` / `{{< definition >}}` / `{{< theorem >}}` / `{{< example >}}` / `{{< key-point >}}` / `{{< algorithm >}}`（详见 `content/reference/elements.md`）
+- **解答块**：`{{< solution >}}` ... `{{< /solution >}}`（绿色左边框）
 - **图注/表注**：`{{< caption >}}` 图8.1 描述 `{{< /caption >}}`
-- **数学公式**：行内 `$...$`，行间 `$$...$$`（KaTeX 自动渲染，无需包裹）
-- **算法块**：`<pre class="pseudocode">\begin{algorithm}...</pre>`（pseudocode.js 渲染）
-- **跨页面链接**：Markdown 写 `[第5章](ch05.md)`，主题 BookPortableLinks 自动转为 permalink
-- **HTML 链接**（表格内）：用 `{{< relref "/books/<cat>/<slug>/ch01.md" >}}`
+- **数学公式**：行内 `$...$`，行间 `$$...$$`（Goldmark passthrough 原样透传 KaTeX）
+- **算法块**：`{{< algorithm title="名称" >}}<pre class="pseudocode">...</pre>{{< /algorithm >}}`
+- **伪代码语法**：小写裸命令 `state`/`for{}`/`if{}`/`repeat`/`until{}`/`endfor`/`return{}`，不是 `\STATE`/`\FOR`
+- **跨页面链接**：`[第5章](ch05.md)`，BookPortableLinks 自动转 permalink
+- **封面目录**：`{{< book-toc >}}` 自动生成，不要手写 HTML 表格
 
 ## 样式体系
 
