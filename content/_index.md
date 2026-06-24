@@ -51,6 +51,3 @@ weight: 1
   <a href="{{< relref "/notes/_index.md" >}}">查看全部笔记 ›</a>
 </div>
 
----
-
-本站由 [Hugo](https://gohugo.io) + [Hugo Book](https://github.com/alex-shpak/hugo-book) 主题构建，托管于 GitHub Pages。书籍通过 MinerU VLM 提取排版，AI 辅助翻译校对。
