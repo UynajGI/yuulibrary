@@ -41,6 +41,12 @@ weight: 1
     <span class="book-row-desc">从投资组合理论到算法交易系统，配对交易、可转债套利、期指套利，15 章。</span>
     <span class="book-row-arrow">›</span>
   </a>
+  <a class="book-row" href="{{< relref "/books/systems-beauty/_index.md" >}}">
+    <span class="book-row-title">系统之美</span>
+    <span class="book-row-meta">Donella H. Meadows</span>
+    <span class="book-row-desc">决策者的系统思考，系统动力学入门经典，6 章 + 案例与杠杆点。</span>
+    <span class="book-row-arrow">›</span>
+  </a>
 </div>
 
 ## 最近笔记
