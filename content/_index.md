@@ -17,6 +17,12 @@ weight: 1
     <span class="book-row-desc">从基础概念到 Alpha Zero，动态规划、无模型控制、深度强化学习。</span>
     <span class="book-row-arrow">›</span>
   </a>
+  <a class="book-row" href="{{< relref "/books/rl-math/_index.md" >}}">
+    <span class="book-row-title">强化学习的数学原理</span>
+    <span class="book-row-meta">赵世钰</span>
+    <span class="book-row-desc">贝尔曼方程、值迭代、蒙特卡罗、时序差分、策略梯度，从数学角度系统讲解。</span>
+    <span class="book-row-arrow">›</span>
+  </a>
   <a class="book-row" href="{{< relref "/books/quant-finance-interview/_index.md" >}}">
     <span class="book-row-title">量化金融面试实用指南</span>
     <span class="book-row-meta">Xinfeng Zhou</span>
