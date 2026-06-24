@@ -33,9 +33,21 @@ content/books/<book-slug>/   # 扁平存放，无分类子目录
 
 ## 工作流
 
-### 🛑 强制入口：状态文件
+### 🛑 强制入口：去重 + 状态文件
 
-处理任何书之前，必须检查 `pdfs/<book-id>.state.json`：
+处理任何书之前，**第一步必须做去重检查**：
+
+```bash
+# 计算新 PDF 的 SHA256
+sha256sum /path/to/book.pdf
+
+# 对比所有已有 PDF（hash 碰撞 = 绝对重复）
+sha256sum pdfs/*.pdf | grep <hash 前 8 位>
+```
+
+若 hash 匹配 → **🛑 立即终止**，告知「这本书已在图书馆中」。
+
+然后检查 `pdfs/<book-id>.state.json`：
 - 存在 → 读 `current_phase`，从中断点恢复
 - 不存在 → **🛑 STOP，必须先完成 Phase 0**
 
@@ -44,6 +56,21 @@ content/books/<book-slug>/   # 扁平存放，无分类子目录
 ---
 
 ### Phase 0：归集 PDF + 状态文件
+
+**🛑 第一步：去重检查（强制，不可跳过）**
+
+```bash
+# 用 SHA256 对比所有已有 PDF
+sha256sum /path/to/book.pdf
+sha256sum pdfs/*.pdf | grep <hash>
+```
+
+```bash
+# 同时检查 state 文件里是否有同书名/同作者
+grep -il "强化学习入门\|叶强" pdfs/*.state.json
+```
+
+如果在状态文件或 `content/books/` 中发现匹配 → **立即终止，告知用户「这本书已在图书馆中：content/books/<slug>/」**，不创建新状态文件。
 
 ```bash
 cp /path/to/book.pdf pdfs/
