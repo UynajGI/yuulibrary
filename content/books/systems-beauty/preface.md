@@ -20,7 +20,7 @@ Thinking inSystems: A Primer
 
 10年手稿首度出版
 
-[美]德内拉·梅多斯0著邱昭良译
+[美]德内拉·梅多斯 著 邱昭良 译
 
 Donella H. Meadows
 
