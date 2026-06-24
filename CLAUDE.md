@@ -65,6 +65,14 @@ python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/book
 
 15 项机械验证（lefthook pre-commit 自动运行）：`$$` 配对/中文误包/裸代码/标题层级/fence 剥离 等。
 
+## 可用 Agent
+
+| Agent | 模型 | 用途 |
+|-------|------|------|
+| **spot-check** | Haiku | 随机抽查 2 章，12 点清单（OCR/标题层级/caption/元素模板/交叉引用…），发现问题直接修 |
+
+用法：`Agent(subagent_type: "spot-check", prompt: "Spot-check the book at content/books/<slug>/")`
+
 ## 语法约定
 
 - **元素模板**：`{{< callout >}}` / `{{< definition >}}` / `{{< theorem >}}` / `{{< example >}}` / `{{< key-point >}}` / `{{< algorithm >}}`（详见 `content/reference/elements.md`）
