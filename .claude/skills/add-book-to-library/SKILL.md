@@ -38,14 +38,18 @@ content/books/<book-slug>/   # 扁平存放，无分类子目录
 处理任何书之前，**第一步必须做去重检查**：
 
 ```bash
-# 计算新 PDF 的 SHA256
-sha256sum /path/to/book.pdf
+# 计算新 PDF/EPUB 的 SHA256
+sha256sum /path/to/book.{pdf,epub}
 
-# 对比所有已有 PDF（hash 碰撞 = 绝对重复）
-sha256sum pdfs/*.pdf | grep <hash 前 8 位>
+# 对比所有已有文件（hash 碰撞 = 绝对重复）
+sha256sum pdfs/*.{pdf,epub} 2>/dev/null | grep <hash 前 8 位>
 ```
 
 若 hash 匹配 → **🛑 立即终止**，告知「这本书已在图书馆中」。
+
+**自动路由**：
+- `.pdf` → Phase 1A（MinerU VLM）
+- `.epub` → Phase 1B（unzip + pandoc）
 
 然后检查 `pdfs/<book-id>.state.json`：
 - 存在 → 读 `current_phase`，从中断点恢复
@@ -86,7 +90,7 @@ cp /path/to/book.pdf pdfs/
   "current_phase": "phase_0_done",
   "phases": {
     "phase_0": { "status": "done" },
-    "phase_1": { "status": "pending", "note": "PDF to Markdown via MinerU VLM" },
+    "phase_1": { "status": "pending", "note": "Phase 1A (PDF via MinerU VLM) or Phase 1B (EPUB via unzip+pandoc)" },
     "phase_2": { "status": "pending", "note": "Clean markdown" },
     "phase_3": { "status": "pending", "note": "Choose slug + create dir" },
     "phase_4": { "status": "pending", "note": "Split into chapters + front matter" },
@@ -98,7 +102,7 @@ cp /path/to/book.pdf pdfs/
 
 ---
 
-### Phase 1：PDF → Markdown
+### Phase 1A：PDF → Markdown（默认）
 
 调用 `/mineru-document-extractor`。大书（>200页）分批：
 
@@ -112,6 +116,41 @@ cat out/part1/*.md out/part2/*.md > out/merged/book.md
 ```
 
 **失败分支**：API 超时 → 缩小 `--pages` 范围重试，或增加 `--timeout`。
+
+---
+
+### Phase 1B：EPUB → Markdown（ebook 格式）
+
+EPUB 是 ZIP 包着 XHTML，不需 VLM。直接解压转换。
+
+```bash
+# 解压
+mkdir -p pdfs/<book-id>-out/epub/
+unzip -o pdfs/<book>.epub -d pdfs/<book-id>-out/epub/
+
+# 找到 XHTML 内容目录（通常是 OEBPS/ 或 OPS/）
+find pdfs/<book-id>-out/epub/ -name "*.xhtml" -o -name "*.html" | head -5
+
+# 批量 XHTML → Markdown（用 pandoc）
+mkdir -p pdfs/<book-id>-out/epub-md/
+for f in pdfs/<book-id>-out/epub/OEBPS/*.xhtml; do
+  name=$(basename "$f" .xhtml)
+  pandoc -f html -t markdown "$f" -o "pdfs/<book-id>-out/epub-md/${name}.md"
+done
+
+# 按文件名排序合并（EPUB 的 spine 顺序通常与文件名一致）
+cat pdfs/<book-id>-out/epub-md/*.md | sed '/^::: {#.*}$/d' > pdfs/<book-id>-out/merged/book.md
+```
+
+**失败分支**：
+- pandoc 不可用 → `apt install pandoc` / `brew install pandoc`
+- XHTML 文件不在 OEBPS/ → `find` 搜索 `.xhtml`，手动确认目录
+- 图片不显示 → EPUB 的 `images/` 目录直接复制到 `content/books/<slug>/images/`
+
+**优势**（与 PDF 相比）：
+- 无 VLM 调用，免费 + 瞬时
+- 无 OCR 损坏，标题层级天然正确
+- 数学公式、代码块保留原始格式
 
 ---
 
