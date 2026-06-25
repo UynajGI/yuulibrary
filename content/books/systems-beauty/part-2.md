@@ -1,6 +1,6 @@
 ---
 title: "第二部分 · 系统思考与我们"
-weight: 31
+weight: 29
 description: "第3-4章：系统的3大特征与6大障碍。"
 BookCollapseSection: false
 ---

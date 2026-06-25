@@ -1,6 +1,6 @@
 ---
 title: "第三部分 · 改变系统"
-weight: 51
+weight: 49
 description: "第5-6章：系统的8大陷阱、12大杠杆点与15大生存法则。"
 BookCollapseSection: false
 ---
