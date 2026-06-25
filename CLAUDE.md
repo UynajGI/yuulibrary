@@ -35,7 +35,10 @@ yuulibrary/
 ├── static/katex/ + pseudocode/   # 本地化数学/算法渲染
 ├── .claude/skills/add-book-to-library/  # 加书 skill
 ├── .github/workflows/deploy.yml  # push main → 自动部署
-└── pdfs/                         # PDF 源文件（本地，gitignore）
+└── pdfs/                         # 源文件（本地，gitignore）
+    ├── books/                   # 书籍 PDF/EPUB + 状态文件 + 提取输出
+    ├── papers/                  # 论文 PDF
+    └── archive/                 # 已完成（仅人工移入）
 ```
 
 ## 添加新书

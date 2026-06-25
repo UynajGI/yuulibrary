@@ -27,7 +27,7 @@ content/books/<book-slug>/   # 扁平存放，无分类子目录
 - `_index.md` 必须加 `tags`、`description`、`BookCollapseSection: true`
 - 菜单从目录结构 + weight 自动生成，无需手写 nav
 - 图片用 `![](images/xxx.webp)` 相对路径，与 .md 同级。**🔴 只用 WebP，禁止 JPG/PNG**
-- PDF 源放 `pdfs/`（gitignore），MinerU 原始 MD 保留到 `pdfs/<book>-out/merged/book.md`
+- PDF 源放 `pdfs/books/`（gitignore），MinerU 原始 MD 保留到 `pdfs/books/<book>-out/merged/book.md`
 
 ---
 
@@ -42,7 +42,7 @@ content/books/<book-slug>/   # 扁平存放，无分类子目录
 sha256sum /path/to/book.{pdf,epub}
 
 # 对比所有已有文件（hash 碰撞 = 绝对重复）
-sha256sum pdfs/*.{pdf,epub} 2>/dev/null | grep <hash 前 8 位>
+sha256sum pdfs/books/*.{pdf,epub} 2>/dev/null | grep <hash 前 8 位>
 ```
 
 若 hash 匹配 → **🛑 立即终止**，告知「这本书已在图书馆中」。
@@ -51,7 +51,7 @@ sha256sum pdfs/*.{pdf,epub} 2>/dev/null | grep <hash 前 8 位>
 - `.pdf` → Phase 1A（MinerU VLM）
 - `.epub` → Phase 1B（unzip + pandoc）
 
-然后检查 `pdfs/<book-id>.state.json`：
+然后检查 `pdfs/books/<book-id>.state.json`：
 - 存在 → 读 `current_phase`，从中断点恢复
 - 不存在 → **🛑 STOP，必须先完成 Phase 0**
 
@@ -66,21 +66,21 @@ sha256sum pdfs/*.{pdf,epub} 2>/dev/null | grep <hash 前 8 位>
 ```bash
 # 用 SHA256 对比所有已有 PDF
 sha256sum /path/to/book.pdf
-sha256sum pdfs/*.pdf | grep <hash>
+sha256sum pdfs/books/*.pdf | grep <hash>
 ```
 
 ```bash
 # 同时检查 state 文件里是否有同书名/同作者
-grep -il "强化学习入门\|叶强" pdfs/*.state.json
+grep -il "强化学习入门\|叶强" pdfs/books/*.state.json
 ```
 
 如果在状态文件或 `content/books/` 中发现匹配 → **立即终止，告知用户「这本书已在图书馆中：content/books/<slug>/」**，不创建新状态文件。
 
 ```bash
-cp /path/to/book.pdf pdfs/
+cp /path/to/book.pdf pdfs/books/
 ```
 
-创建 `pdfs/<book-id>.state.json`：
+创建 `pdfs/books/<book-id>.state.json`：
 
 ```json
 {
@@ -125,24 +125,24 @@ EPUB 是 ZIP 包着 XHTML，不需 VLM。直接解压转换。
 
 ```bash
 # 解压
-mkdir -p pdfs/<book-id>-out/epub/
-unzip -o pdfs/<book>.epub -d pdfs/<book-id>-out/epub/
+mkdir -p pdfs/books/<book-id>-out/epub/
+unzip -o pdfs/books/<book>.epub -d pdfs/books/<book-id>-out/epub/
 
 # 找到 XHTML 内容目录（通常是 OEBPS/ 或 OPS/）
-find pdfs/<book-id>-out/epub/ -name "*.xhtml" -o -name "*.html" | head -5
+find pdfs/books/<book-id>-out/epub/ -name "*.xhtml" -o -name "*.html" | head -5
 
 # 批量 XHTML → Markdown（用 pandoc）
-mkdir -p pdfs/<book-id>-out/epub-md/
-for f in pdfs/<book-id>-out/epub/OEBPS/*.xhtml; do
+mkdir -p pdfs/books/<book-id>-out/epub-md/
+for f in pdfs/books/<book-id>-out/epub/OEBPS/*.xhtml; do
   name=$(basename "$f" .xhtml)
-  pandoc -f html -t markdown "$f" -o "pdfs/<book-id>-out/epub-md/${name}.md"
+  pandoc -f html -t markdown "$f" -o "pdfs/books/<book-id>-out/epub-md/${name}.md"
 done
 
 # 按文件名排序合并（EPUB 的 spine 顺序通常与文件名一致）
-cat pdfs/<book-id>-out/epub-md/*.md | sed '/^::: {#.*}$/d' > pdfs/<book-id>-out/merged/book.md
+cat pdfs/books/<book-id>-out/epub-md/*.md | sed '/^::: {#.*}$/d' > pdfs/books/<book-id>-out/merged/book.md
 
 # 提取图片（EPUB 的 images/ 通常在 OEBPS/ 或 OPS/ 下）
-find pdfs/<book-id>-out/epub/ -type d -iname "images" -o -iname "image" -o -iname "img"
+find pdfs/books/<book-id>-out/epub/ -type d -iname "images" -o -iname "image" -o -iname "img"
 # 找到后复制到 Phase 3 创建的 content/books/<slug>/images/
 # 路径通常在 epub/OEBPS/images/ 或 epub/OPS/images/
 ```
@@ -151,10 +151,10 @@ find pdfs/<book-id>-out/epub/ -type d -iname "images" -o -iname "image" -o -inam
 
 ```bash
 # 复制图片到最终目录
-cp pdfs/<book-id>-out/epub/OEBPS/images/* content/books/<slug>/images/
+cp pdfs/books/<book-id>-out/epub/OEBPS/images/* content/books/<slug>/images/
 
 # 修正 markdown 中的图片路径（EPUB 内部路径 → 扁平 images/）
-sed -i 's|OEBPS/images/|images/|g; s|OPS/images/|images/|g' pdfs/<book-id>-out/merged/book.md
+sed -i 's|OEBPS/images/|images/|g; s|OPS/images/|images/|g' pdfs/books/<book-id>-out/merged/book.md
 ```
 
 WebP 转换在 Phase 3 统一处理。
@@ -198,14 +198,14 @@ MinerU 或 EPUB 提取的图片统一归集到 `content/books/<slug>/images/`，
 
 ```bash
 # 1. 复制 MinerU 图片（Phase 1A）或 EPUB 图片（Phase 1B）
-cp pdfs/<book-id>-out/part*/*.jpg content/books/<slug>/images/   # MinerU
+cp pdfs/books/<book-id>-out/part*/*.jpg content/books/<slug>/images/   # MinerU
 # 或
-cp pdfs/<book-id>-out/epub/OEBPS/images/* content/books/<slug>/images/  # EPUB
+cp pdfs/books/<book-id>-out/epub/OEBPS/images/* content/books/<slug>/images/  # EPUB
 
 # 2. 全部 JPG/PNG → WebP + 替换引用（一键脚本）
 .claude/skills/add-book-to-library/scripts/convert_to_webp.sh \
   content/books/<slug>/images/ \
-  pdfs/<book-id>-out/merged/
+  pdfs/books/<book-id>-out/merged/
 ```
 
 🔴 **CHECKPOINT**：确认目录后更新状态文件 `slug` 字段。
@@ -385,7 +385,7 @@ hugo --gc --minify
 | 5 | 翻译/清洗时动 LaTeX 公式 | `$x_i$` 保持原样 |
 | 6 | 章节标题用 `##` | 章 `#`，节 `##`，子节 `###` |
 | 7 | 不 build 手写锚点 | `hugo build` → 从 HTML 提取 id |
-| 8 | PDF 放入 content/ | 放 `pdfs/`（已 gitignore） |
+| 8 | PDF 放入 content/ | 放 `pdfs/books/`（已 gitignore） |
 | 9 | 交叉引用用 `.html` 后缀 | 统一 `.md` |
 | 10 | 书放分类子目录 `books/<cat>/<book>/` | 扁平 `books/<book>/` |
 | 11 | `.md` 不加 front matter | 每文件 `title`/`weight`/`description` |
@@ -396,7 +396,7 @@ hugo --gc --minify
 | 16 | 代码块不标语言 | ` ```python ` |
 | 17 | 跳过机械 grep 直接 Haiku | 机械 grep 扫描（AI 会漏）→ Haiku 逐章审核 → 机械清洗（空块/compound）→ 验证 |
 | 18 | 不复制 MinerU images 到 book | 合并到 `content/books/<slug>/images/` |
-| 19 | 不留 MinerU 原始 MD | 保留到 `pdfs/<book>-out/merged/book.md` |
+| 19 | 不留 MinerU 原始 MD | 保留到 `pdfs/books/<book>-out/merged/book.md` |
 | 20 | 拆分只靠 heading 自动匹配 | 手动确认章节边界，合并多余拆分 |
 | 21 | 首页书架忘加新书卡片 | `content/_index.md` 加 `<a class="book-row">` |
 | 22 | 封面手写 `<div style="">` | `<section class="book-cover">` 模板 |
