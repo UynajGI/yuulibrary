@@ -10,7 +10,7 @@ description: ""
 
 Thinking in Systems: A Primer
 
-![](images/8e18e479df5ac1afd2a2ccb3cc2efe80a5094896255a5916eed700a60d0c16a1.jpg)
+![](images/8e18e479df5ac1afd2a2ccb3cc2efe80a5094896255a5916eed700a60d0c16a1.webp)
 
 系统之美决策者的系统思考
 
@@ -36,7 +36,7 @@ Donella H. Meadows
 
 ## 作者简介：
 
-![](images/d6ba4af27af80d94a352948afd9d235507728b2b0f790e188bc42dadaa652092.jpg)
+![](images/d6ba4af27af80d94a352948afd9d235507728b2b0f790e188bc42dadaa652092.webp)
 
 德内拉·梅多斯，世界上最伟大的系统思考大师之一，师从系统动力学创始人杰伊·福瑞斯特，是知名的“世界模型Ⅲ”主创人员，也是“学习型组织之父”、《第五项修炼》作者彼得·圣吉的老师。
 

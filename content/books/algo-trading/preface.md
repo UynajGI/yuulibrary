@@ -227,5 +227,5 @@ description: "全书目录与内容概览——从投资收益与风险到套利
 
 第一章
 
-![](images/d087ecd7e3b5b2cac3f12f953dd5adaf7f4b5d25af814f113c7ed0368bba7672.jpg)
+![](images/d087ecd7e3b5b2cac3f12f953dd5adaf7f4b5d25af814f113c7ed0368bba7672.webp)
 

@@ -332,7 +332,7 @@ dt=1 小时
 
 24 小时的室外温度变化，从白天 $10^{\circ}\mathrm{C} \; (50^{\circ}\mathrm{F})$ 到夜间 $ -5^{\circ}\mathrm{C} \; (23^{\circ}\mathrm{F})$），如图A—1 所示：
 
-![](images/3b78855811102669aabe38b7edf0665351518450099ba729679bb45ac1b7e957.jpg)
+![](images/3b78855811102669aabe38b7edf0665351518450099ba729679bb45ac1b7e957.webp)
 {{< caption >}}图 A—1{{< /caption >}}
 
 存量：人口（t）=人口（t-dt）+（出生人数-死亡人数）×dt
@@ -369,7 +369,7 @@ dt=1 年
 
 出生率从0.021经过一段时间后下降到0.009，如图A—2所示：
 
-![](images/49dad84cc2bd037a7aea57b2bd12bf736277e386737fdce80c0d2bd4f6d2a763.jpg)
+![](images/49dad84cc2bd037a7aea57b2bd12bf736277e386737fdce80c0d2bd4f6d2a763.webp)
 {{< caption >}}图 A—2{{< /caption >}}
 图 2—12：
 
@@ -377,7 +377,7 @@ dt=1 年
 
 出生率从 0.021 经过一段时间下降至 0.009，又上升至0.030，如图 A—3 所示：
 
-![](images/f88b901717ef00b1738aad05c4ffdfbb2589edc659c5459f9a05699898f133ef.jpg)
+![](images/f88b901717ef00b1738aad05c4ffdfbb2589edc659c5459f9a05699898f133ef.webp)
 {{< caption >}}图 A—3{{< /caption >}}
 
 资本——图 2—13 和图2—14
@@ -504,14 +504,14 @@ dt=1 年
 
 价格=3……图 2—24，图 2—25，图 2—26；图 2—27，价格从1.2 开始，此时单位资本收益很高；随着单位资本收益下降，价格上升到 10，如图A—4 所示：
 
-![](images/4fd841963f81b16df28bc76f79c48a3606ef61f62319dac148741944d4dbd3e4.jpg)
+![](images/4fd841963f81b16df28bc76f79c48a3606ef61f62319dac148741944d4dbd3e4.webp)
 
-![](images/7b45fb0ef5446b66f76b94e2049b94bce3f4ce16ca5d481489f95158020f6bcf.jpg)
+![](images/7b45fb0ef5446b66f76b94e2049b94bce3f4ce16ca5d481489f95158020f6bcf.webp)
 {{< caption >}}图 A—4{{< /caption >}}
 
 单位资本收益从 1 开始，此时资源存量很高，随着资源存量的下滑，单位资本收益变为 0，如图A—5 所示。
 
-![](images/37371622d8b0b16dfa64afb70729ecb1815cac0e338b0b86d7428bd6742a40af.jpg)
+![](images/37371622d8b0b16dfa64afb70729ecb1815cac0e338b0b86d7428bd6742a40af.webp)
 {{< caption >}}图 A—5{{< /caption >}}
 
 受到可再生性资源限制的资本存量——图 2—28 至图2—31
@@ -546,12 +546,12 @@ dt=1 年
 
 价格从1.2 开始，此时单位资本收益很高，随着单位资本收益下降，价格上升到 10。与前面的模型一样，价格和收益之间也是一种非线性的关系（如图 A—6 所示）。
 
-![](images/0c338e60d660cba903a8e1a7aab30e3eae8cca9e0df8432d4887be9441d299f5.jpg)
+![](images/0c338e60d660cba903a8e1a7aab30e3eae8cca9e0df8432d4887be9441d299f5.webp)
 {{< caption >}}图 A—6{{< /caption >}}
 
 再生率在资源储备很充足或彻底耗尽时是 0。在资源变化范围的中间段，再生率达到最高点 0.5 左右（如图 A—7 所示）。
 
-![](images/e056919426d587c6df9e9cc087e555f84bd89c5ce61af590449a5a7d9b20b40f.jpg)
+![](images/e056919426d587c6df9e9cc087e555f84bd89c5ce61af590449a5a7d9b20b40f.webp)
 {{< caption >}}图 A—7{{< /caption >}}
 
 单位资本收益从 1 开始，此时资源储备充足，但随着资源存量的减少，单位资本收益下降（非线性）。单位资本收益的增长从总体上看，图 2—29 增长率最低，图 2—30 增长率稍微高些，图 2—31 增长率最高。
