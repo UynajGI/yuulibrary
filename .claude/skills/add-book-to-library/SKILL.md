@@ -122,6 +122,7 @@ cat out/part1/*.md out/part2/*.md > out/merged/book.md
    - `$$` 误包正文、孤儿 `$$`、标题平铺、裸代码、缩进丢失、转义残留、
      `def__init__` 粘连、代码注释被标为标题、`mineru-algorithm` div 等
 3. 删除版权信息（ISBN、客服热线/邮箱）
+4. **列表标准化**：`（1）` `①` `●` `1）` `◆` → `1.` / `- ` 标准 Markdown 列表
 
 🔴 **CHECKPOINT**：展示清理前后对比，用户确认后继续。
 
