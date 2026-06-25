@@ -28,6 +28,8 @@ content/books/<book-slug>/   # 扁平存放，无分类子目录
 - 菜单从目录结构 + weight 自动生成，无需手写 nav
 - 图片用 `![](images/xxx.webp)` 相对路径，与 .md 同级。**🔴 只用 WebP，禁止 JPG/PNG**
 - PDF 源放 `pdfs/books/`（gitignore），MinerU 原始 MD 保留到 `pdfs/books/<book>-out/merged/book.md`
+- **🔴 英文书籍必须翻译成中文**：正文、标题、图注、表格全部翻译，LaTeX 公式保持原样
+- **🔴 目录自动生成**：`_index.md` 用 `{{< book-toc >}}`，正文里不手写目录
 
 ---
 
@@ -177,8 +179,14 @@ WebP 转换在 Phase 3 统一处理。
 2. 逐条检查 MinerU 损坏（13 项清单详见 `references/cleanup-reference.md`）：
    - `$$` 误包正文、孤儿 `$$`、标题平铺、裸代码、缩进丢失、转义残留、
      `def__init__` 粘连、代码注释被标为标题、`mineru-algorithm` div 等
-3. 删除版权信息（ISBN、客服热线/邮箱）
-4. **列表标准化**：`（1）` `①` `●` `1）` `◆` → `1.` / `- ` 标准 Markdown 列表
+3. **EPUB pandoc 残留清理**（Phase 1B 生成的文件必查）：
+   - `[]{#page_xxx}` / `[]{#pages-xxx}` → 删除
+   - `{.small}` / `{.dropcap}` / `{.col}` → 删除
+   - `[text](file.xhtml)` → 保留 text，删除链接
+   - `::: fn1` / `::: blk1` / `:::` → 删除整行
+   - `{height="100%"}` 等 inline attributes → 删除
+4. 删除版权信息（ISBN、客服热线/邮箱）
+5. **列表标准化**：`（1）` `①` `●` `1）` `◆` → `1.` / `- ` 标准 Markdown 列表
 
 🔴 **CHECKPOINT**：展示清理前后对比，用户确认后继续。
 
@@ -263,6 +271,60 @@ description: "收益计算、风险评估——投资决策的基础。"
 - Part 页 weight 在所属第一章之前（如 part-1=9，ch01=10）
 - 链接用 `.html` 后缀（`uglyurls = true`），不用 `.md` 或 `{{< relref >}}`
 - 🔴 Goldmark 不处理 `<div>` 内的 Markdown/短代码，链接必须用纯 HTML `<a href="xxx.html">`
+
+---
+
+### Phase 4.25：英文→中文翻译（Haiku 并行）
+
+**🔴 英文书籍必须翻译成中文**。翻译在拆分章节后、审核前进行。
+
+**翻译规则**：
+- 正文、标题、图注、表格内容全部翻译为中文
+- LaTeX 公式 `$...$` 和 `$$...$$` 保持原样不翻译
+- 专业术语首次出现时附英文原文，如：有效市场假说（Efficient Market Hypothesis）
+- 图表编号保留原格式（图1.1、表2.3）
+- 人名保留英文，如：Burton G. Malkiel
+- 书名翻译后附英文，如：《漫步华尔街》（A Random Walk Down Wall Street）
+
+**🔴 翻译时同步转换元素模板**（不要事后补救）：
+- 引用 `---Author, *Book*` → `{{< callout type="quote" >}}quote\nAuthor, Book{{< /callout >}}`
+- 来源/出处 `来源：...` → `{{< caption >}}来源：...{{< /caption >}}`
+- 交叉引用 `第N章` → `[第N章](ch0N.md)`（不在标题行内）
+- 图注 `图N.N 描述` → `{{< caption >}}图N.N 描述{{< /caption >}}`
+
+**执行方式**：每 3-4 章 spawn 一个 Haiku agent。**🔴 prompt 必须包含以下全部指令**，不能只说"翻译"：
+
+```
+翻译规则：
+1. 正文、标题全部翻译为中文，LaTeX公式保持原样
+2. 专业术语首次出现附英文原文
+3. 人名保留英文
+4. front matter 不修改
+
+🔴 同时执行元素模板转换（必须在翻译时完成，不要事后补救）：
+- 引用 ---Author, *Book* → {{< callout type="quote" >}}引用\nAuthor, Book{{< /callout >}}
+- 来源/出处 → {{< caption >}}来源：...{{< /caption >}}
+- 交叉引用 第N章 → [第N章](ch0N.md)
+- 图注 图N.N → {{< caption >}}图N.N 描述{{< /caption >}}
+
+翻译后用 Write 工具写回原文件。
+```
+
+**失败分支**：
+
+| 症状 | 一线修复 | 仍失败 |
+|------|---------|--------|
+| agent 超时 | 缩小批次（2 章/agent） | 逐章单 agent |
+| 翻译后仍有大量英文段落 | grep 检测 → 追加翻译 agent | 手动修复 |
+| 元素模板未转换 | 跑 `convert_elements.py` 补救 | 手动 sed 替换 |
+
+```bash
+# 翻译完成后验证
+grep -rn '[A-Z][a-z]\{10,\}' content/books/<slug>/ch*.md | head -20  # 遗漏英文
+grep -c 'callout\|caption' content/books/<slug>/ch*.md | grep -v ':0$'  # 元素模板
+```
+
+🔴 **CHECKPOINT**：确认翻译质量（术语一致性、公式完整性、元素模板数量），用户确认后进 Phase 4.5。
 
 ---
 
@@ -353,7 +415,15 @@ hugo --gc --minify
 
 检查：0 issue、构建零错误、内部链接可点击、公式渲染正常、新书在菜单。
 
-🔴 **CHECKPOINT**：展示章节数、图片数。用户决定何时 push。
+**🔴 质量抽查必须用 spot-check agent**（不用普通 agent）：
+
+```
+Agent(subagent_type: "spot-check", prompt: "Spot-check the book at content/books/<slug>/")
+```
+
+spot-check 随机抽查 2 章，18 点清单，发现问题直接修。
+
+🔴 **CHECKPOINT**：展示章节数、图片数、spot-check 结果。用户决定何时 push。
 
 ---
 
@@ -401,3 +471,6 @@ hugo --gc --minify
 | 21 | 首页书架忘加新书卡片 | `content/_index.md` 加 `<a class="book-row">` |
 | 22 | 封面手写 `<div style="">` | `<section class="book-cover">` 模板 |
 | 23 | 图片用 JPG/PNG 格式 | WebP only（Phase 3 统一转换），质量 80 有损模式 |
+| 24 | 翻译 agent 只说"翻译"不提元素模板 | prompt 必须包含完整翻译规则+元素转换指令（见 Phase 4.25 模板） |
+| 25 | 质量检查用普通 agent | 必须用 `Agent(subagent_type: "spot-check")` |
+| 26 | EPUB 转换后不清 pandoc 残留 | `[]{#page}` / `{.class}` / `::: fn1` / `::: blk1` 必须在 Phase 2 清理 |

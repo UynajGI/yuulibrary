@@ -54,6 +54,12 @@ weight: 1
     <span class="book-row-desc">为非统计背景的从业者编写的实用统计指南，数据收集、描述统计、假设检验。</span>
     <span class="book-row-arrow">›</span>
   </a>
+  <a class="book-row" href="{{< relref "/books/random-walk-wall-street/_index.md" >}}">
+    <span class="book-row-title">漫步华尔街</span>
+    <span class="book-row-meta">Burton G. Malkiel</span>
+    <span class="book-row-desc">经典投资著作——随机漫步理论、技术与基本面分析、现代投资组合理论、行为金融学与生命周期投资指南，15 章。</span>
+    <span class="book-row-arrow">›</span>
+  </a>
 </div>
 
 ## 最近笔记
