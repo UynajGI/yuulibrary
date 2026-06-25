@@ -175,6 +175,22 @@ def validate_file(path):
     if comment_headings:
         issues.append(f"{comment_headings} #/## lines look like code comments (check fences)")
 
+    # 16. 非标准列表标记（● ◆ ① （1） (1) 1）→ 应为 - / 1.）
+    nonstandard_list = re.findall(r"^(●|◆|①|②|③|④|⑤|⑥|⑦|⑧|⑨|（\d+）|\(\d+\)|\d+）)\s", content, re.MULTILINE)
+    if nonstandard_list:
+        unique = set(nonstandard_list)
+        issues.append(f"{len(nonstandard_list)} non-standard list markers: {unique} (use - or 1.)")
+
+    # 17. 短代码属性中的弯引号（type="..." 应为 type="..."）
+    curly_quotes = re.findall(r'type=[“”][^“”"]*[“”]', content)
+    if curly_quotes:
+        issues.append(f"{len(curly_quotes)} curly/smart quotes in shortcode attrs (use straight ASCII quotes)")
+
+    # 18. callout 内作者名用 heading（### 应为 **粗体**）
+    callout_headings = re.findall(r"\{\{< callout[^}]*>\}}\n###\s", content)
+    if callout_headings:
+        issues.append(f"{len(callout_headings)} ### inside callout (use **bold** for author names)")
+
     return issues
 
 
