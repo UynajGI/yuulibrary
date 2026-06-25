@@ -168,6 +168,20 @@ description: "收益计算、风险评估——投资决策的基础。"
 
 **失败分支**：`## Chapter` 匹配不到 → 尝试 `# Chapter` / `### Chapter`；仍失败让用户提供边界词。
 
+**🔴 Part 分隔页**：如果书有「第X部分」的篇章结构，Part 页码作为独立页面，不嵌入章节内。用卡片链接到所属章节：
+
+```html
+<a class="part-chapter" href="ch01.html">
+  <span class="part-chapter-num">第 1 章</span>
+  <span class="part-chapter-title">系统之基础</span>
+  <span class="part-chapter-desc">要素、连接、目标；存量和流量。</span>
+</a>
+```
+
+- Part 页 weight 在所属第一章之前（如 part-1=9，ch01=10）
+- 链接用 `.html` 后缀（`uglyurls = true`），不用 `.md` 或 `{{< relref >}}`
+- 🔴 Goldmark 不处理 `<div>` 内的 Markdown/短代码，链接必须用纯 HTML `<a href="xxx.html">`
+
 ---
 
 ### Phase 4.5：逐章审核（Haiku 并行）
