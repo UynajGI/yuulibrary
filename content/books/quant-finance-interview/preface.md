@@ -1,6 +1,7 @@
 ---
 title: "前言"
 weight: 2
+description: "本书概述、目标读者与使用指南。"
 ---
 ### 前言
 

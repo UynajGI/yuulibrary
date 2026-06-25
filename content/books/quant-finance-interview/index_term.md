@@ -1,6 +1,7 @@
 ---
 title: "索引"
 weight: 90
+description: "全书术语索引。"
 ---
 ## 索引
 

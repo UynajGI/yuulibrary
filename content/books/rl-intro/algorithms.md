@@ -1,6 +1,7 @@
 ---
 title: "算法列表"
 weight: 4
+description: "全书主要算法汇总。"
 ---
 # 主要算法列表
 

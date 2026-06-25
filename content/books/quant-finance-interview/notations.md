@@ -1,6 +1,7 @@
 ---
 title: "符号说明"
 weight: 3
+description: "全书常用数学符号及其含义。"
 ---
 ## 符号说明
 

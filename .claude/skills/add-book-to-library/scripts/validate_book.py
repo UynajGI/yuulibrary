@@ -192,11 +192,15 @@ def validate_file(path, all_files=None):
         issues.append(issue(WARN, f"{len(callout_h)} ### inside callout (use **bold**)"))
 
     # 20. Naked 第N章 cross-references (should be linked)
-    xrefs = re.findall(r"(?<!\[)第\s*\d+\s*章(?!\s*\]\(ch\d{2}\.md\))", codeless)
-    # Exclude heading lines and front matter references
-    real_xrefs = [x for x in xrefs if not re.match(r"^#{1,6}\s", x)]
-    if real_xrefs:
-        issues.append(issue(WARN, f"{len(real_xrefs)} unlinked 第N章 references (use [第N章](ch0N.md))"))
+    # Strip front matter to avoid matching title/description fields
+    body = re.sub(r"^---\n.*?\n---\n", "", content, flags=re.DOTALL)
+    body = strip_fences(body)
+    # Exclude headings, already-linked refs, and refs followed by link on next line
+    xrefs = [m.group(0) for m in re.finditer(r"第\s*\d+\s*章", body)
+             if not re.match(r"^#{1,6}\s", m.string[m.start():].split("\n")[0])  # not a heading
+             and not re.search(r"\[第\s*\d+\s*章\]\(ch\d{2}\.md\)", m.string[max(0,m.start()-1):m.end()+20])]  # not already linked
+    if xrefs:
+        issues.append(issue(WARN, f"{len(xrefs)} unlinked 第N章 references (use [第N章](ch0N.md))"))
 
     # 21. Copyright residue
     cr = re.findall(r"^(ISBN|客服热|客服信箱|版权所有|侵权必究|CIP 数据|图书在版)", content, re.MULTILINE)
