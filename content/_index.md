@@ -47,6 +47,13 @@ weight: 1
     <span class="book-row-desc">决策者的系统思考，系统动力学入门经典，6 章 + 案例与杠杆点。</span>
     <span class="book-row-arrow">›</span>
   </a>
+
+  <a class="book-row" href="{{< relref "/books/stats-nonstatisticians/_index.md" >}}">
+    <span class="book-row-title">Statistics for Non-Statisticians</span>
+    <span class="book-row-meta">Birger Stjernholm Madsen</span>
+    <span class="book-row-desc">为非统计背景的从业者编写的实用统计指南，数据收集、描述统计、假设检验。</span>
+    <span class="book-row-arrow">›</span>
+  </a>
 </div>
 
 ## 最近笔记
