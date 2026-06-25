@@ -12,15 +12,14 @@ description: "系统动力学基础：要素、连接、目标，存量和流量
 
 ## 本部分章节
 
-<div class="part-chapters">
-  <a class="part-chapter" href="ch01.md">
-    <span class="part-chapter-num">第 1 章</span>
-    <span class="part-chapter-title">系统之基础</span>
-    <span class="part-chapter-desc">要素、连接、目标；存量和流量；反馈回路。</span>
-  </a>
-  <a class="part-chapter" href="ch02.md">
-    <span class="part-chapter-num">第 2 章</span>
-    <span class="part-chapter-title">系统大观园</span>
-    <span class="part-chapter-desc">单存量系统、双存量系统、时间延迟、可再生与不可再生资源。</span>
-  </a>
-</div>
+<a class="part-chapter" href="ch01.html">
+  <span class="part-chapter-num">第 1 章</span>
+  <span class="part-chapter-title">系统之基础</span>
+  <span class="part-chapter-desc">要素、连接、目标；存量和流量；反馈回路。</span>
+</a>
+
+<a class="part-chapter" href="ch02.html">
+  <span class="part-chapter-num">第 2 章</span>
+  <span class="part-chapter-title">系统大观园</span>
+  <span class="part-chapter-desc">单存量系统、双存量系统、时间延迟、可再生与不可再生资源。</span>
+</a>
