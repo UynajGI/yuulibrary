@@ -27,7 +27,7 @@ yuulibrary/
 │   │   └── quant-finance-interview/
 │   ├── notes/                    # 笔记（带 date/tags）
 │   ├── papers/                   # 论文笔记（带 author/year/tags）
-│   └── reference/                # 元素模板速查
+│   └── _reference/               # 元素模板速查（_ 前缀，菜单隐藏）
 ├── layouts/
 │   ├── _shortcodes/              # book-toc/callout/definition/theorem/example 等
 │   └── _partials/docs/inject/head.html  # KaTeX + pseudocode.js 加载
@@ -75,7 +75,7 @@ python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/book
 
 ## 语法约定
 
-- **元素模板**：`{{< callout >}}` / `{{< definition >}}` / `{{< theorem >}}` / `{{< example >}}` / `{{< key-point >}}` / `{{< algorithm >}}`（详见 `content/reference/elements.md`）
+- **元素模板**：`{{< callout >}}` / `{{< definition >}}` / `{{< theorem >}}` / `{{< example >}}` / `{{< key-point >}}` / `{{< algorithm >}}`（详见 `content/_reference/elements.md`）
 - **解答块**：`{{< solution >}}` ... `{{< /solution >}}`（绿色左边框）
 - **图注/表注**：`{{< caption >}}` 图8.1 描述 `{{< /caption >}}`
 - **数学公式**：行内 `$...$`，行间 `$$...$$`（Goldmark passthrough 原样透传 KaTeX）
