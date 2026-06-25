@@ -44,7 +44,14 @@ For each of the 2 chapters, check ALL of these:
 
 1. List all `.md` files in the book directory (skip `_index.md`)
 2. Check preface.md (if exists) for check #13 (hand-written TOC)
-3. Pick 2 chapter files at random
-4. Read the first chapter fully, run all 13 checks, fix everything
-5. Read the second chapter fully, run all 13 checks, fix everything
-6. Report: which 2 chapters, what you fixed in each, total count by category
+3. **🛑 先跑机械 grep 扫描全目录**（AI 会漏，grep 不会）：
+   ```bash
+   grep -rn '^●\|^◆\|^①\|^（[0-9]）' <book-dir>  # #17 非标准列表
+   grep -rn 'type="[^"]*"' <book-dir>               # #15 弯引号
+   grep -rn '^### .*学家\|^### .*作者\|^### .*作家' <book-dir>  # #16 callout 内 heading
+   ```
+   命中 → 直接 sed 机械化修复，不依赖 AI 逐一判断
+4. Pick 2 chapter files at random
+5. Read the first chapter fully, run all 17 checks, fix everything
+6. Read the second chapter fully, run all 17 checks, fix everything
+7. Report: which 2 chapters, what you fixed in each, total count by category
