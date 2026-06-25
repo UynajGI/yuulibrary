@@ -26,7 +26,7 @@ content/books/<book-slug>/   # 扁平存放，无分类子目录
 - 每文件必须有 front matter：`title` + `weight` + `description`
 - `_index.md` 必须加 `tags`、`description`、`BookCollapseSection: true`
 - 菜单从目录结构 + weight 自动生成，无需手写 nav
-- 图片用 `![](images/xxx.jpg)` 相对路径，与 .md 同级
+- 图片用 `![](images/xxx.webp)` 相对路径，与 .md 同级。**🔴 只用 WebP，禁止 JPG/PNG**
 - PDF 源放 `pdfs/`（gitignore），MinerU 原始 MD 保留到 `pdfs/<book>-out/merged/book.md`
 
 ---
@@ -140,12 +140,29 @@ done
 
 # 按文件名排序合并（EPUB 的 spine 顺序通常与文件名一致）
 cat pdfs/<book-id>-out/epub-md/*.md | sed '/^::: {#.*}$/d' > pdfs/<book-id>-out/merged/book.md
+
+# 提取图片（EPUB 的 images/ 通常在 OEBPS/ 或 OPS/ 下）
+find pdfs/<book-id>-out/epub/ -type d -iname "images" -o -iname "image" -o -iname "img"
+# 找到后复制到 Phase 3 创建的 content/books/<slug>/images/
+# 路径通常在 epub/OEBPS/images/ 或 epub/OPS/images/
 ```
+
+**图片路径修复**：pandoc 转换后图片引用仍指向 EPUB 内部路径（如 `OEBPS/images/foo.jpg`）。Phase 3 统一归集 + 转 WebP：
+
+```bash
+# 复制图片到最终目录
+cp pdfs/<book-id>-out/epub/OEBPS/images/* content/books/<slug>/images/
+
+# 修正 markdown 中的图片路径（EPUB 内部路径 → 扁平 images/）
+sed -i 's|OEBPS/images/|images/|g; s|OPS/images/|images/|g' pdfs/<book-id>-out/merged/book.md
+```
+
+WebP 转换在 Phase 3 统一处理。
 
 **失败分支**：
 - pandoc 不可用 → `apt install pandoc` / `brew install pandoc`
 - XHTML 文件不在 OEBPS/ → `find` 搜索 `.xhtml`，手动确认目录
-- 图片不显示 → EPUB 的 `images/` 目录直接复制到 `content/books/<slug>/images/`
+- 图片找不到 → `find` 搜索 `*.jpg` `*.png` `*.gif` `*.svg`，确认 EPUB 的图片目录结构
 
 **优势**（与 PDF 相比）：
 - 无 VLM 调用，免费 + 瞬时
@@ -173,6 +190,22 @@ cat pdfs/<book-id>-out/epub-md/*.md | sed '/^::: {#.*}$/d' > pdfs/<book-id>-out/
 
 ```bash
 mkdir -p content/books/<book-slug>/images
+```
+
+#### 图片归集 + WebP 转换
+
+MinerU 或 EPUB 提取的图片统一归集到 `content/books/<slug>/images/`，**全部转为 WebP**：
+
+```bash
+# 1. 复制 MinerU 图片（Phase 1A）或 EPUB 图片（Phase 1B）
+cp pdfs/<book-id>-out/part*/*.jpg content/books/<slug>/images/   # MinerU
+# 或
+cp pdfs/<book-id>-out/epub/OEBPS/images/* content/books/<slug>/images/  # EPUB
+
+# 2. 全部 JPG/PNG → WebP + 替换引用（一键脚本）
+.claude/skills/add-book-to-library/scripts/convert_to_webp.sh \
+  content/books/<slug>/images/ \
+  pdfs/<book-id>-out/merged/
 ```
 
 🔴 **CHECKPOINT**：确认目录后更新状态文件 `slug` 字段。
@@ -206,7 +239,16 @@ description: "收益计算、风险评估——投资决策的基础。"
 - 验证：每章 H2:H3 ≈ 1:2~1:5
 - 薄书（≤15页）不拆分
 
-**失败分支**：`## Chapter` 匹配不到 → 尝试 `# Chapter` / `### Chapter`；仍失败让用户提供边界词。
+**失败分支**：
+
+| 症状 | 一线修复 | 仍失败 |
+|------|---------|--------|
+| `## Chapter` 匹配不到章节边界 | 尝试 `# Chapter` / `### Chapter` | 让用户提供边界关键词 |
+| MinerU 把子节（`# 8.3 xxx`）误标为新章 | 检查编号连续性；`# N.M` 无「章」字的降级为 `##` | 手工合并到所属章文件 |
+| 拆分后某章只有 1-2 个段落 | 向前合并到上一章（子节被误拆） | 让用户确认合并 |
+| 图片引用断裂（拆分后路径不对） | `![](images/xxx.webp)` 相对路径，确认 images/ 与 .md 同级 | Phase 6 用 validate_book.py 扫描 |
+
+🔴 **CHECKPOINT**：展示拆分结果（章数、每章行数、H1 标题清单），用户确认后再进 Phase 4.5。
 
 **🔴 Part 分隔页**：如果书有「第X部分」的篇章结构，Part 页码作为独立页面，不嵌入章节内。用卡片链接到所属章节：
 
@@ -236,7 +278,17 @@ description: "收益计算、风险评估——投资决策的基础。"
 7. **代码块** — 补 ` ```python ` 围栏、numpy/torch 代码
 8. **伪代码** — 用**小写裸命令**（`state`/`for{}`/`if{}`/`repeat`/`until{}`/`endfor`/`return{}`），不是 `\STATE`/`\FOR`
 
-🔴 **处理顺序**：Haiku agent 先（语义修复）→ 机械化脚本后（空块/compound 分解）
+🔴 **处理顺序**：机械 grep 扫描（AI 会漏，grep 不会）→ Haiku agent 逐章审核 → 机械化脚本（空块/compound 分解）→ validate_book.py
+
+```bash
+# 先跑机械 grep 过滤（非标准列表、弯引号、callout 内 heading）
+grep -rn '^●\|^◆\|^①\|^（[0-9]）' content/books/<slug>/
+grep -rn 'type="[^"]*"' content/books/<slug>/
+grep -rn '^### .*学家\|^### .*作者' content/books/<slug>/
+# 命中 → sed 机械化修复，不依赖 AI 逐一判断
+```
+
+🔴 **CHECKPOINT**：展示审核统计（修复数、剩余 warning 数、validate_book.py 输出），用户确认后进 Phase 5。
 
 ---
 
@@ -312,7 +364,7 @@ hugo --gc --minify
 | 公式不渲染 / `\boldsymbol` 失败 | 检查 KaTeX passthrough + full extension | 核对 `hugo.toml` 和 `static/katex/` |
 | 正文拆字 / display math 吞正文 | `$$` 误包 → 去 `$$`；孤儿 `$$` → 补全 | Phase 2 重扫 |
 | 标题全同级（无层次）| `## N.M.K` → `###` | Phase 4 检查 H2/H3 比例 |
-| 图片不显示 / Build REF_NOT_FOUND | 路径 `![](images/x.jpg)` + `.md` 链接 | 检查相对路径和 relref |
+| 图片不显示 / Build REF_NOT_FOUND | 路径 `![](images/x.webp)` + `.md` 链接 | 检查相对路径和 relref |
 | 书不在菜单 | 检查 `_index.md` 的 `title`/`weight` | 菜单从 content/books/ 自动生成 |
 | 代码无高亮 / 裸露 | ` ```python ` 围栏 | Phase 4.5 补 fence |
 | 图注/解答块样式丢失 | 用 shortcode 不是 `<div>` | `{{< caption >}}` / `{{< solution >}}` |
@@ -342,9 +394,10 @@ hugo --gc --minify
 | 14 | `_index.md` 不打 tags | 打 2-3 个领域标签 |
 | 15 | 例题/业界事例保持标题 | 转 `{{< example >}}` / `{{< callout >}}` |
 | 16 | 代码块不标语言 | ` ```python ` |
-| 17 | 先机械化脚本再 Haiku | Phase 4.5 (Haiku) → 机械清洗 → 验证 |
+| 17 | 跳过机械 grep 直接 Haiku | 机械 grep 扫描（AI 会漏）→ Haiku 逐章审核 → 机械清洗（空块/compound）→ 验证 |
 | 18 | 不复制 MinerU images 到 book | 合并到 `content/books/<slug>/images/` |
 | 19 | 不留 MinerU 原始 MD | 保留到 `pdfs/<book>-out/merged/book.md` |
 | 20 | 拆分只靠 heading 自动匹配 | 手动确认章节边界，合并多余拆分 |
 | 21 | 首页书架忘加新书卡片 | `content/_index.md` 加 `<a class="book-row">` |
 | 22 | 封面手写 `<div style="">` | `<section class="book-cover">` 模板 |
+| 23 | 图片用 JPG/PNG 格式 | WebP only（Phase 3 统一转换），质量 80 有损模式 |
