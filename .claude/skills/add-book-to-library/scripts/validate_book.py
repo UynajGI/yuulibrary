@@ -1,219 +1,273 @@
 #!/usr/bin/env python3
-"""Mechanical validation for book markdown quality. Called by lefthook."""
+"""Mechanical validation for book markdown quality. Called by lefthook pre-commit.
+
+Levels:
+  [E] Error   — blocks commit. Unfixable damage (broken $$, bare code, duplicate H1s…)
+  [W] Warning — passes commit, but should be fixed. Style/consistency issues.
+"""
 
 import glob
 import os
 import re
 import sys
 
+E, W = "[E]", "[W]"
+ERR, WARN = 0, 1
 
-def validate_file(path):
+
+def strip_fences(text):
+    lines = text.split("\n")
+    out = []
+    in_fence = False
+    for line in lines:
+        s = line.strip()
+        if s.startswith("```") and not in_fence:
+            in_fence = True
+            continue
+        elif s == "```" and in_fence:
+            in_fence = False
+            continue
+        elif s.startswith("~~~") and not in_fence:
+            in_fence = True
+            continue
+        elif s == "~~~" and in_fence:
+            in_fence = False
+            continue
+        elif not in_fence:
+            out.append(line)
+    return "\n".join(out)
+
+
+def issue(level, msg):
+    return (level, msg)
+
+
+def validate_file(path, all_files=None):
     issues = []
+    fname = os.path.basename(path)
 
     with open(path) as f:
         content = f.read()
         lines = content.splitlines()
 
-    # 1. Images inside $$ math blocks
-    in_math = False
-    for i, line in enumerate(lines, 1):
-        if line.strip() == "$$":
-            in_math = not in_math
-        elif in_math and line.strip().startswith("!["):
-            issues.append(f"L{i}: IMAGE in $$ math block")
+    # ==================== ERRORS ====================
 
-    # 2. Odd $$ count
+    # 1. Odd $$ count — broken display math
     ds_count = content.count("$$")
     if ds_count % 2 != 0:
-        issues.append(f"Unmatched $$ pairs: {ds_count} (odd)")
+        issues.append(issue(ERR, f"Unmatched $$ pairs: {ds_count} (odd)"))
 
-    # 3. Empty $$ blocks: $$\n$$ with nothing between except optional whitespace on same lines
-    empty = len(re.findall(r"\$\$[ \t]*\n[ \t]*\$\$", content))
-    if empty:
-        issues.append(f"{empty} empty $$ blocks")
-
-    # 4. Compound math blocks (blank line between two formulas inside $$)
-    compound = 0
-    for m in re.finditer(r"\$\$[ \t]*\n(.*?)\n[ \t]*\$\$", content, re.DOTALL):
-        inner = m.group(1)
-        if "\n\n" in inner:
-            compound += 1
-    if compound:
-        issues.append(f"{compound} compound $$ blocks (blank line inside)")
-
-    # 5. .html links (should be .md in source)
-    html_links = re.findall(r"\]\(\./[^)]*\.html\)", content)
-    if html_links:
-        issues.append(f"{len(html_links)} .html links (use .md)")
-
-    # 6. Naked captions — only short lines (≤30 chars), not inline refs like "图2.1描述了一个..."
-    naked = re.findall(r"^(图\d+\.\d+|表\d+\.\d+)[^\n]{0,30}$", content, re.MULTILINE)
-    if naked:
-        issues.append(f'{len(naked)} naked captions (wrap in {{< caption >}})')
-
-    # 7. <details> blocks remaining
+    # 2. <details> blocks remaining
     details = content.count("<details>")
     if details:
-        issues.append(f"{details} <details> blocks remaining")
+        issues.append(issue(ERR, f"{details} <details> blocks remaining"))
 
-    # 8. Pseudocode backslash commands (npm pseudocode.js uses bare: state not \state)
-    bad_cmds = re.findall(
-        r"\\(?:state|for|if|while|repeat|until|return|endfor|endif|endwhile|endprocedure|endfunction|procedure|function|label)\\b",
-        content,
-    )
-    if bad_cmds:
-        issues.append(f"{len(bad_cmds)} backslash pseudocode commands (use bare: state, not \\\\state)")
-
-    # === 标题层级检查（排除代码块内的 # 注释）===
-
-    # 先把代码块内容移除，避免 Python 注释 # 被误判为标题
-    # 正确的配对剥离：```lang 开 → ``` 关（non-greedy 在连续 ```python 时会配对错误）
-    def strip_fences(text):
-        lines = text.split("\n")
-        out = []
-        in_fence = False
-        for line in lines:
-            s = line.strip()
-            if s.startswith("```") and not in_fence:
-                in_fence = True
-                continue
-            elif s == "```" and in_fence:
-                in_fence = False
-                continue
-            elif s.startswith("~~~") and not in_fence:
-                in_fence = True
-                continue
-            elif s == "~~~" and in_fence:
-                in_fence = False
-                continue
-            elif not in_fence:
-                out.append(line)
-        return "\n".join(out)
-
+    # 3. Bare code — no fence wrapping
     codeless = strip_fences(content)
+    bare_code = re.findall(
+        r"^(def |class |import |from \w+ import )", codeless, re.MULTILINE
+    )
+    if bare_code:
+        issues.append(issue(ERR, f"{len(bare_code)} bare code lines (need ```python fence)"))
 
-    headings = re.findall(r"^(#{1,6})\s+(.+?)\s*$", codeless, re.MULTILINE)
-    levels = [len(h[0]) for h in headings]
-    texts = [h[1] for h in headings]
-    h1_texts = [texts[i] for i in range(len(levels)) if levels[i] == 1]
-
-    # 9. 多 H1（章节文件应只有 1 个 H1）
-    if len(h1_texts) > 1:
-        preview = "; ".join(h1_texts[:4])
-        issues.append(f"{len(h1_texts)} H1 headings (should be 1): {preview}")
-
-    # 10. H1 格式不一致（应为「第N章 标题」，无冒号/多余空格）
-    for h1 in h1_texts:
-        # 允许 preface/notations/algorithms/index_term 等非章节文件
-        if re.match(r"^(前言|符号|算法|索引|致谢|目录|附录)", h1):
-            continue
-        # 规范：第N章 标题（N 是数字，后一个空格，无冒号）
-        if re.match(r"^第\s*\d+\s*章\s+\S", h1):
-            # 检查「第」和数字间有无空格、章后是否冒号
-            if re.match(r"^第 \d+ 章", h1):
-                issues.append(f'H1 多余空格: "# {h1}" (应为 "第N章" 无空格)')
-            elif "：" in h1 or ":" in h1.split("章")[-1]:
-                issues.append(f'H1 含冒号: "# {h1}" (应为 "第N章 标题" 无冒号)')
-        elif not re.match(r"^(第\s*\d+\s*章|#\s*$)", h1) and not h1.startswith("#"):
-            # 不符合章节格式又不是特殊页面 → 可能是 MinerU 误标
-            if len(h1_texts) > 1:
-                pass  # 已在 #9 报告
-            else:
-                issues.append(f'H1 格式异常: "# {h1}" (应为 "第N章 标题")')
-
-    # 11. 标题层级跳跃（H1→H3 缺 H2，H2→H4 缺 H3）
-    for i in range(1, len(levels)):
-        jump = levels[i] - levels[i - 1]
-        if jump > 1:
-            issues.append(
-                f"heading skip: H{levels[i-1]}→H{levels[i]} "
-                f'("{texts[i-1][:20]}" → "{texts[i][:20]}")'
-            )
-
-    # 12. 空/乱码标题（单个标点、孤立章号无标题）
-    for t in texts:
-        stripped = t.strip()
-        # 单字母（A-Z）是术语表字母索引，合法，跳过
-        if len(stripped) == 1 and stripped.isalpha():
-            continue
-        if len(stripped) <= 1 and stripped:
-            issues.append(f"empty/garbage heading: '# {t}'")
-        elif re.match(r"^第\s*章\s*$", stripped):  # 「第 章」缺数字
-            issues.append(f"missing chapter number: '# {t}'")
-
-    # === 语义检查（代码块已剥离的内容用 codeless） ===
-
-    # 13. $$ 块内中文正文——排除 \text/\mathrm 内合法中文后，检查句号/长文本
+    # 4. $$ blocks containing Chinese body text (not in \text{} / \mathrm{})
     chinese_body = 0
     for m in re.finditer(r"\$\$(.+?)\$\$", content, re.DOTALL):
         block = m.group(1)
-        # 移除 LaTeX 命令体（\text{...}、\mathrm{...} 等），它们的参数可含中文
         stripped = re.sub(r"\\[a-zA-Z]+\{[^}]*\}", "", block)
         stripped = re.sub(r"\\[a-zA-Z]+", "", stripped)
-        # 句号、逗号、分号、顿号是正文标点，公式不用
         if re.search(r"[，。、；：？！]", stripped):
             chinese_body += 1
         elif len(re.findall(r"[一-鿿]", stripped)) > 10:
             chinese_body += 1
     if chinese_body:
-        issues.append(f"{chinese_body} $$ blocks with Chinese body text (正文可能误包在公式内)")
+        issues.append(issue(ERR, f"{chinese_body} $$ blocks with Chinese body text"))
 
-    # 14. 裸代码——去 fences 后残留的 Python 语句
-    bare_code = re.findall(
-        r"^(def |class |import |from \w+ import )", codeless, re.MULTILINE
+    # 5. Curly/smart quotes in shortcode attributes — Hugo won't parse
+    curly = re.findall(r'type=[“”][^“”"]*[“”]', content)
+    if curly:
+        issues.append(issue(ERR, f"{len(curly)} curly quotes in shortcode attrs (use straight ASCII)"))
+
+    # 6. Multiple H1 in chapter files
+    headings = re.findall(r"^(#{1,6})\s+(.+?)\s*$", codeless, re.MULTILINE)
+    levels = [len(h[0]) for h in headings]
+    texts = [h[1] for h in headings]
+    h1_texts = [texts[i] for i in range(len(levels)) if levels[i] == 1]
+    if len(h1_texts) > 1:
+        preview = "; ".join(h1_texts[:4])
+        issues.append(issue(ERR, f"{len(h1_texts)} H1 headings (should be 1): {preview}"))
+
+    # 7. Empty/garbage headings
+    for t in texts:
+        s = t.strip()
+        if len(s) <= 1 and s and not (len(s) == 1 and s.isalpha()):
+            issues.append(issue(ERR, f"empty/garbage heading: '# {t}'"))
+        elif re.match(r"^第\s*章\s*$", s):
+            issues.append(issue(ERR, f"missing chapter number: '# {t}'"))
+
+    # 8. Front matter completeness (only for book chapter files)
+    if re.match(r"^(ch\d{2}|preface|intro|appendix|notations|algorithms|index_term)\.md$", fname):
+        fm_match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
+        if fm_match:
+            fm = fm_match.group(1)
+            for key in ["title", "weight", "description"]:
+                if not re.search(rf"^{key}:\s*\S", fm, re.MULTILINE):
+                    issues.append(issue(ERR, f"front matter missing '{key}'"))
+        else:
+            issues.append(issue(ERR, "front matter block (---) missing"))
+
+    # ==================== WARNINGS ====================
+
+    # 9. Image inside $$ math (likely MinerU error)
+    in_math = False
+    for i, line in enumerate(lines, 1):
+        if line.strip() == "$$":
+            in_math = not in_math
+        elif in_math and line.strip().startswith("!["):
+            issues.append(issue(WARN, f"L{i}: image inside $$ math block"))
+
+    # 10. Empty $$ blocks
+    empty_ds = len(re.findall(r"\$\$[ \t]*\n[ \t]*\$\$", content))
+    if empty_ds:
+        issues.append(issue(WARN, f"{empty_ds} empty $$ blocks"))
+
+    # 11. Compound $$ blocks (blank line inside)
+    compound = sum(1 for m in re.finditer(r"\$\$[ \t]*\n(.*?)\n[ \t]*\$\$", content, re.DOTALL)
+                   if "\n\n" in m.group(1))
+    if compound:
+        issues.append(issue(WARN, f"{compound} compound $$ blocks"))
+
+    # 12. .html links in source (should be .md for Hugo rewriting)
+    html_links = re.findall(r"\]\(\./[^)]*\.html\)", content)
+    if html_links:
+        issues.append(issue(WARN, f"{len(html_links)} .html links (use .md)"))
+
+    # 13. Naked captions
+    naked_cap = re.findall(r"^(图\d+\.\d+|表\d+\.\d+)[^\n]{0,30}$", content, re.MULTILINE)
+    if naked_cap:
+        issues.append(issue(WARN, f"{len(naked_cap)} naked captions (wrap in {{{{< caption >}}}})"))
+
+    # 14. Backslash pseudocode commands
+    bad_cmds = re.findall(
+        r"\\(?:state|for|if|while|repeat|until|return|endfor|endif|endwhile|endprocedure|endfunction|procedure|function|label)\\b",
+        content,
     )
-    if bare_code:
-        issues.append(f"{len(bare_code)} bare code lines (need ```python fence)")
+    if bad_cmds:
+        issues.append(issue(WARN, f"{len(bad_cmds)} backslash pseudocode commands"))
 
-    # 15. # 注释被标为标题——常见的代码注释关键词
+    # 15. H1 format issues (spaces, colons)
+    for h1 in h1_texts:
+        if re.match(r"^(前言|符号|算法|索引|致谢|目录|附录|献词|引言)", h1):
+            continue
+        if re.match(r"^第 \d+ 章", h1):
+            issues.append(issue(WARN, f'H1 extra spaces: "{h1}"'))
+        elif "：" in h1 or (":" in h1.split("章")[-1] if "章" in h1 else False):
+            issues.append(issue(WARN, f'H1 has colon: "{h1}"'))
+
+    # 16. Heading level skip (H1→H3, H2→H4)
+    for i in range(1, len(levels)):
+        jump = levels[i] - levels[i - 1]
+        if jump > 1:
+            issues.append(issue(WARN,
+                f"heading skip: H{levels[i-1]}→H{levels[i]} "
+                f'("{texts[i-1][:20]}" → "{texts[i][:20]}")'
+            ))
+
+    # 17. Code-comment-like headings
     _comment_kw = r"^(设置|获取|计算|导入|定义|创建|初始化|返回|更新|显示|删除|保存|加载|生成|转换|验证|检查|调用)"
-    comment_headings = 0
-    for m in re.finditer(r"^(#{1,2})\s+(\S.*?)\s*$", codeless, re.MULTILINE):
-        text = m.group(2).strip()
-        if re.match(_comment_kw, text):
-            comment_headings += 1
-    if comment_headings:
-        issues.append(f"{comment_headings} #/## lines look like code comments (check fences)")
+    comment_h = sum(1 for m in re.finditer(r"^(#{1,2})\s+(\S.*?)\s*$", codeless, re.MULTILINE)
+                    if re.match(_comment_kw, m.group(2).strip()))
+    if comment_h:
+        issues.append(issue(WARN, f"{comment_h} #/## look like code comments"))
 
-    # 16. 非标准列表标记（● ◆ ① （1） (1) 1）→ 应为 - / 1.）
-    nonstandard_list = re.findall(r"^(●|◆|①|②|③|④|⑤|⑥|⑦|⑧|⑨|（\d+）|\(\d+\)|\d+）)\s", content, re.MULTILINE)
-    if nonstandard_list:
-        unique = set(nonstandard_list)
-        issues.append(f"{len(nonstandard_list)} non-standard list markers: {unique} (use - or 1.)")
+    # 18. Non-standard list markers
+    ns_list = re.findall(r"^(●|◆|①|②|③|④|⑤|⑥|⑦|⑧|⑨|（\d+）|\(\d+\)|\d+）)\s", content, re.MULTILINE)
+    if ns_list:
+        unique = sorted(set(ns_list))
+        issues.append(issue(WARN, f"{len(ns_list)} non-standard list markers: {unique} (use - or 1.)"))
 
-    # 17. 短代码属性中的弯引号（type="..." 应为 type="..."）
-    curly_quotes = re.findall(r'type=[“”][^“”"]*[“”]', content)
-    if curly_quotes:
-        issues.append(f"{len(curly_quotes)} curly/smart quotes in shortcode attrs (use straight ASCII quotes)")
+    # 19. ### heading inside callout (should be **bold**)
+    callout_h = re.findall(r"\{\{< callout[^}]*>\}\}\n###\s", content)
+    if callout_h:
+        issues.append(issue(WARN, f"{len(callout_h)} ### inside callout (use **bold**)"))
 
-    # 18. callout 内作者名用 heading（### 应为 **粗体**）
-    callout_headings = re.findall(r"\{\{< callout[^}]*>\}}\n###\s", content)
-    if callout_headings:
-        issues.append(f"{len(callout_headings)} ### inside callout (use **bold** for author names)")
+    # 20. Naked 第N章 cross-references (should be linked)
+    xrefs = re.findall(r"(?<!\[)第\s*\d+\s*章(?!\s*\]\(ch\d{2}\.md\))", codeless)
+    # Exclude heading lines and front matter references
+    real_xrefs = [x for x in xrefs if not re.match(r"^#{1,6}\s", x)]
+    if real_xrefs:
+        issues.append(issue(WARN, f"{len(real_xrefs)} unlinked 第N章 references (use [第N章](ch0N.md))"))
+
+    # 21. Copyright residue
+    cr = re.findall(r"^(ISBN|客服热|客服信箱|版权所有|侵权必究|CIP 数据|图书在版)", content, re.MULTILINE)
+    if cr:
+        issues.append(issue(WARN, f"{len(cr)} copyright/residue lines"))
+
+    # 22. HTML table garbage
+    html_tbl = len(re.findall(r"<table>.*?venv.*?</table>", content, re.DOTALL))
+    if html_tbl:
+        issues.append(issue(WARN, f"{html_tbl} garbage HTML tables (venv paths)"))
+
+    # 23. mineru-algorithm div (should be {{< algorithm >}})
+    mineru_div = content.count("mineru-algorithm")
+    if mineru_div:
+        issues.append(issue(WARN, f"{mineru_div} mineru-algorithm divs (use {{{{< algorithm >}}}})"))
+
+    # 24. Hand-written TOC in preface (redundant with book-toc)
+    if fname == "preface.md" and re.search(r"^##\s+目录\s*$", content, re.MULTILINE):
+        found_toc = False
+        for line in lines:
+            if re.match(r"^##\s+目录\s*$", line):
+                found_toc = True
+                continue
+            if found_toc and re.match(r"^第\s*\d+\s*章", line):
+                issues.append(issue(WARN, "hand-written TOC in preface (delete, book-toc auto-generates)"))
+                break
+
+    # 25. ### inside callout quote blocks
+    callout_heading = re.findall(r"\{\{< callout type=.quote. >\}\}\n###\s", content)
+    if callout_heading:
+        issues.append(issue(WARN, f"{len(callout_heading)} ### in quote callout (use **bold**)"))
 
     return issues
 
 
 def main():
     book_dir = sys.argv[1] if len(sys.argv) > 1 else "content/books/"
-    files = glob.glob(f"{book_dir}/**/ch*.md", recursive=True)
+    files = sorted(glob.glob(f"{book_dir}/**/*.md", recursive=True))
+    # Skip _index.md, non-chapter files
+    files = [f for f in files if os.path.basename(f) != "_index.md" and "/images/" not in f]
 
-    total = 0
-    for path in sorted(files):
+    total_e = 0
+    total_w = 0
+    for path in files:
         issues = validate_file(path)
         if issues:
-            total += len(issues)
             short = os.path.relpath(path, start=os.path.commonprefix([path, book_dir]))
-            print(f"{short}:")
-            for iss in issues:
-                print(f"  {iss}")
+            errors = [i for i in issues if i[0] == ERR]
+            warns = [i for i in issues if i[0] == WARN]
+            if errors or warns:
+                print(f"{short}:")
+                for _, msg in errors:
+                    print(f"  {E} {msg}")
+                for _, msg in warns:
+                    print(f"  {W} {msg}")
+            total_e += len(errors)
+            total_w += len(warns)
 
-    if total:
-        print(f"\n{total} issues found")
-        sys.exit(1)
-    else:
+    if total_e + total_w == 0:
         print("OK")
+        return 0
+
+    summary = []
+    if total_e:
+        summary.append(f"{total_e} error(s)")
+    if total_w:
+        summary.append(f"{total_w} warning(s)")
+    print(f"\n{', '.join(summary)} found")
+
+    return 1 if total_e > 0 else 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
