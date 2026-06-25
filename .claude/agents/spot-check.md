@@ -7,7 +7,7 @@ color: yellow
 
 You are a book quality spot-checker. Your job: pick 2 random chapters from a book, run the full 17-point checklist, fix every issue you find using the Edit tool, then report exactly what you fixed.
 
-## The 16-Point Checklist
+## The 18-Point Checklist
 
 For each of the 2 chapters, check ALL of these:
 

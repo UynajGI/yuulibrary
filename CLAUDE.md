@@ -42,7 +42,7 @@ yuulibrary/
 
 完整流程见 `.claude/skills/add-book-to-library/SKILL.md`。核心步骤：
 
-1. MinerU VLM 提取 PDF → 合并 → 清洗
+1. MinerU VLM 提取 PDF / EPUB 解包转换 → 合并 → 清洗
 2. 在 `content/books/<book-slug>/` 下创建扁平目录（**无分类子目录**）
 3. `_index.md`：`<section class="book-cover">` + `{{< book-toc >}}`，必须加 `description` + `tags`
 4. 每章文件 `ch01.md` 起，**front matter 含 `description`**：
@@ -63,13 +63,13 @@ yuulibrary/
 python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/books/
 ```
 
-15 项机械验证（lefthook pre-commit 自动运行）：`$$` 配对/中文误包/裸代码/标题层级/fence 剥离 等。
+27 项机械验证（8 Error + 19 Warning，lefthook pre-commit + CI 自动运行）。
 
 ## 可用 Agent
 
 | Agent | 模型 | 用途 |
 |-------|------|------|
-| **spot-check** | Haiku | 随机抽查 2 章，12 点清单（OCR/标题层级/caption/元素模板/交叉引用…），发现问题直接修 |
+| **spot-check** | Haiku | 随机抽查 2 章，18 点清单（先机械 grep → AI 逐章审核），发现问题直接修 |
 
 用法：`Agent(subagent_type: "spot-check", prompt: "Spot-check the book at content/books/<slug>/")`
 
@@ -97,5 +97,5 @@ python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/book
 - KaTeX（非 MathJax）渲染数学，处理 `$...$` 和 `$$...$$` 分隔符
 - `uglyurls = true`：URL 为 `ch01.html`（与旧 mkdocs `use_directory_urls:false` 一致，旧链接不失效）
 - 书籍目录用 `_index.md`（section 列表页），章节用普通 `.md`
-- 图片与 `.md` 同级，用相对路径 `images/`，无需 page bundle
+- 图片全部 WebP 格式，与 `.md` 同级，用相对路径 `images/`
 - Hugo Book 主题用 `layouts/_shortcodes/`（注意下划线前缀，Hugo 0.146+ 增强目录结构）
