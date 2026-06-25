@@ -238,6 +238,33 @@ def validate_file(path, all_files=None):
     if callout_heading:
         issues.append(issue(WARN, f"{len(callout_heading)} ### in quote callout (use **bold**)"))
 
+    # 27. Mid-sentence breaks (MinerU artifact: Chinese line → blank line → short continuation)
+    mid_breaks = 0
+    if re.match(r'^(appendix|notation)', fname):
+        pass  # skip code/model listings and symbol tables
+    else:
+        for i in range(len(lines) - 2):
+            cur = lines[i].strip()
+            nxt = lines[i + 1].strip()
+            nnx = lines[i + 2].strip()
+            if not (cur and nxt == "" and nnx):
+                continue
+            if not (re.search(r'[一-鿿]$', cur) and re.match(r'^[一-鿿a-zA-Z]', nnx)):
+                continue
+            if re.search(r'[。！？）\)》\]」』]|^#|^\$|^<|^\{|^\[|^{\{|^{\%|^- |^[0-9]+\.', cur):
+                continue
+            if len(cur) < 10:
+                continue
+            if re.search(r'(作家|学家|作者|教授|博士|主席|所长|董事长|秘书长)$', cur):
+                continue  # quote attribution line
+            # Real mid-sentence breaks have short continuations (1-4 chars before punctuation/end)
+            short_cont = re.match(r'^.{1,4}[。！？，、；：）\)》\]」』\n]', nnx)
+            if not short_cont:
+                continue
+            mid_breaks += 1
+    if mid_breaks:
+        issues.append(issue(WARN, f"{mid_breaks} mid-sentence breaks (join across blank line)"))
+
     return issues
 
 

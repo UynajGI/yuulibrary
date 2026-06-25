@@ -30,6 +30,7 @@ For each of the 2 chapters, check ALL of these:
 | 15 | Curly quotes in shortcodes | `type="note"` using Unicode curly quotes `"` (U+201C/U+201D) | Replace with ASCII straight quotes `type="note"` — Hugo shortcodes only parse ASCII quotes |
 | 16 | Callout 内作者名用 heading | `### 作者名` inside `{{< callout type="quote" >}}` | Use `**作者名**` (bold) — avoids heading skip warnings and is semantically correct |
 | 17 | Non-standard list markers | `（1）` `①` `●` `1）` `◆` used as list markers instead of markdown syntax | Convert to `1.` (ordered) or `- ` (unordered). Standard markdown lists get proper CSS styling |
+| 18 | Mid-sentence breaks (MinerU artifact) | Chinese line ending without `。！？` → blank line → Chinese line start. Looks like two paragraphs but is one sentence. | Join across the blank line. Common pattern: `不容\n\n易`、`保\n\n持`、`提供\n\n了借口` |
 
 ## What NOT to do
 
@@ -49,8 +50,25 @@ For each of the 2 chapters, check ALL of these:
    grep -rn '^●\|^◆\|^①\|^（[0-9]）' <book-dir>  # #17 非标准列表
    grep -rn 'type="[^"]*"' <book-dir>               # #15 弯引号
    grep -rn '^### .*学家\|^### .*作者\|^### .*作家' <book-dir>  # #16 callout 内 heading
+   # #18 MinerU 断行：中文行尾 → 空行 → 短续文（1-4字到标点）
+   python3 -c "
+   import re, glob
+   for f in glob.glob('<book-dir>/*.md'):
+       if 'appendix' in f: continue
+       lines = open(f).readlines()
+       for i in range(len(lines)-2):
+           a,b,c = lines[i].strip(), lines[i+1].strip(), lines[i+2].strip()
+           if not (a and not b and c): continue
+           if not (re.search(r'[一-鿿]\$',a) and re.match(r'^[一-鿿a-zA-Z]',c)): continue
+           if re.search(r'[。！？）\\)]|^#|^\$|^<|^\{|^\[|^- |^[0-9]+\.',a): continue
+           if len(a) < 10: continue
+           if re.search(r'(作家|学家|作者|教授|主席|所长|秘书长)\$',a): continue
+           if not re.match(r'^.{1,4}[。！？，、；：）\\)\n]', c): continue
+           print(f'{f}:{i+1}: {a[:60]}')
+           print(f'  → {c[:60]}')
+   "
    ```
-   命中 → 直接 sed 机械化修复，不依赖 AI 逐一判断
+   命中 → 逐行合并修复，不依赖 AI 逐一判断
 4. Pick 2 chapter files at random
 5. Read the first chapter fully, run all 17 checks, fix everything
 6. Read the second chapter fully, run all 17 checks, fix everything
