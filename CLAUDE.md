@@ -45,7 +45,7 @@ yuulibrary/
 
 完整流程见 `.claude/skills/add-book-to-library/SKILL.md`。核心步骤：
 
-1. MinerU VLM 提取 PDF / EPUB 解包转换 → 合并 → 清洗
+1. MinerU VLM 提取 PDF / EPUB 解包转换 → 合并 → 清洗（**EPUB pandoc 残留必须清理**：`::: fn1` / `::: blk1` / `[]{#page}` / `{.class}`）
 2. 在 `content/books/<book-slug>/` 下创建扁平目录（**无分类子目录**）
 3. `_index.md`：`<section class="book-cover">` + `{{< book-toc >}}`，必须加 `description` + `tags`
 4. 每章文件 `ch01.md` 起，**front matter 含 `description`**：
@@ -57,8 +57,10 @@ yuulibrary/
    ---
    ```
 5. 标题层级：`#` 章 → `##` 节 → `###` 子节（MinerU 全标 `##`，必须修复）
-6. Phase 4.5 Haiku 逐章审核 → 元素模板（example/callout/caption）→ `validate_book.py` 验证
-7. `hugo server` 验证，首页书架加卡片
+6. **🔴 英文书必须翻译成中文**：翻译时同步转换元素模板（引用→`{{< callout type="quote" >}}`、来源→`{{< caption >}}`、第N章→`[第N章](ch0N.md)`）
+7. Phase 4.5 Haiku 逐章审核 → 元素模板（example/callout/caption）→ `validate_book.py` 验证
+8. **🔴 质量检查必须用 spot-check agent**：`Agent(subagent_type: "spot-check")`
+9. `hugo server` 验证，首页书架加卡片
 
 ## 质量验证
 
