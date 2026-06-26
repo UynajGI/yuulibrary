@@ -66,6 +66,12 @@ weight: 1
     <span class="book-row-desc">从策略研发到实盘部署的完整量化交易入门——回测、风险管理、Kelly公式、均值回复与协整，7 章。</span>
     <span class="book-row-arrow">›</span>
   </a>
+  <a class="book-row" href="{{< relref "/books/trade-your-way/_index.md" >}}">
+    <span class="book-row-title">通向财务自由之路</span>
+    <span class="book-row-meta">Van K. Tharp</span>
+    <span class="book-row-desc">交易系统开发完整框架——目标设定、期望值分析、入场信号、止损退出、仓位管理，8 章。</span>
+    <span class="book-row-arrow">›</span>
+  </a>
 </div>
 
 ## 最近笔记
