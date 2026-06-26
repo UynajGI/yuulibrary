@@ -258,19 +258,35 @@ description: "收益计算、风险评估——投资决策的基础。"
 
 🔴 **CHECKPOINT**：展示拆分结果（章数、每章行数、H1 标题清单），用户确认后再进 Phase 4.5。
 
-**🔴 Part 分隔页**：如果书有「第X部分」的篇章结构，Part 页码作为独立页面，不嵌入章节内。用卡片链接到所属章节：
+**🔴 Part 分隔页**：如果书有「第X部分」的篇章结构，Part 页码作为独立页面，不嵌入章节内。**必须用 book-part 模板**（参照 `content/books/systems-beauty/part-1.md`）：
 
-```html
+```markdown
+---
+title: "第一部分 · 系统的结构和行为"
+weight: 9
+description: "系统动力学基础：要素、连接、目标，存量和流量，反馈回路。"
+---
+
+<section class="book-part">
+  <p class="book-part-label">Part 1</p>
+  <h2 class="book-part-title">系统的结构和行为</h2>
+  <p class="book-part-desc">系统动力学基础概念——从「什么是系统」到「系统如何运作」。</p>
+</section>
+
+## 本部分章节
+
 <a class="part-chapter" href="ch01.html">
   <span class="part-chapter-num">第 1 章</span>
   <span class="part-chapter-title">系统之基础</span>
-  <span class="part-chapter-desc">要素、连接、目标；存量和流量。</span>
+  <span class="part-chapter-desc">要素、连接、目标；存量和流量；反馈回路。</span>
 </a>
 ```
 
-- Part 页 weight 在所属第一章之前（如 part-1=9，ch01=10）
+- **🔴 Part weight 必须比所属第一章小 1**：ch01=10 → part1=9，ch05=15 → part2=14
 - 链接用 `.html` 后缀（`uglyurls = true`），不用 `.md` 或 `{{< relref >}}`
 - 🔴 Goldmark 不处理 `<div>` 内的 Markdown/短代码，链接必须用纯 HTML `<a href="xxx.html">`
+- **🔴 章节标题必须用 markdown 格式**：小标题不能是纯文本段落，必须用 `##`/`###`。EPUB 转换后的小标题经常是纯文本，需要批量修复
+- **🔴 pandoc 表格修复**：pandoc 转换的表格可能是 `-----` 分隔符格式，需转换为 `|---|---|` 正确格式
 
 ---
 
@@ -474,3 +490,7 @@ spot-check 随机抽查 2 章，18 点清单，发现问题直接修。
 | 24 | 翻译 agent 只说"翻译"不提元素模板 | prompt 必须包含完整翻译规则+元素转换指令（见 Phase 4.25 模板） |
 | 25 | 质量检查用普通 agent | 必须用 `Agent(subagent_type: "spot-check")` |
 | 26 | EPUB 转换后不清 pandoc 残留 | `[]{#page}` / `{.class}` / `::: fn1` / `::: blk1` 必须在 Phase 2 清理 |
+| 27 | Part 页面不用 book-part 模板 | 必须用 `<section class="book-part">` + 章节链接卡片（参照 systems-beauty） |
+| 28 | Part weight 排到章节后面 | Part weight 必须比所属第一章小 1（ch01=10 → part1=9） |
+| 29 | 章节小标题用纯文本 | 必须用 `##`/`###` markdown 标题格式 |
+| 30 | pandoc 表格用 `-----` 分隔符 | 必须转为 `|---|---|` 正确格式 |
