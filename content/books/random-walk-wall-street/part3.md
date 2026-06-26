@@ -1,6 +1,6 @@
 ---
 title: "第三部分 · 新投资技术"
-weight: 250
+weight: 18
 description: "现代投资组合理论、CAPM、行为金融学与智能贝塔。"
 ---
 
