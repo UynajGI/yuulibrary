@@ -60,6 +60,12 @@ weight: 1
     <span class="book-row-desc">经典投资著作——随机漫步理论、技术与基本面分析、现代投资组合理论、行为金融学与生命周期投资指南，15 章。</span>
     <span class="book-row-arrow">›</span>
   </a>
+  <a class="book-row" href="{{< relref "/books/quant-trading/_index.md" >}}">
+    <span class="book-row-title">量化交易</span>
+    <span class="book-row-meta">Ernest P. Chan</span>
+    <span class="book-row-desc">从策略研发到实盘部署的完整量化交易入门——回测、风险管理、Kelly公式、均值回复与协整，7 章。</span>
+    <span class="book-row-arrow">›</span>
+  </a>
 </div>
 
 ## 最近笔记
