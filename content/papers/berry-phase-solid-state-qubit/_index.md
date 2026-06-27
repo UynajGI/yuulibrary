@@ -149,6 +149,51 @@ $$
 
 ---
 
+## 致谢
+
+作者感谢 P. Maurer 和 L. Steffen 对项目的贡献，以及 A. Shnirman、J. Blatter、G. De Chiara、G. M. Palma 的有益讨论。本工作受瑞士国家科学基金会和 ETH Zürich 资助。P.J.L. 通过 EC 欧内 Marie-Curie 奖学金获支持。A.B. 受 NSERC、CIFAR、FQRNT 资助。D.I.S.、L.F.、R.J.S. 受国家安全局（陆军研究办公室）、NSF 和耶鲁大学资助。L.F. 另受意大利 CNR-控制论研究所（Cibernetica, Pozzuoli）部分资助。J.M.G. 受 ORDCF 和 MITACS 部分资助。
+
+---
+
+## 参考文献
+
+{{< callout type="note" title="关于参考文献" >}}
+学术论文的参考文献条目按国际惯例保留原文（作者、刊名、卷期、年份），便于检索原文。以下为本文引用的全部 30 条文献。
+{{< /callout >}}
+
+1. A. Shapere, F. Wilczek, *Geometric Phases in Physics* (World Scientific, Singapore, 1989).
+2. J. Anandan, *Nature* **360**, 307 (1992).
+3. M. V. Berry, *Proc. R. Soc. London Ser. A* **392**, 45 (1984). — **Berry 相的奠基论文。**
+4. M. A. Nielsen, I. L. Chuang, *Quantum Computation and Quantum Information* (Cambridge University Press, 2000).
+5. J. A. Jones, V. Vedral, A. Ekert, G. Castagnoli, *Nature* **403**, 869 (2000). — NMR 中的几何相位门。
+6. D. Leibfried et al., *Nature* **422**, 412 (2003). — 离子阱中的几何相位门。
+7. G. Wendin, V. Shumeiko, in *Handbook of Theoretical and Computational Nanotechnology*, vol. 3 (2006); arXiv:cond-mat/0508729.
+8. M. H. Devoret, A. Wallraff, J. M. Martinis, arXiv:cond-mat/0411174 (2004).
+9. T. Yamamoto, Y. A. Pashkin, O. Astafiev, Y. Nakamura, J. S. Tsai, *Nature* **425**, 941 (2003).
+10. M. Steffen et al., *Science* **313**, 1423 (2006).
+11. A. O. Niskanen et al., *Science* **316**, 723 (2007).
+12. J. H. Plantenberg, P. C. de Groot, C. J. P. M. Harmans, J. E. Mooij, *Nature* **447**, 836 (2007).
+13. J. Majer et al., *Nature* **449**, 443 (2007).
+14. M. A. Sillanpää, J. I. Park, R. W. Simmonds, *Nature* **449**, 438 (2007).
+15. G. Falci, R. Fazio, G. M. Palma, J. Siewert, V. Vedral, *Nature* **407**, 355 (2000). — 超导几何相位门的首批方案之一。
+16. X. B. Wang, M. Keiji, *Phys. Rev. B* **65**, 172508 (2002).
+17. A. Blais, A. M. S. Tremblay, *Phys. Rev. A* **67**, 012308 (2003).
+18. Z. H. Peng, M. J. Zhang, D. N. Zheng, *Phys. Rev. B* **73**, 020502 (2006).
+19. M. Möttönen, J. P. Pekola, J. J. Vartiainen, V. Brosco, F. W. J. Hekking, *Phys. Rev. B* **73**, 214523 (2006).
+20. Y. Nakamura, Y. A. Pashkin, J. S. Tsai, *Nature* **398**, 786 (1999). — 超导量子比特首次相干演示。
+21. A. Shnirman, G. Schön, Z. Hermon, *Phys. Rev. Lett.* **79**, 2371 (1997).
+22. V. Bouchiat, D. Vion, P. Joyez, D. Esteve, M. H. Devoret, *Phys. Scr.* **T76**, 165 (1998).
+23. D. Vion et al., *Science* **296**, 886 (2002). — 电荷简并点抗噪原理。
+24. A. Blais, R. S. Huang, A. Wallraff, S. M. Girvin, R. J. Schoelkopf, *Phys. Rev. A* **69**, 062320 (2004). — circuit QED 理论奠基。
+25. A. Wallraff et al., *Nature* **431**, 162 (2004). — circuit QED 实验奠基。
+26. A. Wallraff et al., *Phys. Rev. Lett.* **95**, 060501 (2005). — 色散读出方法。
+27. A. Abragam, *Principles of Nuclear Magnetism* (Oxford University Press, 1961). — 自旋回波经典教材。
+28. Y. Aharonov, J. Anandan, *Phys. Rev. Lett.* **58**, 1593 (1987). — 非绝热几何相位。
+29. G. De Chiara, G. M. Palma, *Phys. Rev. Lett.* **91**, 090404 (2003). — **几何退相位理论，本文核心对照。**
+30. G. Ithier et al., *Phys. Rev. B* **72**, 134519 (2005). — 电荷噪声表征。
+
+---
+
 ## 阅读笔记
 
 ### 一句话概括
@@ -161,7 +206,65 @@ $$
 2. **把抽象参数空间变成可调控的微波**：哈密顿量里的 $\pmb{R}=(\Omega_x, \Omega_y, \Delta)$ 三维偏置场，对应两路正交相位的微波 + 失谐，$\pmb{R}$ 在参数空间画的圆周 = 物理上对微波相位/幅度的绝热调制。用电路工程实现几何操作，是这篇工作的工程贡献。
 3. **立体角 $\Theta_C = 2\pi(1-\cos\theta)$ 是关键不变量**：Berry 相只依赖路径围出的立体角，与遍历速度无关。作者扫 $\Omega_R$、改圈数 $n$、换方向，测得相位全部落在斜率 $2n$ 的直线上，从多组自洽的证据锁死「这就是几何相位」。
 
-### 容易被忽略的副产物：几何退相位
+### 物理推导：从绝热定理到 Berry 相
+
+要真正看懂这篇论文，得把 Berry 相的来源讲清楚。考虑哈密顿量 $H(\pmb{R}(t))$ 随参数 $\pmb{R}$ 绝热变化。瞬时本征态 $|n(\pmb{R})\rangle$ 满足 $H(\pmb{R})|n(\pmb{R})\rangle = E_n(\pmb{R})|n(\pmb{R})\rangle$。绝热定理保证系统停留在同一本征态，但会积累两个相位：
+
+$
+|\psi(t)\rangle = e^{-\frac{i}{\hbar}\int_0^t E_n(\pmb{R}(t'))dt'} \cdot e^{i\gamma_n(t)} |n(\pmb{R}(t))\rangle
+$
+
+第一项是**动力学相位**（dynamical phase），由能量积分给出；第二项 $\gamma_n$ 是几何相位。把本征态代入薛定谔方程，可解出：
+
+$
+\gamma_n(C) = i\oint_C \langle n(\pmb{R})|\nabla_{\pmb{R}} n(\pmb{R})\rangle \cdot d\pmb{R}
+$
+
+这是一个参数空间中的环路积分，**只依赖路径 $C$ 的几何**。对自旋 1/2 系统，本征态在 Bloch 球上是 $\pmb{R}$ 方向的极化矢量，上述积分恰好等于路径所围立体角，于是得到本文反复出现的核心公式：
+
+$
+\gamma_{\pm} = \mp \frac{1}{2}\Theta_C = \mp \pi(1-\cos\theta)
+$
+
+基态（−）和激发态（+）符号相反——这正是自旋回波方案能区分两者的依据（回波 $\pi$ 脉冲交换基态/激发态，使几何相翻倍而动力学相抵消）。
+
+### 实验参数详解
+
+把论文里散落的参数集中起来，能看清实验的工作点：
+
+| 参数 | 数值 | 含义 |
+|------|------|------|
+| $\omega_a/2\pi$ | $\approx 3.7\,\text{GHz}$ | 量子比特跃迁频率（电荷简并点） |
+| $\omega_r/2\pi$ | $\approx 5.4\,\text{GHz}$ | 谐振腔频率 |
+| $\Delta/2\pi$ | $\approx 50\,\text{MHz}$ | 微波失谐（实验中固定） |
+| $T_1$ | $\approx 10\,\mu\text{s}$ | 能量弛豫时间 |
+| $T_2^{\text{echo}}$ | $\approx 2\,\mu\text{s}$ | 自旋回波相干时间 |
+| $T$ | $500\,\text{ns}$ | 总脉冲序列时长 |
+| 共振脉冲长度 | $12\,\text{ns}$ | $\pi/2$、$\pi$ 脉冲 |
+| 绝热参数 $A$ | $\le 0.04$ | $\dot\varphi_R\sin\theta/2R \ll 1$ |
+| 重复次数 | $2\times10^5$ | 每个数据点的统计累积 |
+
+**为什么选 $\Delta/2\pi \approx 50\,\text{MHz}$？** 失谐不能太大（否则 $\pmb{R}$ 几乎沿 z 轴，立体角趋零，相位信号微弱），也不能太小（$\Delta\to 0$ 时锥面退化，绝热移动困难）。50 MHz 让锥角 $\theta$ 在扫 $\Omega_R$ 时能覆盖一个可观的立体角范围，同时保持 $T=500\,\text{ns}$ 远短于 $T_2^{\text{echo}}$，避免常规退相位污染。
+
+**绝热参数 $A\le 0.04$ 的分量**：这意味着偏置场方向的转动速率比 Larmor 进动慢 25 倍以上。作者专门验证了「观测相位与 $T$ 无关」——这是绝热性的关键判据：若非绝热，相位会含动力学残余、随 $T$ 线性漂移。
+
+### 自旋回波方案的相位账本
+
+把整个 $C_{-+}$ 序列的相位逐步算清楚，是理解实验的核心。设单次遍历圆锥路径 $C_\pm$ 的几何相为 $\pm\gamma_C$（方向决定符号），动力学相为 $\delta$（与方向无关）：
+
+| 步骤 | 操作 | 累积相位 |
+|------|------|---------|
+| 1 | $\pi/2$ 脉冲制备叠加态 | $0$ |
+| 2 | 遍历 $C_-$ | $\phi_- = \delta - \gamma_C$ |
+| 3 | 回波 $\pi$ 脉冲（反转态） | $-\phi_- = -\delta + \gamma_C$ |
+| 4 | 遍历 $C_+$ | $\phi_+ = \delta + \gamma_C$ |
+| **合计** | | $2\gamma_C$（纯几何） |
+
+动力学相 $\delta$ 在步骤 3 被翻转、步骤 4 再加回，净贡献为零；几何相 $\gamma_C$ 因路径反向而在两段同号叠加。**这是用对称性消除系统误差的典范**——不依赖对 $\delta$ 的精确知道或抵消校准。
+
+控制实验 $C_{++}$（两段同向）给出 $0$ 相位，是对称性论证的直接验证：同向时几何相在步骤 3 翻转后、步骤 4 又翻回，净零。
+
+### 几何退相位：被低估的发现
 
 退相位通常被归结为 $T_2$（时间）。但本文发现：固定 $T$、只改变 $\Omega_R$，干涉对比度仍在变——这说明退相位还依赖**路径几何**。机理是：电荷噪声使 $\Delta$ 慢漂移 → 锥角 $\theta$ 漂移 → 立体角在各次测量间不同 → Berry 相的方差 $\sigma_\gamma^2$ 几何化。
 
@@ -177,6 +280,41 @@ $$
 - 其「几何退相位」概念在 2015 年 Berger 等、2016 年 Gasparinetti 等工作中被进一步精测和发展，成为评估几何量子门保真度的核心指标。
 - 实验平台（Cooper pair box + 谐振腔、$T_1\approx 10\,\mu\text{s}$、色散读出）正是 circuit QED 黄金期的标准配置，可对照阅读 Wallraff 2004、Blais 2004。
 
+### 批判性思考
+
+**1. 「几何 = 容错」的神话与现实。** 几何量子门最初被推崇，正是因为 Berry 相「不依赖时间能量、只依赖路径几何」——直觉上这意味着对控制噪声鲁棒。但本文实测的几何退相位直接戳破了这个乐观假设：**低频噪声通过调制立体角，反而开辟了一条几何专属的退相位通道**。这个发现的意义在于：几何门并非天生容错，它的优势（抗高频噪声）和劣势（对低频漂移敏感）是同一硬币的两面——都源于「相位由立体角决定」这一几何性。后续超导几何门（如 transmon 上的 holonomic gate）要提升保真度，重点恰恰是抑制低频磁通/电荷噪声，而非泛泛地「利用几何」。
+
+**2. 为什么是 Cooper pair box 而非 transmon？** 本文（2007）处于超导量子比特平台的过渡期。Cooper pair box 在电荷简并点工作，$T_1\approx 10\,\mu\text{s}$、$T_2^{\text{echo}}\approx 2\,\mu\text{s}$——按今天的标准，相干时间偏短，且对电荷噪声敏感（这正是几何退相位的来源！）。仅一年后（2008），同一 Yale 组提出 transmon，通过增大 $E_J/E_C$ 比极大抑制电荷色散，$T_2$ 提升一到两个量级。本文用 CPB 是时代所限，但其几何退相位结论在 transmon 上反而被弱化（电荷噪声被抑制）——这既是本文平台的局限，也反向印证了「几何退相位源于电荷噪声」的机制。
+
+**3. 绝热条件的紧致性。** $A\le 0.04$ 意味着操作比绝热极限保守 25 倍。这虽保证了相位干净，但也意味着几何门**速度受限**——绝热要求操作时间远长于 Larmor 周期，与高速门控矛盾。这正是后来非绝热几何门（Aharonov-Anandan 相，文献 [28]）和 holonomic 门发展的动机：放弃绝热性、用简并子空间的几何相，兼顾速度与几何鲁棒性。
+
+**4. 测量的统计强度。** 每个数据点累积 $2\times10^5$ 次重复，这是超导量子比特实验的典型量级。考虑到 $T_2^{\text{echo}}\approx 2\,\mu\text{s}$ 而序列长 $500\,\text{ns}$（约占相干时间的 1/4），单次对比度有限，必须靠海量平均才达到 0.14 rad 的精度。这也说明：在当时的平台上，几何相位测量是「硬扛」出来的，不是轻松可得。
+
+### 局限性
+
+- **单一失谐点。** 全部数据在 $\Delta/2\pi\approx 50\,\text{MHz}$ 下取得，没有系统扫描 $\Delta$ 验证立体角公式在不同锥角下的普适性（虽然扫 $\Omega_R$ 间接覆盖了部分锥角范围）。
+- **绝热区的限制。** 只在 $A\le 0.04$ 验证，未探测非绝热过渡区，无法直接展示 Berry 相向 Aharonov-Anandan 相的连续过渡。
+- **退相位机制的间接证据。** 几何退相位的 $\sigma_\gamma^2$ 公式依赖 De Chiara & Palma [29] 的理论，实验是通过拟合 $e^{-\sigma_\gamma^2/2}$ 包络间接验证，而非直接测量立体角涨落。
+- **未演示几何门。** 本文只测相位，未实现两比特几何门或单比特几何旋转门——真正的「几何量子计算」要等后续工作。
+
+### 关键公式速查
+
+| 公式 | 含义 | 出处 |
+|------|------|------|
+| $H = \hbar\pmb{R}\cdot\pmb{\sigma}/2$ | 量子比特一般哈密顿量 | 正文 |
+| $\Theta_C = 2\pi(1-\cos\theta)$ | 圆锥路径立体角 | Berry [3] |
+| $\gamma_{\pm} = \mp\Theta_C/2$ | 基/激发态几何相 | Berry [3] |
+| $\phi = 2\gamma_C$ | 自旋回波后纯几何相 | 本文核心 |
+| $A = \dot\varphi_R\sin\theta/2R \ll 1$ | 绝热条件 | 本文 |
+| $\sigma_\gamma^2 = \sigma_\omega^2(2n\pi\sin^2\theta/R)^2$ | 几何相位方差 | De Chiara [29] |
+
+### 延伸阅读
+
+- **M. V. Berry (1984) [3]** — 几何相位的开山论文，理解本文的理论根基。
+- **Aharonov & Anandan (1987) [28]** — 把 Berry 相推广到非绝热循环，是后续快速几何门的理论基础。
+- **Wallraff et al. (2004) [25]** + **Blais et al. (2004) [24]** — circuit QED 的实验与理论奠基，本文的平台来源。
+- **Berger et al. (2015)** / **Gasparinetti et al. (2016)** — 本文几何退相位概念的后续精测，可对照阅读以看这一思路的演进。
+
 ### 术语对照
 
 | 中文 | 英文 | 含义 |
@@ -185,9 +323,18 @@ $$
 | 动力学相位 | dynamic phase | 由能量积分决定的传统相位 $\delta(t)$ |
 | 绝热 | adiabatic | 哈密顿量变化速率远小于系统内禀频率 |
 | 立体角 | solid angle | 闭合路径在参数空间原点所张的角度 $\Theta_C$ |
+| 平行移动 | parallel transport | 向量沿曲面移动保持局部「不扭转」，几何相的经典类比 |
 | 自旋回波 | spin echo | 用 $\pi$ 脉冲反转、消去动力学相位的脉冲序列 |
+| Ramsey 干涉 | Ramsey interferometry | 用 $\pi/2$ 脉冲制备叠加态、读出相对相位的干涉方案 |
 | 退相位 | dephasing | 相干性损失，传统为 $T_2$ 时间过程 |
 | 几何退相位 | geometric dephasing | 由路径几何（经噪声调制立体角）引起的退相位 |
+| 态层析 | state tomography | 通过多基矢测量重构密度矩阵/布洛赫向量 |
+| 失谐 | detuning $\Delta$ | 驱动频率与跃迁频率之差 $\omega_a - \omega_b$ |
+| Rabi 频率 | Rabi frequency $\Omega_R$ | 共振驱动下布居振荡的角频率 |
+| 旋转波近似 | rotating wave approximation (RWA) | 忽略快速振荡（$2\omega$）项以简化哈密顿量 |
 | Cooper pair box | 库珀对盒 | 基于约瑟夫森结的超导电荷量子比特 |
+| transmon | （改进型电荷比特） | $E_J/E_C\gg 1$ 的电荷比特，抑制电荷噪声 |
 | circuit QED | 电路量子电动力学 | 超导量子比特与微波谐振腔耦合的架构 |
 | 色散读出 | dispersive readout | 量子比特经谐振腔频率位移非破坏性地读出 |
+| 几何量子门 / holonomic gate | holonomic gate | 利用几何相实现量子逻辑门 |
+| 绝热参数 | adiabaticity parameter $A$ | 衡量操控速率相对 Larmor 速率的比值 |
