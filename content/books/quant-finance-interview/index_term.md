@@ -64,5 +64,5 @@ description: "全书术语索引。"
 | [Feynman-Kac方程](ch05.md) | Ch5 | [Newton-Raphson方法](ch03.md) | Ch3 | [向量](ch03.md#向量) | Ch3 |
 | [斐波那契数](ch07.md#斐波那契数) | Ch7 | [非齐次线性方程](ch03.md#非齐次线性方程) | Ch3 | [Vega](ch06.md#vega) | Ch6 |
 | [有限差分法](ch07.md#有限差分法) | Ch7 | [正态分布](ch04.md#正态分布的矩) | Ch4 | [Volga](ch06.md) | Ch6 |
-| [首达时间](ch05.md#停时-首达时间) | Ch5 | [数值方法](ch07.md#第7章-算法与数值方法) | Ch7 | [Wald等式](ch05.md) | Ch5 |
+| [首达时间](ch05.md#停时-首达时间) | Ch5 | [数值方法](ch07.md#[第7章](ch07.md)-算法与数值方法) | Ch7 | [Wald等式](ch05.md) | Ch5 |
 | [一阶线性微分方程](ch03.md#一阶线性微分方程) | Ch3 | [次序统计量](ch04.md#46-次序统计量) | Ch4 | [最坏情况运行时间](ch07.md) | Ch7 |
