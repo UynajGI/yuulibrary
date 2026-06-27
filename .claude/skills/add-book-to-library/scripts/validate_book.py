@@ -64,6 +64,8 @@ def validate_file(path, all_files=None):
 
     # 3. Bare code — no fence wrapping
     codeless = strip_fences(content)
+    # Strip lines marked with <!-- validate-skip --> (known false positives)
+    codeless = "\n".join(l for l in codeless.split("\n") if "<!-- validate-skip -->" not in l)
     bare_code = re.findall(
         r"^(def |class |import |from \w+ import )", codeless, re.MULTILINE
     )
@@ -272,36 +274,44 @@ def validate_file(path, all_files=None):
     body_nf = strip_fences(body_raw)
     body_lines = body_nf.split("\n")
 
+    # Lines with <!-- validate-skip --> are known false positives — skip them
+    skip_lines = {i for i, l in enumerate(body_lines) if '<!-- validate-skip -->' in l}
+
     # 28. 例X-X pattern → might need {{< example >}}
-    example_hits = [l.strip() for l in body_lines
-                    if re.match(r'^例\s*\d+[\-\.]\d+', l.strip())
+    example_hits = [l.strip() for i, l in enumerate(body_lines)
+                    if i not in skip_lines
+                    and re.match(r'^例\s*\d+[\-\.]\d+', l.strip())
                     and '{{<' not in l]
     if example_hits:
         issues.append(issue(REVIEW, f"{len(example_hits)} '例X-X' candidates (review → {{{{< example >}}}})"))
 
     # 29. 业界事例 → might need {{< callout >}}
-    case_hits = [l.strip() for l in body_lines
-                 if '业界事例' in l and '{{<' not in l]
+    case_hits = [l.strip() for i, l in enumerate(body_lines)
+                 if i not in skip_lines
+                 and '业界事例' in l and '{{<' not in l]
     if case_hits:
         issues.append(issue(REVIEW, f"{len(case_hits)} '业界事例' candidates (review → {{{{< callout >}}}})"))
 
     # 30. Standalone 定义/定理/引理/命题 → might need {{< definition >}}/{{< theorem >}}
-    defn_hits = [l.strip() for l in body_lines
-                 if re.match(r'^(定义|定理|引理|命题|推论)\s*[\d\-\.]*[\s：:]', l.strip())
+    defn_hits = [l.strip() for i, l in enumerate(body_lines)
+                 if i not in skip_lines
+                 and re.match(r'^(定义|定理|引理|命题|推论)\s*[\d\-\.]*[\s：:]', l.strip())
                  and '{{<' not in l and not l.strip().startswith('#')]
     if defn_hits:
         issues.append(issue(REVIEW, f"{len(defn_hits)} 定义/定理 candidates (review → {{{{< definition >}}}}/{{{{< theorem >}}}})"))
 
     # 31. Bare 来源/出处 lines → might need {{< caption >}}
-    src_hits = [l.strip() for l in body_lines
-                if re.match(r'^(来源|出处|参考)[：:]', l.strip())
+    src_hits = [l.strip() for i, l in enumerate(body_lines)
+                if i not in skip_lines
+                and re.match(r'^(来源|出处|参考)[：:]', l.strip())
                 and '{{<' not in l]
     if src_hits:
         issues.append(issue(REVIEW, f"{len(src_hits)} 来源/出处 candidates (review → {{{{< caption >}}}})"))
 
     # 32. ---Author, *Book* quote pattern → might need {{< callout type="quote" >}}
-    quote_hits = [l.strip() for l in body_lines
-                  if re.match(r'^—.+,?\s*\*[^\*]+\*', l.strip())
+    quote_hits = [l.strip() for i, l in enumerate(body_lines)
+                  if i not in skip_lines
+                  and re.match(r'^—.+,?\s*\*[^\*]+\*', l.strip())
                   and '{{<' not in l]
     if quote_hits:
         issues.append(issue(REVIEW, f"{len(quote_hits)} '—Author, *Book*' candidates (review → {{{{< callout type=\"quote\" >}}}})"))

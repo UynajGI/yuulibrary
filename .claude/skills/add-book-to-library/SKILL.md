@@ -347,14 +347,22 @@ grep -c 'callout\|caption' content/books/<slug>/ch*.md | grep -v ':0$'  # 元素
 ### Phase 4.5：逐章审核（Haiku 并行）
 
 每 4-5 章 spawn 一个 Haiku agent，独立校对：
+
+🔴 **第一步：元素模板转换（必须在此阶段完成，事后补救成本翻倍）**
+- 例X-X / 例 X-X → `{{< example title="例X-X" >}}...{{< /example >}}`（Read 文件确定例题范围，从标题到下一个例题或标题）
+- 业界事例（独立段落开头）→ `{{< callout type="note" >}}...{{< /callout >}}`
+- 定义/定理/引理（独立块）→ `{{< definition >}}` / `{{< theorem >}}`
+- 来源/出处行 → `{{< caption >}}`
+- 引用 `—Author, *Book*` → `{{< callout type="quote" >}}`
+
+**然后继续其他检查：**
 1. **OCR 错误** — 数学符号误识别
-2. **元素模板** — 例X-X → `{{< example >}}`、业界事例 → `{{< callout >}}`、定理/定义 → 对应 shortcode
-3. **表格图注** — `表N.N`/`图N.N` → `{{< caption >}}`
-4. **Mermaid** — 删 `<details>` + mermaid，留原图
-5. **标题层级** — 代码注释 `#` 误为 H1、子节降级
-6. **交叉引用** — `第N章` → `[第N章](ch0N.md)`
-7. **代码块** — 补 ` ```python ` 围栏、numpy/torch 代码
-8. **伪代码** — 用**小写裸命令**（`state`/`for{}`/`if{}`/`repeat`/`until{}`/`endfor`/`return{}`），不是 `\STATE`/`\FOR`
+2. **表格图注** — `表N.N`/`图N.N` → `{{< caption >}}`
+3. **Mermaid** — 删 `<details>` + mermaid，留原图
+4. **标题层级** — 代码注释 `#` 误为 H1、子节降级
+5. **交叉引用** — `第N章` → `[第N章](ch0N.md)`
+6. **代码块** — 补 ` ```python ` 围栏、numpy/torch 代码
+7. **伪代码** — 用**小写裸命令**（`state`/`for{}`/`if{}`/`repeat`/`until{}`/`endfor`/`return{}`），不是 `\STATE`/`\FOR`
 
 🔴 **处理顺序**：机械 grep 扫描（AI 会漏，grep 不会）→ Haiku agent 逐章审核 → 机械化脚本（空块/compound 分解）→ validate_book.py
 
@@ -435,6 +443,17 @@ hugo --gc --minify
 ```
 
 检查：0 issue、构建零错误、内部链接可点击、公式渲染正常、新书在菜单。
+
+**🔴 误报处理**：validator 输出 `[R]`（Review）和 `[W]`（Warning）中可能有误报。确认是误报后，在该行末尾加 `<!-- validate-skip -->` 注释标记跳过：
+
+```markdown
+见业界事例1-1的讨论。<!-- validate-skip -->
+定义 $\beta_{i}$ 为系数。<!-- validate-skip -->
+```
+
+- `<!-- validate-skip -->` 标记的行会被 validator 自动跳过，不计入 issue 数
+- 适用于所有级别：`[E]`、`[W]`、`[R]`
+- **不要滥用**：只标记确认过的误报，不要为了消除 warning 而盲目标记
 
 **🔴 质量抽查必须用 spot-check agent**（不用普通 agent）：
 
