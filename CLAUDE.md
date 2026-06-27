@@ -33,7 +33,8 @@ yuulibrary/
 │   └── _partials/docs/inject/head.html  # KaTeX + pseudocode.js 加载
 ├── assets/custom.scss            # 全局样式
 ├── static/katex/ + pseudocode/   # 本地化数学/算法渲染
-├── .claude/skills/add-book-to-library/  # 加书 skill
+├── .claude/skills/add-book-to-library/   # 加书 skill
+├── .claude/skills/add-paper-to-library/  # 加论文 skill
 ├── .github/workflows/deploy.yml  # push main → 自动部署
 └── pdfs/                         # 源文件（本地，gitignore）
     ├── books/                   # 书籍 PDF/EPUB + 状态文件 + 提取输出
@@ -62,6 +63,20 @@ yuulibrary/
 8. Phase 4.5 Haiku 逐章审核 → 元素模板（example/callout/caption）→ `validate_book.py` 验证
 9. **🔴 质量检查必须用 spot-check agent**：`Agent(subagent_type: "spot-check")`
 10. `hugo server` 验证，首页书架加卡片
+
+## 添加新论文
+
+完整流程见 `.claude/skills/add-paper-to-library/SKILL.md`，易忘点见 `.serena/memories/add-paper-patterns.md`。论文比书简单（不拆章、不用 MinerU VLM 流水线、不上首页书架），核心步骤：
+
+1. 去重（`grep -ril "<作者>" content/papers/`）→ PDF 归档到 `pdfs/papers/`（含 SM 文件）
+2. **优先复用已有 MinerU 提取**（`find ~ -name "*.md" | xargs grep "<标题>"`），没有再提取
+3. 精选 5-8 张图 → `content/papers/<slug>/images/`，**WebP + 语义化命名**（`fig1-<主题>.webp`）
+4. `content/papers/<slug>/_index.md`（**必须是 `_index.md`**，不是普通 .md），front matter 全齐：`title`(中文)/`description`/`date`/`author`/`year`/`tags`/`links`/`weight`
+5. 翻译正文 + 写阅读笔记（一句话概括 / 核心论证链 / 实验参数表 / 批判性思考 / 局限性 / 关键公式速查 / 延伸阅读 / 术语对照）
+6. **🔴 LaTeX 公式 100% 原样**；图注用 `{{< caption >}}`，强调用 `{{< callout >}}`
+7. **🔴 日期陷阱**：`date` 写昨天（如 `2026-06-27`），别写「今天」——Hugo 不构建未来日期的页面，且**不报错**。详见 skill
+8. `hugo --gc` → **验证 `public/papers/<slug>/index.html` 真的生成了**（不生成 = 日期在未来）
+9. 参照 `content/papers/berry-phase-solid-state-qubit/` 和 `content/papers/dissipation-driven-rabi-qpt/` 的结构
 
 ## 质量验证
 
