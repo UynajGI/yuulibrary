@@ -62,6 +62,16 @@ def validate_file(path, all_files=None):
     if details:
         issues.append(issue(ERR, f"{details} <details> blocks remaining"))
 
+    # 2b. Shortcode balance — each {{< name >}} must have {{< /name >}}
+    _self_close = {"book-toc", "bookshelf", "recent-notes", "relref", "ref"}
+    for sc in re.findall(r"\{\{<\s*(\w[\w-]*)", content):
+        if sc in _self_close or sc.startswith("/"):
+            continue
+        opens = len(re.findall(r"\{\{<\s*" + re.escape(sc) + r"\b", content))
+        closes = len(re.findall(r"\{\{<\s*/" + re.escape(sc) + r"\s*>\}\}", content))
+        if opens != closes:
+            issues.append(issue(ERR, f"Shortcode '{sc}': {opens} opens, {closes} closes (unbalanced)"))
+
     # 3. Bare code — no fence wrapping
     codeless = strip_fences(content)
     # Strip lines marked with <!-- validate-skip --> (known false positives)
