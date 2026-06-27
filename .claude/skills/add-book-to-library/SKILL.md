@@ -400,7 +400,12 @@ tags: ["标签1", "标签2"]
 
 #### 首页卡片
 
-`content/_index.md` 的 `<div class="bookshelf">` 加 `<a class="book-row">`。
+🔴 **更新 `layouts/_shortcodes/bookshelf.html`**（不是 `_index.md`）：
+1. 在对应分类的 `<div class="bookshelf" data-category="xxx">` 中添加 `<a class="book-row">` 条目
+2. 更新对应 `.category-card` 的 `.category-card-count` 数字
+3. 如需新增分类，同时添加 `.category-card` 和 `<div class="bookshelf" data-category="xxx">`
+
+分类：`quant`（量化金融）、`ml`（机器学习与强化学习）、`systems`（系统思维与统计）
 
 #### 符号说明 / 算法列表（如需要）
 
@@ -484,7 +489,7 @@ spot-check 随机抽查 2 章，18 点清单，发现问题直接修。
 | 18 | 不复制 MinerU images 到 book | 合并到 `content/books/<slug>/images/` |
 | 19 | 不留 MinerU 原始 MD | 保留到 `pdfs/books/<book>-out/merged/book.md` |
 | 20 | 拆分只靠 heading 自动匹配 | 手动确认章节边界，合并多余拆分 |
-| 21 | 首页书架忘加新书卡片 | `content/_index.md` 加 `<a class="book-row">` |
+| 21 | 首页书架忘加新书卡片 | 更新 `layouts/_shortcodes/bookshelf.html` 加 `<a class="book-row">` |
 | 22 | 封面手写 `<div style="">` | `<section class="book-cover">` 模板 |
 | 23 | 图片用 JPG/PNG 格式 | WebP only（Phase 3 统一转换），质量 80 有损模式 |
 | 24 | 翻译 agent 只说"翻译"不提元素模板 | prompt 必须包含完整翻译规则+元素转换指令（见 Phase 4.25 模板） |

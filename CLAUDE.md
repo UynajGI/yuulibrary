@@ -89,6 +89,7 @@ python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/book
 - **伪代码语法**：小写裸命令 `state`/`for{}`/`if{}`/`repeat`/`until{}`/`endfor`/`return{}`，不是 `\STATE`/`\FOR`
 - **跨页面链接**：`[第5章](ch05.md)`，BookPortableLinks 自动转 permalink
 - **封面目录**：`{{< book-toc >}}` 自动生成，不要手写 HTML 表格
+- **书架分类卡片**：`{{< bookshelf >}}` 生成分类卡片网格 + 缩放展开动画（首页和 `/books/` 页共用），新增书籍时需更新 shortcode 内的分类列表
 
 ## 样式体系
 
