@@ -11,8 +11,8 @@ import os
 import re
 import sys
 
-E, W = "[E]", "[W]"
-ERR, WARN = 0, 1
+E, W, R = "[E]", "[W]", "[R]"
+ERR, WARN, REVIEW = 0, 1, 2
 
 
 def strip_fences(text):
@@ -265,6 +265,47 @@ def validate_file(path, all_files=None):
     if mid_breaks:
         issues.append(issue(WARN, f"{mid_breaks} mid-sentence breaks (join across blank line)"))
 
+    # ==================== REVIEW (元素模板候选，需人工确认) ====================
+
+    # Strip front matter and code fences for template detection
+    body_raw = re.sub(r"^---\n.*?\n---\n", "", content, flags=re.DOTALL)
+    body_nf = strip_fences(body_raw)
+    body_lines = body_nf.split("\n")
+
+    # 28. 例X-X pattern → might need {{< example >}}
+    example_hits = [l.strip() for l in body_lines
+                    if re.match(r'^例\s*\d+[\-\.]\d+', l.strip())
+                    and '{{<' not in l]
+    if example_hits:
+        issues.append(issue(REVIEW, f"{len(example_hits)} '例X-X' candidates (review → {{{{< example >}}}})"))
+
+    # 29. 业界事例 → might need {{< callout >}}
+    case_hits = [l.strip() for l in body_lines
+                 if '业界事例' in l and '{{<' not in l]
+    if case_hits:
+        issues.append(issue(REVIEW, f"{len(case_hits)} '业界事例' candidates (review → {{{{< callout >}}}})"))
+
+    # 30. Standalone 定义/定理/引理/命题 → might need {{< definition >}}/{{< theorem >}}
+    defn_hits = [l.strip() for l in body_lines
+                 if re.match(r'^(定义|定理|引理|命题|推论)\s*[\d\-\.]*[\s：:]', l.strip())
+                 and '{{<' not in l and not l.strip().startswith('#')]
+    if defn_hits:
+        issues.append(issue(REVIEW, f"{len(defn_hits)} 定义/定理 candidates (review → {{{{< definition >}}}}/{{{{< theorem >}}}})"))
+
+    # 31. Bare 来源/出处 lines → might need {{< caption >}}
+    src_hits = [l.strip() for l in body_lines
+                if re.match(r'^(来源|出处|参考)[：:]', l.strip())
+                and '{{<' not in l]
+    if src_hits:
+        issues.append(issue(REVIEW, f"{len(src_hits)} 来源/出处 candidates (review → {{{{< caption >}}}})"))
+
+    # 32. ---Author, *Book* quote pattern → might need {{< callout type="quote" >}}
+    quote_hits = [l.strip() for l in body_lines
+                  if re.match(r'^—.+,?\s*\*[^\*]+\*', l.strip())
+                  and '{{<' not in l]
+    if quote_hits:
+        issues.append(issue(REVIEW, f"{len(quote_hits)} '—Author, *Book*' candidates (review → {{{{< callout type=\"quote\" >}}}})"))
+
     return issues
 
 
@@ -276,22 +317,27 @@ def main():
 
     total_e = 0
     total_w = 0
+    total_r = 0
     for path in files:
         issues = validate_file(path)
         if issues:
             short = os.path.relpath(path, start=os.path.commonprefix([path, book_dir]))
             errors = [i for i in issues if i[0] == ERR]
             warns = [i for i in issues if i[0] == WARN]
-            if errors or warns:
+            reviews = [i for i in issues if i[0] == REVIEW]
+            if errors or warns or reviews:
                 print(f"{short}:")
                 for _, msg in errors:
                     print(f"  {E} {msg}")
                 for _, msg in warns:
                     print(f"  {W} {msg}")
+                for _, msg in reviews:
+                    print(f"  {R} {msg}")
             total_e += len(errors)
             total_w += len(warns)
+            total_r += len(reviews)
 
-    if total_e + total_w == 0:
+    if total_e + total_w + total_r == 0:
         print("OK")
         return 0
 
@@ -300,6 +346,8 @@ def main():
         summary.append(f"{total_e} error(s)")
     if total_w:
         summary.append(f"{total_w} warning(s)")
+    if total_r:
+        summary.append(f"{total_r} review(s)")
     print(f"\n{', '.join(summary)} found")
 
     return 1 if total_e > 0 else 0
