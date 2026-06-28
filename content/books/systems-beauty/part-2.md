@@ -13,13 +13,13 @@ description: "系统为何令人惊奇——适应力、自组织、层次性，
 ## 本部分章节
 
 <a class="part-chapter" href="ch03.html">
-  <span class="part-chapter-num">第 3 章</span>
+  <span class="part-chapter-num">[第 3 章](ch03.md)</span>
   <span class="part-chapter-title">系统的 3 大特征</span>
   <span class="part-chapter-desc">适应力、自组织、层次性——系统之美的根源。</span>
 </a>
 
 <a class="part-chapter" href="ch04.html">
-  <span class="part-chapter-num">第 4 章</span>
+  <span class="part-chapter-num">[第 4 章](ch04.md)</span>
   <span class="part-chapter-title">系统的 6 大障碍</span>
   <span class="part-chapter-desc">表象迷惑、非线性、边界划定、时间延迟、有限理性……</span>
 </a>

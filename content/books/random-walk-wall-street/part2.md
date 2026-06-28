@@ -13,19 +13,19 @@ description: "技术分析与基本面分析的方法、局限与实证检验。
 ## 本部分章节
 
 <a class="part-chapter" href="ch05.html">
-  <span class="part-chapter-num">第 5 章</span>
+  <span class="part-chapter-num">[第 5 章](ch05.md)</span>
   <span class="part-chapter-title">技术分析与基本面分析</span>
   <span class="part-chapter-desc">图表分析与基本面分析的基本方法与局限。</span>
 </a>
 
 <a class="part-chapter" href="ch06.html">
-  <span class="part-chapter-num">第 6 章</span>
+  <span class="part-chapter-num">[第 6 章](ch06.md)</span>
   <span class="part-chapter-title">技术分析与随机漫步理论</span>
   <span class="part-chapter-desc">技术分析系统的实证检验：动量、滤波、道氏理论。</span>
 </a>
 
 <a class="part-chapter" href="ch07.html">
-  <span class="part-chapter-num">第 7 章</span>
+  <span class="part-chapter-num">[第 7 章](ch07.md)</span>
   <span class="part-chapter-title">基本面分析有多好？</span>
   <span class="part-chapter-desc">有效市场假说的三种形式与分析师预测的实证。</span>
 </a>

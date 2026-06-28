@@ -13,13 +13,13 @@ description: "如何撬动系统——从陷阱到杠杆点，再到与系统共
 ## 本部分章节
 
 <a class="part-chapter" href="ch05.html">
-  <span class="part-chapter-num">第 5 章</span>
+  <span class="part-chapter-num">[第 5 章](ch05.md)</span>
   <span class="part-chapter-title">系统的 8 大陷阱与对策</span>
   <span class="part-chapter-desc">政策阻力、公地悲剧、目标侵蚀、竞争升级、富者愈富……</span>
 </a>
 
 <a class="part-chapter" href="ch06.html">
-  <span class="part-chapter-num">第 6 章</span>
+  <span class="part-chapter-num">[第 6 章](ch06.md)</span>
   <span class="part-chapter-title">系统的 12 大变革方式</span>
   <span class="part-chapter-desc">从数字参数到超越范式——12 个杠杆点的系统干预。</span>
 </a>
