@@ -179,9 +179,9 @@ def validate_file(path, all_files=None):
         issues.append(issue(WARN, f"{len(naked_cap)} naked captions (wrap in {{{{< caption >}}}})"))
 
     # 14. JPG/PNG image references (should be WebP)
-    jpg_png_refs = re.findall(r"\]\(\./images/[^)]+\.(?:jpg|png)\)", content)
+    jpg_png_refs = re.findall(r"\]\(\.?/images/[^)]+\.(?:jpg|png)\)", content)
     if jpg_png_refs:
-        issues.append(issue(WARN, f"{len(jpg_png_refs)} .jpg/.png image refs (convert to .webp)"))
+        issues.append(issue(ERROR, f"{len(jpg_png_refs)} .jpg/.png image refs (must convert to .webp)"))
 
     # 15. Backslash pseudocode commands
     bad_cmds = re.findall(
