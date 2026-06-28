@@ -1,6 +1,6 @@
 ---
 title: "第4部分 · 实用金融特征"
-weight: 169
+weight: 40
 description: "结构性突变、熵特征、微观结构特征。"
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: "第5部分 · 高性能计算指南"
-weight: 219
+weight: 50
 description: "多进程与向量化、暴力搜索与量子计算、HPC 预测技术。"
 ---
 

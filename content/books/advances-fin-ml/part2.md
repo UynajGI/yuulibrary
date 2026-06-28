@@ -1,6 +1,6 @@
 ---
 title: "第2部分 · 建模"
-weight: 49
+weight: 20
 description: "集成方法、交叉验证、特征重要性、超参数调优。"
 ---
 
