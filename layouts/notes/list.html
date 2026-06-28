@@ -1,0 +1,75 @@
+{{/* 笔记列表页：按时间自动分组（本周/上周/上月/更早） */}}
+{{ define "main" }}
+<article class="markdown book-article post">
+  <h1>{{ partial "docs/title" . }}</h1>
+
+  {{ $now := now }}
+  {{ $pages := where .Site.RegularPages "Section" "notes" }}
+
+  {{/* 本周：最近7天 */}}
+  {{ $thisWeek := where $pages ".Date" ">" ($now.AddDate 0 0 -7) }}
+  {{ if $thisWeek }}
+    <h2>本周</h2>
+    {{ range $thisWeek.ByDate.Reverse }}
+      <a href="{{ .RelPermalink }}" class="book-row" style="display:flex;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--border);text-decoration:none;color:inherit">
+        <span style="flex:1">
+          <strong>{{ .Title }}</strong>
+          {{ with .Description }}<br><small style="opacity:0.7">{{ . }}</small>{{ end }}
+        </span>
+        <span style="opacity:0.5;font-size:0.85em">{{ .Date.Format "01-02" }}</span>
+      </a>
+    {{ end }}
+  {{ end }}
+
+  {{/* 上周：8-14天前 */}}
+  {{ $lastWeek := where $pages ".Date" ">" ($now.AddDate 0 0 -14) }}
+  {{ $lastWeek := where $lastWeek ".Date" "<=" ($now.AddDate 0 0 -7) }}
+  {{ if $lastWeek }}
+    <h2>上周</h2>
+    {{ range $lastWeek.ByDate.Reverse }}
+      <a href="{{ .RelPermalink }}" class="book-row" style="display:flex;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--border);text-decoration:none;color:inherit">
+        <span style="flex:1">
+          <strong>{{ .Title }}</strong>
+          {{ with .Description }}<br><small style="opacity:0.7">{{ . }}</small>{{ end }}
+        </span>
+        <span style="opacity:0.5;font-size:0.85em">{{ .Date.Format "01-02" }}</span>
+      </a>
+    {{ end }}
+  {{ end }}
+
+  {{/* 上月：15-60天前 */}}
+  {{ $lastMonth := where $pages ".Date" ">" ($now.AddDate 0 0 -60) }}
+  {{ $lastMonth := where $lastMonth ".Date" "<=" ($now.AddDate 0 0 -14) }}
+  {{ if $lastMonth }}
+    <h2>上月</h2>
+    {{ range $lastMonth.ByDate.Reverse }}
+      <a href="{{ .RelPermalink }}" class="book-row" style="display:flex;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--border);text-decoration:none;color:inherit">
+        <span style="flex:1">
+          <strong>{{ .Title }}</strong>
+          {{ with .Description }}<br><small style="opacity:0.7">{{ . }}</small>{{ end }}
+        </span>
+        <span style="opacity:0.5;font-size:0.85em">{{ .Date.Format "01-02" }}</span>
+      </a>
+    {{ end }}
+  {{ end }}
+
+  {{/* 更早：60天前 */}}
+  {{ $older := where $pages ".Date" "<=" ($now.AddDate 0 0 -60) }}
+  {{ if $older }}
+    <h2>更早</h2>
+    {{ range $older.ByDate.Reverse }}
+      <a href="{{ .RelPermalink }}" class="book-row" style="display:flex;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--border);text-decoration:none;color:inherit">
+        <span style="flex:1">
+          <strong>{{ .Title }}</strong>
+          {{ with .Description }}<br><small style="opacity:0.7">{{ . }}</small>{{ end }}
+        </span>
+        <span style="opacity:0.5;font-size:0.85em">{{ .Date.Format "2006-01" }}</span>
+      </a>
+    {{ end }}
+  {{ end }}
+
+  {{ if not $pages }}
+    <p style="opacity:0.5">暂无笔记</p>
+  {{ end }}
+</article>
+{{ end }}

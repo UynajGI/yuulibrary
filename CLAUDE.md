@@ -25,7 +25,9 @@ yuulibrary/
 │   │   ├── algo-trading/         # 无分类中间目录
 │   │   ├── options-futures-derivatives/
 │   │   └── quant-finance-interview/
-│   ├── notes/                    # 笔记（带 date/tags）
+│   ├── notes/                    # 笔记（目录式，与 papers/ 结构对齐）
+│   │   ├── <slug>/               # 每个笔记一个目录
+│   │   │   └── _index.md         # 笔记主页（title/description/date/author/tags/weight）
 │   ├── papers/                   # 论文笔记（带 author/year/tags）
 │   └── _reference/               # 元素模板速查（_ 前缀，菜单隐藏）
 ├── layouts/
@@ -77,6 +79,18 @@ yuulibrary/
 7. **🔴 日期陷阱**：`date` 写昨天（如 `2026-06-27`），别写「今天」——Hugo 不构建未来日期的页面，且**不报错**。详见 skill
 8. `hugo --gc` → **验证 `public/papers/<slug>/index.html` 真的生成了**（不生成 = 日期在未来）
 9. 参照 `content/papers/berry-phase-solid-state-qubit/` 和 `content/papers/dissipation-driven-rabi-qpt/` 的结构
+
+## 添加笔记
+
+完整流程见 `.claude/skills/add-note-to-library/SKILL.md`。将书籍/论文转化为 agent 思维框架笔记。
+
+1. **输入**：已入库的书/论文 → 直接读取；外部 PDF → 先入库再做笔记
+2. **思维框架笔记**（默认）→ 内部调用 `/huashu-nuwa` 生成 perspective skill + 笔记摘要
+3. 笔记放 `content/notes/<slug>/_index.md`（**目录式**，与 papers/ 结构对齐）
+4. front matter 必须：`title`/`description`/`date`(昨天)/`author`/`source_type`/`tags`/`weight`
+5. 笔记内容：核心思维框架(3-7个) / 决策启发式 / 表达DNA / 推荐书单 / 批判性思考 / 关键引用
+6. 产出两个产物：`content/notes/<slug>/`（笔记页面）+ `.claude/skills/<person>-perspective/`（可调用 skill）
+7. **不手动分类**：笔记按 `date` 自动时间排序（最近在前），无需按主题分组
 
 ## 质量验证
 
