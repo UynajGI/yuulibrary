@@ -212,8 +212,10 @@ def validate_file(path, all_files=None):
     # Strip front matter to avoid matching title/description fields
     body = re.sub(r"^---\n.*?\n---\n", "", content, flags=re.DOTALL)
     body = strip_fences(body)
+    # Skip lines marked with <!-- validate-skip --> (known false positives, e.g. HTML chapter lists in part pages)
+    skip_body = "\n".join(l for l in body.split("\n") if "<!-- validate-skip -->" not in l)
     # Exclude headings, already-linked refs, and refs followed by link on next line
-    xrefs = [m.group(0) for m in re.finditer(r"第\s*\d+\s*章", body)
+    xrefs = [m.group(0) for m in re.finditer(r"第\s*\d+\s*章", skip_body)
              if not re.match(r"^#{1,6}\s", m.string[m.start():].split("\n")[0])  # not a heading
              and not re.search(r"\[第\s*\d+\s*章\]\(ch\d{2}\.md\)", m.string[max(0,m.start()-1):m.end()+20])]  # not already linked
     if xrefs:
