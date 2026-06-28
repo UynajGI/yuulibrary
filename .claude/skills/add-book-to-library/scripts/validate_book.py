@@ -155,12 +155,12 @@ def validate_file(path, all_files=None):
 
     # 10. Empty $ blocks (ignore $ ... $ containers marked <!-- validate-skip -->)
     body_ns = re.sub(r"\$\$ <!-- validate-skip -->.*?\$\$", "", content, flags=re.DOTALL)
-    empty_ds = len(re.findall(r"\$\$[ \t]*\n[ \t]*\$\$", body_ns))
+    empty_ds = len(re.findall(r"^\$\$[ \t]*\n[ \t]*\$\$", body_ns, re.MULTILINE))
     if empty_ds:
         issues.append(issue(WARN, f"{empty_ds} empty $ blocks"))
 
     # 11. Compound $ blocks (blank line inside; ignore skip-tagged containers)
-    compound = sum(1 for m in re.finditer(r"\$\$[ \t]*\n(.*?)\n[ \t]*\$\$", body_ns, re.DOTALL)
+    compound = sum(1 for m in re.finditer(r"^\$\$[ \t]*\n(.*?)\n[ \t]*\$\$", body_ns, re.DOTALL | re.MULTILINE)
                    if "\n\n" in m.group(1))
     if compound:
         issues.append(issue(WARN, f"{compound} compound $ blocks"))
@@ -171,7 +171,10 @@ def validate_file(path, all_files=None):
         issues.append(issue(WARN, f"{len(html_links)} .html links (use .md)"))
 
     # 13. Naked captions
-    naked_cap = re.findall(r"^(图\d+\.\d+|表\d+\.\d+)[^\n]{0,30}$", content, re.MULTILINE)
+    # Exclude lines that are part of a sentence (e.g. "表4.1总结了...", "图5.2展示了...").
+    naked_cap = [m for m in re.finditer(r"^(图\d+\.\d+|表\d+\.\d+)[^\n]{0,30}$", content, re.MULTILINE)
+                 if not re.search(r"[。！？，；：]|\s*(总结|展示|说明|列出|给出|显示|提到|参见|见)[了]?", m.group(0))]
+    naked_cap = [m.group(1) for m in naked_cap]
     if naked_cap:
         issues.append(issue(WARN, f"{len(naked_cap)} naked captions (wrap in {{{{< caption >}}}})"))
 
@@ -208,8 +211,11 @@ def validate_file(path, all_files=None):
 
     # 18. Code-comment-like headings
     _comment_kw = r"^(设置|获取|计算|导入|定义|创建|初始化|返回|更新|显示|删除|保存|加载|生成|转换|验证|检查|调用)"
+    _term_suffix = r"(条件|规则|总结|方法|原则|标准|要求|步骤|流程|参数|选项|模式)"
     comment_h = sum(1 for m in re.finditer(r"^(#{1,2})\s+(\S.*?)\s*$", codeless, re.MULTILINE)
-                    if re.match(_comment_kw, m.group(2).strip()))
+                    if re.match(_comment_kw, m.group(2).strip())
+                    and not re.search(r"[（(].*[)）]", m.group(2).strip())
+                    and not re.search(_term_suffix, m.group(2).strip()))
     if comment_h:
         issues.append(issue(WARN, f"{comment_h} #/## look like code comments"))
 
@@ -230,10 +236,14 @@ def validate_file(path, all_files=None):
     body = strip_fences(body)
     # Skip lines marked with <!-- validate-skip --> (known false positives, e.g. HTML chapter lists in part pages)
     skip_body = "\n".join(l for l in body.split("\n") if "<!-- validate-skip -->" not in l)
-    # Exclude headings, already-linked refs, and refs followed by link on next line
+    # Exclude headings, already-linked refs, and external citations:
+    #   - 文献[100, 第24章] / [96, 第14章]  (bibliography style)
+    #   - 第3卷第43章  (volume+chapter of another book)
     xrefs = [m.group(0) for m in re.finditer(r"第\s*\d+\s*章", skip_body)
              if not re.match(r"^#{1,6}\s", m.string[m.start():].split("\n")[0])  # not a heading
-             and not re.search(r"\[第\s*\d+\s*章\]\(ch\d{2}\.md\)", m.string[max(0,m.start()-1):m.end()+20])]  # not already linked
+             and not re.search(r"\[第\s*\d+\s*章\]\(ch\d{2}\.md\)", m.string[max(0,m.start()-1):m.end()+20])  # not already linked
+             and not re.search(r"\[\d+\s*,\s*$", m.string[max(0,m.start()-12):m.start()])  # not 文献[X, 第N章]
+             and not re.search(r"第\s*\d+\s*卷\s*第\s*\d+\s*章", m.string[max(0,m.start()-8):m.end()+8])]  # not 第N卷第N章
     if xrefs:
         issues.append(issue(WARN, f"{len(xrefs)} unlinked 第N章 references (use [第N章](ch0N.md))"))
 
@@ -273,6 +283,10 @@ def validate_file(path, all_files=None):
     if re.match(r'^(appendix|notation)', fname):
         pass  # skip code/model listings and symbol tables
     else:
+        structured_re = re.compile(
+            r'^(流入[：:]|流出[：:]|运行时长[=：]|存量[：:]|转化器[：:]|初始|'
+            r'组合\s*[A-Z]|[A-Z][a-z]+\s*[A-Z][a-z]+|dt[=＝]|t[=＝])'
+        )
         for i in range(len(lines) - 2):
             cur = lines[i].strip()
             nxt = lines[i + 1].strip()
@@ -287,8 +301,12 @@ def validate_file(path, all_files=None):
                 continue
             if re.search(r'(作家|学家|作者|教授|博士|主席|所长|董事长|秘书长)$', cur):
                 continue  # quote attribution line
-            # Real mid-sentence breaks have short continuations (1-4 chars before punctuation/end)
-            short_cont = re.match(r'^.{1,4}[。！？，、；：）\)》\]」』\n]', nnx)
+            if structured_re.match(cur) or structured_re.match(nnx):
+                continue
+            if len(cur) <= 16 and not re.search(r'[，,。；;]$', cur):
+                continue
+            # Real mid-sentence breaks have short continuations (colons excluded: they introduce lists)
+            short_cont = re.match(r'^.{1,4}[。！？，、；）\)》\]」』\n]', nnx)
             if not short_cont:
                 continue
             mid_breaks += 1
