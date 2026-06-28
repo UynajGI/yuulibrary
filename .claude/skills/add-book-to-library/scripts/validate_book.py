@@ -130,24 +130,40 @@ def validate_file(path, all_files=None):
 
     # ==================== WARNINGS ====================
 
-    # 9. Image inside $$ math (likely MinerU error)
+    # 9. Image inside $ math (likely MinerU error)
+    # Note: $ markers may carry <!-- validate-skip --> (e.g. stat-arb uses
+    # $ ... $ as centered image containers). A $ line with the skip tag
+    # must still participate in pairing so the block isn't mis-detected as math.
     in_math = False
     for i, line in enumerate(lines, 1):
-        if line.strip() == "$$":
-            in_math = not in_math
-        elif in_math and line.strip().startswith("!["):
-            issues.append(issue(WARN, f"L{i}: image inside $$ math block"))
+        s = line.strip()
+        if s == "$" or s.startswith("$ <!-- validate-skip"):
+            # If the opening $ carries a skip tag, treat the whole block as
+            # non-math (a layout container) and don't flag images inside it.
+            if "<!-- validate-skip" in s and not in_math:
+                # find the closing $ and skip its interior
+                in_math = False
+                for j in range(i, len(lines)):
+                    sj = lines[j-1].strip()
+                    if j > i and (sj == "$" or sj.startswith("$ <!-- validate-skip")):
+                        i = j  # advance outer loop cursor
+                        break
+            else:
+                in_math = not in_math
+        elif in_math and s.startswith("!["):
+            issues.append(issue(WARN, f"L{i}: image inside $ math block"))
 
-    # 10. Empty $$ blocks
-    empty_ds = len(re.findall(r"\$\$[ \t]*\n[ \t]*\$\$", content))
+    # 10. Empty $ blocks (ignore $ ... $ containers marked <!-- validate-skip -->)
+    body_ns = re.sub(r"\$\$ <!-- validate-skip -->.*?\$\$", "", content, flags=re.DOTALL)
+    empty_ds = len(re.findall(r"\$\$[ \t]*\n[ \t]*\$\$", body_ns))
     if empty_ds:
-        issues.append(issue(WARN, f"{empty_ds} empty $$ blocks"))
+        issues.append(issue(WARN, f"{empty_ds} empty $ blocks"))
 
-    # 11. Compound $$ blocks (blank line inside)
-    compound = sum(1 for m in re.finditer(r"\$\$[ \t]*\n(.*?)\n[ \t]*\$\$", content, re.DOTALL)
+    # 11. Compound $ blocks (blank line inside; ignore skip-tagged containers)
+    compound = sum(1 for m in re.finditer(r"\$\$[ \t]*\n(.*?)\n[ \t]*\$\$", body_ns, re.DOTALL)
                    if "\n\n" in m.group(1))
     if compound:
-        issues.append(issue(WARN, f"{compound} compound $$ blocks"))
+        issues.append(issue(WARN, f"{compound} compound $ blocks"))
 
     # 12. .html links in source (should be .md for Hugo rewriting)
     html_links = re.findall(r"\]\(\./[^)]*\.html\)", content)
