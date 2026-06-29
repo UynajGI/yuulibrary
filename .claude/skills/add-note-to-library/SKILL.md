@@ -13,13 +13,16 @@ description: |
 ## 架构约定
 
 ```
-content/notes/<note-slug>/     # 目录式，与 papers/ 结构对齐
-├── _index.md                  # section 定义（仅 title + weight，不含正文）
-├── <note-slug>.md             # 笔记正文（用 single.html 渲染）
-└── images/                    # 可选图片
+content/notes/               # 扁平存放（与 books/ 一致）
+├── _index.md                # section 定义（title + description）
+├── <note-slug>.md           # 笔记正文（每个笔记一个文件）
+└── welcome.md               # 欢迎页
 ```
 
-**🔴 关键：笔记正文放 `<note-slug>.md`，不放 `_index.md`**。Hugo 中 `_index.md` 是 section 定义页，用 `list.html` 渲染，正文不会显示。
+**🔴 关键**：
+- 笔记直接放 `content/notes/<note-slug>.md`，**不用子目录**
+- markdown 中**不要重复写 H1 标题**（模板已从 front matter `title` 渲染）
+- `_index.md` 是 section 定义，不含笔记内容
 
 **<note-slug>.md front matter**（必须全齐）：
 ```yaml
@@ -32,14 +35,6 @@ source_type: "book|paper"    # 来源类型
 source_title: "原书/论文标题" # 原始标题
 tags: ["标签1", "标签2"]
 weight: N                    # 笔记区排序
----
-```
-
-**_index.md**（section 定义，不含正文）：
-```yaml
----
-title: "简短标题"
-weight: N
 ---
 ```
 
