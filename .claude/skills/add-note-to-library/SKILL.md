@@ -14,11 +14,14 @@ description: |
 
 ```
 content/notes/<note-slug>/     # 目录式，与 papers/ 结构对齐
-├── _index.md                  # 笔记主页（section 列表页）
+├── _index.md                  # section 定义（仅 title + weight，不含正文）
+├── <note-slug>.md             # 笔记正文（用 single.html 渲染）
 └── images/                    # 可选图片
 ```
 
-**_index.md front matter**（必须全齐）：
+**🔴 关键：笔记正文放 `<note-slug>.md`，不放 `_index.md`**。Hugo 中 `_index.md` 是 section 定义页，用 `list.html` 渲染，正文不会显示。
+
+**<note-slug>.md front matter**（必须全齐）：
 ```yaml
 ---
 title: "中文标题"
@@ -29,6 +32,14 @@ source_type: "book|paper"    # 来源类型
 source_title: "原书/论文标题" # 原始标题
 tags: ["标签1", "标签2"]
 weight: N                    # 笔记区排序
+---
+```
+
+**_index.md**（section 定义，不含正文）：
+```yaml
+---
+title: "简短标题"
+weight: N
 ---
 ```
 

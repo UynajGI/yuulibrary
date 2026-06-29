@@ -27,7 +27,8 @@ yuulibrary/
 │   │   └── quant-finance-interview/
 │   ├── notes/                    # 笔记（目录式，与 papers/ 结构对齐）
 │   │   ├── <slug>/               # 每个笔记一个目录
-│   │   │   └── _index.md         # 笔记主页（title/description/date/author/tags/weight）
+│   │   │   ├── _index.md         # section 定义（仅 title/weight，不含正文）
+│   │   │   └── <slug>.md         # 笔记正文（title/description/date/author/tags/weight）
 │   ├── papers/                   # 论文笔记（带 author/year/tags）
 │   └── _reference/               # 元素模板速查（_ 前缀，菜单隐藏）
 ├── layouts/
