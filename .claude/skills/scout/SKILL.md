@@ -59,9 +59,15 @@ description: |
    失败分支：不在 git 仓库 → 跳过，标注「非 git 项目」
 
 2. **Memory / 项目记忆**
-   - 读 `MEMORY.md` 及所有被引用的 `.md` 文件
-   - 如果支持 `ctx_search`：查最近会话事件（`sort: "timeline"`）
-   失败分支：无记忆目录 → 跳过，标注「无记忆」
+   ```bash
+   find .claude/ .serena/ ~/.claude/projects/ -name "MEMORY.md" 2>/dev/null | head -5
+   ```
+   找到后读 `MEMORY.md` 及所有被引用的 `.md` 文件
+   ```bash
+   mcp__plugin_context-mode_context-mode__ctx_search --help 2>/dev/null && echo "ctx_search ready" || echo "无 ctx_search"
+   ```
+   如果 ctx_search 可用：`mcp__plugin_context-mode_context-mode__ctx_search(sort: "timeline")` 查最近会话事件
+   失败分支：上述 find 无结果 → 跳过，标注「无记忆」
 
 3. **项目质量检查**（如存在则运行）
    - 验证器/测试脚本：跑一下，记录 issue 数量

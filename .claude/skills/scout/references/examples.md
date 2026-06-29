@@ -1,11 +1,11 @@
-# ROI 输出示例
+# Scout 输出示例
 
 ## 示例 1：有明确技术债的通用项目
 
 状态摘要：TypeScript 项目，lint 报告 34 warnings（23 个 unused imports + 11 个 any 类型），测试通过，构建通过。最近 3 个 commit 为新功能开发。
 
 ```
-## ROI 建议
+## Scout 建议
 
 > 34 lint warnings，全部是 unused imports（23）和 any 类型（11）。无阻断性问题。
 
@@ -33,7 +33,7 @@
 状态摘要：Python web 项目，lint 0 issues，测试全部通过（142 tests），CI green。最近 commit 为文档更新。
 
 ```
-## ROI 建议
+## Scout 建议
 
 > 0 issues，142 tests 全过，CI green。当前状态干净。
 
