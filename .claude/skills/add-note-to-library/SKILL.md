@@ -13,9 +13,9 @@ description: |
 ## 架构约定
 
 ```
-content/notes/               # 扁平存放（与 books/ 一致）
+content/notes/               # 扁平存放（每篇笔记一个 .md 文件）
 ├── _index.md                # section 定义（title + description）
-├── <note-slug>.md           # 笔记正文（每个笔记一个文件）
+├── <note-slug>.md           # 笔记正文
 └── welcome.md               # 欢迎页
 ```
 
