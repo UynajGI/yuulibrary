@@ -25,7 +25,7 @@ yuulibrary/
 │   │   ├── algo-trading/         # 无分类中间目录
 │   │   ├── options-futures-derivatives/
 │   │   └── quant-finance-interview/
-│   ├── notes/                    # 笔记（扁平存放，与 books/ 一致）
+│   ├── notes/                    # 笔记（扁平存放，每篇一个 .md）
 │   │   ├── _index.md             # section 定义
 │   │   ├── <slug>.md             # 笔记正文（title/description/date/author/tags/weight）
 │   ├── papers/                   # 论文笔记（带 author/year/tags）
@@ -86,10 +86,10 @@ yuulibrary/
 
 1. **输入**：已入库的书/论文 → 直接读取；外部 PDF → 先入库再做笔记
 2. **思维框架笔记**（默认）→ 内部调用 `/huashu-nuwa` 生成 perspective skill + 笔记摘要
-3. 笔记放 `content/notes/<slug>/_index.md`（**目录式**，与 papers/ 结构对齐）
+3. 笔记放 `content/notes/<slug>.md`（**扁平存放**，不用子目录）
 4. front matter 必须：`title`/`description`/`date`(昨天)/`author`/`source_type`/`tags`/`weight`
 5. 笔记内容：核心思维框架(3-7个) / 决策启发式 / 表达DNA / 推荐书单 / 批判性思考 / 关键引用
-6. 产出两个产物：`content/notes/<slug>/`（笔记页面）+ `.claude/skills/<person>-perspective/`（可调用 skill）
+6. 产出两个产物：`content/notes/<slug>.md`（笔记页面）+ `.claude/skills/<person>-perspective/`（可调用 skill，可选）
 7. **不手动分类**：笔记按 `date` 自动时间排序（最近在前），无需按主题分组
 
 ## 质量验证
