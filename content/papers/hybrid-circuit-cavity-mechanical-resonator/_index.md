@@ -4,7 +4,7 @@ description: "Pirkkalainen 等（2013）把超导 transmon 量子比特同时耦
 date: 2026-06-27
 author: "Pirkkalainen, Cho, Li, Paraoanu, Hakonen, Sillanpää"
 year: 2013
-tags: ["量子物理", "混合量子系统", "腔量子电动力学", "机械振子", "声子", "量子接口"]
+tags: ["量子物理"]
 links:
   - name: "DOI (Nature)"
     url: "https://doi.org/10.1038/nature02124"

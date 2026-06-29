@@ -4,7 +4,7 @@ description: "Teufel 等（2011）首次用腔电机械边带冷却把宏观（~
 date: 2026-06-27
 author: "Teufel, Donner, Li, Harlow, Allman, Cicak, Sirois, Whittaker, Lehnert, Simmonds"
 year: 2011
-tags: ["量子物理", "腔光机械", "量子声学", "边带冷却", "机械振子", "约瑟夫森参量放大器"]
+tags: ["量子物理"]
 links:
   - name: "DOI (Nature)"
     url: "https://doi.org/10.1038/nature09998"

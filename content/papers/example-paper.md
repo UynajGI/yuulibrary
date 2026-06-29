@@ -4,7 +4,7 @@ description: "DQN 论文阅读笔记——深度强化学习的开山之作"
 date: 2026-06-23
 author: "Mnih et al., DeepMind"
 year: 2013
-tags: ["强化学习", "深度学习"]
+tags: ["机器学习", "深度学习"]
 links:
   - name: "arXiv"
     url: "https://arxiv.org/abs/1312.5602"

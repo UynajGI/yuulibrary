@@ -3,7 +3,7 @@ title: "强化学习入门"
 description: "从基础概念到 Alpha Zero，动态规划、无模型控制、深度强化学习。"
 weight: 1
 BookCollapseSection: true
-tags: ["机器学习", "强化学习"]
+tags: ["机器学习"]
 ---
 
 <section class="book-cover">

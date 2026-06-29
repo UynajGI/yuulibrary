@@ -3,7 +3,7 @@ title: "期权、期货及其他衍生产品"
 description: "金融工程经典教材，期货、期权、互换、信用衍生品、利率模型，36 章。"
 weight: 1
 BookCollapseSection: true
-tags: ["金融", "衍生品"]
+tags: ["金融", "量化金融"]
 ---
 
 <section class="book-cover">

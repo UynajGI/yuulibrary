@@ -5,7 +5,7 @@ date: 2026-06-28
 author: "Naval Ravikant"
 source_type: "book"
 source_title: "纳瓦尔宝典 (The Almanack of Naval Ravikant)"
-tags: ["财富哲学", "幸福学", "决策思维", "杠杆"]
+tags: ["个人成长"]
 weight: 10
 ---
 

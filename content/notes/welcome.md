@@ -2,7 +2,7 @@
 title: "欢迎来到 Yuunagi Library"
 description: "关于这个数字图书馆的介绍与使用说明"
 date: 2026-06-23
-tags: ["随笔", "建站"]
+tags: ["随笔"]
 weight: 1
 ---
 

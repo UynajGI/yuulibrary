@@ -3,7 +3,7 @@ title: "通向财务自由之路"
 description: "交易系统开发的完整框架——从目标设定、期望值分析到仓位管理。"
 weight: 1
 BookCollapseSection: true
-tags: ["交易系统", "投资心理", "仓位管理"]
+tags: ["交易系统", "投资"]
 ---
 
 <section class="book-cover">

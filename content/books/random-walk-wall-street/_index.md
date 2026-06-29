@@ -3,7 +3,7 @@ title: "漫步华尔街"
 description: "Burton G. Malkiel 的经典投资著作——随机漫步理论与个人投资策略"
 weight: 1
 BookCollapseSection: true
-tags: ["投资", "金融市场", "投资组合"]
+tags: ["投资"]
 ---
 
 <section class="book-cover">

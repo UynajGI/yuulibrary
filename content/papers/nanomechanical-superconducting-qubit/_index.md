@@ -4,7 +4,7 @@ description: "LaHaye 等（2009）首次实现纳米机械谐振器与超导 Coo
 date: 2026-06-27
 author: "LaHaye, Suh, Echternach, Schwab, Roukes"
 year: 2009
-tags: ["量子物理", "纳米机械系统", "超导量子比特", "circuit QED", "NEMS", "量子测量"]
+tags: ["量子物理"]
 links:
   - name: "DOI (Nature)"
     url: "https://doi.org/10.1038/nature08146"
