@@ -24,6 +24,8 @@ yuulibrary/
 │   │   │   └── images/           # 图片（与 .md 同级，相对路径引用）
 │   │   ├── algo-trading/         # 无分类中间目录
 │   │   ├── options-futures-derivatives/
+│   │   ├── options-futures-derivatives/
+│   │   ├── python-for-finance/
 │   │   └── quant-finance-interview/
 │   ├── notes/                    # 笔记（扁平存放，每篇一个 .md）
 │   │   ├── _index.md             # section 定义
