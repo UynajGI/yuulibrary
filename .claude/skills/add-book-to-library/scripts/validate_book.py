@@ -100,6 +100,11 @@ def validate_file(path, all_files=None):
     if curly:
         issues.append(issue(ERR, f"{len(curly)} curly quotes in shortcode attrs (use straight ASCII)"))
 
+    # 5.5 Double \tag{...}\tag{...} — MinerU artifact
+    double_tags = re.findall(r'\\tag\{[^}]+\}\\tag\{', content)
+    if double_tags:
+        issues.append(issue(ERR, f"{len(double_tags)} double \\\\tag (MinerU artifact, remove the first one)"))
+
     # 6. Multiple H1 in chapter files
     headings = re.findall(r"^(#{1,6})\s+(.+?)\s*$", codeless, re.MULTILINE)
     levels = [len(h[0]) for h in headings]
