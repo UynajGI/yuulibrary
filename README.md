@@ -21,7 +21,7 @@ yuulibrary/
 
 ## 书籍
 
-共 13 本，按主题分类（与首页书架一致）。
+共 16 本，按主题分类（与首页书架一致）。
 
 ### 量化金融
 
@@ -36,6 +36,8 @@ yuulibrary/
 | 统计套利 | Andrew Pole | 11 章 |
 | 量化资产管理 | Michael Robbins | 4 部分 19 章 |
 | 金融机器学习的进展 | Marcos M. López de Prado | 5 部分 22 章 |
+| Python for Finance | Yves Hilpisch | 5 部分 21 章 |
+| 投资决策的关键解答 | Michael Covel | 15 章 |
 
 ### 机器学习与强化学习
 
@@ -50,6 +52,12 @@ yuulibrary/
 |------|------|------|
 | 系统之美 | Donella H. Meadows | 6 章 |
 | 非统计学家的统计学 | Birger Stjernholm Madsen | 9 章 |
+
+### 思维与人生
+
+| 书名 | 作者 | 章节 |
+|------|------|------|
+| 纳瓦尔宝典 | Eric Jorgenson | 2 部分 |
 
 ## 本地开发
 

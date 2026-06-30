@@ -43,7 +43,7 @@ yuulibrary/
 └── pdfs/                         # 源文件（本地，gitignore）
     ├── books/                   # 书籍 PDF/EPUB + 状态文件 + 提取输出
     ├── papers/                  # 论文 PDF
-    └── archive/                 # 已完成（仅人工移入）
+    └── archive/                 # 已完成（加书完成后移入源文件 + 状态 + -out/）
 ```
 
 ## 添加新书
