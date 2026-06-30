@@ -24,7 +24,6 @@ yuulibrary/
 │   │   │   └── images/           # 图片（与 .md 同级，相对路径引用）
 │   │   ├── algo-trading/         # 无分类中间目录
 │   │   ├── options-futures-derivatives/
-│   │   ├── options-futures-derivatives/
 │   │   ├── python-for-finance/
 │   │   └── quant-finance-interview/
 │   ├── notes/                    # 笔记（扁平存放，每篇一个 .md）
@@ -100,8 +99,8 @@ yuulibrary/
 python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/books/
 ```
 
-35 项机械验证（11 Error + 19 Warning + 5 Review，lefthook pre-commit + CI 自动运行）。
-- `[E]` 阻断 commit：shortcode 闭合、`$` 配对、裸代码等
+36 项机械验证（12 Error + 19 Warning + 5 Review，lefthook pre-commit + CI 自动运行）。
+- `[E]` 阻断 commit：shortcode 闭合、`$` 配对、裸代码、double `\tag` 等
 - `[W]` 应修复：交叉引用、标题层级、断行等
 - `[R]` 需人工确认：元素模板候选（例X-X、业界事例、定义/定理等）
 - 误报标记：行末加 `<!-- validate-skip -->` 跳过

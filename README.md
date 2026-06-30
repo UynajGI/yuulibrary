@@ -21,7 +21,7 @@ yuulibrary/
 
 ## 书籍
 
-共 16 本，按主题分类（与首页书架一致）。
+共 18 本，按主题分类（与首页书架一致）。
 
 ### 量化金融
 
@@ -38,6 +38,7 @@ yuulibrary/
 | 金融机器学习的进展 | Marcos M. López de Prado | 5 部分 22 章 |
 | Python for Finance | Yves Hilpisch | 5 部分 21 章 |
 | 投资决策的关键解答 | Michael Covel | 15 章 |
+| Stocks on the Move | Andreas F. Clenow | 15 章 |
 
 ### 机器学习与强化学习
 
@@ -58,6 +59,12 @@ yuulibrary/
 | 书名 | 作者 | 章节 |
 |------|------|------|
 | 纳瓦尔宝典 | Eric Jorgenson | 2 部分 |
+
+### 物理科学
+
+| 书名 | 作者 | 章节 |
+|------|------|------|
+| 量子光学与量子涨落导论 | Peter W. Milonni | 7 章 |
 
 ## 本地开发
 
