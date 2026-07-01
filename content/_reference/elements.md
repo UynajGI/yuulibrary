@@ -174,6 +174,43 @@ endfor
 
 ---
 
+## 手绘图形 rough-canvas
+
+用 rough.js 创建手绘风格的 Canvas 图形。
+
+```
+{{</* rough-canvas width="600" height="400" id="my-sketch" */>}}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const rc = rough.canvas(document.getElementById("my-sketch"));
+  rc.circle(80, 80, 60, { roughness: 1.2, fill: "rgba(52,199,89,0.15)", stroke: "#34c759" });
+  rc.rectangle(200, 40, 140, 80, { roughness: 1.5, fill: "rgba(0,122,255,0.1)", stroke: "#007aff" });
+  rc.line(400, 30, 520, 150, { roughness: 1 });
+});
+</script>
+```
+
+{{< rough-canvas width="600" height="180" id="demo-canvas" >}}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const rc = rough.canvas(document.getElementById("demo-canvas"));
+  rc.circle(80, 90, 60, { roughness: 1.2, fill: "rgba(52,199,89,0.15)", stroke: "#34c759", strokeWidth: 2 });
+  rc.rectangle(200, 50, 140, 80, { roughness: 1.5, fill: "rgba(0,122,255,0.1)", stroke: "#007aff", strokeWidth: 2 });
+  rc.ellipse(440, 90, 70, 50, { roughness: 1.3, fill: "rgba(255,149,0,0.1)", stroke: "#ff9500", strokeWidth: 2 });
+  rc.line(400, 30, 520, 150, { roughness: 1.8, stroke: "#ff3b30", strokeWidth: 2 });
+});
+</script>
+
+常用形状：`rectangle(x, y, w, h)` / `circle(cx, cy, d)` / `ellipse(cx, cy, w, h)` / `line(x1, y1, x2, y2)` / `path(d)` / `curve(points)` / `arc(cx, cy, w, h, start, stop)` / `linearPath(points)` / `polygon(vertices)`。
+
+`roughness` 控制手绘程度（0=直线，~2=潦草），`fill` / `stroke` / `strokeWidth` 控制样式。
+
+**注意**：Canvas 的 `width`/`height` 属性定义画布分辨率，CSS 控制显示大小。如需 Retina 清晰度，将属性值设为显示尺寸的 2 倍。
+
+---
+
 ## 标签 tags
 
 笔记/论文的 `front matter` 设 `tags`，自动聚合到 `/tags/`。
