@@ -65,11 +65,11 @@ yuulibrary/
 7. **🔴 Part 页面必须用 book-part 模板**（参照 systems-beauty），weight 比所属第一章小 1
 8. Phase 4.5 Haiku 逐章审核 → 元素模板（example/callout/caption）→ `validate_book.py` 验证
 9. **🔴 质量检查必须用 spot-check agent**：`Agent(subagent_type: "spot-check")`
-10. `hugo server` 验证，首页书架加卡片
+10. `hugo server` 验证
 
 ## 添加新论文
 
-完整流程见 `.claude/skills/add-paper-to-library/SKILL.md`，易忘点见 `.serena/memories/add-paper-patterns.md`。论文比书简单（不拆章、不用 MinerU VLM 流水线、不上首页书架），核心步骤：
+完整流程见 `.claude/skills/add-paper-to-library/SKILL.md`。论文比书简单（不拆章、不用 MinerU VLM 流水线、不上首页书架），核心步骤：
 
 1. 去重（`grep -ril "<作者>" content/papers/`）→ PDF 归档到 `pdfs/papers/`（含 SM 文件）
 2. **优先复用已有 MinerU 提取**（`find ~ -name "*.md" | xargs grep "<标题>"`），没有再提取
@@ -124,7 +124,7 @@ python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/book
 - **伪代码语法**：小写裸命令 `state`/`for{}`/`if{}`/`repeat`/`until{}`/`endfor`/`return{}`，不是 `\STATE`/`\FOR`
 - **跨页面链接**：`[第5章](ch05.md)`，BookPortableLinks 自动转 permalink
 - **封面目录**：`{{< book-toc >}}` 自动生成，不要手写 HTML 表格
-- **书架分类卡片**：`{{< bookshelf >}}` 生成分类卡片网格 + 缩放展开动画（首页和 `/books/` 页共用），新增书籍时需更新 shortcode 内的分类列表
+- **书架分类卡片**：`{{< bookshelf >}}` 和 `{{< papershelf >}}` 全自动生成——遍历所有 `_index.md` 的 `tags`/`author`/`description` 自动归类，**新增内容无需手动编辑 shortcode**。`author` 字段为必需，`tags` 决定所属分类
 
 ## 样式体系
 
