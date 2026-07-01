@@ -35,7 +35,7 @@ yuulibrary/
 │   ├── _shortcodes/              # book-toc/callout/definition/theorem/example 等
 │   └── _partials/docs/inject/head.html  # KaTeX + pseudocode.js 加载
 ├── assets/custom.scss            # 全局样式
-├── static/katex/ + pseudocode/   # 本地化数学/算法渲染
+├── static/katex/ + pseudocode/ + rough.min.js  # 本地化数学/算法/手绘渲染
 ├── .claude/skills/add-book-to-library/   # 加书 skill
 ├── .claude/skills/add-paper-to-library/  # 加论文 skill
 ├── .github/workflows/deploy.yml  # push main → 自动部署
@@ -115,7 +115,8 @@ python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/book
 
 ## 语法约定
 
-- **元素模板**：`{{< callout >}}` / `{{< definition >}}` / `{{< theorem >}}` / `{{< example >}}` / `{{< key-point >}}` / `{{< algorithm >}}`（详见 `content/_reference/elements.md`）
+- **元素模板**：`{{< callout >}}` / `{{< definition >}}` / `{{< theorem >}}` / `{{< proposition >}}` / `{{< lemma >}}` / `{{< corollary >}}` / `{{< remark >}}` / `{{< proof >}}` / `{{< example >}}` / `{{< key-point >}}` / `{{< algorithm >}}`（详见 `content/_reference/elements.md`）
+- **手绘图形**：`{{< rough-canvas >}}` 创建 rough.js 手绘风格 Canvas（详见 `content/_reference/elements.md`）
 - **解答块**：`{{< solution >}}` ... `{{< /solution >}}`（绿色左边框）
 - **图注/表注**：`{{< caption >}}` 图8.1 描述 `{{< /caption >}}`
 - **数学公式**：行内 `$...$`，行间 `$$...$$`（Goldmark passthrough 原样透传 KaTeX）
