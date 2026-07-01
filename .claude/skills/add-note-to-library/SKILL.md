@@ -1,14 +1,14 @@
 ---
 name: add-note-to-library
 description: |
-  将书籍/论文转化为 agent 思维框架笔记，加入个人数字图书馆的 content/notes/ 板块。
-  内部调用 huashu-nuwa skill 生成人物/主题 perspective skill，同时在 notes/ 下创建结构化笔记页面。
+  将书籍/论文蒸馏为思维框架笔记，加入个人数字图书馆的 content/notes/ 板块。
+  LLM 直接通读原文提炼核心框架、决策启发式、表达 DNA，无需外部 skill 依赖。
   触发词：add note, 写笔记, 做笔记, agent笔记, 思维框架笔记, note to library, 写成笔记.
 ---
 
 # Add Note to Library
 
-将书籍或论文转化为 agent 思维框架笔记，加入 Hugo 数字图书馆。
+直接从书/论文/人物蒸馏思维框架，生成 Hugo 笔记页面。
 
 ## 架构约定
 
@@ -19,144 +19,161 @@ content/notes/               # 扁平存放（每篇笔记一个 .md 文件）
 └── welcome.md               # 欢迎页
 ```
 
-**🔴 关键**：
+**关键规则**：
 - 笔记直接放 `content/notes/<note-slug>.md`，**不用子目录**
 - markdown 中**不要重复写 H1 标题**（模板已从 front matter `title` 渲染）
 - `_index.md` 是 section 定义，不含笔记内容
 
-**<note-slug>.md front matter**（必须全齐）：
+**front matter**（必须全齐）：
 ```yaml
 ---
 title: "中文标题"
 description: "一句话概括核心内容"
-date: YYYY-MM-DD            # 🔴 写昨天，不写今天
+date: YYYY-MM-DD            # 写昨天（Hugo 不构建未来日期，且不报错）
 author: "原作者"             # 原书/论文作者
-source_type: "book|paper"    # 来源类型
-source_title: "原书/论文标题" # 原始标题
+source_type: "book|paper|person"
+source_title: "原书/论文标题"
 tags: ["标签1", "标签2"]
-weight: N                    # 笔记区排序
+weight: N
 ---
 ```
 
-**🔴 关键规则**：
-- 每个笔记一个目录 `content/notes/<slug>/`，不扁平存放
-- 笔记正文放 `<slug>.md`，`_index.md` 只做 section 定义（不含正文）
-- `date` 写昨天（Hugo 不构建未来日期，且不报错）
-- Tags 必须加 2-3 个
-- **按时间自动分类**：笔记按 `date` 字段自动归入「本周 / 上周 / 上月 / 更早」，无需手动打主题分类标签。Tags 仍需加（用于标签页检索），但侧边栏菜单按时间分组显示
-- 笔记扁平存放（与 papers/ 的目录式不同），菜单自动生成
+## 可用 JS 增强
+
+笔记中可使用项目已加载的 JS 库：
+
+| 库 | shortcode | 用途 |
+|----|-----------|------|
+| **KaTeX** | `$...$` / `$$...$$` | 数学公式 |
+| **rough.js** | `{{< rough-canvas >}}` | 手绘风格示意图（思维模型、关系图） |
+| **pseudocode.js** | `{{< algorithm >}}` | 算法/决策流程 |
+| **mermaid** | ` ```mermaid ` | 流程图、决策树、关系图 |
 
 ## 工作流
 
 ### Phase 0: 确认输入
 
-1. **来源识别**：用户给的是什么？
-   - 已入库的书（`content/books/<slug>/`）→ 直接读取内容
-   - 已入库的论文（`content/papers/<slug>/`）→ 直接读取内容
-   - 外部 PDF/EPUB → 先走 add-book-to-library 或 add-paper-to-library 入库，再做笔记
+1. **来源识别**：
+   - 已入库的书（`content/books/<slug>/`）→ 直接读取章节
+   - 已入库的论文（`content/papers/<slug>/`）→ 直接读取
+   - 外部 PDF/EPUB → 先走 add-book-to-library 或 add-paper-to-library 入库
    - 纯文本/URL → 直接分析
 
-2. **笔记类型**：用户要什么？
-   - **思维框架笔记**（默认）→ 调用 nuwa 生成 perspective skill + 笔记摘要
-   - **读书笔记** → 不调用 nuwa，手动提炼核心观点
-   - **论文笔记** → 不调用 nuwa，按论文笔记模板（摘要/方法/结论/批判）
-
-3. **确认后** → Phase 1
+2. **笔记类型**：
+   - **思维框架笔记**（默认）→ 提炼此人的思维框架、决策启发式、表达 DNA
+   - **读书笔记** → 提炼核心观点、论证链、批判分析
+   - **论文笔记** → 摘要/方法/结论/批判（走 add-paper-to-library 更合适）
 
 ### Phase 1: 内容分析
 
-根据输入来源，读取原始内容：
+通读原文，提取：
 
-| 来源 | 读取方式 |
+| 维度 | 要提取的 |
 |------|---------|
-| 已入库书籍 | 逐章读取 `content/books/<slug>/ch*.md` |
-| 已入库论文 | 读取 `content/papers/<slug>/_index.md` |
-| 外部 PDF | MinerU 提取 → 读取 merged markdown |
-| URL | WebFetch 获取内容 |
+| 核心主张 | 一句话说清楚此人/此书的核心观点 |
+| 思维框架 | 3-7 个可复用的思维模型，每个包含：描述/来源/应用场景/局限 |
+| 决策启发式 | 5-10 条快速判断规则 |
+| 表达 DNA | 此人如何思考、如何表达的独特模式 |
+| 推荐/延伸 | 相关的书、论文、资源 |
+| 批判性思考 | 盲点、争议、反例、适用边界 |
 
-### Phase 2: 调用 nuwa（仅思维框架笔记）
+### Phase 2: 生成笔记
 
-当笔记类型为「思维框架笔记」时：
-
-1. **创建 skill 目录**：`.claude/skills/<person>-perspective/`
-2. **启动 nuwa Phase 1**：6 个并行 Agent 调研（本地语料优先模式）
-3. **等待完成** → nuwa Phase 2：框架提炼
-4. **生成 SKILL.md**：写入 `.claude/skills/<person>-perspective/SKILL.md`
-
-nuwa 生成的 skill 是独立产物，笔记页面是另一个产物。两者互补：
-- skill → 可被 Claude Code 调用的 agent 思维框架
-- note → 图书馆中可浏览的结构化摘要
-
-### Phase 3: 生成笔记页面
-
-在 nuwa 调研结果的基础上，生成笔记 `_index.md`：
-
-**笔记内容结构**（思维框架笔记模板）：
+按以下模板生成 `content/notes/<slug>.md`：
 
 ```markdown
-# 书名/论文标题
+---
+title: "中文标题"
+description: "一句话概括"
+date: YYYY-MM-DD
+author: "原作者"
+source_type: "book"
+source_title: "原书名"
+tags: ["标签1", "标签2"]
+weight: N
+---
+
+>「一句标志性引用」—— 来源
 
 ## 一句话概括
-<用一句话说清楚这本书/论文的核心主张>
+
+<用一句话说清核心主张>
+
+---
 
 ## 核心思维框架
 
-### 框架1: <名称>
-<一句话描述>
-- **来源**：<章节/访谈/推文>
-- **应用场景**：<什么时候用>
-- **局限**：<什么时候不适用>
+### 1. 框架名称
 
-### 框架2: ...
-（3-7个框架）
+**描述**：一句话说清这个框架是什么。
+
+- **来源**：章节/访谈
+- **应用场景**：什么时候用
+- **局限**：什么时候不适用
+
+（重复 3-7 个）
+
+---
 
 ## 决策启发式
-<此人做判断时的快速规则，5-10条>
+
+1. **规则名**：一句话说清判断规则
+2. ...
+
+（5-10 条）
+
+---
 
 ## 表达 DNA
-<此人如何思考和表达的关键特征>
 
-## 推荐书单 / 延伸阅读
-<此人推荐的书或相关资源>
+- **特征 1**：描述 + 示例
+- **特征 2**：描述 + 示例
+
+---
 
 ## 批判性思考
-<这个框架的盲点、争议、反例>
+
+- **盲点**：...
+- **争议**：...
+- **适用边界**：...
+
+---
 
 ## 关键引用
-> "引用原文" —— 人名, 来源
+
+> "引用原文" —— 来源
 
 ---
 **来源**：原书/论文信息
-**Perspective Skill**：[<person>-perspective](/.claude/skills/<person>-perspective/)
 **调研时间**：YYYY-MM-DD
 ```
 
-### Phase 4: 构建验证
+### Phase 3: 构建验证
 
 ```bash
 hugo --gc --minify
 ```
 
-检查：笔记页面在菜单中正确显示、内容完整、无构建错误。
+### Phase 4: 首页书架注册（可选）
 
-🔴 **CHECKPOINT**：展示笔记页面预览，用户确认后完成。
+如果是书/论文的新笔记，在 `layouts/_shortcodes/bookshelf.html` 中加入卡片。
 
 ## 失败模式
 
 | 症状 | 一线修复 | 仍失败 |
 |------|---------|--------|
-| nuwa Agent 超时 | 降低期望，只用本地语料生成 | 跳过 nuwa，手动写笔记 |
 | 书籍未入库 | 先走 add-book-to-library | 用户提供摘要 |
-| 笔记不显示 | 检查 `_index.md` front matter | 检查 weight 和目录结构 |
+| 笔记不显示 | 检查 front matter date（写昨天） | 检查 slug 和目录结构 |
 | date 写了今天 | 改为昨天 | Hugo 不报错但不构建 |
+| 内容空洞 | 回头重读原文更多章节 | 缩小范围，只覆盖核心观点 |
 
 ## 反例黑名单
 
 | # | 禁止 | 正确做法 |
 |---|------|---------|
-| 1 | 笔记放扁平文件 `notes/foo.md` | 放目录 `notes/foo/_index.md` |
+| 1 | 笔记放子目录 `notes/foo/_index.md` | 扁平放 `notes/<slug>.md` |
 | 2 | date 写今天 | 写昨天 |
 | 3 | 不加 tags | 必须 2-3 个 |
-| 4 | 跳过 nuwa 直接写 | 思维框架笔记必须调用 nuwa |
-| 5 | 笔记里复制全书内容 | 只提炼框架和启发式 |
-| 6 | `_index.md` 加 weight 但不加 description | 两个都加 |
+| 4 | 笔记里复制全书内容 | 只提炼框架和启发式 |
+| 5 | 忽略已有 JS 增强 | 适当使用 rough-canvas / algorithm / mermaid |
+| 6 | 重复写 H1 标题 | 模板从 front matter 渲染 |

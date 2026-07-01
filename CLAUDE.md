@@ -83,14 +83,14 @@ yuulibrary/
 
 ## 添加笔记
 
-完整流程见 `.claude/skills/add-note-to-library/SKILL.md`。将书籍/论文转化为 agent 思维框架笔记。
+完整流程见 `.claude/skills/add-note-to-library/SKILL.md`。直接从书/论文蒸馏思维框架，无需外部 skill 依赖。
 
 1. **输入**：已入库的书/论文 → 直接读取；外部 PDF → 先入库再做笔记
-2. **思维框架笔记**（默认）→ 内部调用 `/huashu-nuwa` 生成 perspective skill + 笔记摘要
+2. **直接分析蒸馏**：LLM 通读原文后提炼核心思维框架、决策启发式、表达 DNA
 3. 笔记放 `content/notes/<slug>.md`（**扁平存放**，不用子目录）
-4. front matter 必须：`title`/`description`/`date`(昨天)/`author`/`source_type`/`tags`/`weight`
-5. 笔记内容：核心思维框架(3-7个) / 决策启发式 / 表达DNA / 推荐书单 / 批判性思考 / 关键引用
-6. 产出两个产物：`content/notes/<slug>.md`（笔记页面）+ `.claude/skills/<person>-perspective/`（可调用 skill，可选）
+4. front matter 必须：`title`/`description`/`date`(昨天)/`author`/`source_type`/`source_title`/`tags`/`weight`
+5. 笔记内容：一句话概括 / 核心思维框架 / 决策启发式 / 表达DNA / 批判性思考 / 关键引用
+6. **善用已有 JS**：rough.js 手绘图（`{{< rough-canvas >}}`）、pseudocode.js 算法（`{{< algorithm >}}`）、KaTeX 数学、mermaid 流程图
 7. **不手动分类**：笔记按 `date` 自动时间排序（最近在前），无需按主题分组
 
 ## 质量验证
