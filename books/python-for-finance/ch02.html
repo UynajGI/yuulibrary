@@ -1,0 +1,410 @@
+<!doctype html><html lang=zh-CN dir=ltr><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content=" 建房首先要选好木材。木匠必须携带好用的工具，并在有空时磨利这些工具。 —宫本武藏（《五轮书》） 对于Python新手来说，Python部署可能看起来并不简单。大量可选安装的库和包也是如此。首先，Python不止一种。Python有多种不同的风格，如CPython、Jython、IronPython和PyPy。还有Python 2.7与3.x世界之间的分歧。¹
+即使你决定了版本，部署仍然因其他一些原因而变得困难：
+• 解释器（标准CPython安装）仅附带所谓的标准库（例如涵盖典型数学函数） • 可选的Python包需要单独安装——而且有成百上千个 • 由于依赖关系和特定操作系统的要求，自行编译/构建这些非标准包可能很棘手 • 处理这些依赖关系和随时间保持版本一致性（即维护）通常是繁琐和耗时的 • 某些包的更新或升级可能需要重新编译许多其他包 • 更改或替换一个包可能导致（许多）其他地方的麻烦
+幸运的是，有一些可用的工具和策略可以提供帮助。本章涵盖以下有助于Python部署的技术类型：
+包管理器（Package managers） 像pip和conda这样的包管理器有助于安装、更新和移除Python包；它们还有助于保持不同包的版本一致性。
+虚拟环境管理器（Virtual environment managers） 像virtualenv或conda这样的虚拟环境管理器允许你并行管理多个Python安装（例如，在单台机器上同时拥有Python 2.7和3.7安装，或测试某个新奇Python包的最新开发版本而无风险）。²
+容器（Containers） Docker容器代表完整的文件系统，包含运行特定软件所需的所有系统组件，如代码、运行时或系统工具。例如，你可以在运行macOS或Windows 10的机器上托管的Docker容器中，运行带有Python 3.7安装和相应Python代码的Ubuntu 18.04操作系统。
+云实例（Cloud instances） 部署用于金融应用的Python代码通常需要高可用性、安全性和性能；这些要求通常只能通过使用专业的计算和存储基础设施来满足，而如今这些基础设施以从相当小到真正大而强大的云实例的形式，以优惠的条件提供。与长期租用的专用服务器相比，云实例的一个好处是用户通常只按实际使用的小时数付费；另一个优势是，如果需要，这类云实例实际上在一两分钟内就可以启动，这有助于敏捷开发和可扩展性。
+本章的结构如下：
+conda作为包管理器 本节介绍conda作为Python包管理器的用法。
+conda作为虚拟环境管理器 本节重点介绍conda作为虚拟环境管理器的能力。
+使用Docker容器 本节简要概述Docker作为容器化技术，并重点介绍构建基于Ubuntu的、包含Python 3.7安装的容器。
+使用云实例 本节展示如何在云端部署Python和Jupyter Notebook——一套强大的、基于浏览器的Python开发工具套件。
+本章的目标是在专业基础设施上建立正确的Python安装，配备最重要的工具以及数值、数据分析和可视化包。这样的组合将作为后续章节中实现和部署Python代码的骨干——无论是交互式金融分析代码，还是脚本和模块形式的代码。
+conda作为包管理器# 虽然conda可以独立安装，但一种高效的方式是通过Miniconda，它是一个最小的Python发行版，包含conda作为包和虚拟环境管理器。
+安装Miniconda# Miniconda适用于Windows、macOS和Linux。你可以从Miniconda网页下载不同版本。以下假设使用Python 3.7 64位版本。本节的主要示例是在基于Ubuntu的Docker容器中进行会话，通过wget下载Linux 64位安装程序，然后安装Miniconda。所展示的代码应该适用于任何其他基于Linux或macOS的机器（可能只需稍作修改）：
+$ docker run -ti -h py4fi -p 11111:11111 ubuntu:latest /bin/bash
+root@py4fi:/# apt-get update; apt-get upgrade -y ... root@py4fi:/# apt-get install -y bzip2 gcc wget ... root@py4fi:/# cd root root@py4fi:~# wget \ > https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \ > -0 miniconda.sh ... HTTP request sent, awaiting response... 200 OK Length: 62574861 (60M) [application/x-sh] Saving to: 'miniconda.sh'miniconda.sh 100%[=================>] 59.68M 5.97MB/s in 11s2018-09-1509:44:28 (5.42 MB/s) - 'miniconda.sh' saved [62574861/62574861]root@py4fi:~# bash miniconda.sh
+"><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#2e3440"><meta name=color-scheme content="light dark"><meta property="og:url" content="https://uynajgi.github.io/yuulibrary/books/python-for-finance/ch02.html"><meta property="og:site_name" content="Yuunagi Library"><meta property="og:title" content="第2章 · Python基础设施"><meta property="og:description" content="建房首先要选好木材。木匠必须携带好用的工具，并在有空时磨利这些工具。 —宫本武藏（《五轮书》） 对于Python新手来说，Python部署可能看起来并不简单。大量可选安装的库和包也是如此。首先，Python不止一种。Python有多种不同的风格，如CPython、Jython、IronPython和PyPy。还有Python 2.7与3.x世界之间的分歧。¹
+即使你决定了版本，部署仍然因其他一些原因而变得困难：
+• 解释器（标准CPython安装）仅附带所谓的标准库（例如涵盖典型数学函数） • 可选的Python包需要单独安装——而且有成百上千个 • 由于依赖关系和特定操作系统的要求，自行编译/构建这些非标准包可能很棘手 • 处理这些依赖关系和随时间保持版本一致性（即维护）通常是繁琐和耗时的 • 某些包的更新或升级可能需要重新编译许多其他包 • 更改或替换一个包可能导致（许多）其他地方的麻烦
+幸运的是，有一些可用的工具和策略可以提供帮助。本章涵盖以下有助于Python部署的技术类型：
+包管理器（Package managers） 像pip和conda这样的包管理器有助于安装、更新和移除Python包；它们还有助于保持不同包的版本一致性。
+虚拟环境管理器（Virtual environment managers） 像virtualenv或conda这样的虚拟环境管理器允许你并行管理多个Python安装（例如，在单台机器上同时拥有Python 2.7和3.7安装，或测试某个新奇Python包的最新开发版本而无风险）。²
+容器（Containers） Docker容器代表完整的文件系统，包含运行特定软件所需的所有系统组件，如代码、运行时或系统工具。例如，你可以在运行macOS或Windows 10的机器上托管的Docker容器中，运行带有Python 3.7安装和相应Python代码的Ubuntu 18.04操作系统。
+云实例（Cloud instances） 部署用于金融应用的Python代码通常需要高可用性、安全性和性能；这些要求通常只能通过使用专业的计算和存储基础设施来满足，而如今这些基础设施以从相当小到真正大而强大的云实例的形式，以优惠的条件提供。与长期租用的专用服务器相比，云实例的一个好处是用户通常只按实际使用的小时数付费；另一个优势是，如果需要，这类云实例实际上在一两分钟内就可以启动，这有助于敏捷开发和可扩展性。
+本章的结构如下：
+conda作为包管理器 本节介绍conda作为Python包管理器的用法。
+conda作为虚拟环境管理器 本节重点介绍conda作为虚拟环境管理器的能力。
+使用Docker容器 本节简要概述Docker作为容器化技术，并重点介绍构建基于Ubuntu的、包含Python 3.7安装的容器。
+使用云实例 本节展示如何在云端部署Python和Jupyter Notebook——一套强大的、基于浏览器的Python开发工具套件。
+本章的目标是在专业基础设施上建立正确的Python安装，配备最重要的工具以及数值、数据分析和可视化包。这样的组合将作为后续章节中实现和部署Python代码的骨干——无论是交互式金融分析代码，还是脚本和模块形式的代码。
+conda作为包管理器# 虽然conda可以独立安装，但一种高效的方式是通过Miniconda，它是一个最小的Python发行版，包含conda作为包和虚拟环境管理器。
+安装Miniconda# Miniconda适用于Windows、macOS和Linux。你可以从Miniconda网页下载不同版本。以下假设使用Python 3.7 64位版本。本节的主要示例是在基于Ubuntu的Docker容器中进行会话，通过wget下载Linux 64位安装程序，然后安装Miniconda。所展示的代码应该适用于任何其他基于Linux或macOS的机器（可能只需稍作修改）：
+$ docker run -ti -h py4fi -p 11111:11111 ubuntu:latest /bin/bash
+root@py4fi:/# apt-get update; apt-get upgrade -y ... root@py4fi:/# apt-get install -y bzip2 gcc wget ... root@py4fi:/# cd root root@py4fi:~# wget \ > https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \ > -0 miniconda.sh ... HTTP request sent, awaiting response... 200 OK Length: 62574861 (60M) [application/x-sh] Saving to: 'miniconda.sh'miniconda.sh 100%[=================>] 59.68M 5.97MB/s in 11s2018-09-1509:44:28 (5.42 MB/s) - 'miniconda.sh' saved [62574861/62574861]root@py4fi:~# bash miniconda.sh"><meta property="og:locale" content="zh_CN"><meta property="og:type" content="article"><meta property="article:section" content="books"><meta property="article:modified_time" content="2026-06-29T19:09:48+08:00"><meta itemprop=name content="第2章 · Python基础设施"><meta itemprop=description content="建房首先要选好木材。木匠必须携带好用的工具，并在有空时磨利这些工具。 —宫本武藏（《五轮书》） 对于Python新手来说，Python部署可能看起来并不简单。大量可选安装的库和包也是如此。首先，Python不止一种。Python有多种不同的风格，如CPython、Jython、IronPython和PyPy。还有Python 2.7与3.x世界之间的分歧。¹
+即使你决定了版本，部署仍然因其他一些原因而变得困难：
+• 解释器（标准CPython安装）仅附带所谓的标准库（例如涵盖典型数学函数） • 可选的Python包需要单独安装——而且有成百上千个 • 由于依赖关系和特定操作系统的要求，自行编译/构建这些非标准包可能很棘手 • 处理这些依赖关系和随时间保持版本一致性（即维护）通常是繁琐和耗时的 • 某些包的更新或升级可能需要重新编译许多其他包 • 更改或替换一个包可能导致（许多）其他地方的麻烦
+幸运的是，有一些可用的工具和策略可以提供帮助。本章涵盖以下有助于Python部署的技术类型：
+包管理器（Package managers） 像pip和conda这样的包管理器有助于安装、更新和移除Python包；它们还有助于保持不同包的版本一致性。
+虚拟环境管理器（Virtual environment managers） 像virtualenv或conda这样的虚拟环境管理器允许你并行管理多个Python安装（例如，在单台机器上同时拥有Python 2.7和3.7安装，或测试某个新奇Python包的最新开发版本而无风险）。²
+容器（Containers） Docker容器代表完整的文件系统，包含运行特定软件所需的所有系统组件，如代码、运行时或系统工具。例如，你可以在运行macOS或Windows 10的机器上托管的Docker容器中，运行带有Python 3.7安装和相应Python代码的Ubuntu 18.04操作系统。
+云实例（Cloud instances） 部署用于金融应用的Python代码通常需要高可用性、安全性和性能；这些要求通常只能通过使用专业的计算和存储基础设施来满足，而如今这些基础设施以从相当小到真正大而强大的云实例的形式，以优惠的条件提供。与长期租用的专用服务器相比，云实例的一个好处是用户通常只按实际使用的小时数付费；另一个优势是，如果需要，这类云实例实际上在一两分钟内就可以启动，这有助于敏捷开发和可扩展性。
+本章的结构如下：
+conda作为包管理器 本节介绍conda作为Python包管理器的用法。
+conda作为虚拟环境管理器 本节重点介绍conda作为虚拟环境管理器的能力。
+使用Docker容器 本节简要概述Docker作为容器化技术，并重点介绍构建基于Ubuntu的、包含Python 3.7安装的容器。
+使用云实例 本节展示如何在云端部署Python和Jupyter Notebook——一套强大的、基于浏览器的Python开发工具套件。
+本章的目标是在专业基础设施上建立正确的Python安装，配备最重要的工具以及数值、数据分析和可视化包。这样的组合将作为后续章节中实现和部署Python代码的骨干——无论是交互式金融分析代码，还是脚本和模块形式的代码。
+conda作为包管理器# 虽然conda可以独立安装，但一种高效的方式是通过Miniconda，它是一个最小的Python发行版，包含conda作为包和虚拟环境管理器。
+安装Miniconda# Miniconda适用于Windows、macOS和Linux。你可以从Miniconda网页下载不同版本。以下假设使用Python 3.7 64位版本。本节的主要示例是在基于Ubuntu的Docker容器中进行会话，通过wget下载Linux 64位安装程序，然后安装Miniconda。所展示的代码应该适用于任何其他基于Linux或macOS的机器（可能只需稍作修改）：
+$ docker run -ti -h py4fi -p 11111:11111 ubuntu:latest /bin/bash
+root@py4fi:/# apt-get update; apt-get upgrade -y ... root@py4fi:/# apt-get install -y bzip2 gcc wget ... root@py4fi:/# cd root root@py4fi:~# wget \ > https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \ > -0 miniconda.sh ... HTTP request sent, awaiting response... 200 OK Length: 62574861 (60M) [application/x-sh] Saving to: 'miniconda.sh'miniconda.sh 100%[=================>] 59.68M 5.97MB/s in 11s2018-09-1509:44:28 (5.42 MB/s) - 'miniconda.sh' saved [62574861/62574861]root@py4fi:~# bash miniconda.sh"><meta itemprop=dateModified content="2026-06-29T19:09:48+08:00"><meta itemprop=wordCount content="1837"><title>第2章 · Python基础设施 • Yuunagi Library</title><link rel=icon href=/yuulibrary/favicon.png><link rel=manifest href=/yuulibrary/manifest.json><link rel=canonical href=https://uynajgi.github.io/yuulibrary/books/python-for-finance/ch02.html><link rel=stylesheet href=/yuulibrary/book.min.c7f0c5f61563f77c87485e3ea6411f03e940c828fa03193c0237bc4f3892df41.css integrity="sha256-x/DF9hVj93yHSF4+pkEfA+lAyCj6Axk8Aje8TziS30E=" crossorigin=anonymous><script defer type=module src=/yuulibrary/zh.search.min.c6db6ff2214d47843d41e8e4713943a55595faafd2e3ce5dd480d433f04f0ba4.js integrity="sha256-xttv8iFNR4Q9QejkcTlDpVWV+q/S485d1IDUM/BPC6Q=" crossorigin=anonymous></script><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap"><link rel=stylesheet href=/yuulibrary/syntax.min.css><link rel=stylesheet href=/yuulibrary/katex/katex.min.css><script defer src=/yuulibrary/katex/katex.min.js></script><script defer src=/yuulibrary/katex/auto-render.min.js></script><link rel=stylesheet href=/yuulibrary/pseudocode.min.css><script defer src=/yuulibrary/pseudocode.min.js></script><script defer src=/yuulibrary/rough.min.js></script><script>document.addEventListener("DOMContentLoaded",function(){window.renderMathInElement&&renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"\\[",right:"\\]",display:!0},{left:"\\(",right:"\\)",display:!1},{left:"$",right:"$",display:!1}],ignoredTags:["script","noscript","style","textarea","pre","code"],ignoredClasses:["pseudocode"],throwOnError:!1}),window.pseudocode&&document.querySelectorAll("pre.pseudocode").forEach(function(e){try{pseudocode.renderElement(e,{lineNumber:!1})}catch(t){console.error("pseudocode error:",t,e)}})})</script></head><body dir=ltr class="book-kind-page book-type-books"><input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/yuulibrary/index.html><span>Yuunagi Library</span></a></h2><div class="book-search hidden"><input id=book-search-input type=text placeholder=搜索 aria-label=搜索 maxlength=64>
+<kbd class=book-search-kbd>⌘K</kbd><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><script>document.querySelector(".book-search").classList.remove("hidden")</script><ul><li><a href=/yuulibrary/books/index.html>书架</a></li><li><input type=checkbox id=section-d6b17828addacf6f3434cd9dc66345b9 class=toggle checked>
+<label for=section-d6b17828addacf6f3434cd9dc66345b9 class=flex><a href=/yuulibrary/books/python-for-finance/index.html>Python for Finance</a>
+<img src=/yuulibrary/icons/chevron-right.svg class=book-icon alt=Expand></label><ul><li><a href=/yuulibrary/books/python-for-finance/preface.html>前言</a></li><li><a href=/yuulibrary/books/python-for-finance/part-1.html>第一部分 · Python与金融</a></li><li><a href=/yuulibrary/books/python-for-finance/ch01.html>第1章 · 为什么用Python做金融</a></li><li><a href=/yuulibrary/books/python-for-finance/ch02.html class=active>第2章 · Python基础设施</a></li><li><a href=/yuulibrary/books/python-for-finance/part-2.html>第二部分 · 掌握基础</a></li><li><a href=/yuulibrary/books/python-for-finance/ch03.html>第3章 · 数据类型与结构</a></li><li><a href=/yuulibrary/books/python-for-finance/ch04.html>第4章 · NumPy数值计算</a></li><li><a href=/yuulibrary/books/python-for-finance/ch05.html>第5章 · pandas数据分析</a></li><li><a href=/yuulibrary/books/python-for-finance/ch06.html>第6章 · 面向对象编程</a></li><li><a href=/yuulibrary/books/python-for-finance/part-3.html>第三部分 · 金融数据科学</a></li><li><a href=/yuulibrary/books/python-for-finance/ch07.html>第7章 · 数据可视化</a></li><li><a href=/yuulibrary/books/python-for-finance/ch08.html>第8章 · 金融时间序列</a></li><li><a href=/yuulibrary/books/python-for-finance/ch09.html>第9章 · 输入/输出操作</a></li><li><a href=/yuulibrary/books/python-for-finance/ch10.html>第10章 · Python性能优化</a></li><li><a href=/yuulibrary/books/python-for-finance/ch11.html>第11章 · 数学工具</a></li><li><a href=/yuulibrary/books/python-for-finance/ch12.html>第12章 · 随机过程</a></li><li><a href=/yuulibrary/books/python-for-finance/ch13.html>第13章 · 统计学</a></li><li><a href=/yuulibrary/books/python-for-finance/part-4.html>第四部分 · 算法交易</a></li><li><a href=/yuulibrary/books/python-for-finance/ch14.html>第14章 · FXCM交易平台</a></li><li><a href=/yuulibrary/books/python-for-finance/ch15.html>第15章 · 交易策略</a></li><li><a href=/yuulibrary/books/python-for-finance/ch16.html>第16章 · 自动化交易</a></li><li><a href=/yuulibrary/books/python-for-finance/part-5.html>第五部分 · 衍生品分析</a></li><li><a href=/yuulibrary/books/python-for-finance/ch17.html>第17章 · 估值框架</a></li><li><a href=/yuulibrary/books/python-for-finance/ch18.html>第18章 · 金融模型模拟</a></li><li><a href=/yuulibrary/books/python-for-finance/ch19.html>第19章 · 衍生品估值</a></li><li><a href=/yuulibrary/books/python-for-finance/ch20.html>第20章 · 投资组合估值</a></li><li><a href=/yuulibrary/books/python-for-finance/ch21.html>第21章 · 基于市场的估值</a></li><li><a href=/yuulibrary/books/python-for-finance/appendix-a.html>附录A · 日期与时间</a></li><li><a href=/yuulibrary/books/python-for-finance/appendix-b.html>附录B · BSM期权类</a></li></ul></li><li><a href=/yuulibrary/notes/index.html>笔记</a></li><li><a href=/yuulibrary/papers/index.html>论文</a></li><li><a href=/yuulibrary/tags/index.html>标签</a></li></ul><div class=menu-about><a href=/yuulibrary/about.html>关于</a></div><div class=menu-social><a href=mailto:yuunagi.cn@outlook.com title=Email class=menu-social-link><svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M20 4H4c-1.1.0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1.0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+</a><a href=https://github.com/uynajgi/yuulibrary title=GitHub class=menu-social-link><svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 0C5.37.0.0 5.37.0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57.0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925.0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18.0.0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225.0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22.0 1.605-.015 2.895-.015 3.3.0.315.225.69.825.57A12.02 12.02.0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a></div></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class="book-header hidden"><div class="flex align-center justify-between"><label for=menu-control><img src=/yuulibrary/icons/menu.svg class=book-icon alt=Menu></label><h3>第2章 · Python基础设施</h3><label for=toc-control><img src=/yuulibrary/icons/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class=hidden><nav id=TableOfContents><ul><li><a href=#conda作为包管理器>conda作为包管理器</a></li><li><a href=#安装miniconda>安装Miniconda</a></li><li><a href=#conda的基本操作>conda的基本操作</a></li><li><a href=#conda作为虚拟环境管理器>conda作为虚拟环境管理器</a></li><li><a href=#使用docker容器>使用Docker容器</a></li><li><a href=#docker镜像与容器>Docker镜像与容器</a></li><li><a href=#构建ubuntu和python的docker镜像>构建Ubuntu和Python的Docker镜像</a></li><li><a href=#docker-docker-attach-e815d>~/Docker$ docker attach e815d</a></li><li><a href=#docker-docker-rmi-6c36b9117cd2>~/Docker$ docker rmi 6c36b9117cd2</a></li><li><a href=#使用云实例>使用云实例</a></li><li><a href=#rsa公钥和私钥>RSA公钥和私钥</a></li><li><a href=#jupyter-notebook配置文件>Jupyter Notebook配置文件</a></li><li><a href=#python和jupyter-notebook的安装脚本>Python和Jupyter Notebook的安装脚本</a></li><li><a href=#组织droplet设置的脚本>组织Droplet设置的脚本</a></li><li><a href=#结论>结论</a></li><li><a href=#延伸阅读>延伸阅读</a></li><li><a href=#掌握基础>掌握基础</a></li></ul></nav></aside></header><article class="markdown book-article"><div class="callout callout-quote"><div class=callout-body>建房首先要选好木材。木匠必须携带好用的工具，并在有空时磨利这些工具。
+—宫本武藏（《五轮书》）</div></div><p>对于Python新手来说，Python部署可能看起来并不简单。大量可选安装的库和包也是如此。首先，Python不止一种。Python有多种不同的风格，如CPython、Jython、IronPython和PyPy。还有Python 2.7与3.x世界之间的分歧。¹</p><p>即使你决定了版本，部署仍然因其他一些原因而变得困难：</p><p>• 解释器（标准CPython安装）仅附带所谓的标准库（例如涵盖典型数学函数）
+• 可选的Python包需要单独安装——而且有成百上千个
+• 由于依赖关系和特定操作系统的要求，自行编译/构建这些非标准包可能很棘手
+• 处理这些依赖关系和随时间保持版本一致性（即维护）通常是繁琐和耗时的
+• 某些包的更新或升级可能需要重新编译许多其他包
+• 更改或替换一个包可能导致（许多）其他地方的麻烦</p><p>幸运的是，有一些可用的工具和策略可以提供帮助。本章涵盖以下有助于Python部署的技术类型：</p><p><strong>包管理器（Package managers）</strong>
+像pip和conda这样的包管理器有助于安装、更新和移除Python包；它们还有助于保持不同包的版本一致性。</p><p><strong>虚拟环境管理器（Virtual environment managers）</strong>
+像virtualenv或conda这样的虚拟环境管理器允许你并行管理多个Python安装（例如，在单台机器上同时拥有Python 2.7和3.7安装，或测试某个新奇Python包的最新开发版本而无风险）。²</p><p><strong>容器（Containers）</strong>
+Docker容器代表完整的文件系统，包含运行特定软件所需的所有系统组件，如代码、运行时或系统工具。例如，你可以在运行macOS或Windows 10的机器上托管的Docker容器中，运行带有Python 3.7安装和相应Python代码的Ubuntu 18.04操作系统。</p><p><strong>云实例（Cloud instances）</strong>
+部署用于金融应用的Python代码通常需要高可用性、安全性和性能；这些要求通常只能通过使用专业的计算和存储基础设施来满足，而如今这些基础设施以从相当小到真正大而强大的云实例的形式，以优惠的条件提供。与长期租用的专用服务器相比，云实例的一个好处是用户通常只按实际使用的小时数付费；另一个优势是，如果需要，这类云实例实际上在一两分钟内就可以启动，这有助于敏捷开发和可扩展性。</p><p>本章的结构如下：</p><p><strong>conda作为包管理器</strong>
+本节介绍conda作为Python包管理器的用法。</p><p><strong>conda作为虚拟环境管理器</strong>
+本节重点介绍conda作为虚拟环境管理器的能力。</p><p><strong>使用Docker容器</strong>
+本节简要概述Docker作为容器化技术，并重点介绍构建基于Ubuntu的、包含Python 3.7安装的容器。</p><p><strong>使用云实例</strong>
+本节展示如何在云端部署Python和Jupyter Notebook——一套强大的、基于浏览器的Python开发工具套件。</p><p>本章的目标是在专业基础设施上建立正确的Python安装，配备最重要的工具以及数值、数据分析和可视化包。这样的组合将作为后续章节中实现和部署Python代码的骨干——无论是交互式金融分析代码，还是脚本和模块形式的代码。</p><h2 id=conda作为包管理器>conda作为包管理器<a class=anchor href=#conda%e4%bd%9c%e4%b8%ba%e5%8c%85%e7%ae%a1%e7%90%86%e5%99%a8>#</a></h2><p>虽然conda可以独立安装，但一种高效的方式是通过Miniconda，它是一个最小的Python发行版，包含conda作为包和虚拟环境管理器。</p><h2 id=安装miniconda>安装Miniconda<a class=anchor href=#%e5%ae%89%e8%a3%85miniconda>#</a></h2><p>Miniconda适用于Windows、macOS和Linux。你可以从Miniconda网页下载不同版本。以下假设使用Python 3.7 64位版本。本节的主要示例是在基于Ubuntu的Docker容器中进行会话，通过wget下载Linux 64位安装程序，然后安装Miniconda。所展示的代码应该适用于任何其他基于Linux或macOS的机器（可能只需稍作修改）：</p><p>$ docker run -ti -h py4fi -p 11111:11111 ubuntu:latest /bin/bash</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>root@py4fi:/# apt-get update; apt-get upgrade -y
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>root@py4fi:/# apt-get install -y bzip2 gcc wget
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>root@py4fi:/# cd root
+</span></span><span class=line><span class=cl>root@py4fi:~# wget \
+</span></span><span class=line><span class=cl>&gt; https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+</span></span><span class=line><span class=cl>&gt; -0 miniconda.sh
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>HTTP request sent, awaiting response... 200 OK
+</span></span><span class=line><span class=cl>Length: 62574861 (60M) [application/x-sh]
+</span></span><span class=line><span class=cl>Saving to: &#39;miniconda.sh&#39;</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>miniconda.sh 100%[=================&gt;] 59.68M 5.97MB/s in 11s</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>2018-09-1509:44:28 (5.42 MB/s) - &#39;miniconda.sh&#39; saved [62574861/62574861]</span></span></code></pre></div><p>root@py4fi:~# bash miniconda.sh</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>Welcome to Miniconda34.5.11</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>In order to continue the installation process, please review the license agreement.
+</span></span><span class=line><span class=cl>Please, press ENTER to continue
+</span></span><span class=line><span class=cl>&gt;&gt;&gt;</span></span></code></pre></div><p>只需按Enter键即可开始安装过程。审阅许可协议后，回答yes以接受条款：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>Do you accept the license terms? [yes|no]
+</span></span><span class=line><span class=cl>[no] &gt;&gt;&gt; yes</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>Miniconda3 will now be installed into this location: /root/miniconda3</span></span></code></pre></div><p>- 按Enter确认位置</p><p>- 或在下面指定不同位置</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>[/root/miniconda3] &gt;&gt;&gt;
+</span></span><span class=line><span class=cl>PREFIX=/root/miniconda3
+</span></span><span class=line><span class=cl>installing: python-3.7. ...
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>installing: requests-2.19.1-py37_0 ...
+</span></span><span class=line><span class=cl>installing: conda-4.5.11-py37_0 ...
+</span></span><span class=line><span class=cl>installation finished.</span></span></code></pre></div><p>同意许可条款并确认安装位置后，应再次回答yes，允许Miniconda将新的Miniconda安装位置添加到PATH环境变量中：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>Do you wish the installer to prepend the Miniconda3 install location
+</span></span><span class=line><span class=cl>to PATH in your /root/.bashrc ? [yes|no]
+</span></span><span class=line><span class=cl>[no] &gt;&gt;&gt; yes</span></span></code></pre></div><p>Appending source /root/miniconda3/bin/activate to /root/.bashrc A backup will be made to: /root/.bashrc-miniconda3.bak</p><p>要使此更改生效，必须打开一个新的终端。</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>Thank you for installing Miniconda3!
+</span></span><span class=line><span class=cl>root@py4fi:~#</span></span></code></pre></div><p>之后，你可能想要升级conda和Python：³</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>root@py4fi:~# export PATH=&#34;/root/miniconda3/bin/:$PATH&#34;
+</span></span><span class=line><span class=cl>root@py4fi:~# conda update -y conda python
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>root@py4fi:~# echo &#34;./root/miniconda3/etc/profile.d/conda.sh&#34; &gt;&gt; ~/.bashrc
+</span></span><span class=line><span class=cl>root@py4fi:~# bash</span></span></code></pre></div><p>完成这个相当简单的安装过程后，你将拥有基本的Python安装以及可用的conda。基本Python安装附带了一些不错的"电池"，如SQLite3数据库引擎。你可以尝试在将相关路径添加到相应环境变量后（如前面所做），在新shell实例中启动Python：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>root@py4fi:~# python
+</span></span><span class=line><span class=cl>Python 3.7.0 (default, Jun 282018, 13:15:42)
+</span></span><span class=line><span class=cl>[GCC 7.2.0] :: Anaconda, Inc. on linux
+</span></span><span class=line><span class=cl>Type &#34;help&#34;, &#34;copyright&#34;, &#34;credits&#34; or &#34;license&#34; for more information.
+</span></span><span class=line><span class=cl>&gt;&gt;&gt; print(&#39;Hello Python for Finance World.&#39;)
+</span></span><span class=line><span class=cl>Hello Python for Finance World.
+</span></span><span class=line><span class=cl>&gt;&gt;&gt; exit()
+</span></span><span class=line><span class=cl>root@py4fi:~#</span></span></code></pre></div><h2 id=conda的基本操作>conda的基本操作<a class=anchor href=#conda%e7%9a%84%e5%9f%ba%e6%9c%ac%e6%93%8d%e4%bd%9c>#</a></h2><p>conda可用于高效地处理Python包的安装、更新和移除等操作。以下列表提供了主要功能的概览：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-batch data-lang=batch><span class=line><span class=cl>安装Python x.x
+</span></span><span class=line><span class=cl>conda install python=x.x</span></span></code></pre></div><p>更新Python conda update python</p><p>安装包 conda install $PACKAGE_NAME</p><p>更新包 conda update $PACKAGE_NAME</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>移除包
+</span></span><span class=line><span class=cl>conda remove $PACKAGE_NAME</span></span></code></pre></div><p>更新conda自身 conda update conda</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>搜索包
+</span></span><span class=line><span class=cl>conda search $SEARCH_TERM</span></span></code></pre></div><p>列出已安装包 conda list</p><p>利用这些能力，安装例如NumPy——科学栈中最重要的库之一——只需要一个命令。当在配备Intel处理器的机器上安装时，该过程会自动安装Intel Math Kernel Library（mkl），它不仅加速NumPy，还能加速其他几个科学Python包的数值运算：⁴</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-batch data-lang=batch><span class=line><span class=cl>root@py4fi:~# conda install numpy
+</span></span><span class=line><span class=cl>Solving environment: done</span></span></code></pre></div><p>## Package Plan ##</p><p>environment location: /root/miniconda3</p><p>added / updated specs: - numpy</p><p>The following packages will be downloaded:</p><table><tr><td>package</td><td colspan=2>build</td></tr><tr><td>mkl-2019.0</td><td>117</td><td>204.4 MB</td></tr><tr><td>intel-openmp-2019.0</td><td>117</td><td>721 KB</td></tr><tr><td>mkl_random-1.0.1</td><td>py37h4414c95_1</td><td>372 KB</td></tr><tr><td>libgfortran-ng-7.3.0</td><td>hdf63c60_0</td><td>1.3 MB</td></tr><tr><td>numpy-1.15.1</td><td>py37h1d66e8a_0</td><td>37 KB</td></tr><tr><td>numpy-base-1.15.1</td><td>py37h81de0dd_0</td><td>4.2 MB</td></tr><tr><td>blas-1.0</td><td>mkl</td><td>6 KB</td></tr><tr><td>mkl_fft-1.0.4</td><td>py37h4414c95_1</td><td>149 KB</td></tr><tr><td colspan=2>Total:</td><td>211.1 MB</td></tr></table><p>The following NEW packages will be INSTALLED:</p><p>blas: 1.0-mkl intel-openmp: 2019.0-117 libgfortran-ng: 7.3.0-hdf63c60_0 mkl: 2019.0-117 mkl_fft: 1.0.4-py37h4414c95_1 mkl_random: 1.0.1-py37h4414c95_1</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>numpy: 1.15.1-py37h1d66e8a_0
+</span></span><span class=line><span class=cl>numpy-base: 1.15.1-py37h81de0dd_0</span></span></code></pre></div><p>Proceed ([y]/n)? y</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>Downloading and Extracting Packages
+</span></span><span class=line><span class=cl>mkl-2019.0 | 204.4 MB | ###########
+</span></span><span class=line><span class=cl>| 100%
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>numpy-1.15.1 | 37 KB | ###########
+</span></span><span class=line><span class=cl>| 100%
+</span></span><span class=line><span class=cl>numpy-base-1.15.1 | 4.2 MB | ###########
+</span></span><span class=line><span class=cl>| 100%
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>root@py4fi:~#</span></span></code></pre></div><p>多个包也可以同时安装。<code>-y</code>标志指示所有（潜在的）问题都回答yes：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-batch data-lang=batch><span class=line><span class=cl>root@py4fi:/# conda install -y ipython matplotlib pandas pytables scikit-learn \
+</span></span><span class=line><span class=cl><span class=p>&gt;</span> scipy</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>pytables-3.4.4 | 1.5 MB | ###########
+</span></span><span class=line><span class=cl>kiwisolver-1.0.1 | 83 KB | ###########
+</span></span><span class=line><span class=cl>icu-58.2 | 22.5 MB | ###########
+</span></span><span class=line><span class=cl>Preparing transaction: done
+</span></span><span class=line><span class=cl>Verifying transaction: done
+</span></span><span class=line><span class=cl>Executing transaction: done
+</span></span><span class=line><span class=cl>root@py4fi:~#</span></span></code></pre></div><p>安装完成后，除了标准库外，金融分析中一些最重要的库也变得可用，包括：</p><p>IPython 改进的交互式Python shell
+matplotlib Python标准绘图库
+NumPy 高效处理数值数组
+pandas 管理表格数据，如金融时间序列数据
+PyTables HDF5库的Python封装
+scikit-learn 机器学习和相关任务的包
+SciPy 科学类和函数的集合（作为依赖项安装）</p><p>这提供了数据分析（特别是金融分析）的基本工具集。下一个示例使用IPython，并用NumPy生成一组伪随机数：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>root@py4fi:~# ipython
+</span></span><span class=line><span class=cl>Python 3.7.0 (default, Jun 282018, 13:15:42)
+</span></span><span class=line><span class=cl>Type &#39;copyright&#39;, &#39;credits&#39; or &#39;license&#39; for more information
+</span></span><span class=line><span class=cl>IPython 6.5.0 -- An enhanced Interactive Python. Type &#39;?&#39; for help.</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>In [1]: import numpy as np</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript><span class=line><span class=cl><span class=nx>In</span> <span class=p>[</span><span class=mi>2</span><span class=p>]</span><span class=o>:</span> <span class=nx>np</span><span class=p>.</span><span class=nx>random</span><span class=p>.</span><span class=nx>seed</span><span class=p>(</span><span class=mi>100</span><span class=p>)</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>In [3]: np.random.standard_normal((5, 4))
+</span></span><span class=line><span class=cl>Out[3]:
+</span></span><span class=line><span class=cl>array([[-1.74976547, 0.3426804, 1.1530358, -0.25243604],
+</span></span><span class=line><span class=cl>    [0.98132079, 0.51421884, 0.22117967, -1.07004333],
+</span></span><span class=line><span class=cl>    [-0.18949583, 0.25500144, -0.45802699, 0.43516349],
+</span></span><span class=line><span class=cl>    [-0.58359505, 0.81684707, 0.67272081, -0.10441114],
+</span></span><span class=line><span class=cl>    [-0.53128038, 1.02973269, -0.43813562, -1.11831825]])</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>In [4]: exit
+</span></span><span class=line><span class=cl>root@py4fi:~#</span></span></code></pre></div><p>执行 <code>conda list</code> 可显示已安装的包：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>root@py4fi:~# conda list
+</span></span><span class=line><span class=cl>packages in environment at /root/miniconda3:</span></span></code></pre></div><table><tr><td># Name</td><td>Version</td><td>Build</td><td>Channel</td></tr><tr><td>asn1crypto</td><td>0.24.0</td><td>py37_0</td><td></td></tr><tr><td>backcall</td><td>0.1.0</td><td>py37_0</td><td></td></tr><tr><td>blas</td><td>1.0</td><td>mkl</td><td></td></tr><tr><td>blosc</td><td>1.14.4</td><td>hdbcaa40_0</td><td></td></tr><tr><td>bzip2</td><td>1.0.6</td><td>h14c3975_5</td><td></td></tr><tr><td>...</td><td></td><td></td><td></td></tr><tr><td>python</td><td>3.7.0</td><td>hc3d631a_0</td><td></td></tr><tr><td>...</td><td></td><td></td><td></td></tr><tr><td>wheel</td><td>0.31.1</td><td>py37_0</td><td></td></tr><tr><td>xz</td><td>5.2.4</td><td>h14c3975_4</td><td></td></tr><tr><td>yaml</td><td>0.1.7</td><td>had09818_2</td><td></td></tr><tr><td>zlib</td><td>1.2.11</td><td>ha838bed_2</td><td></td></tr><tr><td colspan=4>root@py4fi:~#</td></tr></table><p>如果某个包不再需要，可以用 <code>conda remove</code> 有效移除：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=l>root@py4fi:~# conda remove scikit-learn</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>Solving environment</span><span class=p>:</span><span class=w> </span><span class=l>done</span></span></span></code></pre></div><p>## Package Plan ##</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>environment location: /root/miniconda3</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>removed specs:
+</span></span><span class=line><span class=cl>- scikit-learn</span></span></code></pre></div><p>The following packages will be REMOVED:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>scikit-learn: 0.19.1-py37hedc7406_0</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>Proceed ([y]/n)? y</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>Preparing transaction: done
+</span></span><span class=line><span class=cl>Verifying transaction: done
+</span></span><span class=line><span class=cl>Executing transaction: done
+</span></span><span class=line><span class=cl>root@py4fi:~#</span></span></code></pre></div><p>conda作为包管理器已经相当有用。然而，它的全部力量只有在加入虚拟环境管理后才真正显现。</p><div class="callout callout-note"><div class=callout-body><p><strong>便捷的包管理</strong></p><p>使用conda作为包管理器，安装、更新和移除Python包成为一种愉快的体验。无需自行构建和编译包——考虑到包指定的依赖项列表以及不同操作系统上的特定要求，这有时可能很棘手。</p></div></div><h2 id=conda作为虚拟环境管理器>conda作为虚拟环境管理器<a class=anchor href=#conda%e4%bd%9c%e4%b8%ba%e8%99%9a%e6%8b%9f%e7%8e%af%e5%a2%83%e7%ae%a1%e7%90%86%e5%99%a8>#</a></h2><p>根据你选择的安装程序版本，Miniconda提供默认的Python 2.7或3.7安装。conda的虚拟环境管理能力允许你在Python 3.7默认安装的基础上，添加一个完全独立的Python 2.7.x安装。为此，conda提供以下功能：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>创建虚拟环境
+</span></span><span class=line><span class=cl>conda create --name $ENVIRONMENT_NAME</span></span></code></pre></div><p>激活环境 conda activate $ENVIRONMENT_NAME</p><p>停用环境 conda deactivate $ENVIRONMENT_NAME</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-powershell data-lang=powershell><span class=line><span class=cl><span class=n>移除环境</span>
+</span></span><span class=line><span class=cl><span class=n>conda</span> <span class=n>env</span> <span class=n>remove</span> <span class=p>-</span><span class=n>-name</span> <span class=nv>$ENVIRONMENT_NAME</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>导出到环境文件
+</span></span><span class=line><span class=cl>conda env export &gt; $FILE_NAME</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>从文件创建环境
+</span></span><span class=line><span class=cl>conda env create -f $FILE_NAME</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>列出所有环境
+</span></span><span class=line><span class=cl>conda info --envs</span></span></code></pre></div><p>作为简单说明，以下示例代码创建了一个名为py27的环境，安装IPython，并执行一行Python 2.7.x代码：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-markdown data-lang=markdown><span class=line><span class=cl>root<span class=ni>@py4fi:</span>~# conda create --name py27 python=2.7
+</span></span><span class=line><span class=cl>Solving environment: done
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>\## Package Plan ##
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>environment location: /root/miniconda3/envs/py27
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>added / updated specs:
+</span></span><span class=line><span class=cl>- python=2.7</span></span></code></pre></div><p>The following NEW packages will be INSTALLED:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>ca-certificates: 2018.03.07-0
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>python: 2.7.15-h1571d57_0
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>zlib: 1.2.11-ha838bed_2</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>Preparing transaction: done
+</span></span><span class=line><span class=cl>Verifying transaction: done
+</span></span><span class=line><span class=cl>Executing transaction: done
+</span></span><span class=line><span class=cl>#
+</span></span><span class=line><span class=cl>To activate this environment, use:
+</span></span><span class=line><span class=cl>&gt; conda activate py27
+</span></span><span class=line><span class=cl>#
+</span></span><span class=line><span class=cl>To deactivate an active environment, use:
+</span></span><span class=line><span class=cl>&gt; conda deactivate
+</span></span><span class=line><span class=cl>#</span></span></code></pre></div><p>注意激活环境后提示符如何变化，包含(py27)：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>root@py4fi:~# conda activate py27
+</span></span><span class=line><span class=cl>(py27) root@py4fi:~# conda install ipython
+</span></span><span class=line><span class=cl>Solving environment: done</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>Executing transaction: done (py27) root@py4fi:~#</span></span></code></pre></div><p>最后，这使你能够使用Python 2.7语法的IPython：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>(py27) root@py4fi:~# ipython
+</span></span><span class=line><span class=cl>Python 2.7.15 |Anaconda, Inc.| (default, May 12018, 23:32:55)
+</span></span><span class=line><span class=cl>Type &#34;copyright&#34;, &#34;credits&#34; or &#34;license&#34; for more information.</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>IPython 5.8.0 -- An enhanced Interactive Python.
+</span></span><span class=line><span class=cl>? -&gt; Introduction and overview of IPython&#39;s features.
+</span></span><span class=line><span class=cl>%quickref -&gt; Quick reference.
+</span></span><span class=line><span class=cl>help -&gt; Python&#39;s own help system.
+</span></span><span class=line><span class=cl>object? -&gt; Details about &#39;object&#39;, use &#39;object??&#39; for extra details.</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>In [1]: print &#34;Hello Python for Finance World!&#34;
+</span></span><span class=line><span class=cl>Hello Python for Finance World!</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>In [2]: exit
+</span></span><span class=line><span class=cl>(py27) root@py4fi:~#</span></span></code></pre></div><p>如本示例所示，使用conda作为虚拟环境管理器允许同时安装不同版本的Python。它还允许安装某些包的不同版本。默认的Python安装不受此类过程影响，同一台机器上可能存在的其他环境也不受影响。所有可用环境可通过 <code>conda env list</code> 显示：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>(py27) root@py4fi:~# conda env list
+</span></span><span class=line><span class=cl>conda environments:
+</span></span><span class=line><span class=cl>#
+</span></span><span class=line><span class=cl>base    /root/miniconda3
+</span></span><span class=line><span class=cl>py27    * /root/miniconda3/envs/py27</span></span></code></pre></div><pre tabindex=0><code class=language-snap data-lang=snap>(py27) root@py4fi:~#</code></pre><p>有时需要与他人共享环境信息，或在多台机器上使用环境信息。为此，可以使用 <code>conda env export</code> 将已安装的包列表导出到文件。默认情况下，这仅在机器使用相同操作系统时才能正常工作，因为生成的YAML文件中指定了构建版本，但可以删除它们以仅指定包版本：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=l>(py27) root@py4fi:~# conda env export --no-builds &gt; py27env.yml</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=l>(py27) root@py4fi:~# cat py27env.yml</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>py27</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>channels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl>- <span class=l>defaults</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nt>dependencies</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl>- <span class=l>backports=1.0</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nn>...</span><span class=w>
+</span></span></span><span class=line><span class=cl>- <span class=l>python=2.7.15</span></span></span></code></pre></div><p>- zlib=1.2.11</p><p>prefix: /root/miniconda3/envs/py27</p><p>(py27) root@py4fi:~#</p><p>通常，创建虚拟环境（技术上不过是一种特定的子文件夹结构）是为了进行一些快速测试。⁵ 在这种情况下，停用后可以通过 <code>conda env remove</code> 轻松移除环境：</p><p>(py27) root@py4fi:/# conda deactivate</p><p>root@py4fi:~# conda env remove -y --name py27</p><p>Remove all packages in environment /root/miniconda3/envs/py27:</p><p>## Package Plan ##</p><p>environment location: /root/miniconda3/envs/py27</p><p>The following packages will be REMOVED:</p><p>backports: 1.0-py27_1</p><p>zlib: 1.2.11-ha838bed_2</p><p>root@py4fi:~#</p><p>至此，conda作为虚拟环境管理器的概述结束。</p><div class="callout callout-note"><div class=callout-body><p><strong>便捷的环境管理</strong></p><p>conda不仅有助于管理包，还充当Python的虚拟环境管理器。它简化了不同Python环境的创建，允许你在同一台机器上拥有多个版本的Python和可选包，而它们互不影响。conda还允许你导出环境信息，以便轻松地在多台机器上复制或与他人共享。</p></div></div><h2 id=使用docker容器>使用Docker容器<a class=anchor href=#%e4%bd%bf%e7%94%a8docker%e5%ae%b9%e5%99%a8>#</a></h2><p>Docker容器已经席卷了IT世界。虽然这项技术仍然相对年轻，但它已成为高效开发和部署几乎任何类型软件应用的基准之一。</p><p>就本书而言，将Docker容器视为一个独立的（"容器化的"）文件系统就足够了，它包含操作系统（如Ubuntu Server 18.04）、（Python）运行时、额外的系统和开发工具以及所需的（Python）库和包。这样的Docker容器可以运行在本地Windows 10机器上，也可以运行在带有Linux操作系统的云实例上。</p><p>本节不会深入探讨Docker容器的所有激动人心的细节。它只是简要说明Docker技术在Python部署方面的能力。⁶</p><h2 id=docker镜像与容器>Docker镜像与容器<a class=anchor href=#docker%e9%95%9c%e5%83%8f%e4%b8%8e%e5%ae%b9%e5%99%a8>#</a></h2><p>在继续说明之前，需要区分讨论Docker时的两个基本概念。第一个是Docker镜像（Docker image），可以类比为Python类。第二个是Docker容器（Docker container），可以类比为相应Python类的实例。⁷</p><p>在更技术的层面上，Docker词汇表中对镜像有如下定义：</p><p>Docker镜像是容器的基础。镜像是一个只读模板，包含创建容器的说明。镜像通常包含堆叠在彼此之上的分层文件系统的联合。镜像没有状态，永远不会改变。</p><p>类似地，Docker词汇表中对容器有如下定义，这使得与Python类和类实例的类比更加清晰：</p><p>容器是Docker镜像的可运行实例。一个Docker容器包含：一个Docker镜像、一个执行环境以及一组标准指令。</p><p>根据操作系统的不同，Docker的安装也有所不同。这就是本节不深入细节的原因。更多信息和相关链接可以在About Docker CE页面上找到。</p><h2 id=构建ubuntu和python的docker镜像>构建Ubuntu和Python的Docker镜像<a class=anchor href=#%e6%9e%84%e5%bb%baubuntu%e5%92%8cpython%e7%9a%84docker%e9%95%9c%e5%83%8f>#</a></h2><p>本节说明如何基于最新版本的Ubuntu构建包含Miniconda以及一些重要Python包的Docker镜像。此外，它还进行一些Linux常规维护，如更新Linux包索引、必要时升级包以及安装某些额外的系统工具。为此，需要两个脚本。一个是bash脚本，负责Linux层面的所有工作。⁸ 另一个是所谓的Dockerfile，用于控制镜像本身的构建过程。</p><p>示例2-1中的安装bash脚本由三个主要部分组成。第一部分处理Linux常规维护。第二部分安装Miniconda，而第三部分安装可选的Python包。内联提供了更详细的注释。</p><p>示例2-1. 安装Python和可选包的脚本</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=c1>#</span>
+</span></span><span class=line><span class=cl><span class=c1>### 安装Linux系统工具和基础Python组件的脚本</span>
+</span></span><span class=line><span class=cl><span class=c1>#</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>#</span>
+</span></span><span class=line><span class=cl>通用Linux设置
+</span></span><span class=line><span class=cl>apt-get update <span class=c1># 更新包索引缓存</span>
+</span></span><span class=line><span class=cl>apt-get upgrade -y <span class=c1># 更新包</span>
+</span></span><span class=line><span class=cl>安装系统工具
+</span></span><span class=line><span class=cl>apt-get install -y bzip2 gcc git htop screen vim wget
+</span></span><span class=line><span class=cl>apt-get upgrade -y bash <span class=c1># 必要时升级bash</span>
+</span></span><span class=line><span class=cl>apt-get clean <span class=c1># 清理包索引缓存</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>安装Miniconda
+</span></span><span class=line><span class=cl>下载Miniconda
+</span></span><span class=line><span class=cl>wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -0 <span class=se>\ </span>Miniconda.sh
+</span></span><span class=line><span class=cl>bash Miniconda.sh -b <span class=c1># 安装Miniconda</span>
+</span></span><span class=line><span class=cl>rm -rf Miniconda.sh <span class=c1># 删除安装程序</span>
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>PATH</span><span class=o>=</span><span class=s2>&#34;/root/miniconda3/bin:</span><span class=nv>$PATH</span><span class=s2>&#34;</span> <span class=c1># 预置新路径</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>安装Python库
+</span></span><span class=line><span class=cl>conda update -y conda python <span class=c1># 更新conda和Python（如果需要）</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>conda install -y pandas <span class=c1># 安装pandas</span>
+</span></span><span class=line><span class=cl>conda install -y ipython <span class=c1># 安装IPython shell</span></span></span></code></pre></div><p>示例2-2中的Dockerfile使用示例2-1中的bash脚本构建一个新的Docker镜像。其中也内联注释了主要部分。</p><p>示例2-2. 构建镜像的Dockerfile</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-dockerfile data-lang=dockerfile><span class=line><span class=cl><span class=c>#</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=c>### 使用最新Ubuntu版本和基础Python安装构建Docker镜像</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=c>#</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl><span class=c>#</span><span class=err>
+</span></span></span><span class=line><span class=cl>最新的Ubuntu版本<span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>FROM</span><span class=w> </span><span class=s>ubuntu:latest</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl>维护者信息<span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>MAINTAINER</span><span class=w> </span><span class=s>yves</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl>添加bash脚本<span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>ADD</span> install.sh/<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl>修改脚本权限<span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>RUN</span> chmod u+x /install.sh<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl>运行bash脚本<span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>RUN</span> /install.sh<span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl>预置新路径<span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>ENV</span> PATH /root/miniconda3/bin:<span class=nv>$PATH</span><span class=err>
+</span></span></span><span class=line><span class=cl><span class=err>
+</span></span></span><span class=line><span class=cl>容器运行时执行IPython<span class=err>
+</span></span></span><span class=line><span class=cl><span class=k>CMD</span> <span class=p>[</span><span class=s2>&#34;ipython&#34;</span><span class=p>]</span></span></span></code></pre></div><p>如果这两个文件位于同一文件夹中并且Docker已安装，则构建新Docker镜像的过程非常简单。这里为镜像使用了标签 <code>py4fi:basic</code>。该标签在后续引用镜像时使用，例如在运行基于它的容器时：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-diff data-lang=diff><span class=line><span class=cl>~/Docker$ docker build -t py4fi:basic .
+</span></span><span class=line><span class=cl>...
+</span></span><span class=line><span class=cl>Removing intermediate container 5fec0c9b2239
+</span></span><span class=line><span class=cl><span class=gd>----&gt; accee128d9e9
+</span></span></span><span class=line><span class=cl>Step 6/7 : ENV PATH /root/miniconda3/bin:$PATH
+</span></span><span class=line><span class=cl><span class=gd>----&gt; Running in a2bb97686255
+</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>In [3]: import pandas as pd</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>In [1]: import numpy as np</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>Removing intermediate container a2bb97686255
+</span></span><span class=line><span class=cl>---&gt; 73b00c215351
+</span></span><span class=line><span class=cl>Step 7/7 : CMD [&#34;ipython&#34;]
+</span></span><span class=line><span class=cl>---&gt; Running in ec7acd90c991
+</span></span><span class=line><span class=cl>Removing intermediate container ec7acd90c991
+</span></span><span class=line><span class=cl>---&gt; 6c36b9117cd2
+</span></span><span class=line><span class=cl>Successfully built 6c36b9117cd2
+</span></span><span class=line><span class=cl>Successfully tagged py4fi:basic
+</span></span><span class=line><span class=cl>~/Docker$</span></span></code></pre></div><p>现有的Docker镜像可以通过 <code>docker images</code> 列出。新镜像应位于列表顶部：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>(py4fi) ~/Docker$ docker images
+</span></span><span class=line><span class=cl>REPOSITORY TAG IMAGE ID CREATED SIZE
+</span></span><span class=line><span class=cl>py4fi basic 6c36b9117cd2 About a minute ago 1.79GB
+</span></span><span class=line><span class=cl>ubuntu latest cd6d8154f1e19 days ago 84.1MB
+</span></span><span class=line><span class=cl>(py4fi) ~/Docker$</span></span></code></pre></div><p>成功构建 <code>py4fi:basic</code> 后，可以使用 <code>docker run</code> 运行相应的Docker容器。参数组合 <code>-ti</code> 用于在Docker容器内运行的交互式进程，如shell进程（参见docker run参考页面）：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>~/Docker$ docker run -ti py4fi:basic
+</span></span><span class=line><span class=cl>Python 3.7.0 (default, Jun 282018, 13:15:42)
+</span></span><span class=line><span class=cl>Type &#39;copyright&#39;, &#39;credits&#39; or &#39;license&#39; for more information
+</span></span><span class=line><span class=cl>IPython 6.5.0 -- An enhanced Interactive Python. Type &#39;?&#39; for help.</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=n>In</span> <span class=p>[</span><span class=mi>2</span><span class=p>]:</span> <span class=n>a</span> <span class=o>=</span> <span class=n>np</span><span class=o>.</span><span class=n>random</span><span class=o>.</span><span class=n>standard_normal</span><span class=p>((</span><span class=mi>5</span><span class=p>,</span> <span class=mi>3</span><span class=p>))</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=n>In</span> <span class=p>[</span><span class=mi>4</span><span class=p>]:</span> <span class=n>df</span> <span class=o>=</span> <span class=n>pd</span><span class=o>.</span><span class=n>DataFrame</span><span class=p>(</span><span class=n>a</span><span class=p>,</span> <span class=n>columns</span><span class=o>=</span><span class=p>[</span><span class=s1>&#39;a&#39;</span><span class=p>,</span> <span class=s1>&#39;b&#39;</span><span class=p>,</span> <span class=s1>&#39;c&#39;</span><span class=p>])</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>In [6]:</span></span></code></pre></div><p>退出IPython也会退出容器，因为它是容器内运行的唯一应用程序。不过，你可以通过键入Ctrl-P + Ctrl-Q从容器中分离。</p><p>在分离后，<code>docker ps</code> 命令仍会显示正在运行的容器（以及任何其他当前正在运行的容器）：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>~/Docker$ docker ps
+</span></span><span class=line><span class=cl>CONTAINER ID    IMAGE    COMMAND    CREATED    STATUS
+</span></span><span class=line><span class=cl>e815df8f0f4d    py4fi:basic    <span class=s2>&#34;ipython&#34;</span>    About a minute ago    Up About a minute
+</span></span><span class=line><span class=cl>4518917de7dc    ubuntu:latest    <span class=s2>&#34;/bin/bash&#34;</span>    About an hour ago    Up About an hour
+</span></span><span class=line><span class=cl>d081b5c7add0    ubuntu:latest    <span class=s2>&#34;/bin/bash&#34;</span>    <span class=m>21</span> hours ago    Up <span class=m>21</span> hours
+</span></span><span class=line><span class=cl>~/Docker$</span></span></code></pre></div><p>附加到Docker容器使用命令 <code>docker attach $CONTAINER_ID</code>（注意 <code>$CONTAINER_ID</code> 只需输入前几个字符即可）：</p><h2 id=docker-docker-attach-e815d>~/Docker$ docker attach e815d<a class=anchor href=#docker-docker-attach-e815d>#</a></h2><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=n>In</span> <span class=p>[</span><span class=mi>6</span><span class=p>]:</span> <span class=n>df</span><span class=o>.</span><span class=n>info</span><span class=p>()</span>
+</span></span><span class=line><span class=cl><span class=o>&lt;</span><span class=k>class</span> <span class=err>&#39;</span><span class=nc>pandas</span><span class=o>.</span><span class=n>core</span><span class=o>.</span><span class=n>frame</span><span class=o>.</span><span class=n>DataFrame</span><span class=s1>&#39;&gt;</span>
+</span></span><span class=line><span class=cl><span class=n>RangeIndex</span><span class=p>:</span> <span class=mi>5</span> <span class=n>entries</span><span class=p>,</span> <span class=mi>0</span> <span class=n>to</span> <span class=mi>4</span>
+</span></span><span class=line><span class=cl><span class=n>Data</span> <span class=n>columns</span> <span class=p>(</span><span class=n>total</span> <span class=mi>3</span> <span class=n>columns</span><span class=p>):</span>
+</span></span><span class=line><span class=cl><span class=n>a</span>    <span class=mi>5</span> <span class=n>non</span><span class=o>-</span><span class=n>null</span> <span class=n>float64</span>
+</span></span><span class=line><span class=cl><span class=n>b</span>    <span class=mi>5</span> <span class=n>non</span><span class=o>-</span><span class=n>null</span> <span class=n>float64</span>
+</span></span><span class=line><span class=cl><span class=n>c</span>    <span class=mi>5</span> <span class=n>non</span><span class=o>-</span><span class=n>null</span> <span class=n>float64</span>
+</span></span><span class=line><span class=cl><span class=n>dtypes</span><span class=p>:</span> <span class=n>float64</span><span class=p>(</span><span class=mi>3</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=n>memory</span> <span class=n>usage</span><span class=p>:</span> <span class=mf>200.0</span> <span class=nb>bytes</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>In [7]: exit ~/Docker$</span></span></code></pre></div><p><code>exit</code> 命令终止IPython并停止Docker容器。可以使用 <code>docker rm</code> 移除它：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-powershell data-lang=powershell><span class=line><span class=cl><span class=p>~/</span><span class=n>Docker</span><span class=p>$</span> <span class=n>docker</span> <span class=nb>rm </span><span class=n>e815d</span>
+</span></span><span class=line><span class=cl><span class=n>e815d</span>
+</span></span><span class=line><span class=cl><span class=p>~/</span><span class=n>Docker</span><span class=p>$</span></span></span></code></pre></div><p>类似地，如果不再需要Docker镜像 <code>py4fi:basic</code>，可以通过 <code>docker rmi</code> 移除。虽然容器相对轻量，但单个镜像可能消耗相当大的存储空间。对于 <code>py4fi:basic</code> 镜像，大小接近2 GB。这就是为什么你可能想要定期清理Docker镜像列表：</p><h2 id=docker-docker-rmi-6c36b9117cd2>~/Docker$ docker rmi 6c36b9117cd2<a class=anchor href=#docker-docker-rmi-6c36b9117cd2>#</a></h2><p>当然，关于Docker容器及其在某些应用场景中的优势还有更多内容可谈。但就本书而言，了解它们提供了部署Python、在完全独立的（容器化）环境中进行Python开发以及为算法交易发布代码的现代方法，就足够了。</p><div class="callout callout-note"><div class=callout-body><p><strong>Docker容器的优势</strong></p><p>如果你尚未使用Docker容器，应考虑使用。它们在Python部署和开发工作方面提供了许多优势，不仅是在本地工作时，尤其是在使用远程云实例和部署算法交易代码的服务器时。</p></div></div><h2 id=使用云实例>使用云实例<a class=anchor href=#%e4%bd%bf%e7%94%a8%e4%ba%91%e5%ae%9e%e4%be%8b>#</a></h2><p>本节展示如何在DigitalOcean云实例上建立完整的Python基础设施。市面上还有许多其他云提供商，包括领先提供商亚马逊网络服务（AWS）。然而，DigitalOcean以其简洁性和相对低廉的小型云实例（称为Droplet）费率而闻名。最小的Droplet（通常足以满足探索和开发目的）每月仅需5美元，或每小时0.007美元。使用按小时计费，因此你可以轻松启动一个Droplet使用2小时，然后销毁它，仅需支付0.014美元。⁹</p><p>本节的目标是在DigitalOcean上建立一个Droplet，配备Python 3.7安装及通常需要的包（如NumPy、pandas），并配合密码保护和安全套接层（SSL）加密的Jupyter Notebook服务器安装。该服务器安装将提供三种可通过常规浏览器使用的主要工具：</p><p><strong>Jupyter Notebook</strong>
+一个流行的交互式开发环境，内置多种语言内核（如Python、R和Julia）。</p><p><strong>终端</strong>
+可通过浏览器访问的系统shell实现，允许所有典型的系统管理任务，并使用Vim和git等有用工具。</p><p><strong>编辑器</strong>
+基于浏览器的文件编辑器，支持多种编程语言和文件类型的语法高亮，以及典型的文本/代码编辑能力。</p><p>在Droplet上安装Jupyter Notebook后，你可以通过浏览器进行Python开发和部署，无需通过安全外壳（SSH）访问登录云实例。</p><p>为实现本节的目标，需要以下文件：</p><p><strong>服务器设置脚本</strong> 该脚本协调所有必要的步骤，例如将其他文件复制到Droplet并在其上运行。</p><p><strong>Python和Jupyter安装脚本</strong> 安装Python、附加包和Jupyter Notebook，并启动Jupyter Notebook服务器。</p><p><strong>Jupyter Notebook配置文件</strong> 用于配置Jupyter Notebook服务器，如密码保护等。</p><p>以下小节将反向逐一介绍这些文件。</p><h2 id=rsa公钥和私钥>RSA公钥和私钥<a class=anchor href=#rsa%e5%85%ac%e9%92%a5%e5%92%8c%e7%a7%81%e9%92%a5>#</a></h2><p>为了通过任意浏览器创建到Jupyter Notebook服务器的安全连接，需要由RSA公钥和私钥组成的SSL证书。通常，这样的证书应来自所谓的证书颁发机构（CA）。然而就本书而言，自生成的证书"足够好"。¹⁰ 生成RSA密钥对的一个流行工具是OpenSSL。以下简短交互式会话展示了如何生成适用于Jupyter Notebook服务器的证书（根据提示输入你自己的国家名称和其他字段值）：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>~/cloud$ openssl req -x509 -nodes -days <span class=m>365</span> -newkey <span class=se>\
+</span></span></span><span class=line><span class=cl>&gt; rsa:1024 -out cert.pem -keyout cert.key
+</span></span><span class=line><span class=cl>Generating a <span class=m>1024</span> bit RSA private key
+</span></span><span class=line><span class=cl>..++++++
+</span></span><span class=line><span class=cl>......++++++
+</span></span><span class=line><span class=cl>writing new private key to <span class=s1>&#39;cert.key&#39;</span></span></span></code></pre></div><p>You are about to be asked to enter information that will be incorporated into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>Country Name (2 letter code) [AU]:DE
+</span></span><span class=line><span class=cl>State or Province Name (full name) [Some-State]:Saarland
+</span></span><span class=line><span class=cl>Locality Name (eg, city) []:Voelklingen</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>Organization Name (eg, company) [Internet Widgits Pty Ltd]:TPQ GmbH
+</span></span><span class=line><span class=cl>Organizational Unit Name (eg, section) []:Python for Finance
+</span></span><span class=line><span class=cl>Common Name (e.g. server FQDN or YOUR name) []:Jupyter
+</span></span><span class=line><span class=cl>Email Address []:team@tpq.io
+</span></span><span class=line><span class=cl>~/cloud$ ls
+</span></span><span class=line><span class=cl>cert.key    cert.pem
+</span></span><span class=line><span class=cl>~/cloud$</span></span></code></pre></div><p>两个文件 <code>cert.key</code> 和 <code>cert.pem</code> 需要复制到Droplet，并在Jupyter Notebook配置文件中引用。接下来介绍该文件。</p><h2 id=jupyter-notebook配置文件>Jupyter Notebook配置文件<a class=anchor href=#jupyter-notebook%e9%85%8d%e7%bd%ae%e6%96%87%e4%bb%b6>#</a></h2><p>正如文档中所解释的，公共Jupyter Notebook服务器可以安全部署。Jupyter Notebook的功能之一是密码保护。为此，<code>notebook.auth</code> 子包中有一个名为 <code>passwd()</code> 的密码哈希码生成函数。以下代码生成了一个密码哈希码，其中 <code>jupyter</code> 为密码本身：</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>~/cloud$ ipython
+</span></span><span class=line><span class=cl>Python 3.7.0 (default, Jun 282018, 13:15:42)
+</span></span><span class=line><span class=cl>Type &#39;copyright&#39;, &#39;credits&#39; or &#39;license&#39; for more information
+</span></span><span class=line><span class=cl>IPython 6.5.0 -- An enhanced Interactive Python. Type &#39;?&#39; for help.</span></span></code></pre></div><p>In [1]: from notebook.auth import passwd</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>In [2]: passwd(&#39;jupyter&#39;)
+</span></span><span class=line><span class=cl>Out[2]: &#39;sha1:d4d34232ac3a:55ea0ffd78cc3299e3e5e6ecc0d36be0935d424b&#39;</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-txt data-lang=txt><span class=line><span class=cl>In [3]: exit</span></span></code></pre></div><p>此哈希码需要放置在示例2-3所示的Jupyter Notebook配置文件中。该配置文件假定RSA密钥文件已复制到Droplet的 <code>/root/.jupyter/</code> 文件夹。</p><p>示例2-3. Jupyter Notebook配置文件</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=c1>#</span>
+</span></span><span class=line><span class=cl><span class=c1>### Jupyter Notebook配置文件</span>
+</span></span><span class=line><span class=cl><span class=c1>#</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>#</span>
+</span></span><span class=line><span class=cl>SSL加密
+</span></span><span class=line><span class=cl>将以下文件名（以及使用的文件）替换为你自己的选择/文件
+</span></span><span class=line><span class=cl>c. NotebookApp.certfile <span class=o>=</span> u<span class=s1>&#39;/root/.jupyter/cert.pem&#39;</span>
+</span></span><span class=line><span class=cl>c. NotebookApp.keyfile <span class=o>=</span> u<span class=s1>&#39;/root/.jupyter/cert.key&#39;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>IP地址和端口
+</span></span><span class=line><span class=cl>设置ip为<span class=s1>&#39;*&#39;</span>以绑定云实例的所有IP地址</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=line><span class=cl><span class=n>c</span><span class=o>.</span> <span class=n>NotebookApp</span><span class=o>.</span><span class=n>ip</span> <span class=o>=</span> <span class=s1>&#39;*&#39;</span>
+</span></span><span class=line><span class=cl><span class=n>建议设置一个已知的</span><span class=err>、</span><span class=n>固定的默认端口用于服务器访问</span>
+</span></span><span class=line><span class=cl><span class=n>c</span><span class=o>.</span> <span class=n>NotebookApp</span><span class=o>.</span><span class=n>port</span> <span class=o>=</span> <span class=mi>8888</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>密码保护</span>
+</span></span><span class=line><span class=cl><span class=n>此处</span><span class=err>：</span><span class=n>密码为</span><span class=s1>&#39;jupyter&#39;</span>
+</span></span><span class=line><span class=cl><span class=n>将哈希码替换为你强密码对应的哈希码</span>
+</span></span><span class=line><span class=cl><span class=n>c</span><span class=o>.</span> <span class=n>NotebookApp</span><span class=o>.</span><span class=n>password</span> <span class=o>=</span> <span class=s1>&#39;sha1:d4d34232ac3a:55ea0ffd78cc3299e3e5e6ecc0d36be0935d424b&#39;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>不启动浏览器选项</span>
+</span></span><span class=line><span class=cl><span class=n>防止Jupyter尝试打开浏览器</span>
+</span></span><span class=line><span class=cl><span class=n>c</span><span class=o>.</span> <span class=n>NotebookApp</span><span class=o>.</span><span class=n>open_browser</span> <span class=o>=</span> <span class=kc>False</span></span></span></code></pre></div><div class="callout callout-note"><div class=callout-body><p><strong>Jupyter与安全</strong></p><p>在云端部署Jupyter Notebook主要会带来一些安全问题，因为它是可通过Web浏览器访问的完整开发环境。因此，使用Jupyter Notebook服务器默认提供的安全措施（如密码保护和SSL加密）至关重要。但这只是开始；根据云实例上的具体操作，可能还需要进一步的安全措施。</p></div></div><p>下一步是确保Python和Jupyter Notebook安装在Droplet上。</p><h2 id=python和jupyter-notebook的安装脚本>Python和Jupyter Notebook的安装脚本<a class=anchor href=#python%e5%92%8cjupyter-notebook%e7%9a%84%e5%ae%89%e8%a3%85%e8%84%9a%e6%9c%ac>#</a></h2><p>安装Python和Jupyter Notebook的bash脚本与"使用Docker容器"一节中通过Miniconda在Docker容器中安装Python的脚本类似。然而，示例2-4中的脚本还需要启动Jupyter Notebook服务器。所有主要部分和代码行都有内联注释。</p><p>示例2-4. 安装Python并运行Jupyter Notebook服务器的bash脚本</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=c1>#</span>
+</span></span><span class=line><span class=cl><span class=c1>### 安装Linux系统工具、基础Python包和Jupyter Notebook服务器的脚本</span>
+</span></span><span class=line><span class=cl><span class=c1>#</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>#</span>
+</span></span><span class=line><span class=cl>通用Linux设置
+</span></span><span class=line><span class=cl>apt-get update <span class=c1># 更新包索引缓存</span></span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>apt-get upgrade -y <span class=c1># 更新包</span>
+</span></span><span class=line><span class=cl>apt-get install -y bzip2 gcc git htop screen vim wget <span class=c1># 安装系统工具</span>
+</span></span><span class=line><span class=cl>apt-get upgrade -y bash <span class=c1># 必要时升级bash</span>
+</span></span><span class=line><span class=cl>apt-get clean <span class=c1># 清理包索引缓存</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>安装Miniconda
+</span></span><span class=line><span class=cl>wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -0 <span class=se>\ </span>Miniconda.sh
+</span></span><span class=line><span class=cl>bash Miniconda.sh -b <span class=c1># 安装Miniconda</span>
+</span></span><span class=line><span class=cl>rm Miniconda.sh <span class=c1># 删除安装程序</span>
+</span></span><span class=line><span class=cl>为当前会话预置新路径
+</span></span><span class=line><span class=cl><span class=nb>export</span> <span class=nv>PATH</span><span class=o>=</span><span class=s2>&#34;/root/miniconda3/bin:</span><span class=nv>$PATH</span><span class=s2>&#34;</span>
+</span></span><span class=line><span class=cl>在shell配置中预置新路径
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;. /root/miniconda3/etc/profile.d/conda.sh&#34;</span> &gt;&gt; ~/.bashrc
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s2>&#34;conda activate&#34;</span> &gt;&gt; ~/.bashrc
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>安装Python库
+</span></span><span class=line><span class=cl>可以根据用例添加更多包
+</span></span><span class=line><span class=cl>conda update -y conda <span class=c1># 必要时更新conda</span>
+</span></span><span class=line><span class=cl>conda create -y -n py4fi <span class=nv>python</span><span class=o>=</span>3.7 <span class=c1># 创建环境</span>
+</span></span><span class=line><span class=cl><span class=nb>source</span> activate py4fi <span class=c1># 激活新环境</span>
+</span></span><span class=line><span class=cl>conda install -y jupyter <span class=c1># 浏览器中的交互式数据分析</span>
+</span></span><span class=line><span class=cl>conda install -y pytables <span class=c1># HDF5二进制存储封装</span>
+</span></span><span class=line><span class=cl>conda install -y pandas <span class=c1># 数据分析包</span>
+</span></span><span class=line><span class=cl>conda install -y matplotlib <span class=c1># 标准绘图库</span>
+</span></span><span class=line><span class=cl>conda install -y scikit-learn <span class=c1># 机器学习库</span>
+</span></span><span class=line><span class=cl>conda install -y openpyxl <span class=c1># Excel交互库</span>
+</span></span><span class=line><span class=cl>conda install -y pyyaml <span class=c1># YAML文件管理库</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>pip install --upgrade pip <span class=c1># 升级包管理器</span>
+</span></span><span class=line><span class=cl>pip install cufflinks <span class=c1># 将plotly与pandas结合</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>复制文件和创建目录
+</span></span><span class=line><span class=cl>mkdir /root/.jupyter
+</span></span><span class=line><span class=cl>mv /root/jupyter_notebook_config.py /root/.jupyter/
+</span></span><span class=line><span class=cl>mv /root/cert.* /root/.jupyter
+</span></span><span class=line><span class=cl>mkdir /root/notebook
+</span></span><span class=line><span class=cl><span class=nb>cd</span> /root/notebook
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>启动Jupyter Notebook
+</span></span><span class=line><span class=cl>jupyter notebook --allow-root
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>以后台进程方式启动Jupyter Notebook
+</span></span><span class=line><span class=cl>jupyter notebook --allow-root <span class=p>&amp;</span></span></span></code></pre></div><p>此脚本需要复制到Droplet，并由下一小节描述的组织脚本启动。</p><h2 id=组织droplet设置的脚本>组织Droplet设置的脚本<a class=anchor href=#%e7%bb%84%e7%bb%87droplet%e8%ae%be%e7%bd%ae%e7%9a%84%e8%84%9a%e6%9c%ac>#</a></h2><p>第二个bash脚本（用于设置Droplet）是最短的（示例2-5）。它主要将所有其他文件复制到Droplet（其IP地址作为参数传入）。最后一行启动 <code>install.sh</code> bash脚本，该脚本执行安装本身并启动Jupyter Notebook服务器。</p><p>示例2-5. 设置Droplet的bash脚本</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=cp>#!/bin/bash
+</span></span></span><span class=line><span class=cl><span class=c1>#</span>
+</span></span><span class=line><span class=cl><span class=c1>### 设置DigitalOcean Droplet</span>
+</span></span><span class=line><span class=cl><span class=c1>### 基础Python栈和Jupyter Notebook</span>
+</span></span><span class=line><span class=cl><span class=c1>#</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>#</span>
+</span></span><span class=line><span class=cl>从参数获取IP地址
+</span></span><span class=line><span class=cl><span class=nv>MASTER_IP</span><span class=o>=</span><span class=nv>$1</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>复制文件
+</span></span><span class=line><span class=cl>scp install.sh root@<span class=nv>$MASTER_IP</span><span class=o>)</span>:
+</span></span><span class=line><span class=cl>scp cert.* jupyter_notebook_config.py root@<span class=nv>$MASTER_IP</span><span class=o>)</span>:
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>执行安装脚本
+</span></span><span class=line><span class=cl>ssh root@<span class=nv>$MASTER_IP</span><span class=o>}</span> bash /root/install.sh</span></span></code></pre></div><p>现在一切都就绪，可以尝试设置代码。在DigitalOcean上，使用类似以下选项创建一个新的Droplet：</p><p>操作系统 Ubuntu 18.10 x64（撰写本文时可用的最新版本）
+规格 1核，1 GB，25 GB SSD（最小的Droplet）
+数据中心区域 法兰克福（因为作者居住在德国）
+SSH密钥 添加（新的）SSH密钥用于免密码登录 ¹¹
+Droplet名称 可以使用预设名称，或选择如py4fi之类的名称</p><p>点击Create按钮将启动Droplet创建过程，通常需要约一分钟。设置过程的主要成果是IP地址，例如，如果你选择法兰克福作为数据中心位置，IP地址可能是46.101.156.199。现在设置Droplet非常简单：</p><p>(py3) ~/cloud$ bash setup.sh 46.101.156.199</p><p>整个过程可能需要几分钟。当Jupyter Notebook服务器显示类似以下消息时，表示完成：</p><p>The Jupyter Notebook is running at: https://[all ip addresses on your system]:8888/</p><p>在任何现代浏览器中，访问以下地址即可连接到正在运行的Jupyter Notebook服务器（注意https协议）：</p><p>https://46.101.156.199:8888</p><p>在可能要求你添加安全例外后，Jupyter Notebook登录屏幕将提示输入密码（此处为jupyter）。现在你就可以通过Jupyter Notebook在浏览器中开始Python开发，通过终端窗口使用IPython，或使用文本文件编辑器。其他文件管理功能（如文件上传、文件删除和文件夹创建）也同样可用。</p><div class="callout callout-note"><div class=callout-body><p><strong>云的优势</strong></p><p>DigitalOcean等云实例与Jupyter Notebook的结合是一个强大的组合，使Python开发者和量化分析师能够使用专业的计算和存储基础设施。专业的云和数据中心提供商确保你的（虚拟）机器物理安全且高可用。使用云实例还能使探索和开发阶段的成本保持在较低水平，因为使用通常按小时计费，无需签订长期合同。</p></div></div><h2 id=结论>结论<a class=anchor href=#%e7%bb%93%e8%ae%ba>#</a></h2><p>Python是首选编程语言和技术平台——不仅对本书而言如此，对几乎所有领先金融机构也是如此。然而，Python部署充其量可能很棘手，有时甚至令人厌倦和紧张。幸运的是，近年来出现了几种有助于解决部署问题的技术。开源conda在Python包和虚拟环境管理两方面都有帮助。Docker容器则更进一步，可以在技术上屏蔽的"沙箱"（即容器）中轻松创建完整的文件系统和运行时环境。再进一步，DigitalOcean等云提供商在专业管理和保护的数据中心内，在几分钟内提供按小时计费的计算和存储容量。这与Python 3.7安装和安全Jupyter Notebook服务器安装的结合，为Python开发和在Python-for-finance项目背景下的部署提供了专业环境。</p><h2 id=延伸阅读>延伸阅读<a class=anchor href=#%e5%bb%b6%e4%bc%b8%e9%98%85%e8%af%bb>#</a></h2><p>关于Python包管理，请参阅以下资源：</p><p>• pip包管理器页面
+• conda包管理器页面
+• Installing Packages页面</p><p>关于虚拟环境管理，请参阅以下资源：</p><p>• virtualenv环境管理器页面
+• conda Managing Environments页面
+• pipenv包和环境管理器</p><p>以下资源（以及其他）提供关于Docker容器的信息：</p><p>• Docker首页
+• Matthias, Karl, and Sean Kane (2015). Docker: Up and Running. Sebastopol, CA: O'Reilly.</p><p>关于bash脚本语言的简要介绍和概述，请参阅：</p><p>• Robbins, Arnold (2016). Bash Pocket Reference. Sebastopol, CA: O'Reilly.</p><p>如何安全运行公共Jupyter Notebook服务器在Jupyter Notebook文档中有说明。还有一个名为JupyterHub的hub，允许多用户管理Jupyter Notebook服务器。</p><p>要在DigitalOcean上注册并获得新账户10美元起始余额，请访问 <a href=http://bit.ly/do_sign_up>http://bit.ly/do_sign_up</a>。这足以支付最小Droplet两个月的使用费用。</p><h2 id=掌握基础>掌握基础<a class=anchor href=#%e6%8e%8c%e6%8f%a1%e5%9f%ba%e7%a1%80>#</a></h2><p>本书的这一部分涉及Python编程的基础知识。本部分涵盖的主题对所有后续章节以及Python的常规使用都是基础性的。</p><p>各章按主题组织，可以作为读者查阅感兴趣主题相关示例和详细信息的参考资料：</p><p>• <a href=/yuulibrary/books/python-for-finance/ch03.html>第3章</a> 重点介绍Python数据类型和结构。
+• <a href=/yuulibrary/books/python-for-finance/ch04.html>第4章</a> 介绍NumPy及其ndarray类。
+• <a href=/yuulibrary/books/python-for-finance/ch05.html>第5章</a> 介绍pandas及其DataFrame类。
+• <a href=/yuulibrary/books/python-for-finance/ch06.html>第6章</a> 讨论Python面向对象编程（OOP）。</p></article><footer class=book-footer><div class=book-footer-inner><div class=footer-text>本站由 <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a> + <a href=https://github.com/alex-shpak/hugo-book target=_blank rel=noopener>Hugo Book</a> 主题构建，托管于 GitHub Pages。书籍通过 MinerU VLM 提取排版，AI 辅助翻译校对。</div><div class=footer-bottom>&copy; 2026 Yuunagi Library</div></div><div class="flex flex-wrap justify-between"><div><a href=/yuulibrary/books/python-for-finance/ch01.html class="flex align-center"><img src=/yuulibrary/icons/backward.svg class=book-icon alt=Backward>
+<span>第1章 · 为什么用Python做金融</span></a></div><div><a href=/yuulibrary/books/python-for-finance/part-2.html class="flex align-center"><span>第二部分 · 掌握基础</span>
+<img src=/yuulibrary/icons/forward.svg class=book-icon alt=Forward></a></div></div><div class="book-copyright flex justify-center"><small>Yuunagi Library - © Yuunagi</small></div><script>(function(){document.querySelectorAll("pre:has(code)").forEach(e=>{e.addEventListener("click",e.focus),e.addEventListener("copy",function(t){if(t.preventDefault(),navigator.clipboard){const t=window.getSelection().toString()||e.textContent;navigator.clipboard.writeText(t)}})})})()</script></footer><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#conda作为包管理器>conda作为包管理器</a></li><li><a href=#安装miniconda>安装Miniconda</a></li><li><a href=#conda的基本操作>conda的基本操作</a></li><li><a href=#conda作为虚拟环境管理器>conda作为虚拟环境管理器</a></li><li><a href=#使用docker容器>使用Docker容器</a></li><li><a href=#docker镜像与容器>Docker镜像与容器</a></li><li><a href=#构建ubuntu和python的docker镜像>构建Ubuntu和Python的Docker镜像</a></li><li><a href=#docker-docker-attach-e815d>~/Docker$ docker attach e815d</a></li><li><a href=#docker-docker-rmi-6c36b9117cd2>~/Docker$ docker rmi 6c36b9117cd2</a></li><li><a href=#使用云实例>使用云实例</a></li><li><a href=#rsa公钥和私钥>RSA公钥和私钥</a></li><li><a href=#jupyter-notebook配置文件>Jupyter Notebook配置文件</a></li><li><a href=#python和jupyter-notebook的安装脚本>Python和Jupyter Notebook的安装脚本</a></li><li><a href=#组织droplet设置的脚本>组织Droplet设置的脚本</a></li><li><a href=#结论>结论</a></li><li><a href=#延伸阅读>延伸阅读</a></li><li><a href=#掌握基础>掌握基础</a></li></ul></nav></div></aside></main></body></html>
