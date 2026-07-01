@@ -1,5 +1,6 @@
 ---
 title: "量化交易：如何建立自己的算法交易业务"
+author: "Ernest P. Chan"
 description: "从策略研发到实盘部署的完整量化交易入门指南。"
 weight: 1
 BookCollapseSection: true

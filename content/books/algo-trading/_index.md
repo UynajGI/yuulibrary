@@ -1,5 +1,6 @@
 ---
 title: "算法交易与套利交易"
+author: "赵胜民"
 description: "从投资组合理论到算法交易系统，涵盖配对交易、可转债套利、期指套利等策略，15 章。"
 weight: 1
 BookCollapseSection: true

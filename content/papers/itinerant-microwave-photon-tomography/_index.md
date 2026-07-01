@@ -4,7 +4,7 @@ description: "Eichler 等（2011）首次对行进（itinerant）单个微波光
 date: 2026-06-27
 author: "Eichler, Bozyigit, Lang, Steffen, Fink, Wallraff"
 year: 2011
-tags: ["量子物理"]
+tags: ['光子层析', '微波光子', '电路QED']
 links:
   - name: "DOI (PRL)"
     url: "https://doi.org/10.1103/PhysRevLett.106.220503"

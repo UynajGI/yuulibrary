@@ -21,7 +21,7 @@ yuulibrary/
 
 ## 书籍
 
-共 19 本，按主题分类（与首页书架一致）。
+共 20 本，按主题分类（与首页书架一致）。
 
 ### 量化金融
 
@@ -39,6 +39,7 @@ yuulibrary/
 | Python for Finance | Yves Hilpisch | 5 部分 21 章 |
 | 投资决策的关键解答 | Michael Covel | 15 章 |
 | Stocks on the Move | Andreas F. Clenow | 15 章 |
+| 裸K线交易法 | 许佳聪 | 10 章 |
 
 ### 机器学习与强化学习
 

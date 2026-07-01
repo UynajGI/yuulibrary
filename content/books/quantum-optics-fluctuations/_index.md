@@ -1,5 +1,6 @@
 ---
 title: "量子光学与量子涨落导论"
+author: "Peter W. Milonni"
 description: "从经典电动力学到量子场论，系统覆盖量子光学的核心理论：场量子化、自发辐射、涨落-耗散定理、Casimir力、纠缠与Bell定理。"
 weight: 1
 BookCollapseSection: true

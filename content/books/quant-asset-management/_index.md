@@ -1,5 +1,6 @@
 ---
 title: "量化资产管理"
+author: "Michael Robbins"
 description: "Michael Robbins 著，因子投资与机器学习在机构投资中的系统性实践指南"
 weight: 1
 BookCollapseSection: true

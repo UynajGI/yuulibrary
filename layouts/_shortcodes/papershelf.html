@@ -1,100 +1,99 @@
 {{/*
-  论文分类卡片 shortcode（镜像 bookshelf）。
-  用法：{{< papershelf >}}
-  输出分类卡片网格 + 论文列表（.book-row，共用 bookshelf 样式与动画）。
-  分类计数、缩放/淡入动画逻辑与 bookshelf 一致，脚本带幂等标记防重复绑定。
+  论文分类书架 shortcode — 全自动生成。
+  遍历所有论文的 _index.md front matter，根据 tags 归类，自动生成卡片 + 论文列表。
+  新增论文只需在 _index.md 中填好 title/author/year/tags/description 即可，无需手动编辑此文件。
 */}}
 
+{{/* ── 分类定义 ── */}}
+{{ $catDefs := slice
+  (dict
+    "key" "mechanical"
+    "icon" "🔬"
+    "title" "机械振子量子化"
+    "desc" "纳米机械振子从经典走向量子：色散耦合、边带冷却、反馈控制、低于 SQL 的测量"
+    "tags" (slice "纳米机械" "NEMS" "机械振子" "边带冷却" "光机械" "力测量" "位移测量" "反馈控制" "SQL")
+  )
+  (dict
+    "key" "quantum-optics"
+    "icon" "⚛️"
+    "title" "量子光学与层析"
+    "desc" "circuit QED 几何相位、光子/声子态层析、耗散量子相变、囚禁离子特征函数读出"
+    "tags" (slice "电路QED" "几何相位" "光子层析" "量子相变" "微波光子" "离子阱" "量子层析" "特征函数" "超导量子比特" "Rabi模型" "量子基态")
+  )
+  (dict
+    "key" "phonon"
+    "icon" "🌊"
+    "title" "声子量子光学"
+    "desc" "表面声波声子作为量子信息的传播载体——声学量子光学"
+    "tags" (slice "声子" "表面声波" "人工原子")
+  )
+}}
+
+{{/* ── 收集所有论文 section 页 ── */}}
+{{ $allPapers := where .Site.Pages "Section" "papers" }}
+{{ $paperSections := slice }}
+{{ range $allPapers }}
+  {{ if and .IsSection (ne .RelPermalink "/yuulibrary/papers/") (ne .RelPermalink "/papers/") }}
+    {{ $paperSections = $paperSections | append . }}
+  {{ end }}
+{{ end }}
+{{ $paperSections = sort $paperSections "Params.weight" "asc" }}
+
+{{/* ── 归类 ── */}}
+{{ $catPapers := dict }}
+{{ range $paperSections }}
+  {{ $paper := . }}
+  {{ $paperTags := .Params.tags }}
+  {{ $assigned := false }}
+  {{ range $catDefs }}
+    {{ if not $assigned }}
+      {{ if intersect $paperTags .tags }}
+        {{ $key := .key }}
+        {{ $existing := index $catPapers $key | default (slice) }}
+        {{ $catPapers = merge $catPapers (dict $key ($existing | append $paper)) }}
+        {{ $assigned = true }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+
+{{/* ── 渲染分类卡片网格 ── */}}
 <div class="category-grid" data-shelf="papers">
-  <div class="category-card" data-category="mechanical">
-    <span class="category-card-icon">🔬</span>
-    <h3 class="category-card-title">机械振子量子化</h3>
-    <span class="category-card-count">5 篇</span>
-    <p class="category-card-desc">纳米机械振子从经典走向量子：色散耦合、边带冷却、反馈控制、低于 SQL 的测量</p>
+  {{ range $catDefs }}
+    {{ $key := .key }}
+    {{ $papers := index $catPapers $key | default (slice) }}
+    {{ if gt (len $papers) 0 }}
+    <div class="category-card" data-category="{{ $key }}">
+      <span class="category-card-icon">{{ .icon }}</span>
+      <h3 class="category-card-title">{{ .title }}</h3>
+      <span class="category-card-count">{{ len $papers }} 篇</span>
+      <p class="category-card-desc">{{ .desc }}</p>
+    </div>
+    {{ end }}
+  {{ end }}
+</div>
+
+{{/* ── 渲染每个分类的论文列表 ── */}}
+{{ range $catDefs }}
+  {{ $key := .key }}
+  {{ $papers := index $catPapers $key | default (slice) }}
+  {{ if gt (len $papers) 0 }}
+  <div class="bookshelf" data-category="{{ $key }}" style="display:none">
+    <button class="back-btn">← 返回论文分类</button>
+    {{ range $papers }}
+    <a class="book-row" href="{{ .RelPermalink }}">
+      <span class="book-row-title">{{ .Title }}</span>
+      <span class="book-row-meta">{{ .Params.author | default "" }}, {{ .Params.year | default "" }}</span>
+      <span class="book-row-desc">{{ .Params.description | default "" }}</span>
+      <span class="book-row-arrow">›</span>
+    </a>
+    {{ end }}
   </div>
-  <div class="category-card" data-category="quantum-optics">
-    <span class="category-card-icon">⚛️</span>
-    <h3 class="category-card-title">量子光学与相变</h3>
-    <span class="category-card-count">3 篇</span>
-    <p class="category-card-desc">circuit QED 中的几何相位、行进微波光子层析、耗散诱导的量子相变</p>
-  </div>
-  <div class="category-card" data-category="phonon">
-    <span class="category-card-icon">🌊</span>
-    <h3 class="category-card-title">声子量子光学</h3>
-    <span class="category-card-count">1 篇</span>
-    <p class="category-card-desc">表面声波声子作为量子信息的传播载体——声学量子光学</p>
-  </div>
-</div>
+  {{ end }}
+{{ end }}
 
-<div class="bookshelf" data-category="mechanical" style="display:none">
-  <button class="back-btn">← 返回论文分类</button>
-  <a class="book-row" href="{{ relref . "papers/nanomechanical-superconducting-qubit/_index.md" }}">
-    <span class="book-row-title">超导量子比特的纳米机械测量</span>
-    <span class="book-row-meta">LaHaye 2009</span>
-    <span class="book-row-desc">NEMS 谐振器与 Cooper-pair box 色散耦合，机械版「单原子折射率效应」。</span>
-    <span class="book-row-arrow">›</span>
-  </a>
-  <a class="book-row" href="{{ relref . "papers/sideband-cooling-ground-state/_index.md" }}">
-    <span class="book-row-title">边带冷却微机械运动至量子基态</span>
-    <span class="book-row-meta">Teufel 2011</span>
-    <span class="book-row-desc">铝膜冷却到 nm = 0.34，强耦合 + 近量子极限测量，开启量子声学。</span>
-    <span class="book-row-arrow">›</span>
-  </a>
-  <a class="book-row" href="{{ relref . "papers/hybrid-circuit-cavity-mechanical-resonator/_index.md" }}">
-    <span class="book-row-title">混合电路腔量子电动力学与微机械谐振器</span>
-    <span class="book-row-meta">Pirkkalainen 2013</span>
-    <span class="book-row-desc">transmon 同时耦合微波腔与机械膜，声子 Stark 频移 + 边带 Rabi 振荡。</span>
-    <span class="book-row-arrow">›</span>
-  </a>
-  <a class="book-row" href="{{ relref . "papers/measurement-control-thermal-decoherence/_index.md" }}">
-    <span class="book-row-title">机械振子在热退相干率处的测量与控制</span>
-    <span class="book-row-meta">Wilson 2015</span>
-    <span class="book-row-desc">近场光机械测量不精确度低于 SQL 40 dB，反馈冷却到 nm = 5.3。</span>
-    <span class="book-row-arrow">›</span>
-  </a>
-  <a class="book-row" href="{{ relref . "papers/force-displacement-below-sql/_index.md" }}">
-    <span class="book-row-title">低于标准量子极限的连续力与位移测量</span>
-    <span class="book-row-meta">Mason 2019</span>
-    <span class="book-row-desc">ponderomotive 挤压测量低于 SQL 1.5 dB，机械量子传感的里程碑。</span>
-    <span class="book-row-arrow">›</span>
-  </a>
-</div>
-
-<div class="bookshelf" data-category="quantum-optics" style="display:none">
-  <button class="back-btn">← 返回论文分类</button>
-  <a class="book-row" href="{{ relref . "papers/berry-phase-solid-state-qubit/_index.md" }}">
-    <span class="book-row-title">在固态量子比特中观测到 Berry 相位</span>
-    <span class="book-row-meta">Leek 2007</span>
-    <span class="book-row-desc">Cooper pair box 中首次可控积累几何相位，固态几何量子计算奠基。</span>
-    <span class="book-row-arrow">›</span>
-  </a>
-  <a class="book-row" href="{{ relref . "papers/itinerant-microwave-photon-tomography/_index.md" }}">
-    <span class="book-row-title">行进单个微波光子的实验态层析</span>
-    <span class="book-row-meta">Eichler 2011</span>
-    <span class="book-row-desc">线性放大器测四阶矩，重建行进单光子 Wigner 函数，负值证明量子性。</span>
-    <span class="book-row-arrow">›</span>
-  </a>
-  <a class="book-row" href="{{ relref . "papers/dissipation-driven-rabi-qpt/_index.md" }}">
-    <span class="book-row-title">耗散驱动的 Rabi 模型中的量子相变信号</span>
-    <span class="book-row-meta">De Filippis 2023</span>
-    <span class="book-row-desc">耗散 Rabi 模型在深强耦合区发生 BKT 量子相变，序参量与磁化率挂钩。</span>
-    <span class="book-row-arrow">›</span>
-  </a>
-</div>
-
-<div class="bookshelf" data-category="phonon" style="display:none">
-  <button class="back-btn">← 返回论文分类</button>
-  <a class="book-row" href="{{ relref . "papers/propagating-phonons-artificial-atom/_index.md" }}">
-    <span class="book-row-title">传播声子耦合到人工原子</span>
-    <span class="book-row-meta">Gustafsson 2014</span>
-    <span class="book-row-desc">表面声波声子耦合 transmon，声子版量子光学：非线性反射、单声子饱和。</span>
-    <span class="book-row-arrow">›</span>
-  </a>
-</div>
-
+{{/* ── 缩放动画 JS ── */}}
 <script>
-// 分类卡片 ↔ 分类列表的缩放/淡入动画。与 bookshelf.html 的脚本逻辑一致，
-// 用 data-shelfbound 幂等标记，避免两个 shortcode 在同一页同时出现时重复绑定。
 (function() {
   function bind() {
     var grids = document.querySelectorAll('.category-grid[data-shelf="papers"]');
@@ -102,25 +101,18 @@
       if (grid.dataset.shelfbound === '1') return;
       grid.dataset.shelfbound = '1';
 
-      // 分类计数自动化（按 data-category 找对应 .bookshelf 的 .book-row 数）
       grid.querySelectorAll('.category-card').forEach(function(card) {
-        var cat = card.dataset.category;
-        var shelf = document.querySelector('.bookshelf[data-category="' + cat + '"]');
-        if (!shelf) return;
-        var n = shelf.querySelectorAll('.book-row').length;
-        var el = card.querySelector('.category-card-count');
-        if (el) el.textContent = n + ' 篇';
-
         card.addEventListener('click', function() {
-          var s = document.querySelector('.bookshelf[data-category="' + cat + '"]');
-          if (!s) return;
+          var cat = card.dataset.category;
+          var shelf = document.querySelector('.bookshelf[data-category="' + cat + '"]');
+          if (!shelf) return;
           grid.classList.add('zoom-out');
           setTimeout(function() {
             grid.style.display = 'none';
             grid.classList.remove('zoom-out');
-            s.style.display = 'block';
-            s.classList.add('zoom-in');
-            s.querySelectorAll('.book-row').forEach(function(row, i) {
+            shelf.style.display = 'block';
+            shelf.classList.add('zoom-in');
+            shelf.querySelectorAll('.book-row').forEach(function(row, i) {
               row.style.opacity = '0';
               row.style.animation = 'fadeSlideIn 0.3s ease forwards';
               row.style.animationDelay = (i * 0.06) + 's';
@@ -130,13 +122,11 @@
       });
     });
 
-    // 返回按钮（绑定到本 shortcode 产生的 .back-btn）
     document.querySelectorAll('.bookshelf[data-category] .back-btn').forEach(function(btn) {
       if (btn.dataset.shelfbound === '1') return;
       btn.dataset.shelfbound = '1';
       btn.addEventListener('click', function() {
         var shelf = btn.closest('.bookshelf');
-        // 找到最近的相关 grid（papers 页用 papers grid）
         var grid = document.querySelector('.category-grid[data-shelf="papers"]') ||
                    document.querySelector('.category-grid');
         shelf.classList.add('zoom-out');

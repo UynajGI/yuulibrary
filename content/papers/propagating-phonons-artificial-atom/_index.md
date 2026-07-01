@@ -4,7 +4,7 @@ description: "Gustafsson 等（2014）首次把行进表面声波（SAW）声子
 date: 2026-06-27
 author: "Gustafsson, Aref, Frisk Kockum, Ekström, Johansson, Delsing"
 year: 2014
-tags: ["量子物理"]
+tags: ['声子', '表面声波', '人工原子']
 links:
   - name: "DOI (Science)"
     url: "https://doi.org/10.1126/science.1257359"

@@ -4,7 +4,7 @@ description: "De Filippis 等（2023）证明耗散量子 Rabi 模型在深强�
 date: 2026-06-27
 author: "De Filippis, de Candia, Di Bello, Perroni, Cangemi, Nocera, Sassetti, Fazio, Cataudella"
 year: 2023
-tags: ["量子物理"]
+tags: ['量子相变', 'Rabi模型', '电路QED']
 links:
   - name: "DOI (PRL)"
     url: "https://doi.org/10.1103/PhysRevLett.130.210404"

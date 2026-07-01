@@ -1,5 +1,6 @@
 ---
 title: "强化学习的数学原理"
+author: "赵世钰"
 description: "从数学角度系统介绍强化学习的基本概念、核心工具与经典算法。"
 weight: 1
 BookCollapseSection: true

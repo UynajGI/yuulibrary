@@ -1,5 +1,6 @@
 ---
 title: "统计套利"
+author: "Andrew Pole"
 description: "Andrew Pole 著，配对交易与统计套利策略的系统性论述"
 weight: 1
 BookCollapseSection: true
