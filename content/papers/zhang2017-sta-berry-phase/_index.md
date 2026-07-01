@@ -83,6 +83,54 @@ Phase qubit 的 $T_1 = 270$ ns 远短于 transmon（$\sim$7 μs），绝热操�
 3. $\pi$ 重聚焦脉冲（交换 $|\uparrow\rangle$ 和 $|\downarrow\rangle$ 态）
 4. **重相位部分**：ramp-up + $\mathcal{C}_-$ 旋转（反向）+ ramp-down
 
+{{< rough-canvas width="600" height="360" id="zhang-sta-bloch" >}}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const rc = rough.canvas(document.getElementById("zhang-sta-bloch"));
+  const ctx = document.getElementById("zhang-sta-bloch").getContext("2d");
+  const cx = 160, cy = 190, r = 100;
+
+  // Bloch sphere
+  rc.circle(cx, cy, r*2, { roughness: 1.2, stroke: "#86868b", strokeWidth: 1.5 });
+  rc.ellipse(cx, cy, r*2, 35, { roughness: 1.0, stroke: "#86868b", strokeWidth: 1 });
+
+  // North/South poles
+  rc.circle(cx, cy-r+4, 5, { roughness: 0.8, fill: "#007aff", stroke: "#007aff" });
+  rc.circle(cx, cy+r-4, 5, { roughness: 0.8, fill: "#ff9500", stroke: "#ff9500" });
+  ctx.font = "15px monospace";
+  ctx.fillStyle = "#007aff"; ctx.fillText("|↑⟩", cx-14, cy-r-10);
+  ctx.fillStyle = "#ff9500"; ctx.fillText("|↓⟩", cx-14, cy+r+20);
+
+  // Cone path (latitude circle)
+  const latR = r*0.78, latY = cy-20;
+  rc.ellipse(cx, latY, latR*2, 18, { roughness: 1.5, stroke: "#ff3b30", strokeWidth: 2.2 });
+  // Dashed back half of cone
+  rc.ellipse(cx, latY, latR*2, 18, { roughness: 1.5, stroke: "#ff3b3080", strokeWidth: 1.5 });
+
+  // Polar angle θ₀
+  ctx.fillStyle = "#34c759"; ctx.font = "14px monospace";
+  ctx.fillText("θ₀", cx+35, cy-60);
+  // Cone surface lines
+  rc.line(cx, cy-r+4, cx-latR, latY, { roughness: 1.0, stroke: "#86868b60", strokeWidth: 1 });
+  rc.line(cx, cy-r+4, cx+latR, latY, { roughness: 1.0, stroke: "#86868b60", strokeWidth: 1 });
+
+  // Solid angle S annotation
+  ctx.fillStyle = "#ff3b30"; ctx.font = "16px monospace";
+  ctx.fillText("S = 2π(1-cos θ₀)", cx+r+20, latY+5);
+  ctx.fillText("≡ 立体角", cx+r+20, latY+25);
+
+  // Right side: STA comparison
+  const rx = 400, ry = 120;
+  ctx.fillStyle = "#86868b"; ctx.font = "14px monospace";
+  ctx.fillText("绝热路径: ~1 μs", rx-20, ry-15);
+  rc.line(rx-20, ry+5, rx+70, ry+5, { roughness: 1.0, stroke: "#86868b", strokeWidth: 2 });
+  ctx.fillText("STA 路径: 20-60 ns", rx-20, ry+45);
+  rc.line(rx-20, ry+65, rx+40, ry+65, { roughness: 1.5, stroke: "#ff3b30", strokeWidth: 3 });
+  ctx.fillText("相同 Berry 相位!", rx, ry+95);
+});
+</script>
+
 在回波时刻，动力学相位被抵消，Berry 相位加倍：$\gamma = \mp 2S$（$S = 2\pi(1-\cos\theta_0)$ 为立体角）。
 
 反绝热磁场由 $B_{\mathrm{cd}}(t) = B_0(t) \times \dot{B}_0(t) / |B_0(t)|^2$ 给出，垂直于参考磁场。

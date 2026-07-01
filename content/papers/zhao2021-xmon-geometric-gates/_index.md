@@ -48,6 +48,50 @@ $$H_2(t) = \Omega_R(t) e^{-i(\varphi - \gamma/2 + \pi/2)} |0\rangle\langle 1| + 
 
 **关键优势**：仅用两个最低能级，彻底避免了 transmon 第二激发态短相干时间的限制。
 
+{{< rough-canvas width="500" height="340" id="zhao-orange-slice" >}}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const rc = rough.canvas(document.getElementById("zhao-orange-slice"));
+  const ctx = document.getElementById("zhao-orange-slice").getContext("2d");
+  const cx = 160, cy = 180, r = 100;
+
+  // Bloch sphere
+  rc.circle(cx, cy, r*2, { roughness: 1.2, stroke: "#86868b", strokeWidth: 1.5 });
+  rc.ellipse(cx, cy, r*2, 30, { roughness: 1.0, stroke: "#86868b", strokeWidth: 1 });
+
+  // Poles
+  rc.circle(cx, cy-r+4, 5, { roughness: 0.8, fill: "#007aff", stroke: "#007aff" });
+  rc.circle(cx, cy+r-4, 5, { roughness: 0.8, fill: "#ff9500", stroke: "#ff9500" });
+
+  // Orange-slice path: from N pole down geodesic to equator, along equator, back up
+  const eqY = cy+10;
+  // Path segment 1: N → equator (geodesic)
+  rc.line(cx, cy-r+4, cx-r+60, eqY, { roughness: 1.3, stroke: "#ff3b30", strokeWidth: 2.5 });
+  // Path segment 2: along equator (geodesic arc)
+  rc.arc(cx, eqY, r-5, r-5, Math.PI, Math.PI*0.4, false, { roughness: 1.3, stroke: "#ff3b30", strokeWidth: 2.5 });
+  // Path segment 3: equator → N (geodesic)
+  rc.line(cx-r+60, eqY, cx, cy-r+4, { roughness: 1.3, stroke: "#ff9500", strokeWidth: 2.5 });
+
+  // Solid angle shading
+  ctx.fillStyle = "#ff3b3015";
+  ctx.fillText("γ = S/2", cx+70, cy-70);
+  ctx.fillStyle = "#86868b"; ctx.font = "14px monospace";
+  ctx.fillText("|0⟩", cx-14, cy-r-14);
+  ctx.fillText("|1⟩", cx-14, cy+r+22);
+
+  // Right annotations
+  const rx = 340;
+  ctx.fillStyle = "#ff3b30"; ctx.font = "16px monospace";
+  ctx.fillText("切片形回路", rx, 100);
+  ctx.fillStyle = "#86868b"; ctx.font = "13px monospace";
+  ctx.fillText("① N→赤道 (γ/2)", rx, 130);
+  ctx.fillText("② 沿赤道 (π/2)", rx, 155);
+  ctx.fillText("③ 赤道→N (π/2-γ/2)", rx+25, 180);
+  ctx.fillText("动力学相位 = 0 !", rx, 220);
+});
+</script>
+
 ---
 
 ## 主要实验结果

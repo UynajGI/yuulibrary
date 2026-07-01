@@ -66,6 +66,45 @@ $$
 
 其中驱动振幅参数化为 $e^{i\phi} \tan(\theta/2) = a/b$。
 
+{{< rough-canvas width="600" height="380" id="abdumalikov-bloch" >}}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const rc = rough.canvas(document.getElementById("abdumalikov-bloch"));
+  const cx = 160, cy = 210, r = 110;
+  // Bloch sphere
+  rc.circle(cx, cy, r*2, { roughness: 1.2, stroke: "#86868b", strokeWidth: 1.5 });
+  rc.ellipse(cx, cy, r*2, 40, { roughness: 1.0, stroke: "#86868b", strokeWidth: 1 });
+  // poles
+  rc.circle(cx, cy-r+5, 6, { roughness: 0.8, fill: "#007aff", stroke: "#007aff" });
+  rc.circle(cx, cy+r-5, 6, { roughness: 0.8, fill: "#ff9500", stroke: "#ff9500" });
+  // equatorial loop C (closed path)
+  rc.ellipse(cx, cy, r*1.6, 30, { roughness: 1.6, stroke: "#ff3b30", strokeWidth: 2.5 });
+  // labels
+  const fs = "16px monospace";
+  // fillText isn't rough, use plain canvas for labels
+  const ctx = document.getElementById("abdumalikov-bloch").getContext("2d");
+  ctx.font = fs;
+  ctx.fillStyle = "#007aff"; ctx.fillText("|0⟩", cx-12, cy-r-12);
+  ctx.fillStyle = "#ff9500"; ctx.fillText("|1⟩", cx-12, cy+r+20);
+  ctx.fillStyle = "#ff3b30"; ctx.fillText("C (holonomic loop)", cx+r+20, cy+5);
+  // theta angle
+  ctx.fillStyle = "#34c759";
+  ctx.fillText("θ", cx+55, cy-50);
+  // |e⟩ auxiliary state
+  ctx.fillStyle = "#af52de";
+  ctx.fillText("|e⟩", cx+r+40, cy-60);
+  rc.circle(cx+r+35, cy-65, 8, { roughness: 1.0, fill: "rgba(175,82,222,0.15)", stroke: "#af52de" });
+  // dashed line from center to |e⟩
+  const midX = cx+r+35, midY = cy-65;
+  rc.line(cx, cy, midX, midY, { roughness: 1.0, stroke: "#af52de", strokeWidth: 1 });
+  // equation annotation
+  ctx.fillStyle = "#86868b"; ctx.font = "14px monospace";
+  ctx.fillText("U = [ cosθ   e^{iφ}sinθ ]", 370, 140);
+  ctx.fillText("    [ e^{-iφ}sinθ  -cosθ  ]", 370, 160);
+});
+</script>
+
 ![](images/fig1-fiber-bundle-holonomy.webp)
 {{< caption >}}图 1c：holonomic 门在纤维丛上的几何表示。系统沿底空间 $G$ 中的闭合路径 $C$ 演化。平行传输条件固定了沿路径 $C$ 的基矢选择，导致纤维丛中的路径 $\tilde{C}$。初态（$t=0$）和终态（$t=\tau$）在同一条纤维上，其差异对应于 holonomy 矩阵 $U \in \mathrm{U}(2)$，完全由回路 $C$ 决定。{{< /caption >}}
 
