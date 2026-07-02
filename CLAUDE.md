@@ -38,6 +38,8 @@ yuulibrary/
 ├── static/katex/ + pseudocode/ + rough.min.js  # 本地化数学/算法/手绘渲染
 ├── .claude/skills/add-book-to-library/   # 加书 skill
 ├── .claude/skills/add-paper-to-library/  # 加论文 skill
+├── .claude/skills/add-note-to-library/   # 加笔记 skill
+├── .claude/scripts/count_words.py        # Markdown 字数统计
 ├── .github/workflows/deploy.yml  # push main → 自动部署
 └── pdfs/                         # 源文件（本地，gitignore）
     ├── books/                   # 书籍 PDF/EPUB + 状态文件 + 提取输出
@@ -108,6 +110,15 @@ python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/pape
 - `[W]` 应修复：交叉引用、标题层级、断行等
 - `[R]` 需人工确认：元素模板候选（例X-X、业界事例、定义/定理等）
 - 误报标记：行末加 `<!-- validate-skip -->` 跳过
+
+### 字数统计
+
+```bash
+python3 .claude/scripts/count_words.py content/notes/<slug>.md   # 单文件
+python3 .claude/scripts/count_words.py content/papers/ -d          # 目录+明细
+```
+
+自动剥离 front matter / 代码块 / 公式 / shortcode 后统计中文字符、英文单词、可读字数。详见脚本注释。
 
 ## 可用 Agent
 
