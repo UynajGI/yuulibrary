@@ -135,6 +135,51 @@ pre-commit:
         - "content/papers/**/*.md"
       run: python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/papers/
 
+    - name: latex-render
+      glob:
+        - "content/**/*.md"
+      run: |
+        python3 -c "
+        import os, sys, re, subprocess
+
+        root = os.getcwd()
+        out = subprocess.run(['git', 'diff', '--cached', '--name-only', '--diff-filter=ACMR'],
+                             capture_output=True, text=True).stdout
+        errors = []
+        for name in out.splitlines():
+            if not name.endswith('.md'): continue
+            path = os.path.join(root, name)
+            if not os.path.exists(path): continue
+            lines = open(path).read().split('\n')
+
+            # Check 1: | inside $...$ in table rows (Markdown misinterprets as column sep)
+            for i, line in enumerate(lines, 1):
+                if not line.strip().startswith('|'): continue
+                for m in re.finditer(r'\$([^$]+)\$', line):
+                    latex = m.group(1)
+                    # Allow \vert, \lvert, \rvert, \mid — flag raw |
+                    bad = re.findall(r'(?<!\\vert)(?<!\\lvert)(?<!\\rvert)(?<!\\mid)\|(?!vert\b)', latex)
+                    if bad:
+                        errors.append(f'{path}:{i}: raw | in table LaTeX — use \\lvert/\\rvert/\\vert')
+
+            # Check 2: + or - at line start inside $$...$$ blocks
+            in_display = False
+            for i, line in enumerate(lines, 1):
+                stripped = line.strip()
+                if stripped.startswith('\$\$'):
+                    in_display = not in_display
+                    continue
+                if in_display and (stripped.startswith('+ ') or stripped.startswith('- ')):
+                    # Allow += -= as assignment, flag lone + or - followed by space then LaTeX
+                    if not stripped.startswith('+=') and not stripped.startswith('-='):
+                        errors.append(f'{path}:{i}: + or - at line start inside \$\$ block — put on one line or use \\;+\\;')
+        if errors:
+            print('LATEX RENDER ERRORS:')
+            for e in errors: print(f'  {e}')
+            sys.exit(1)
+        print('LaTeX render OK')
+        "
+
 pre-push:
   jobs:
     - name: hugo-build

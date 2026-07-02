@@ -110,6 +110,7 @@ python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/pape
 - `[W]` 应修复：交叉引用、标题层级、断行等
 - `[R]` 需人工确认：元素模板候选（例X-X、业界事例、定义/定理等）
 - 误报标记：行末加 `<!-- validate-skip -->` 跳过
+- **`latex-render`**（lefthook pre-commit）：抓两种常见 Markdown/KaTeX 渲染坑——表格 LaTeX 里的裸 `|`（被当列分隔，用 `\lvert`/`\rvert`/`\vert`）和 `$$` 块内行首 `+`/`-`（被当列表项，用 `\;+\;` 或单行）
 
 ### 字数统计
 

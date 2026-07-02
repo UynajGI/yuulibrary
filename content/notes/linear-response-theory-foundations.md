@@ -989,20 +989,54 @@ $$
 H_I = \sum_{i=1}^{N} \left[\frac{p_i^2}{2M_i} + \frac{k_i}{2}(x - x_i)^2\right]
 $$
 
+其中 $M_i$ 是第 $i$ 个浴振子的质量，$k_i$ 是将该振子连接到腔模坐标 $x$ 的**弹簧劲度系数**。$\frac{k_i}{2}(x - x_i)^2$ 即"腔模偏离 $x$ 越远，拉回浴振子 $x_i$ 的力越大"——这是典型的 Caldeira-Leggett 模型 [Rev. Mod. Phys. 59, 1 (1987)]，也是 Spin-Boson 模型的核心。$\{k_i, M_i\}$ 这 $2N$ 个微观参数的物理效应全部封装在谱密度 $J(\omega)$ 中：
+
 浴的微观参数 $\{k_i, M_i\}$ 封装为谱密度 $J(\omega) = \sum_i \frac{k_i \omega_i}{2m\omega_0} \delta(\omega - \omega_i) = \alpha_{\mathrm{cav}}\,\omega\,\Theta(\omega_c - \omega)$（Ohmic，$\alpha_{\mathrm{cav}}$ 无量纲，$\omega_c$ 截断）。
 
 #### 12.1.2 推导 $J_{\mathrm{eff}}(\omega)$：腔+浴对角的四个步骤
 
 这是全文最关键的技术步骤——把一个二次型玻色子环境精确消去，得到两能级系统"看到的"有效谱密度。
 
-**步骤 1：腔模在频域的运动方程**。考虑腔模坐标 $x$ 和浴振子 $\{x_i\}$ 的经典运动方程（量子力学中，二次型系统的 Heisenberg 方程与经典方程同构）：
+**为什么可以单独处理腔+浴而不涉及两能级？** 完整哈密顿量为：
 
 $$
-\begin{aligned}
-m\ddot{x} + m\omega_0^2 x + \sum_i k_i (x - x_i) &= 0 \\
-M_i \ddot{x}_i + k_i (x_i - x) &= 0 \qquad (i = 1, \ldots, N)
-\end{aligned}
+H = \underbrace{-\frac{\Delta}{2}\sigma_x + \omega_0 a^\dagger a + g\sigma_z(a + a^\dagger)}_{H_{Q\text{-}O}} \;+\; \underbrace{\sum_i\Big[\frac{p_i^2}{2M_i} + \frac{k_i}{2}(x-x_i)^2\Big]}_{H_I}
 $$
+
+关键观察：$H_I$ 和腔模的 $\omega_0 a^\dagger a$ 合在一起，是**纯二次型玻色子**哈密顿量——只含 $a, a^\dagger, \{x_i\}, \{p_i\}$，不含任何 Pauli 矩阵。两能级系统通过 $g\sigma_z(a + a^\dagger)$ 只与**一个**玻色子自由度（腔模坐标 $x \propto a + a^\dagger$）耦合，$\sigma_z$ 本身不是玻色子算符，不能被对角化。
+
+**概念上**，标准的 Caldeira-Leggett 操作是显式对角化：
+
+1. **对角化玻色子部分**——把 $\{a, \{x_i\}\}$ 这 $N+1$ 个耦合谐振子对角化为 $N+1$ 个独立正常模 $\{Q_\lambda\}$
+2. 对角化后，$x = \sum_\lambda c_\lambda Q_\lambda$（腔模坐标是正常模的线性组合）
+3. 两能级-腔耦合变成 $g\sigma_z(a + a^\dagger) \propto \sigma_z \sum_\lambda g_\lambda Q_\lambda$——原本只与腔模耦合的 $\sigma_z$，现在与**所有**正常模耦合
+4. 正常模集合 $\{Q_\lambda\}$ 构成了有效环境，谱密度 $J_{\mathrm{eff}}(\omega) \equiv \frac{\pi}{2}\sum_\lambda g_\lambda^2 \delta(\omega - \omega_\lambda) \propto \sum_\lambda |c_\lambda|^2\delta$
+
+**但在本问题中，De Filippis 等并没有显式做这个对角化**——对 $N \sim \infty$ 的连续浴，$N+1$ 维对角化不可行。他们利用了一个关键事实：两能级系统只与**一个**玻色子组合（$x$）耦合，不需要所有 $c_\lambda$，只需要 $\sum_\lambda |c_\lambda|^2\delta$——而这就是 $x$ 的推迟响应函数 $D^R(\omega)$ 的虚部（§7.2 的 $\Im[\chi] \leftrightarrow S$）。于是对角化被**运动方程 + 谱表示**替代：
+
+**实际执行**：只处理玻色子部分 → 运动方程消去浴 → 得 $D^R(\omega)$ → $\Im[D^R]$ 直接给谱权重 → $J_{\mathrm{eff}} \propto g^2 \Im[D^R]$。以下四步即为这个"绕过对角化"的实际推导。
+
+**步骤 1：从哈密顿量到运动方程**。取玻色子部分 $H_{CB} = \omega_0 a^\dagger a + H_I$，用坐标-动量改写（$x = (a+a^\dagger)/\sqrt{2m\omega_0}$，$p = i\sqrt{m\omega_0/2}(a^\dagger - a)$）：
+$$
+H_{CB} = \frac{p^2}{2m} + \frac{1}{2}m\omega_0^2 x^2 + \sum_i \left[\frac{p_i^2}{2M_i} + \frac{k_i}{2}(x - x_i)^2\right]
+$$
+
+对 $x$ 和 $p$ 用 Hamilton 方程 $\dot{x} = \partial H/\partial p$，$\dot{p} = -\partial H/\partial x$：
+$$
+\dot{x} = \frac{p}{m},\qquad \dot{p} = -m\omega_0^2 x - \sum_i k_i(x - x_i)
+$$
+
+消去 $p$：$m\ddot{x} = \dot{p} = -m\omega_0^2 x - \sum_i k_i(x - x_i)$，即
+$$
+m\ddot{x} + m\omega_0^2 x + \sum_i k_i (x - x_i) = 0
+$$
+
+对浴振子 $i$ 同理：$\dot{x}_i = p_i/M_i$，$\dot{p}_i = -k_i(x_i - x)$，消去 $p_i$ 得：
+$$
+M_i \ddot{x}_i + k_i (x_i - x) = 0
+$$
+
+这两条方程构成一个封闭的线性常微分方程组——腔模和浴振子通过 $k_i(x - x_i)$ 力耦合。
 
 **步骤 2：消去浴振子**。对第 $i$ 个浴振子做 Fourier 变换（$\partial_t \to -i\omega$）：
 $$
@@ -1020,14 +1054,21 @@ $$
 = \sum_i k_i \left(1 + \frac{\omega^2}{\omega_i^2 - \omega^2}\right)
 $$
 
-第一个 $\sum_i k_i$ 项恰好与括号内的 $+\sum_i k_i$ 相消。第二个 $\sum_i k_i \frac{\omega^2}{\omega_i^2 - \omega^2}$ 项用谱密度 $J(\omega)$ 改写为连续积分：
+第一个 $\sum_i k_i$ 项恰好与括号内的 $+\sum_i k_i$ 相消。第二个 $\sum_i k_i \frac{\omega^2}{\omega_i^2 - \omega^2}$ 项需要从离散和转换为连续积分。
 
+**从离散和到连续积分的转换**：谱密度 $J(\omega) = \sum_i \frac{k_i \omega_i}{2m\omega_0} \delta(\omega - \omega_i)$ 的定义正是为了打包微观参数。对任意测试函数：
+$$
+\sum_i \frac{k_i \omega_i}{2m\omega_0} \, f(\omega_i) = \int_0^{\infty} d\omega' \, J(\omega') \, f(\omega')
+$$
+
+我们要转换 $\sum_i k_i \frac{\omega^2}{\omega_i^2 - \omega^2}$。先把 $k_i$ 写成 $k_i = 2m\omega_0 \cdot \frac{k_i \omega_i}{2m\omega_0} \cdot \frac{1}{\omega_i}$：
 $$
 \sum_i k_i \frac{\omega^2}{\omega_i^2 - \omega^2}
-= 2m\omega_0 \int_0^{\infty} d\omega' \frac{J(\omega')}{\omega'} \frac{\omega^2}{\omega'^2 - \omega^2}
+= 2m\omega_0 \sum_i \frac{k_i \omega_i}{2m\omega_0} \cdot \frac{\omega^2}{\omega_i(\omega_i^2 - \omega^2)}
+= 2m\omega_0 \int_0^{\infty} d\omega' \, J(\omega') \, \frac{\omega^2}{\omega'(\omega'^2 - \omega^2)}
 $$
 
-代入 $J(\omega') = \alpha_{\mathrm{cav}} \omega'$：
+被积函数中 $J(\omega')/\omega'$ 自然出现。代入 $J(\omega') = \alpha_{\mathrm{cav}} \omega'$（Ohmic 谱密度，定义在 $\omega' \le \omega_c$）：
 $$
 = 2m\omega_0 \alpha_{\mathrm{cav}} \omega^2 \int_0^{\omega_c} \frac{d\omega'}{\omega'^2 - \omega^2}
 $$
@@ -1035,15 +1076,50 @@ $$
 **步骤 3：推迟边界条件与自能**。积分 $\int_0^{\omega_c} d\omega'/(\omega'^2 - \omega^2)$ 在 $\omega' = \omega$ 处有极点。加上推迟边界条件（$\omega \to \omega + i0^+$——和本笔记 §4.4 的 $+i\eta$ 完全相同的操作），用 Plemelj 公式（§4.6）分离实部和虚部：
 
 $$
-\int_0^{\omega_c} \frac{d\omega'}{\omega'^2 - (\omega + i0^+)^2}
-= \mathcal{P}\int_0^{\omega_c} \frac{d\omega'}{\omega'^2 - \omega^2}
-+ i\frac{\pi}{2\omega}\,\Theta(\omega_c - \omega)
+\int_0^{\omega_c} \frac{d\omega'}{\omega'^2 - (\omega + i0^+)^2} = \mathcal{P}\int_0^{\omega_c} \frac{d\omega'}{\omega'^2 - \omega^2} \;+\; i\frac{\pi}{2\omega}\,\Theta(\omega_c - \omega)
 $$
 
-实部的 Cauchy 主值积分给出（对 $\omega_c \gg \omega$）：
+实部的 Cauchy 主值积分计算如下。第一步：部分分式分解
+
+$$
+\frac{1}{\omega'^2 - \omega^2} = \frac{1}{2\omega}\left(\frac{1}{\omega' - \omega} - \frac{1}{\omega' + \omega}\right)
+$$
+
+第二步：分别做主值积分。对于第一项（奇点在 $\omega' = \omega$）：
+$$
+\mathcal{P}\int_0^{\omega_c} \frac{d\omega'}{\omega' - \omega}
+= \lim_{\epsilon \to 0^+} \left[\int_0^{\omega - \epsilon} + \int_{\omega + \epsilon}^{\omega_c}\right] \frac{d\omega'}{\omega' - \omega}
+= \ln\left|\frac{\omega_c - \omega}{\omega}\right|
+$$
+（左右对称挖去奇点，奇点两侧的无穷大相互抵消，剩下边界值的对数差）
+
+第二项（奇点在 $\omega' = -\omega$，不在积分区间 $[0, \omega_c]$ 内——是普通积分）：
+$$
+\int_0^{\omega_c} \frac{d\omega'}{\omega' + \omega} = \ln\left|\frac{\omega_c + \omega}{\omega}\right|
+$$
+
+第三步：两项相减：
 $$
 \mathcal{P}\int_0^{\omega_c} \frac{d\omega'}{\omega'^2 - \omega^2}
-\approx \frac{1}{2\omega} \ln\left|\frac{\omega_c + \omega}{\omega_c - \omega}\right|
+= \frac{1}{2\omega}\left( \ln\frac{\omega_c - \omega}{\omega} - \ln\frac{\omega_c + \omega}{\omega} \right)
+= \frac{1}{2\omega} \ln\left|\frac{\omega_c - \omega}{\omega_c + \omega}\right|
+$$
+
+取绝对值并调换分子分母（绝对值内取负号不改变值）得常用形式：
+$$
+\boxed{\mathcal{P}\int_0^{\omega_c} \frac{d\omega'}{\omega'^2 - \omega^2}
+\approx -\frac{1}{2\omega} \ln\left|\frac{\omega_c + \omega}{\omega_c - \omega}\right|}
+$$
+
+负号被吸收进自能的定义 $h(\omega)$ 中（本文和 De Filippis 等的符号约定可能差一个负号，不影响 $J_{\mathrm{eff}}$ 的最终形式——分母中 $h(\omega)$ 会平方）。
+
+虚部的计算更直接：Plemelj 公式 $\Im[(\omega'^2 - (\omega + i0^+)^2)^{-1}] = \frac{\pi}{2\omega}\delta(\omega' - \omega)$，积分后得 $i\frac{\pi}{2\omega}\Theta(\omega_c - \omega)$（$\Theta$ 来自积分上限 $\omega_c$ 的截断）。
+
+因此腔模的自能：
+$$
+\Sigma(\omega) = h(\omega) - i\pi\alpha_{\mathrm{cav}}\omega_0\omega
+\quad\text{其中}\quad
+h(\omega) \equiv \alpha_{\mathrm{cav}}\omega_0\omega \ln\frac{\omega_c + \omega}{\omega_c - \omega}
 $$
 
 因此腔模坐标的运动方程变为：
@@ -1053,20 +1129,105 @@ $$
 
 其中**自能** $\Sigma(\omega) = h(\omega) - i\pi\alpha_{\mathrm{cav}}\omega_0\omega$，实部 $h(\omega) = \alpha_{\mathrm{cav}}\omega_0\omega \ln[(\omega_c + \omega)/(\omega_c - \omega)]$，虚部来自 Plemelj 公式。自能的虚部是耗散的标志——它来自浴的无穷多自由度产生的不可逆弛豫（完全平行于 §3.3 中外场 $F(t)$ 的 $i\eta$ 如何编码耗散）。
 
-**步骤 4：从腔的推迟格林函数到 $J_{\mathrm{eff}}$**。腔模的推迟格林函数（将 $\hat{x} \propto a + a^\dagger$ 联系到自身的响应函数）为：
+**步骤 4：从腔的推迟格林函数到 $J_{\mathrm{eff}}$——谱表示的直接应用**。
+
+*4a. 问题的等价形式*。按上节概念步骤，对角化后 $x = \sum_\lambda c_\lambda Q_\lambda$，耦合变为 $\sigma_z \sum_\lambda g_\lambda Q_\lambda$（$g_\lambda = g\sqrt{2m\omega_0}\,c_\lambda$），谱密度 $J_{\mathrm{eff}}(\omega) \equiv \frac{\pi}{2}\sum_\lambda g_\lambda^2 \delta(\omega - \omega_\lambda)$（记为 (SD)）。目标是不做对角化求出 $\sum_\lambda |c_\lambda|^2\delta$。
+
+*4b. $D^R(\omega)$ 的谱分解——为何 $\Im[D^R]$ 包含 $\{c_\lambda\}$ 的信息*。腔模坐标 $x$ 的推迟响应函数（用 §3-4 的 Kubo 公式框架，$\hbar = 1$）：
 $$
+D^R(t) \equiv -i\theta(t)\langle[x(t), x(0)]\rangle_0
+$$
+对频域做 Fourier-Laplace（§4.2，注意本文 §3-4 的 $\phi_{AV}$ 在此为 $D^R$）：
+$$
+D^R(\omega) \equiv \int_0^{\infty} dt\,e^{i\omega t} D^R(t)
+$$
+其谱分解（§4.3 的式 (4.1) 取 $A = V = x$）为：
+$$
+D^R(\omega) = \sum_{m,n} \frac{e^{-\beta E_m} - e^{-\beta E_n}}{Z} \frac{|\langle m|x|n\rangle|^2}{E_m - E_n + \omega + i0^+}
+$$
+
+*4c. 零温极限——正常模的权重浮现*。取 $T=0$（$\beta\to\infty$），基态 $|0\rangle$ 为真空，激发态 $|\lambda\rangle$ 为单个正常模的单量子态（$H_{\mathrm{normal}}|\lambda\rangle = \omega_\lambda|\lambda\rangle$）。对谐振子系统，只有 $x$ 能连接相差一个量子的态，即 $\langle 0|x|\lambda\rangle \neq 0$ 仅当 $|\lambda\rangle$ 是单量子激发。此时 $E_0 = 0$，$E_\lambda = \omega_\lambda$，权重 $e^{-\beta E_0}/Z \to 1$，$e^{-\beta E_\lambda}/Z \to 0$：
+
+$$
+D^R(\omega) = \sum_{\lambda} \frac{|\langle 0|x|\lambda\rangle|^2}{-\omega_\lambda + \omega + i0^+}
+$$
+
+取虚部（§4.6 Plemelj：$\Im[(-\omega_\lambda + \omega + i0^+)^{-1}] = -\pi\delta(\omega - \omega_\lambda)$）：
+$$
+\Im[D^R(\omega)] = -\pi \sum_{\lambda} |\langle 0|x|\lambda\rangle|^2\,\delta(\omega - \omega_\lambda) \tag{★}
+$$
+
+*4d. 矩阵元 $|\langle 0|x|\lambda\rangle|^2$ 与 $\{c_\lambda\}$ 的关系*。正常模坐标 $Q_\lambda$ 满足标准谐振子对易关系：$Q_\lambda = (b_\lambda + b_\lambda^\dagger)/\sqrt{2\omega_\lambda}$。单量子态 $|\lambda\rangle = b_\lambda^\dagger|0\rangle$，故 $\langle 0|Q_\lambda|\lambda\rangle = 1/\sqrt{2\omega_\lambda}$。将 $x = \sum_\lambda c_\lambda Q_\lambda$ 代入：
+$$
+\langle 0|x|\lambda\rangle = c_\lambda \cdot \frac{1}{\sqrt{2\omega_\lambda}}
+\quad\Longrightarrow\quad
+|\langle 0|x|\lambda\rangle|^2 = \frac{|c_\lambda|^2}{2\omega_\lambda}
+$$
+
+代回式 (★)：
+$$
+\Im[D^R(\omega)] = -\frac{\pi}{2\omega}\sum_{\lambda} |c_\lambda|^2\,\delta(\omega - \omega_\lambda)
+$$
+中间的 $1/\omega_\lambda$ 被 $\delta$ 函数替换为 $1/\omega$。因此：
+$$
+\boxed{\sum_{\lambda} |c_\lambda|^2\,\delta(\omega - \omega_\lambda) = -\frac{2\omega}{\pi}\,\Im[D^R(\omega)]} \tag{†}
+$$
+
+*4e. 从 $\{c_\lambda\}$ 到 $J_{\mathrm{eff}}$*。将 $g_\lambda = g\sqrt{2m\omega_0}\,c_\lambda$ 代入谱密度定义 (SD)：
+$$
+\begin{aligned}
+J_{\mathrm{eff}}(\omega) &= \frac{\pi}{2} g^2(2m\omega_0) \sum_{\lambda} |c_\lambda|^2 \delta(\omega - \omega_\lambda) \\
+&= \frac{\pi}{2} g^2(2m\omega_0) \cdot \left(-\frac{2\omega}{\pi}\Im[D^R(\omega)]\right) \quad\text{(用式 †)} \\
+&= -2g^2 m\omega_0\omega \,\Im[D^R(\omega)]
+\end{aligned}
+$$
+
+*4f. 代入 $D^R$ 的显式*。步骤 1-3 推导的是**无外力**的齐次方程 $[-\omega^2 + \omega_0^2 + \Sigma(\omega)]\hat{x}(\omega) = 0$。现在考虑施加一个微小的外力 $F_{\mathrm{ext}}(t)$ 到腔模坐标 $x$ 上——这正是 §1.3 经典阻尼谐振子受迫运动的量子版本。运动方程变为：
+
+$$
+m\ddot{x} + m\omega_0^2 x + \sum_i k_i(x - x_i) = F_{\mathrm{ext}}(t)
+$$
+
+Fourier 变换后，加上浴的消去结果（步骤 2-3），得到非齐次方程：
+$$
+[-\omega^2 + \omega_0^2 + \Sigma(\omega)]\,\hat{x}(\omega) = \frac{1}{m}\hat{F}_{\mathrm{ext}}(\omega)
+$$
+
+**响应函数（Green 函数）的定义**：$\hat{x}$ 对外力的线性响应为 $\hat{x}(\omega) \equiv D^R(\omega) \cdot \frac{1}{m}\hat{F}_{\mathrm{ext}}(\omega)$。代入上式：
+$$
+[-\omega^2 + \omega_0^2 + \Sigma(\omega)]\,D^R(\omega) = 1
+\;\Longrightarrow\;
 D^R(\omega) = \frac{1}{-\omega^2 + \omega_0^2 + \Sigma(\omega)}
-= \frac{1}{\omega_0^2 - \omega^2 - h(\omega) - i\pi\alpha_{\mathrm{cav}}\omega_0\omega}
 $$
 
-两能级系统通过 $g\sigma_z(a + a^\dagger) \propto g\sigma_z x$ 与腔模耦合。在对角化后的正常模表象中，$\sigma_z$ 与各正常模坐标 $\{Q_\lambda\}$ 的耦合常数为 $g_\lambda \propto g c_\lambda$，其中 $\{c_\lambda\}$ 是将 $x$ 展开为正常模的系数。有效谱密度由**涨落-耗散定理的谱表示**（本笔记 §7.2 的式 $\Im[\chi] \leftrightarrow S$ 的类比）给出——$\{g_\lambda^2\}$ 的权重正比于 $D^R$ 的虚部：
+这就是 **Green 函数的"逆算子"定义**：运动方程写成 $\hat{L}\hat{x} = \hat{F}/m$，则响应函数 $D^R = \hat{L}^{-1}$。完全平行于 §1.3 中经典阻尼谐振子的 $\chi(\omega) = 1/[m(\omega_0^2 - \omega^2 - i\gamma\omega)]$——这里 $\Sigma(\omega) = h(\omega) - i\pi\alpha_{\mathrm{cav}}\omega_0\omega$ 扮演了经典阻尼 $\gamma$ 的角色（实部 $h(\omega)$ 为色散/Lamb 位移，虚部 $\pi\alpha_{\mathrm{cav}}\omega_0\omega$ 为耗散）。
 
+代入 $\Sigma(\omega)$ 的显式：
 $$
-J_{\mathrm{eff}}(\omega) = 2g^2\omega_0 \cdot \Im[D^R(\omega)]
-= \frac{2g^2\omega_0^2\alpha_{\mathrm{cav}}\,\omega}{[\omega^2 - \omega_0^2 - h(\omega)]^2 + (\pi\alpha_{\mathrm{cav}}\omega_0\omega)^2}
+\boxed{D^R(\omega) = \frac{1}{\omega_0^2 - \omega^2 - h(\omega) - i\pi\alpha_{\mathrm{cav}}\omega_0\omega}}
 $$
+取其虚部（分子分母乘共轭，和 §4.6 的 Plemelj 操作相同）得：
+$$
+\Im[D^R(\omega)] = -\frac{\pi\alpha_{\mathrm{cav}}\omega_0\omega}{[\omega^2 - \omega_0^2 - h(\omega)]^2 + (\pi\alpha_{\mathrm{cav}}\omega_0\omega)^2}
+$$
+（注意分子的 $\omega_0\omega$ 和分母含 $\omega^2$ 项的来源——这是 $x$ 为位置坐标时 $D^R$ 的特殊形式，与 §1.3 阻尼谐振子的响应函数 $\chi(\omega)$ 结构完全平行。）
 
-**这就是式 (2)**。分子中的 $2g^2$ 来自两能级-腔耦合强度的平方，分母中的 $(\pi\alpha_{\mathrm{cav}}\omega_0\omega)^2$ 是腔模本身的耗散展宽——恰好是我们 §1.3 的经典阻尼谐振子的谱函数形式在 $\omega \approx \omega_0$ 处的量子版本。
+*4g. 最终结果*。代入 $-2g^2 m\omega_0\omega \Im[D^R]$，其中 $m\omega_0$ 和 $\Im[D^R]$ 分母的因子组合恰好整理为：
+$$
+\boxed{J_{\mathrm{eff}}(\omega) = \frac{2g^2\omega_0^2\alpha_{\mathrm{cav}}\,\omega}{[\omega^2 - \omega_0^2 - h(\omega)]^2 + (\pi\alpha_{\mathrm{cav}}\omega_0\omega)^2}}
+$$
+（系数 $2g^2\omega_0^2\alpha_{\mathrm{cav}}$ 来自 $2g^2 m\omega_0\omega \cdot \pi\alpha_{\mathrm{cav}}\omega_0\omega / (m\omega_0\cdots)$——正常模质量 $m$ 在公分母中消去，这是谐振子系统谱分解的必然结果。具体数值因子依赖 $D^R$ 和 $J_{\mathrm{eff}}$ 的归一化约定——De Filippis 等 [2023] 的式 (2) 采用了上述形式。）
+
+**线性响应理论的连接点**——从 $D^R(t)$ 的定义到 $J_{\mathrm{eff}}$ 的最终表达式，每一步都是本笔记前面章节的直接应用：
+
+| 步骤 | 本笔记对应位置 |
+|------|--------------|
+| $D^R(t) \equiv -i\theta(t)\langle[x(t), x(0)]\rangle$ | §3.5 的 $\phi_{AV}(t)$ 取 $A=V=x$ |
+| $D^R(\omega) = \int_0^{\infty} dt e^{i\omega t} D^R(t)$ | §4.2 的 $\chi_{AV}(\omega)$ 定义 |
+| 谱分解：分子出现 $\lvert\langle 0\vert x\vert\lambda\rangle\rvert^2$ | §4.3 的谱分解形式（$A=V=x$） |
+| $\Im[1/(-\omega_\lambda + \omega + i0^+)] = -\pi\delta$ | §4.6 的 Plemelj 公式 |
+| $\Im[D^R] \propto \sum \lvert c_\lambda\rvert^2 \delta$（谱权重） | §7.2 的 $\Im[\chi_{AA}] \leftrightarrow S_{AA}$ 在 $T=0$ 的特例 |
+| $J_{\mathrm{eff}} \propto g^2 \Im[D^R]$ | §7.1 谱函数 $S(\omega)$ 编码跃迁权重——这里 $D^R$ 的虚部就是正常模的谱函数 |
 
 #### 12.1.3 $J_{\mathrm{eff}}$ 的物理结构
 
