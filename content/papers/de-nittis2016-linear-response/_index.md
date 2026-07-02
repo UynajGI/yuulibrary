@@ -1,0 +1,260 @@
+---
+title: "线性响应理论：一种现代分析-代数进路"
+description: "De Nittis 与 Lein（2017）构建了线性响应理论的统一分析-代数框架——基于 von Neumann 代数和非交换 Lᵖ 空间，同时适用于离散/连续模型、周期/随机系统，是 Bouclet-Germinet-Klein-Schenker 进路的抽象化与推广（Springer Briefs 专著）"
+date: 2026-07-01
+author: "Giuseppe De Nittis, Max Lein"
+year: 2017
+tags: ["线性响应理论", "von Neumann代数", "非交换几何", "Kubo公式", "数学物理"]
+links:
+  - name: "DOI (Springer)"
+    url: "https://doi.org/10.1007/978-3-319-56632-0"
+  - name: "arXiv"
+    url: "https://arxiv.org/abs/1612.07310"
+weight: 15
+---
+
+# Linear Response Theory: A Modern Analytic-Algebraic Approach
+## 线性响应理论：一种现代分析-代数进路
+
+**Giuseppe De Nittis, Max Lein**
+
+Pontificia Universidad Católica de Chile · 東北大学（数学教室）
+
+*Springer Briefs in Mathematical Physics* Vol. 21 (2017) | 151 页专著
+
+## 摘要
+
+本书构建了一个统一的、严格的分析-代数框架，用以论证物理系统的 Kubo 线性响应理论。核心工具是**半有限 von Neumann 代数**与其上的**非交换 $L^p$ 空间**——该框架同时适用于离散（紧束缚）和连续（Schrödinger 算子）模型，可处理随机无序，且不针对特定模型定制。框架抽象自 Bouclet, Germinet, Klein 和 Schenker [BGK+05] 以及 Dombrowski 和 Germinet [DG08] 对随机磁薛定谔算子的工作，将其核心策略提取为六个假设（Hypotheses 1–6），所有证明基于模型无关的结构性论证。主要结果包括：Kubo 公式（电导率张量）的严格推导、绝热极限下的 Kubo-Strěda 公式、以及零温极限下与拓扑不变量（Chern 数）的联系。
+
+---
+
+## 1 引言
+
+线性响应理论（LRT）是研究外场微扰将系统驱动出平衡态的工具。典型例子是从第一性原理论证 Ohm 定律 $J = \sigma E$ [Ohm 1826]。其思想由 Green [1854] 和 Kubo [1957] 在统计力学语境中开创，后被 Strěda [1982] 用于将二维电子气中的横向电导率与 Fermi 能级以下的 Landau 能级数联系起来。
+
+**本书的目标**：为数学物理学家提供一个现代工具，使之能在广泛系统（包括许多现有理论范围之外的系统）上严格论证 LRT。
+
+### 1.1 物理图像
+
+初始时未微扰系统由自伴算子 $H$ 支配，处于平衡态 $\rho$（与 $H$ 对易）。随后在遥远过去绝热开启一个微扰，将系统驱动出平衡。微扰由一组参数 $\Phi = (\Phi_1, \ldots, \Phi_d)$（如电场分量）和绝热参数 $\varepsilon$（量化微扰启开的快慢）刻画。微扰哈密顿量为 $H_{\Phi, \varepsilon}(t) = H_{\Phi, \varepsilon}(t)^*$。
+
+在 $t_0 \to -\infty$ 时开启微扰，在 $t = 0$ 时微扰完全施加。态按
+$$
+\rho(t) = U_{\Phi, \varepsilon}(t, t_0) \, \rho \, U_{\Phi, \varepsilon}(t, t_0)^*
+$$
+演化，其中 $U_{\Phi, \varepsilon}(t, t_0)$ 是含时哈密顿量 $H_{\Phi, \varepsilon}(t)$ 生成的酉传播子。
+
+**核心步骤**：将净电流对 $\Phi$ 做"Taylor 展开"到一阶：
+$$
+\mathcal{J}^{\Phi, \varepsilon}(t) = \left. \sum_{j=1}^d \Phi_j \, \partial_{\Phi_j} \mathcal{J}^{\Phi, \varepsilon}(t) \right|_{\Phi=0} + o(\Phi) = \sum_{j=1}^d \Phi_j \, \sigma_j^{\varepsilon}(t) + o(\Phi),
+$$
+其中零阶项为零（无微扰则无净电流），电导率系数 $\sigma_j^{\varepsilon}(t)$ 量化线性响应。通常进一步取绝热极限 $\varepsilon \to 0$ 以消除开关过程的细节。
+
+Kubo 的贡献是推导了 $\sigma_j^{\varepsilon}(t)$ 的显式公式。Strěda 在 $\rho$ 为谱投影时给出了第二个表达式——Kubo-Strěda 公式——它为量子霍尔效应提供了拓扑解释，催生了拓扑绝缘体领域。
+
+### 1.2 现有进路的局限性
+
+数学上严格处理 LRT 的进路大致分为两类：
+
+| 进路 | 优势 | 劣势 |
+|------|------|------|
+| **代数进路** [BES94; BS98; JOP06] | 适用于一整类系统，给出普适方案 | 要求 $H$ 属于 $C^*$-或 von Neumann 代数（因而有界），或迹 $\mathcal{T}$ 有限——排除连续模型 |
+| **分析进路** [BGK+05; KLM07] | 可处理无界哈密顿量（连续模型） | 技术细节针对特定哈密顿量，不易迁移到其他系统 |
+
+### 1.3 本书的解决方案
+
+**统一的现代框架**，结合两种进路的优势：
+- 基于 **von Neumann 代数** + 非交换 **$L^p$ 空间**
+- 同时适用于离散和连续模型
+- 可处理无序
+- 不针对特定模型定制
+- 涵盖并推广 [BS98; SB98; BGK+05; DG08] 的结果
+
+核心启示来自 Bouclet, Germinet, Klein 和 Schenker [BGK+05]：他们通过非交换 $L^p$ 空间 [Nel74; Ter81] 优雅地连接了泛函分析和 von Neumann 代数两个世界。本书的贡献是将 [BGK+05; DG08] 的主要策略**提取、抽象化**，用非交换 $L^p$ 空间的语言一致地表述，并**仅基于模型无关的结构性论证完成所有证明**。
+
+主要技术挑战：
+1. 迹 $\mathcal{T}$ 仅为**半有限**（非有限）——排除 $\mathcal{A} \subseteq \mathfrak{L}^p(\mathcal{A})$ 的便利
+2. $H$ **无界**——不属于 $\mathcal{A}$，仅弱隶属（affiliated）
+3. $H$ 不是 $\mathcal{T}$-可测的——传统对易子 $[H, A]$ 可能无定义
+
+解决之道：定义与自伴算子 $X$ 关联的**导出** $\partial_X$ 为 $\mathfrak{L}^p(\mathcal{A})$ 上 R-flow $\eta_t^X(A) := e^{+itX} A e^{-itX}$ 的生成元，而非直接使用可能无定义的对易子 $i[X, A]$。
+
+### 1.4 微扰形式的创新
+
+与 Bellissard–van Elst–Schulz-Baldes [BES94] 的加性微扰 $H_{\Phi, \mathrm{coll}}(t) = H + \Phi \cdot X + W_{\mathrm{coll}}(t)$（含碰撞耗散项）不同，本书采用**乘性等谱微扰**：
+$$
+H_{\Phi, \varepsilon}(t) = G_{\Phi, \varepsilon}(t) H G_{\Phi, \varepsilon}(t)^*,
+$$
+其中 $G_{\Phi, \varepsilon}(t)$ 是依赖于 $\Phi, \varepsilon, t$ 的酉算子。态按 Liouville 方程演化（无碰撞项）。这种微扰形式的优势：
+- 可覆盖 ac/dc Stark 效应模型
+- $G_{\Phi, \varepsilon}(t)$ 可视为含时表象变换——在相互作用表象中 $H_{\Phi, \varepsilon}(t)$ 等价于 $H + \dot{F}_{\Phi, \varepsilon}(t)$ 的形式
+- 适用于**非扩散输运**——如电磁波/声波在人工结构介质中的传播（可将 Maxwell 方程重铸为 Schrödinger 型方程 $i\partial_t \psi = H\psi$，其中 $H = WD$）
+
+---
+
+## 2 设定、假设与主要结果
+
+### 2.1 抽象设定：六个基本要素
+
+(H1) **von Neumann 代数** $\mathcal{A} \subseteq \mathcal{B}(\mathcal{H})$，带有 f.n.s.（忠实、正规、半有限）迹 $\mathcal{T}$，用于计算观测量的期望值。
+
+(H2) **未微扰哈密顿量** $H$：自伴，弱隶属（affiliated）于 $\mathcal{A}$。其生成的 Heisenberg 演化 $\alpha_t^0(A) := e^{-itH} A e^{+itH}$ 自然地扩张为每个 $\mathfrak{L}^p(\mathcal{A})$ 上的等距群（R-flow）。
+
+(H3) **$\mathcal{T}$-兼容生成元** $\{X_1, \ldots, X_d\}$：强对易的自伴算子，满足对任意 $s \in \mathbb{R}$：(i) $e^{+isX_k} A e^{-isX_k} \in \mathcal{A}$，(ii) $\mathcal{T}(e^{+isX_k} A e^{-isX_k}) = \mathcal{T}(A)$。它们定义的**空间导出** $\partial_{X_k}(A) := \lim_{s \to 0} (e^{+isX_k} A e^{-isX_k} - A)/s$ 在 $\mathfrak{L}^p(\mathcal{A})$ 上稠定。
+
+(H4) **绝热等谱微扰**：定义开关函数 $s_{\varepsilon}(t) = e^{\varepsilon t} (t \le 0), 1 (t > 0)$ 和调制函数 $f_k \in C(\mathbb{R})$。累积相位 $\Phi_k^{\varepsilon}(t) := \int_{-\infty}^t d\tau \, s_{\varepsilon}(\tau) \Phi_k f_k(\tau)$ 生成酉算子 $G_{\Phi, \varepsilon}(t) := e^{+i F_{\Phi, \varepsilon}(t)}$（其中 $F_{\Phi, \varepsilon}(t) := \sum_k \Phi_k^{\varepsilon}(t) X_k$）。微扰哈密顿量为 $H_{\Phi, \varepsilon}(t) := G_{\Phi, \varepsilon}(t) H G_{\Phi, \varepsilon}(t)^*$。
+
+(H5) **含时可观测量** $J(t)$：如电流算子，弱隶属或 $\mathcal{T}$-可测。
+
+(H6) **初始平衡态** $\rho \in \mathcal{A}^+$：正算子，描述 $t = -\infty$ 时系统的状态。
+
+{{< callout type="important" title="核心结构" >}}
+六个要素对应六个假设（Hypotheses 1–6），所有结果仅依赖于这六个结构性假设——不涉及特定模型的具体泛函分析细节。验证具体模型满足这些假设的工作被委托给应用部分（第 4、7 章）。
+{{< /callout >}}
+
+### 2.2 非交换积分框架（第 3 章概要）
+
+第三章提供了全部数学背景：
+
+- **von Neumann 代数** $\mathcal{A}$ = $\mathfrak{L}^{\infty}(\mathcal{A})$，半有限 ⇔ 存在 f.n.s. 迹 $\mathcal{T}$
+- **$\mathcal{T}$-可测算子** $\widetilde{\mathcal{A}}$：按测度收敛的闭包，包含了所有 $\mathfrak{L}^p(\mathcal{A})$ 的元素
+- **非交换 $L^p$ 空间** $\mathfrak{L}^p(\mathcal{A})$：定义为 $\{A \in \widetilde{\mathcal{A}} \mid \mathcal{T}(|A|^p) < \infty\}$ 的完备化，$\|A\|_p := \mathcal{T}(|A|^p)^{1/p}$
+- **广义对易子** $[A, B]_{\ddagger} := AB - (A^* B^*)^*$：当 $A$ 弱隶属、$B \in \mathfrak{L}^p(\mathcal{A})$ 时良好定义
+- **非交换 Sobolev 空间** $\mathfrak{W}^{1,p}(\mathcal{A})$：$\{A \in \mathfrak{L}^p(\mathcal{A}) \mid \nabla(A) \in \mathfrak{L}^p(\mathcal{A})^{\times d}\}$
+
+### 2.3 Kubo 公式（第 6 章主要定理）
+
+微扰后的含时态 $\rho_{\mathrm{full}}(t) := \alpha_t^{\Phi, \varepsilon}(\rho)$ 可展开为：
+$$
+\rho_{\mathrm{full}}(t) = \rho + \rho_1(t) + \rho_2(t) + \cdots
+$$
+其中 $\rho_n(t)$ 为 $\Phi$ 的 $n$ 阶项。一阶项 $\rho_1(t)$ 精确给出 Kubo 公式。
+
+**电导率张量** $\{\sigma_{jk}^{\varepsilon}(t)\}$ 满足：
+$$
+\mathcal{J}_k^{\Phi, \varepsilon}(t) = \sum_{j=1}^d \Phi_j \, \sigma_{jk}^{\varepsilon}(t) + o(\Phi),
+$$
+其中 Kubo 公式给出：
+$$
+\sigma_{jk}^{\varepsilon}(t) = -\mathcal{T}\left(\rho \int_{-\infty}^t d\tau \, s_{\varepsilon}(\tau) f_j(\tau) \, \alpha_{\tau-t}^0 \big(\partial_{X_j}(H)\big) \, \partial_{X_k}(H) \right) + \text{边界项}.
+$$
+
+**绝热极限** $\varepsilon \to 0$：当 $\rho = P = \chi_{(-\infty, E_F]}(H)$（Fermi 投影）时，Kubo-Strěda 公式为：
+$$
+\sigma_{jk} = -i \, \mathcal{T}\big(P \big[ [P, X_j], [P, X_k] \big] \big).
+$$
+这个双重对易子公式直接联系到**非交换 Chern 数**——量子霍尔电导量子化的拓扑起源。
+
+### 2.4 零温极限与拓扑诠释
+
+在零温极限 $T \to 0$ 下，$\rho = \chi_{(-\infty, E_F]}(H)$ 是 Fermi 投影。此时 Kubo-Strěda 公式给出的 $\sigma_{jk}$ 在二维 $(j=1, k=2)$ 下等于 **Chern 数**的 $2\pi$ 倍——一个整数量子化的拓扑不变量。这为量子（反常）霍尔效应中的**电导平台**提供了严格数学解释。
+
+---
+
+## 3 应用（第 7 章概要）
+
+### 3.1 周期/随机光导体
+
+将 Maxwell 方程重铸为 Schrödinger 型方程 $i\partial_t \psi = H\psi$，其中 $H = WD$（$W$ 为有界权重算子，$D$ 为无界旋度算子）。介质的周期/随机调制进入 $W$。本书框架自然涵盖此类非量子系统。
+
+### 3.2 量子霍尔效应
+
+- **连续模型**：Landau 哈密顿量 + 随机电势 → 验证 Hypotheses 1–6
+- **离散模型**：紧束缚哈密顿量（此时 $H \in \mathcal{A}$ 有界，框架大幅简化）
+
+两种模型都在本框架下统一处理——此前文献中未见此类统一。
+
+---
+
+## 参考文献
+
+{{< callout type="note" title="关于参考文献" >}}学术文献条目保留原文。关键引用附加中文短评。{{< /callout >}}
+
+- **[BGK+05]** J. Bouclet, F. Germinet, A. Klein, J. Schenker, *J. Func. Anal.* **226**:301–372 (2005). — **🔴 本书框架的直接灵感来源**。连续磁薛定谔算子的 LRT，首次用非交换 $L^p$ 空间桥接泛函分析和 von Neumann 代数
+- **[BES94]** J. Bellissard, A. van Elst, H. Schulz-Baldes, *J. Math. Phys.* **35**:5373–5451 (1994). — **非交换几何进入 QHE 的奠基性工作**
+- **[BS98]** J. Bellissard, H. Schulz-Baldes, *Rev. Math. Phys.* **10**:1–46 (1998).
+- **[DG08]** N. Dombrowski, F. Germinet, *Rev. Math. Phys.* **21**:1–52 (2009).
+- **[ES04]** A. Elgart, B. Schlein, *Commun. Pure Appl. Math.* **57**:590–615 (2004). — **首篇用绝热定理严格论证 Kubo 公式**
+- **[JOP06]** V. Jakšić, Y. Ogata, C.-A. Pillet, *Ann. Henri Poincaré* **8**:1013–1036 (2006). — **代数框架下的 Green-Kubo 公式**
+- **[KLM07]** A. Klein, O. Lenoble, P. Müller, *Annals of Math.* 549–577 (2007). — **ac-电导率的 Mott 公式严格推导**
+- **[Kub57]** R. Kubo, *J. Phys. Soc. Jpn.* **12**:570–586 (1957). — **Kubo 公式原始论文**
+- **[Nel74]** E. Nelson, *J. Func. Anal.* **15**:103–116 (1974). — **非交换 $L^p$ 空间的构造**
+- **[Ter81]** M. Terp, *Odense Universitet* (1981). — **非交换 $L^p$ 空间的完备理论**
+- **[Str82]** P. Středa, *J. Phys. C* **15**, L717 (1982).
+- **[TKN+82]** D. J. Thouless, M. Kohmoto, M. Nightingale, M. den Nijs, *Phys. Rev. Lett.* **49**:405 (1982). — **TKNN：QHE 的拓扑量子化起源**
+- **[Sch12]** K. Schmüdgen, *Unbounded Self-adjoint Operators on Hilbert Space*, Springer (2012).
+- **[DL16]** G. De Nittis, M. Lein, *Rev. Math. Phys.* **28**:1650017 (2016). — **电磁波传播的非交换几何处理：本书的物理动机之一**
+
+---
+
+## 阅读笔记
+
+### 一句话概括
+
+这本专著完成了一件此前文献中缺失的工作：**将 LRT 的严格论证从"每个模型各自证明一遍"提升到"检验六个结构性假设即可"的抽象层次**。其核心数学引擎是非交换积分理论——von Neumann 代数上的 $L^p$ 空间——使得同时处理无界算子（连续模型）、半有限迹（热力学极限）和非 $\mathcal{T}$-可测的哈密顿量成为可能。
+
+### 核心论证链
+
+1. **代数化**：系统可观测量构成 von Neumann 代数 $\mathcal{A}$，迹 $\mathcal{T}$ 替代通常的 Hilbert 空间迹 → 半有限性允许热力学极限（迹在 $\mathcal{A}$ 上不正则但在 $\mathcal{A}_{\mathcal{T}}$ 上有限）
+2. **非交换微积分**：$\partial_{X_k}$（R-flow 生成元）替代 $i[X_k, \cdot]$ → 避免无界算子对易子的定义域问题
+3. **抽象微扰**：$G_{\Phi, \varepsilon}(t) H G_{\Phi, \varepsilon}(t)^*$（乘性等谱）替代 $H + \Phi \cdot X$（加性）→ 保持谱、弱隶属、代数自同构
+4. **动力学展开**：$\rho_{\mathrm{full}}(t) = \rho + \rho_1(t) + \cdots$ 在 $\mathfrak{L}^1(\mathcal{A})$ 中收敛 → Kubo 公式恰好是 $\rho_1$ 在电流可观测量上的期望值
+5. **绝热极限**：$\varepsilon \to 0$ 时 Kubo 公式化简为 Kubo-Strěda 双重对易子公式 → $\sigma_{jk} = -i\mathcal{T}(P [[P, X_j], [P, X_k]])$ → 拓扑量子化
+
+### 与四篇论文的关系网
+
+这四篇线性响应论文构成一个完整的知识体系：
+
+| 论文 | 层次 | 核心问题 |
+|------|------|---------|
+| **DeNittis2016**（本文） | **框架层** | 如何严格定义 LRT 的数学结构？→ 6 个假设的非交换代数框架 |
+| **Henheik2021** | **论证层** | Kubo 公式何时在数学上成立？→ NEASS + 绝热定理进路 |
+| **Ban2017** | **方法层** | 开放系统如何计算线性响应？→ 四部分主方程进路 |
+| **Jacob2025** | **起源层** | Kubo 公式从哪来？→ 散射理论自治涌现 |
+
+这四篇是从最抽象（De Nittis）到最具体（Jacob）的完整光谱，覆盖了线性响应理论的数学基础、物理计算和微观起源三个维度。
+
+### 批判性思考
+
+1. **抽象性的代价**：验证具体模型满足所有 6 个假设绝非易事——第 4 章为遍历协变算子构建了 trace-per-volume，但推广到具有长程关联的非遍历系统仍不显然
+2. **等谱微扰的限制**：$G_{\Phi, \varepsilon}(t) H G_{\Phi, \varepsilon}(t)^*$ 仅覆盖微扰不改变谱类型的情形——对关闭 gap 的微扰（如电场），需切换到相互作用表象 $\tilde{H}_{\Phi, \varepsilon}(t) = H + \dot{F}_{\Phi, \varepsilon}(t)$，此时 $\tilde{H}$ 的谱可能完全不同
+3. **零温 vs 有限温**：Kubo-Strěda 公式仅在零温（$\rho$ 为谱投影）下给出拓扑量子化。有限温下的修正（$\sim e^{-\beta g}$ 量级抑制但非精确零）需要独立处理
+4. **与 Henheik2021 的交汇点**：本书第 6 章的动力学展开与 Henheik-Teufel 的 NEASS 渐近展开在精神上非常接近——两者都试图将响应展开为微扰参数的幂级数。但本书假设微扰不关闭 gap（等谱），而 Henheik-Teufel 的核心突破恰恰是处理 gap 关闭的情形
+
+### 局限性
+
+- 框架要求迹 $\mathcal{T}$ 是 f.n.s. 的——对 I 型 von Neumann 代数（$\mathcal{B}(\mathcal{H})$ 上的标准迹）自然成立，对更一般的 II/III 型代数的构造高度非平凡
+- 乘性微扰假设排除了直接处理 Bellissard 等 [BES94] 中随机碰撞项（$\Gamma$）的情形
+- 专著主要陈述框架和定理，具体模型的验证留给了"未来工作"（除第 7 章的光导体和 QHE 概述外）
+- 第 3 章的非交换积分理论对于未接触过 von Neumann 代数的读者来说门槛极高
+
+### 关键公式速查
+
+| 公式 | 含义 |
+|------|------|
+| $H_{\Phi, \varepsilon}(t) = G_{\Phi, \varepsilon}(t) H G_{\Phi, \varepsilon}(t)^*$ | 乘性等谱微扰 |
+| $\partial_{X_k}(A) = \lim_{s \to 0} (e^{+isX_k} A e^{-isX_k} - A)/s$ | $\mathcal{T}$-兼容空间导出 |
+| $\mathcal{L}_H^{(p)}(A) = -i[H, A]_{\ddagger}$ | $p$-Liouvillian（广义对易子） |
+| $\sigma_{jk} = -i\mathcal{T}(P [[P, X_j], [P, X_k]])$ | Kubo-Strěda 公式 |
+| $\mathfrak{L}^p(\mathcal{A}) = \{A \in \widetilde{\mathcal{A}} \mid \mathcal{T}(|A|^p) < \infty\}$ | 非交换 $L^p$ 空间 |
+
+### 延伸阅读
+
+- **Henheik2021-justifying-kubo**（本图书馆）— NEASS 进路：处理微扰关闭 gap 情形的 Kubo 公式严格论证
+- **Ban2017-linear-response-open-systems**（本图书馆）— 开放系统 LRT 的主方程进路：实用性计算框架
+- **Jacob2025-collision-kubo**（本图书馆）— Kubo 公式从散射理论中的自治涌现
+- **Bellissard–van Elst–Schulz-Baldes (1994) [BES94]** — 非交换几何处理 QHE 的奠基工作（代数进路的代表作）
+- **Bouclet–Germinet–Klein–Schenker (2005) [BGK+05]** — 本书的直接灵感来源，随机磁薛定谔算子的 LRT
+
+### 术语对照
+
+| 中文 | 英文 | 含义 |
+|------|------|------|
+| 半有限迹 | semi-finite trace | $\mathcal{T}$ 在 $\mathcal{A}^+$ 的所有非零元上取非零值，但仅在理想 $\mathcal{A}_{\mathcal{T}}$ 上有限 |
+| 弱隶属 | affiliation | 无界算子 $H$ 与 $\mathcal{A}$ 的所有酉元对易（比"属于 $\mathcal{A}$"弱的条件） |
+| 非交换 $L^p$ 空间 | non-commutative $L^p$-space | von Neumann 代数上关于迹 $\mathcal{T}$ 的 Schatten 类的推广 |
+| 广义对易子 | generalized commutator $[\cdot, \cdot]_{\ddagger}$ | $AB - (A^*B^*)^*$：在弱隶属 $\times$ $\mathcal{T}$-可测的混合定义域上良好定义 |
+| R-flow | R-flow | Banach 空间上的强连续等距单参数群 |
+| $\mathcal{T}$-兼容生成元 | $\mathcal{T}$-compatible generator | 通过 R-flow 保持 $\mathcal{A}$ 和 $\mathcal{T}$ 的自伴算子 |
+| 等谱微扰 | isospectral perturbation | $G H G^*$ 保持 $H$ 的谱不变 |
+| Kubo-Strěda 公式 | Kubo-Strěda formula | $\rho$ 为谱投影时的双重对易子公式；与 Chern 数直接联系 |
