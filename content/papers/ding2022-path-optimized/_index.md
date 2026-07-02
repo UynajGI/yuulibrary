@@ -4,7 +4,7 @@ description: "Ding 等（2022）发现同一几何门可由不同演化路径实
 date: 2026-07-01
 author: "Cheng-Yun Ding, Li-Na Ji, Tao Chen, Zheng-Yuan Xue"
 year: 2022
-tags: ["几何量子计算", "超导量子比特", "路径优化"]
+tags: ["几何量子计算", "电路QED", "超导量子比特"]
 links:
   - name: "DOI (Quantum Sci. Technol.)"
     url: "https://doi.org/10.1088/2058-9565/ac3621"

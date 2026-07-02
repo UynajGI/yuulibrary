@@ -4,7 +4,7 @@ description: "Deng 等（2026）利用可调耦合器实现串扰鲁棒的超导
 date: 2026-07-01
 author: "Bo-Xun Deng, Jia-Qi Hu, Cheng-Yun Ding, Zheng-Yuan Xue, Tao Chen"
 year: 2026
-tags: ["几何量子计算", "超导量子比特", "串扰", "可调耦合器"]
+tags: ["几何量子计算", "电路QED", "超导量子比特"]
 links:
   - name: "DOI (Front. Phys.)"
     url: "https://doi.org/10.15302/frontphys.2026.103205"

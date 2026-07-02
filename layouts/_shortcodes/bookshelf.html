@@ -43,11 +43,11 @@
   )
 }}
 
-{{/* ── 收集所有书籍 section 页（排除顶级 books 页面本身），按 weight 排序 ── */}}
+{{/* ── 收集所有书籍 section 页（排除 books 根 _index.md），按 weight 排序 ── */}}
 {{ $allBooks := where .Site.Pages "Section" "books" }}
 {{ $bookSections := slice }}
 {{ range $allBooks }}
-  {{ if and .IsSection (ne .RelPermalink "/yuulibrary/books/") (ne .RelPermalink "/books/") }}
+  {{ if and .IsSection .Params.author (ne .RelPermalink "/yuulibrary/books/") (ne .RelPermalink "/books/") }}
     {{ $bookSections = $bookSections | append . }}
   {{ end }}
 {{ end }}
@@ -86,6 +86,15 @@
     </div>
     {{ end }}
   {{ end }}
+  {{/* ── 全部图书卡片（始终在末尾） ── */}}
+  {{ if gt (len $bookSections) 0 }}
+  <div class="category-card category-card-all" data-category="all-books">
+    <span class="category-card-icon">📚</span>
+    <h3 class="category-card-title">全部图书</h3>
+    <span class="category-card-count">{{ len $bookSections }} 本</span>
+    <p class="category-card-desc">浏览所有馆藏图书，不按主题筛选</p>
+  </div>
+  {{ end }}
 </div>
 
 {{/* ── 渲染每个分类的书籍列表 ── */}}
@@ -95,8 +104,14 @@
   {{ if gt (len $books) 0 }}
   <div class="bookshelf" data-category="{{ $key }}" style="display:none">
     <button class="back-btn">← 返回书架</button>
+    <div class="sort-bar">
+      <span class="sort-bar-label">排序：</span>
+      <button class="sort-btn" data-sort="default" data-dir="desc">入库 ↓</button>
+      <button class="sort-btn" data-sort="title" data-dir="asc">书名</button>
+      <button class="sort-btn" data-sort="author" data-dir="asc">作者</button>
+    </div>
     {{ range $books }}
-    <a class="book-row" href="{{ .RelPermalink }}">
+    <a class="book-row" href="{{ .RelPermalink }}" data-title="{{ .Title }}" data-author="{{ .Params.author | default "" }}">
       <span class="book-row-title">{{ .Title }}</span>
       <span class="book-row-meta">{{ .Params.author | default "" }}</span>
       <span class="book-row-desc">{{ .Params.description | default "" }}</span>
@@ -105,6 +120,27 @@
     {{ end }}
   </div>
   {{ end }}
+{{ end }}
+
+{{/* ── 全部图书列表 ── */}}
+{{ if gt (len $bookSections) 0 }}
+<div class="bookshelf" data-category="all-books" style="display:none">
+  <button class="back-btn">← 返回书架</button>
+  <div class="sort-bar">
+    <span class="sort-bar-label">排序：</span>
+    <button class="sort-btn active" data-sort="default" data-dir="desc">入库 ↓</button>
+    <button class="sort-btn" data-sort="title" data-dir="asc">书名</button>
+    <button class="sort-btn" data-sort="author" data-dir="asc">作者</button>
+  </div>
+  {{ range $bookSections }}
+  <a class="book-row" href="{{ .RelPermalink }}" data-title="{{ .Title }}" data-author="{{ .Params.author | default "" }}">
+    <span class="book-row-title">{{ .Title }}</span>
+    <span class="book-row-meta">{{ .Params.author | default "" }}</span>
+    <span class="book-row-desc">{{ .Params.description | default "" }}</span>
+    <span class="book-row-arrow">›</span>
+  </a>
+  {{ end }}
+</div>
 {{ end }}
 
 {{/* ── 缩放动画 JS ── */}}
@@ -150,5 +186,74 @@ document.addEventListener('DOMContentLoaded', function() {
       }, 200);
     });
   });
+
+  /* ── 排序功能 ── */
+  function bindSort(shelf) {
+    if (shelf.dataset.sortbound === '1') return;
+    shelf.dataset.sortbound = '1';
+
+    var btns = shelf.querySelectorAll('.sort-btn');
+    var originalOrder = Array.from(shelf.querySelectorAll('.book-row'));
+    var rows = originalOrder.slice();
+    var arrows = { asc: '↑', desc: '↓' };
+    var labels = { title: '书名', author: '作者', default: '入库' };
+
+    function sortAndRender(mode, dir) {
+      var sorted;
+      switch (mode) {
+        case 'title':
+          sorted = rows.slice().sort(function(a, b) { var cmp = a.dataset.title.localeCompare(b.dataset.title, 'zh'); return dir === 'asc' ? cmp : -cmp; });
+          break;
+        case 'author':
+          sorted = rows.slice().sort(function(a, b) { var cmp = a.dataset.author.localeCompare(b.dataset.author, 'zh'); return dir === 'asc' ? cmp : -cmp; });
+          break;
+        default:
+          sorted = originalOrder.slice();
+          if (dir === 'asc') sorted.reverse();
+          break;
+      }
+      var parent = rows[0].parentNode;
+      sorted.forEach(function(r, i) {
+        r.style.opacity = '0';
+        r.style.animation = 'fadeSlideIn 0.25s ease forwards';
+        r.style.animationDelay = (i * 0.04) + 's';
+        parent.appendChild(r);
+      });
+      rows = Array.from(parent.querySelectorAll('.book-row'));
+    }
+
+    function updateBtnLabels() {
+      btns.forEach(function(b) {
+        var m = b.dataset.sort;
+        if (b.classList.contains('active')) {
+          b.textContent = labels[m] + ' ' + arrows[b.dataset.dir];
+        } else {
+          b.textContent = labels[m];
+        }
+      });
+    }
+
+    btns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var mode = btn.dataset.sort;
+        var currentDir = btn.dataset.dir;
+        var newDir;
+
+        if (btn.classList.contains('active')) {
+          newDir = currentDir === 'asc' ? 'desc' : 'asc';
+        } else {
+          newDir = currentDir;
+          btns.forEach(function(b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+        }
+
+        btn.dataset.dir = newDir;
+        updateBtnLabels();
+        sortAndRender(mode, newDir);
+      });
+    });
+  }
+
+  document.querySelectorAll('.bookshelf[data-category]').forEach(function(s) { bindSort(s); });
 });
 </script>

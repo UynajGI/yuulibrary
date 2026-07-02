@@ -4,7 +4,7 @@ description: "Zhang 等（2017）在超导相位量子比特上实现了 STA（s
 date: 2026-07-01
 author: "Zhenxing Zhang, Tenghui Wang, Liang Xiang, Jiadong Yao, Jianlan Wu, Yi Yin"
 year: 2017
-tags: ["几何相位", "超导量子比特", "STA", "噪声"]
+tags: ["几何相位", "电路QED", "超导量子比特"]
 links:
   - name: "DOI (PRA)"
     url: "https://doi.org/10.1103/PhysRevA.95.042345"

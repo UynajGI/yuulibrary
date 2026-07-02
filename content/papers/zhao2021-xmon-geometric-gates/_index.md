@@ -4,7 +4,7 @@ description: "Zhao 等（2021）在超导 Xmon 量子比特上仅用两个最低
 date: 2026-07-01
 author: "PeiZi Zhao, ZhangJingZi Dong, ZhenXing Zhang, GuoPing Guo, DianMin Tong, Yi Yin"
 year: 2021
-tags: ["几何相位", "超导量子比特", "Xmon", "几何量子计算"]
+tags: ["几何相位", "几何量子计算", "电路QED", "超导量子比特"]
 links:
   - name: "DOI (Sci. China-PMA)"
     url: "https://doi.org/10.1007/s11433-020-1641-1"
