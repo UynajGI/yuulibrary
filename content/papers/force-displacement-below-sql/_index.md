@@ -1,6 +1,7 @@
 ---
 title: "低于标准量子极限的连续力与位移测量"
 description: "Mason 等（2019）利用超高相干性光机械膜（Q=10⁹）中的强量子关联，通过 ponderomotive 挤压测量混合光学正交，首次实现含全部噪声（热、反作用、不精确）的干涉位移/力测量灵敏度低于标准量子极限 1.5 dB"
+category: "mechanical"
 date: 2026-06-27
 author: "Mason, Chen, Rossi, Tsaturyan, Schliesser"
 year: 2019

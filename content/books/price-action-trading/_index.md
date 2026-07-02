@@ -2,9 +2,10 @@
 title: "裸K线交易法——价格行为（Price Action）全面详解"
 author: "许佳聪"
 description: "一套完整的裸K线交易系统：从K线基础、Pinbar信号、关键位研判，到实战应用与交易心理。"
+category: "quant"
 weight: 1
 BookCollapseSection: true
-tags: ["trading", "technical-analysis", "price-action"]
+tags: ['量化金融', '投资交易']
 ---
 
 <section class="book-cover">

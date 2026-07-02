@@ -1,6 +1,7 @@
 ---
 title: "超导电路中一步实现非绝热几何 fSim 门"
 description: "Yun 等（2024）提出在超导电路中一步实现非绝热几何 fSim 门（CZ + iSWAP 组合门）的方案——首次将几何相位鲁棒性应用于 fSim 门，减少门时间和控制误差敏感性（理论方案）"
+category: "geometric-phase"
 date: 2026-07-01
 author: "M.-R. Yun, Zheng Shan, Li-Li Sun, L.-L. Yan, Yu Jia, S.-L. Su, G. Chen"
 year: 2024

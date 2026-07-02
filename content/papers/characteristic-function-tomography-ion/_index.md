@@ -1,6 +1,7 @@
 ---
 title: "离子阱运动振子量子态的特征函数直接层析"
 description: "Flühmann & Home (2020) 实现了囚禁离子运动模式对称特征函数的直接测量——将数据采集时间相对以往方法降低了一个数量级以上，并用该方法表征了压缩态、猫态和 GKP 码字。"
+category: "ion-trap"
 date: 2026-06-30
 author: "C. Flühmann, J. P. Home"
 year: 2020

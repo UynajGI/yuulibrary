@@ -53,21 +53,14 @@
 {{ end }}
 {{ $paperSections = sort $paperSections "Params.weight" "asc" }}
 
-{{/* ── 归类 ── */}}
+{{/* ── category 字段精确归类 ── */}}
 {{ $catPapers := dict }}
 {{ range $paperSections }}
   {{ $paper := . }}
-  {{ $paperTags := .Params.tags }}
-  {{ $assigned := false }}
-  {{ range $catDefs }}
-    {{ if not $assigned }}
-      {{ if intersect $paperTags .tags }}
-        {{ $key := .key }}
-        {{ $existing := index $catPapers $key | default (slice) }}
-        {{ $catPapers = merge $catPapers (dict $key ($existing | append $paper)) }}
-        {{ $assigned = true }}
-      {{ end }}
-    {{ end }}
+  {{ $cat := .Params.category | default "" }}
+  {{ if ne $cat "" }}
+    {{ $existing := index $catPapers $cat | default (slice) }}
+    {{ $catPapers = merge $catPapers (dict $cat ($existing | append $paper)) }}
   {{ end }}
 {{ end }}
 

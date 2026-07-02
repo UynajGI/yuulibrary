@@ -1,11 +1,12 @@
 ---
 title: "Naval Ravikant 思维框架"
 description: "财富创造、幸福哲学、判断力与杠杆思维——从 AngelList 创始人到理性佛教的完整思维光谱"
+category: "growth"
 date: 2026-06-28
 author: "Naval Ravikant"
 source_type: "book"
 source_title: "纳瓦尔宝典 (The Almanack of Naval Ravikant)"
-tags: ["个人成长"]
+tags: ['个人成长']
 weight: 10
 ---
 

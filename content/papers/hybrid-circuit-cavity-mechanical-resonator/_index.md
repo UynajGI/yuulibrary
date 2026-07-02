@@ -1,6 +1,7 @@
 ---
 title: "混合电路腔量子电动力学与微机械谐振器"
 description: "Pirkkalainen 等（2013）把超导 transmon 量子比特同时耦合到微波腔和 72 MHz 微机械谐振器，观测声子 Stark 频移与边带 Rabi 振荡——首次实现量子比特激发到声子的相干转换，是机械振子作为量子接口的原型"
+category: "mechanical"
 date: 2026-06-27
 author: "Pirkkalainen, Cho, Li, Paraoanu, Hakonen, Sillanpää"
 year: 2013

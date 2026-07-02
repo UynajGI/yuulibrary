@@ -2,9 +2,10 @@
 title: "统计套利"
 author: "Andrew Pole"
 description: "Andrew Pole 著，配对交易与统计套利策略的系统性论述"
+category: "quant"
 weight: 1
 BookCollapseSection: true
-tags: ["量化金融"]
+tags: ['量化金融']
 ---
 
 <section class="book-cover">

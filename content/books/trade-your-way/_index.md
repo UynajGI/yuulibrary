@@ -2,9 +2,10 @@
 title: "通向财务自由之路"
 author: "Van K. Tharp"
 description: "交易系统开发的完整框架——从目标设定、期望值分析到仓位管理。"
+category: "quant"
 weight: 1
 BookCollapseSection: true
-tags: ["交易系统", "投资"]
+tags: ['量化金融', '投资交易']
 ---
 
 <section class="book-cover">

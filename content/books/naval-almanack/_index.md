@@ -2,9 +2,10 @@
 title: "纳瓦尔宝典"
 author: "Eric Jorgenson 著 · 赵灿 译"
 description: "Eric Jorgenson 著，赵灿 译，财富与幸福的人生智慧"
+category: "growth"
 weight: 1
 BookCollapseSection: true
-tags: ["个人成长"]
+tags: ['个人成长']
 ---
 
 <section class="book-cover">

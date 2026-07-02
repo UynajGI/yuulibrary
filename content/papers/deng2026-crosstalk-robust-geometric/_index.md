@@ -1,6 +1,7 @@
 ---
 title: "基于可调耦合器的串扰鲁棒超导双量子比特几何门"
 description: "Deng 等（2026）利用可调耦合器实现串扰鲁棒的超导双量子比特几何门——解决了多量子比特系统中 ZZ 串扰对几何门保真度的限制（理论方案）"
+category: "geometric-phase"
 date: 2026-07-01
 author: "Bo-Xun Deng, Jia-Qi Hu, Cheng-Yun Ding, Zheng-Yuan Xue, Tao Chen"
 year: 2026

@@ -2,9 +2,10 @@
 title: "Stocks on the Move"
 author: "Andreas F. Clenow"
 description: "对冲基金动量策略实战指南——从趋势跟踪、风险平价到完整交易系统构建。"
+category: "quant"
 weight: 1
 BookCollapseSection: true
-tags: ["量化金融", "系统化交易"]
+tags: ['量化金融', '投资交易']
 ---
 
 <section class="book-cover">

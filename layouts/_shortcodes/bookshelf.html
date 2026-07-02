@@ -53,22 +53,14 @@
 {{ end }}
 {{ $bookSections = sort $bookSections "Params.weight" "asc" }}
 
-{{/* ── 将每本书归类到第一个匹配的分类 ── */}}
+{{/* ── category 字段精确归类 ── */}}
 {{ $catBooks := dict }}
 {{ range $bookSections }}
   {{ $book := . }}
-  {{ $bookTags := .Params.tags }}
-  {{ $assigned := false }}
-  {{ range $catDefs }}
-    {{ if not $assigned }}
-      {{ $catTags := .tags }}
-      {{ if intersect $bookTags $catTags }}
-        {{ $key := .key }}
-        {{ $existing := index $catBooks $key | default (slice) }}
-        {{ $catBooks = merge $catBooks (dict $key ($existing | append $book)) }}
-        {{ $assigned = true }}
-      {{ end }}
-    {{ end }}
+  {{ $cat := .Params.category | default "" }}
+  {{ if ne $cat "" }}
+    {{ $existing := index $catBooks $cat | default (slice) }}
+    {{ $catBooks = merge $catBooks (dict $cat ($existing | append $book)) }}
   {{ end }}
 {{ end }}
 
