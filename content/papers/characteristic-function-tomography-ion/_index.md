@@ -208,7 +208,7 @@ $$
 17. C. Flühmann et al., Nature **566**, 513 (2019) — **同组 GKP 态的首次实验实现**
 18. A. I. Lvovsky and M. G. Raymer, Rev. Mod. Phys. **81**, 299 (2009) — 零差层析综述
 21. L. G. Lutterbach and L. Davidovich, Phys. Rev. Lett. **78**, 2547 (1997) — 直接宇称测量方法
-29. Supplemental Material at http://link.aps.org/supplemental/10.1103/PhysRevLett.125.043602
+29. Supplemental Material at <http://link.aps.org/supplemental/10.1103/PhysRevLett.125.043602>
 36. K. E. Cahill and R. J. Glauber, Phys. Rev. **177**, 1882 (1969) — 特征函数与准概率分布的经典文献
 [完整参考文献列表见原文]
 

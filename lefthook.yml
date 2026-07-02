@@ -63,12 +63,122 @@ pre-commit:
                 print(f"  {item}")
         PY
 
+    - name: markdownlint
+      glob:
+        - "content/**/*.md"
+      run: npm exec -y --package=markdownlint-cli -- markdownlint {staged_files}
+
+    - name: image-refs
+      glob:
+        - "content/**/*.md"
+      run: |
+        python3 -c "
+        import os, sys, re, subprocess
+        root = os.getcwd()
+        out = subprocess.run(['git','diff','--cached','--name-only','--diff-filter=ACMR'],
+                             capture_output=True, text=True).stdout
+        errors = []
+        for name in out.splitlines():
+            if not name.endswith('.md'): continue
+            path = os.path.join(root, name)
+            if not os.path.exists(path): continue
+            content = open(path).read()
+            for m in re.finditer(r'!\[.*?\]\(([^)]+)\)', content):
+                ref = m.group(1)
+                if '://' in ref: continue
+                target = os.path.normpath(os.path.join(os.path.dirname(path), ref))
+                if not os.path.exists(target):
+                    ln = content[:m.start()].count('\n') + 1
+                    errors.append(f'{name}:{ln}: missing image {ref}')
+        if errors:
+            print('MISSING IMAGES:')
+            for e in errors: print(f'  {e}')
+            sys.exit(1)
+        print('Image refs OK')
+        "
+
+    - name: front-matter
+      glob:
+        - "content/**/_index.md"
+      run: |
+        python3 -c "
+        import os, sys, re, subprocess
+        root = os.getcwd()
+        out = subprocess.run(['git','diff','--cached','--name-only','--diff-filter=ACMR'],
+                             capture_output=True, text=True).stdout
+        errors = []
+        for name in out.splitlines():
+            if not name.endswith('.md'): continue
+            path = os.path.join(root, name)
+            if not os.path.exists(path): continue
+            content = open(path).read()
+            m = re.match(r'^---\s*\n(.*?)\n---', content, re.DOTALL)
+            if not m: continue
+            keys = set(re.findall(r'^(\w+):', m.group(1), re.MULTILINE))
+            missing = {'title', 'date', 'weight'} - keys
+            if missing:
+                errors.append('{}: missing {}'.format(name, ', '.join(sorted(missing))))
+        if errors:
+            print('MISSING FRONT MATTER:')
+            for e in errors: print(f'  {e}')
+            sys.exit(1)
+        print('Front matter OK')
+        "
+
     - name: book-validate
       glob:
         - "content/books/**/*.md"
       run: python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/books/
 
+    - name: paper-validate
+      glob:
+        - "content/papers/**/*.md"
+      run: python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/papers/
+
 pre-push:
   jobs:
     - name: hugo-build
       run: hugo --gc --minify
+
+    - name: html-check
+      run: |
+        python3 - <<'PY'
+        import os, sys, re
+        public = 'public'
+        errors, warnings = [], []
+
+        for page in ['index.html', 'papers/index.html']:
+            p = os.path.join(public, page)
+            if not os.path.exists(p):
+                errors.append(f"missing key page: {page}")
+
+        for section in ['papers', 'books']:
+            for d in sorted(os.listdir(f'content/{section}')):
+                src = os.path.join(f'content/{section}', d, '_index.md')
+                if not os.path.exists(src): continue
+                html = os.path.join(public, section, d, 'index.html')
+                if not os.path.exists(html):
+                    errors.append(f"not generated: {section}/{d}/ (date in future?)")
+
+        # Broken links = warning only (tags taxonomy false positives)
+        for root, dirs, files in os.walk(public):
+            for fn in files:
+                if not fn.endswith('.html'): continue
+                path = os.path.join(root, fn)
+                content = open(path, 'rb').read().decode('utf-8', errors='replace')
+                hrefs = re.findall(r'href="(/[^"]*\.html)"', content)
+                for href in hrefs:
+                    t = os.path.normpath(os.path.join(public, href.lstrip('/')))
+                    alt = os.path.normpath(os.path.join(public, href.replace('/yuulibrary/', '', 1).lstrip('/')))
+                    if not os.path.exists(t) and not os.path.exists(alt):
+                        warnings.append(f"{os.path.relpath(path,public)}: {href}")
+
+        if errors:
+            print(f"HTML ERRORS ({len(errors)}):")
+            for e in errors: print(f"  {e}")
+            sys.exit(1)
+        if warnings:
+            print(f"HTML WARNINGS ({len(warnings)}):")
+            for w in warnings[:10]: print(f"  {w}")
+        print("HTML check OK")
+        PY
