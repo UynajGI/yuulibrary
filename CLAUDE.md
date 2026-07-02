@@ -97,9 +97,13 @@ yuulibrary/
 
 ```bash
 python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/books/
+python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/papers/
 ```
 
-36 项机械验证（12 Error + 19 Warning + 5 Review，lefthook pre-commit + CI 自动运行）。
+36 项机械验证（12 Error + 19 Warning + 5 Review），lefthook pre-commit + CI 自动运行。
+- **lefthook pre-commit**：trailing-whitespace → markdownlint → image-refs → front-matter → book-validate → paper-validate
+- **lefthook pre-push**：hugo-build → html-check（页面存在=error, broken link=warning）
+- **markdownlint**：9 条活跃规则（详见 `.markdownlint.yml`），抓渲染 bug
 - `[E]` 阻断 commit：shortcode 闭合、`$` 配对、裸代码、double `\tag` 等
 - `[W]` 应修复：交叉引用、标题层级、断行等
 - `[R]` 需人工确认：元素模板候选（例X-X、业界事例、定义/定理等）
@@ -124,7 +128,7 @@ python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/book
 - **伪代码语法**：小写裸命令 `state`/`for{}`/`if{}`/`repeat`/`until{}`/`endfor`/`return{}`，不是 `\STATE`/`\FOR`
 - **跨页面链接**：`[第5章](ch05.md)`，BookPortableLinks 自动转 permalink
 - **封面目录**：`{{< book-toc >}}` 自动生成，不要手写 HTML 表格
-- **书架分类卡片**：`{{< bookshelf >}}` 和 `{{< papershelf >}}` 全自动生成——遍历所有 `_index.md` 的 `tags`/`author`/`description` 自动归类，**新增内容无需手动编辑 shortcode**。`author` 字段为必需，`tags` 决定所属分类
+- **书架分类卡片**：`{{< bookshelf >}}` 和 `{{< papershelf >}}` 全自动生成——遍历所有 `_index.md` 的 `category` 字段精确归类。`category` 与 `tags` 完全解耦：`category` 管书架路由，`tags` 管 `/tags/` 浏览。每架末尾自动显示"全部"卡片——遍历所有 `_index.md` 的 `tags`/`author`/`description` 自动归类，**新增内容无需手动编辑 shortcode**。`author` 字段为必需，`tags` 决定所属分类
 
 ## 样式体系
 
