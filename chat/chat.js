@@ -10,17 +10,29 @@
   const PAGEINDEX = `${BASE}pageindex`;
 
   // ── State ────────────────────────────────────────────────────────────────
-  let globalIndex = null, nodeIndex = null, docCache = {}, indexReady = false;
+  let globalIndex = null,
+    nodeIndex = null,
+    indexReady = false;
+  const docCache = {};
   const CHAT_SESSION_KEY = "yuu_chat_session";
   const SESSIONS_ARCHIVE_KEY = "yuu_chat_sessions_archive";
   const MAX_ARCHIVED = 20;
   let chatHistory = loadSession();
 
   function loadSession() {
-    try { const r = sessionStorage.getItem(CHAT_SESSION_KEY); return r ? JSON.parse(r) : []; } catch (_) { return []; }
+    try {
+      const r = sessionStorage.getItem(CHAT_SESSION_KEY);
+      return r ? JSON.parse(r) : [];
+    } catch (_) {
+      return [];
+    }
   }
   function saveSession() {
-    try { sessionStorage.setItem(CHAT_SESSION_KEY, JSON.stringify(chatHistory)); } catch (_) {}
+    try {
+      sessionStorage.setItem(CHAT_SESSION_KEY, JSON.stringify(chatHistory));
+    } catch (_) {
+      /* ignore */
+    }
   }
 
   // ── DOM refs ─────────────────────────────────────────────────────────────
@@ -34,26 +46,36 @@
     if (!response.ok) {
       const text = await response.text().catch(() => "");
       let msg = `HTTP ${response.status}`;
-      try { msg = JSON.parse(text).error?.message || msg; } catch (_) {}
+      try {
+        msg = JSON.parse(text).error?.message || msg;
+      } catch (_) {
+        /* ignore */
+      }
       throw new Error(msg);
     }
-    const reader = response.body.getReader(), decoder = new TextDecoder();
+    const reader = response.body.getReader(),
+      decoder = new TextDecoder();
     let buffer = "";
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n"); buffer = lines.pop() || "";
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
       for (const line of lines) {
         if (!line.startsWith("data: ")) continue;
-        const raw = line.slice(6); if (raw === "[DONE]") return;
+        const raw = line.slice(6);
+        if (raw === "[DONE]") return;
         try {
           const json = JSON.parse(raw);
-          if (json.type === "content_block_delta" && json.delta?.text) { yield json.delta.text; }
-          else if (json.type === "message_stop") return;
+          if (json.type === "content_block_delta" && json.delta?.text) {
+            yield json.delta.text;
+          } else if (json.type === "message_stop") return;
           const c = json.choices?.[0]?.delta?.content;
           if (c) yield c;
-        } catch (_) {}
+        } catch (_) {
+          /* ignore */
+        }
       }
     }
   }
@@ -62,14 +84,30 @@
     if (provider === "anthropic" || provider === "deepseek") {
       return {
         url: `${baseUrl}/v1/messages`,
-        headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
-        body: JSON.stringify({ model, max_tokens: maxTokens || 2048, system, messages, stream: true }),
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens || 2048,
+          system,
+          messages,
+          stream: true,
+        }),
       };
     }
     return {
       url: `${baseUrl}/v1/chat/completions`,
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
-      body: JSON.stringify({ model, max_tokens: maxTokens || 2048, messages: [{ role: "system", content: system }, ...messages], stream: true }),
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens || 2048,
+        messages: [{ role: "system", content: system }, ...messages],
+        stream: true,
+      }),
     };
   }
 
@@ -85,33 +123,64 @@
 
   const Settings = {
     _pfx: "yuu_chat_",
-    _defaults() { return { provider: "anthropic", model: "", base_url: "", api_key: "", remember_key: false }; },
+    _defaults() {
+      return { provider: "anthropic", model: "", base_url: "", api_key: "", remember_key: false };
+    },
     get(key) {
-      const v = sessionStorage.getItem(this._pfx + key); if (v !== null) return v;
+      const v = sessionStorage.getItem(this._pfx + key);
+      if (v !== null) return v;
       return localStorage.getItem(this._pfx + key) || this._defaults()[key] || "";
     },
     set(key, val) {
       sessionStorage.setItem(this._pfx + key, val);
       if (key === "remember_key") {
-        if (val === "true") { const k = this.get("api_key"); if (k) localStorage.setItem(this._pfx + "api_key", k); }
-        else localStorage.removeItem(this._pfx + "api_key");
+        if (val === "true") {
+          const k = this.get("api_key");
+          if (k) localStorage.setItem(this._pfx + "api_key", k);
+        } else localStorage.removeItem(this._pfx + "api_key");
       }
-      if (key !== "api_key" && key !== "remember_key") { try { localStorage.setItem(this._pfx + key, val); } catch (_) {} }
-      if (key === "api_key" && this.get("remember_key") === "true") { localStorage.setItem(this._pfx + key, val); }
+      if (key !== "api_key" && key !== "remember_key") {
+        try {
+          localStorage.setItem(this._pfx + key, val);
+        } catch (_) {
+          /* ignore */
+        }
+      }
+      if (key === "api_key" && this.get("remember_key") === "true") {
+        localStorage.setItem(this._pfx + key, val);
+      }
     },
     resolve() {
       const p = this.get("provider");
-      const model = this.get("model") || {
-        anthropic: "claude-sonnet-4-6", deepseek: "deepseek-v4-flash", openai: "gpt-4o",
-        siliconflow: "deepseek-ai/DeepSeek-V3", openrouter: "anthropic/claude-sonnet-4",
-        zhipu: "glm-4", dashscope: "qwen-plus", ollama: "llama3", gemini: "gemini-2.5-flash", custom: "",
-      }[p] || "";
-      const baseUrl = this.get("base_url") || {
-        anthropic: "https://api.anthropic.com", deepseek: "https://api.deepseek.com/anthropic", openai: "https://api.openai.com",
-        siliconflow: "https://api.siliconflow.cn", openrouter: "https://openrouter.ai/api",
-        zhipu: "https://open.bigmodel.cn/api/paas/v4", dashscope: "https://dashscope.aliyuncs.com/compatible-mode/v1",
-        ollama: "http://localhost:11434", gemini: "https://generativelanguage.googleapis.com/v1beta/openai",
-      }[p] || "";
+      const model =
+        this.get("model") ||
+        {
+          anthropic: "claude-sonnet-4-6",
+          deepseek: "deepseek-v4-flash",
+          openai: "gpt-4o",
+          siliconflow: "deepseek-ai/DeepSeek-V3",
+          openrouter: "anthropic/claude-sonnet-4",
+          zhipu: "glm-4",
+          dashscope: "qwen-plus",
+          ollama: "llama3",
+          gemini: "gemini-2.5-flash",
+          custom: "",
+        }[p] ||
+        "";
+      const baseUrl =
+        this.get("base_url") ||
+        {
+          anthropic: "https://api.anthropic.com",
+          deepseek: "https://api.deepseek.com/anthropic",
+          openai: "https://api.openai.com",
+          siliconflow: "https://api.siliconflow.cn",
+          openrouter: "https://openrouter.ai/api",
+          zhipu: "https://open.bigmodel.cn/api/paas/v4",
+          dashscope: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+          ollama: "http://localhost:11434",
+          gemini: "https://generativelanguage.googleapis.com/v1beta/openai",
+        }[p] ||
+        "";
       return { provider: p, model, baseUrl, apiKey: this.get("api_key") };
     },
   };
@@ -123,44 +192,159 @@
   async function loadIndexes() {
     if (indexReady) return;
     const [gi, ni] = await Promise.all([
-      fetch(`${PAGEINDEX}/global-index.json`).then(r => r.json()),
-      fetch(`${PAGEINDEX}/node-index.json`).then(r => r.json()),
+      fetch(`${PAGEINDEX}/global-index.json`).then((r) => r.json()),
+      fetch(`${PAGEINDEX}/node-index.json`).then((r) => r.json()),
     ]);
-    globalIndex = gi; nodeIndex = ni; indexReady = true;
+    globalIndex = gi;
+    nodeIndex = ni;
+    indexReady = true;
   }
 
   // ══════════════════════════════════════════════════════════════════════════
   // Search — two-pass: node-index → load full tree → expand hierarchy
   // ══════════════════════════════════════════════════════════════════════════
 
+  // ── Tokenizer：中文 2-gram + 英文单词。不保留中文单字（噪声太大、IDF 失效）。
   function tokenize(text) {
+    if (!text) return [];
     const tokens = [];
-    for (const c of text.match(/[一-鿿]/g) || []) tokens.push(c);
-    for (const w of text.match(/[a-zA-Z0-9]{2,}/g) || []) tokens.push(w.toLowerCase());
+    // 英文单词（长度 ≥2，含术语缩写如 SPT/Rabi）+ 纯数字 ≥2
+    for (const w of text.match(/[a-zA-Z][a-zA-Z0-9]{1,}/g) || []) tokens.push(w.toLowerCase());
+    for (const w of text.match(/\d{2,}/g) || []) tokens.push(w);
+    // 中文：仅 2-gram。"相变""临界""金融"等二字词才是有效检索单元。
+    const cjk = text.match(/[一-鿿]+/g) || [];
+    for (const seg of cjk) {
+      for (let i = 0; i < seg.length - 1; i++) tokens.push(seg.slice(i, i + 2)); // 2-gram
+    }
     return [...new Set(tokens)];
   }
 
-  function scoreNode(queryTokens, node) {
-    let s = 0;
-    const title = (node.title || "").toLowerCase(), excerpt = (node.excerpt || "").toLowerCase();
-    const terms = (node.terms || []).join(" ").toLowerCase(), crumb = (node.breadcrumb || []).join(" ").toLowerCase();
-    for (const qt of queryTokens) {
-      const q = qt.toLowerCase();
-      if (title.includes(q)) s += 10; else if (crumb.includes(q)) s += 4;
-      else if (terms.includes(q)) s += 3; else if (excerpt.includes(q)) s += 1;
+  // ── Query expansion：手写同义词表 + 运行时从 terms/headings 抽取 ──────────
+  // 手写表覆盖常见物理/ML 术语的中英互译与缩写。运行时表在索引加载后构建。
+  const SYNONYMS = {
+    超辐射相变: ["superradiant phase transition", "SPT", "superradiant"],
+    相变: ["phase transition", "critical", "临界"],
+    临界: ["critical", "相变", "phase transition"],
+    berry: ["berry phase", "贝里相位", "几何相位"],
+    贝里: ["berry phase", "geometric phase", "几何相位"],
+    rabi: ["拉比", "jaynes-cummings", "JC"],
+    拉比: ["rabi", "jaynes-cummings"],
+    dicke: ["迪克", "superradiant"],
+    线性响应: ["linear response", "kubo", "久保"],
+    格林函数: ["green function", "propagator", "传播子"],
+    路径积分: ["path integral", "feynman"],
+    机器学习: ["machine learning", "ML", "deep learning"],
+    神经网络: ["neural network", "NN", "deep learning"],
+  };
+
+  // expandQuery 同时接受原始 query（用于多字短语匹配）和 tokens（用于单 token 匹配）
+  function expandQuery(tokens, rawQuery) {
+    const expanded = new Set(tokens);
+    const raw = (rawQuery || "").toLowerCase();
+    for (const key of Object.keys(SYNONYMS)) {
+      const lk = key.toLowerCase();
+      // 匹配方式 1: 原始 query 包含该短语（如"超辐射相变"包含"相变"）
+      // 匹配方式 2: tokens 已含该短语作为 token（如英文 "rabi"）
+      if (raw.includes(lk) || tokens.includes(lk)) {
+        SYNONYMS[key].forEach((s) => expanded.add(s.toLowerCase()));
+      }
     }
-    return s;
+    return [...expanded];
+  }
+
+  // ── BM25：字段加权 + IDF。首次搜索时构建 IDF 与字段长度统计。 ──────────────
+  let bm25Stats = null; // { df: Map, N: number, avgLen, fieldAvgLen }
+
+  function buildBM25Stats() {
+    if (bm25Stats || !nodeIndex) return;
+    const nodes = nodeIndex.nodes || [];
+    const df = new Map(); // document frequency per token
+    const FIELDS = ["title", "breadcrumb", "terms", "excerpt"];
+    let totalLen = 0;
+    const fieldLen = { title: 0, breadcrumb: 0, terms: 0, excerpt: 0 };
+    for (const node of nodes) {
+      const fieldText = {
+        title: node.title || "",
+        breadcrumb: (node.breadcrumb || []).join(" "),
+        terms: (node.terms || []).join(" "),
+        excerpt: node.excerpt || "",
+      };
+      for (const f of FIELDS) {
+        const toks = tokenize(fieldText[f]);
+        fieldLen[f] += toks.length;
+        for (const t of new Set(toks)) df.set(t, (df.get(t) || 0) + 1);
+      }
+      totalLen += tokenize(
+        fieldText.title + fieldText.breadcrumb + fieldText.terms + fieldText.excerpt
+      ).length;
+    }
+    const N = nodes.length || 1;
+    bm25Stats = {
+      df,
+      N,
+      avgLen: totalLen / N,
+      fieldAvgLen: {
+        title: fieldLen.title / N,
+        breadcrumb: fieldLen.breadcrumb / N,
+        terms: fieldLen.terms / N,
+        excerpt: fieldLen.excerpt / N,
+      },
+    };
+  }
+
+  // 字段权重：title 最高，breadcrumb 次之，terms/excerpt 正常
+  const FIELD_BOOST = { title: 6, breadcrumb: 3, terms: 2, excerpt: 1 };
+  const BM25_K = 1.5,
+    BM25_B = 0.75;
+
+  function bm25Score(queryTokens, node) {
+    const stats = bm25Stats;
+    let total = 0;
+    const FIELDS = ["title", "breadcrumb", "terms", "excerpt"];
+    const fieldText = {
+      title: node.title || "",
+      breadcrumb: (node.breadcrumb || []).join(" "),
+      terms: (node.terms || []).join(" "),
+      excerpt: node.excerpt || "",
+    };
+    for (const f of FIELDS) {
+      const docTokens = tokenize(fieldText[f]);
+      const docLen = docTokens.length;
+      const avgLen = stats.fieldAvgLen[f] || 1;
+      const tfMap = new Map();
+      for (const t of docTokens) tfMap.set(t, (tfMap.get(t) || 0) + 1);
+      for (const qt of queryTokens) {
+        const tf = tfMap.get(qt) || 0;
+        if (!tf) continue;
+        const df = stats.df.get(qt) || 0;
+        const idf = Math.log(1 + (stats.N - df + 0.5) / (df + 0.5));
+        const norm = 1 - BM25_B + BM25_B * (docLen / (avgLen || 1));
+        const score = idf * ((tf * (BM25_K + 1)) / (tf + BM25_K * norm));
+        total += score * FIELD_BOOST[f];
+      }
+    }
+    return total;
   }
 
   function search(query, topK = 10) {
     if (!nodeIndex) return [];
-    const tokens = tokenize(query); if (!tokens.length) return [];
+    buildBM25Stats();
+    let tokens = tokenize(query);
+    if (!tokens.length) return [];
+    tokens = expandQuery(tokens, query);
     const scored = [];
-    for (const node of nodeIndex.nodes) { const s = scoreNode(tokens, node); if (s > 0) scored.push({ node, score: s }); }
+    for (const node of nodeIndex.nodes) {
+      const s = bm25Score(tokens, node);
+      if (s > 0) scored.push({ node, score: Math.round(s * 100) / 100 });
+    }
     scored.sort((a, b) => b.score - a.score);
-    const seen = new Set(), results = [];
+    const seen = new Set(),
+      results = [];
     for (const item of scored) {
-      if ([...seen].filter(id => id === item.node.doc_id).length < 3) { results.push(item); seen.add(item.node.doc_id); }
+      if ([...seen].filter((id) => id === item.node.doc_id).length < 3) {
+        results.push(item);
+        seen.add(item.node.doc_id);
+      }
       if (results.length >= topK * 2) break;
     }
     return results.slice(0, topK);
@@ -168,55 +352,116 @@
 
   async function loadDocTree(docId) {
     if (docCache[docId] !== undefined) return;
-    const doc = globalIndex?.docs?.find(d => d.id === docId);
+    const doc = globalIndex?.docs?.find((d) => d.id === docId);
     const type = doc?.type || "papers";
     try {
       const resp = await fetch(`${PAGEINDEX}/${type}/${docId}.json`);
       const data = await resp.json();
       const flat = [];
-      (function walk(nodes, crumb) { for (const n of nodes) { const c = [...crumb, n.title]; flat.push({ ...n, _crumb: c }); if (n.nodes) walk(n.nodes, c); } })(data.structure, []);
+      (function walk(nodes, crumb) {
+        for (const n of nodes) {
+          const c = [...crumb, n.title];
+          flat.push({ ...n, _crumb: c });
+          if (n.nodes) walk(n.nodes, c);
+        }
+      })(data.structure, []);
       docCache[docId] = { tree: data, flat };
-    } catch (_) { docCache[docId] = null; }
+    } catch (_) {
+      docCache[docId] = null;
+    }
   }
 
   function buildContextChunk(doc, nodeId, docMeta) {
-    const flat = doc.flat; const idx = flat.findIndex(n => n.node_id === nodeId);
+    const flat = doc.flat;
+    const idx = flat.findIndex((n) => n.node_id === nodeId);
     if (idx < 0) return null;
-    const node = flat[idx], crumb = node._crumb || [node.title], text = node.text || "";
-    const parent = crumb.length > 1 ? flat.find(n => n._crumb?.length === crumb.length - 1 && crumb.slice(0, -1).every((t, i) => n._crumb[i] === t)) : null;
-    const siblings = flat.filter(n => n._crumb?.length === crumb.length && n.node_id !== node.node_id && n._crumb?.slice(0, -1).every((t, i) => crumb[i] === t)).slice(0, 4);
-    const children = flat.filter(n => n._crumb?.length === crumb.length + 1 && n._crumb?.slice(0, -1).every((t, i) => crumb[i] === t)).slice(0, 4);
-    return { docType: docMeta.type || "", docTitle: docMeta.title || docMeta.doc_name || "", docAuthor: docMeta.author || "", nodeId, title: node.title, breadcrumb: crumb, text, parentTitle: parent?.title || "", siblingTitles: siblings.map(n => n.title), childTitles: children.map(n => n.title) };
+    const node = flat[idx],
+      crumb = node._crumb || [node.title],
+      text = node.text || "";
+    const parent =
+      crumb.length > 1
+        ? flat.find(
+            (n) =>
+              n._crumb?.length === crumb.length - 1 &&
+              crumb.slice(0, -1).every((t, i) => n._crumb[i] === t)
+          )
+        : null;
+    const siblings = flat
+      .filter(
+        (n) =>
+          n._crumb?.length === crumb.length &&
+          n.node_id !== node.node_id &&
+          n._crumb?.slice(0, -1).every((t, i) => crumb[i] === t)
+      )
+      .slice(0, 4);
+    const children = flat
+      .filter(
+        (n) =>
+          n._crumb?.length === crumb.length + 1 &&
+          n._crumb?.slice(0, -1).every((t, i) => crumb[i] === t)
+      )
+      .slice(0, 4);
+    return {
+      sourceId: `${docMeta.type || "doc"}:${docMeta.doc_id || docMeta.title || "unknown"}:${nodeId}`,
+      docType: docMeta.type || "",
+      docTitle: docMeta.title || docMeta.doc_name || "",
+      docAuthor: docMeta.author || "",
+      nodeId,
+      title: node.title,
+      breadcrumb: crumb,
+      text,
+      parentTitle: parent?.title || "",
+      siblingTitles: siblings.map((n) => n.title),
+      childTitles: children.map((n) => n.title),
+    };
   }
 
   async function retrieveContext(query) {
-    const hits = search(query); if (!hits.length) return { contexts: [], docCount: 0, thin: true };
-    const uniqueDocs = [...new Set(hits.map(h => h.node.doc_id))].slice(0, 6);
+    const hits = search(query);
+    if (!hits.length) return { contexts: [], docCount: 0, thin: true };
+    const uniqueDocs = [...new Set(hits.map((h) => h.node.doc_id))].slice(0, 6);
     await Promise.all(uniqueDocs.map(loadDocTree));
-    const contexts = [], seenNodes = new Set();
+    const contexts = [],
+      seenNodes = new Set();
     for (const hit of hits.slice(0, 8)) {
-      const doc = docCache[hit.node.doc_id]; if (!doc) continue;
+      const doc = docCache[hit.node.doc_id];
+      if (!doc) continue;
       if (seenNodes.has(hit.node.doc_id + ":" + hit.node.node_id)) continue;
       seenNodes.add(hit.node.doc_id + ":" + hit.node.node_id);
       const ctx = buildContextChunk(doc, hit.node.node_id, doc.tree);
-      if (ctx && ctx.text) contexts.push(ctx);
+      if (ctx && ctx.text) {
+        ctx.url = hit.node.url || "";
+        contexts.push(ctx);
+      }
     }
     let thin = contexts.length < 2;
     if (thin && query.length > 4) {
       for (const term of tokenize(query).slice(0, 3)) {
         for (const hit of search(term, 4)) {
           if (!docCache[hit.node.doc_id]) await loadDocTree(hit.node.doc_id);
-          const d = docCache[hit.node.doc_id]; if (!d || seenNodes.has(hit.node.doc_id + ":" + hit.node.node_id)) continue;
+          const d = docCache[hit.node.doc_id];
+          if (!d || seenNodes.has(hit.node.doc_id + ":" + hit.node.node_id)) continue;
           seenNodes.add(hit.node.doc_id + ":" + hit.node.node_id);
           const ctx = buildContextChunk(d, hit.node.node_id, d.tree);
-          if (ctx && ctx.text) contexts.push(ctx);
+          if (ctx && ctx.text) {
+            ctx.url = hit.node.url || "";
+            contexts.push(ctx);
+          }
           if (contexts.length >= 6) break;
         }
         if (contexts.length >= 6) break;
       }
       thin = contexts.length < 2;
     }
-    return { contexts, docCount: uniqueDocs.length, thin };
+    // 检索置信度分级：基于 top score 与 source 分布。驱动 system prompt 的"边界感"。
+    // 阈值经真实索引(5690节点)校准：强命中>80，中等30-80，弱<30。
+    const topScore = hits[0]?.score || 0;
+    const secondScore = hits[1]?.score || 0;
+    const sourceCount = uniqueDocs.length;
+    let confidence = "low";
+    if (topScore >= 80 && sourceCount >= 2 && secondScore / topScore > 0.2) confidence = "high";
+    else if (topScore >= 30 || (topScore >= 15 && sourceCount >= 2)) confidence = "medium";
+    return { contexts, docCount: sourceCount, thin, confidence, hits: hits.slice(0, 12) };
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -225,23 +470,67 @@
 
   const MAX_SECTION_CHARS = 2500;
 
-  function buildSystemPrompt(contexts, thin) {
-    const docNames = [...new Set(contexts.map(c => c.docTitle))];
-    const docToc = docNames.map(name => { const dc = contexts.filter(c => c.docTitle === name); const meta = [dc[0].docAuthor, dc[0].docType].filter(Boolean).join(" · "); return `- **${name}**${meta ? ` (${meta})` : ""} — ${dc.length} 个相关段落`; });
-    const blocks = [], seen = new Set();
+  // 语义边界截断：优先保留完整段落，段落仍超长则按句子切，永不硬 slice。
+  // 永远保留 breadcrumb/title/source_id（由 block 头部保证）。
+  function truncateAtBoundary(text, maxChars) {
+    if (text.length <= maxChars) return text;
+    // 1) 先按段落（空行或单换行）切，累加到上限
+    const paragraphs = text.split(/\n+/).filter((p) => p.trim());
+    let out = "";
+    for (const p of paragraphs) {
+      if ((out + "\n" + p).length > maxChars) break;
+      out += (out ? "\n" : "") + p;
+    }
+    if (!out) {
+      // 2) 单段就超长 → 按句子切（中英文句号、问号、分号）
+      const sentences = text.split(/(?<=[。！？；!?])/).filter((s) => s.trim());
+      for (const s of sentences) {
+        if ((out + s).length > maxChars) break;
+        out += s;
+      }
+    }
+    if (!out) out = text.slice(0, maxChars); // 极端兜底
+    return out + "\n\n…[已按语义边界截断，可追问获取完整内容]…";
+  }
+
+  function buildSystemPrompt(contexts, thin, confidence) {
+    const docNames = [...new Set(contexts.map((c) => c.docTitle))];
+    const docToc = docNames.map((name) => {
+      const dc = contexts.filter((c) => c.docTitle === name);
+      const meta = [dc[0].docAuthor, dc[0].docType].filter(Boolean).join(" · ");
+      return `- **${name}**${meta ? ` (${meta})` : ""} — ${dc.length} 个相关段落`;
+    });
+    const blocks = [],
+      seen = new Set();
+    let n = 0;
     for (let i = 0; i < contexts.length; i++) {
-      const c = contexts[i], hash = c.text.slice(0, 80); if (seen.has(hash)) continue; seen.add(hash);
-      const crumb = c.breadcrumb.join(" > "); let text = c.text; let truncated = false;
-      if (text.length > MAX_SECTION_CHARS) { text = text.slice(0, MAX_SECTION_CHARS) + "\n\n…[已截断，可追问获取完整内容]…"; truncated = true; }
-      let block = `### [${i + 1}] ${crumb}\n*来源: ${c.docTitle}*\n`;
+      const c = contexts[i],
+        hash = c.text.slice(0, 80);
+      if (seen.has(hash)) continue;
+      seen.add(hash);
+      n++;
+      const crumb = c.breadcrumb.join(" > ");
+      const text = truncateAtBoundary(c.text, MAX_SECTION_CHARS);
+      let block = `### [${n}] ${crumb}\n*来源: ${c.docTitle} | source_id: ${c.sourceId}*\n`;
       const nearby = [];
       if (c.parentTitle && c.breadcrumb.length > 1) nearby.push(`上级: ${c.parentTitle}`);
       if (c.siblingTitles.length) nearby.push(`同级: ${c.siblingTitles.join(" / ")}`);
       if (c.childTitles.length) nearby.push(`子节: ${c.childTitles.join(" / ")}`);
       if (nearby.length) block += `*${nearby.join("  |  ")}*\n`;
-      block += `\n${text}`; blocks.push(block);
+      block += `\n${text}`;
+      blocks.push(block);
     }
-    const thinNotice = thin ? "\n> **注意**: 本次检索结果较少，回答可能不完整。\n" : "";
+    // 置信度提示：confidence 分级驱动模型"边界感"。low 时强烈约束不要扩展。
+    let thinNotice = "";
+    if (confidence === "low" || thin) {
+      thinNotice =
+        "\n> **检索置信度较低**：当前检索相关性不足。请优先说明依据不足，只基于最相关来源简短回答，**不要扩展、不要猜测、不要编造**。\n";
+    } else if (confidence === "medium") {
+      thinNotice =
+        "\n> **检索置信度中等**：依据基本充足，但请只基于 Context 回答，对证据不足的部分明确标注。\n";
+    } else {
+      thinNotice = "\n> **检索置信度高**：可基于 Context 充分回答。\n";
+    }
     return `你是 **Yuunagi Library** 的知识助手，基于个人数字图书馆内容的 RAG 问答系统。
 
 ## 检索概览
@@ -271,15 +560,66 @@ ${blocks.join("\n\n---\n\n")}
 
   function renderMarkdown(text) {
     let html = text;
-    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => `<pre><code>${escHtml(code.trim())}</code></pre>`);
+    html = html.replace(
+      /```(\w*)\n([\s\S]*?)```/g,
+      (_, lang, code) => `<pre><code>${escHtml(code.trim())}</code></pre>`
+    );
     html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/\*([^*]+)\*/g, "<em>$1</em>");
-    html = html.replace(/^### (.+)$/gm, "<h4>$1</h4>").replace(/^## (.+)$/gm, "<h3>$1</h3>").replace(/^# (.+)$/gm, "<h2>$1</h2>");
+    html = html
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    html = html
+      .replace(/^### (.+)$/gm, "<h4>$1</h4>")
+      .replace(/^## (.+)$/gm, "<h3>$1</h3>")
+      .replace(/^# (.+)$/gm, "<h2>$1</h2>");
     html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
     html = html.replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br>");
     return `<p>${html}</p>`;
   }
-  function escHtml(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]); }
+  function escHtml(s) {
+    return s.replace(
+      /[&<>"]/g,
+      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]
+    );
+  }
+
+  function injectReferenceLinks(markdown, refMap) {
+    if (!refMap || Object.keys(refMap).length === 0) return markdown;
+    const base = BASE.replace(/\/+$/, "");
+
+    // 1) 用占位符保护代码块 / 行内代码，避免把代码里的 [N] 误转成链接。
+    //    占位符用 PUA 区字符（不会出现在正常文本/代码里），避开 control 字符。
+    const stash = [];
+    const PH = (i) => `\uF8FFCODE${i}\uF8FF`;
+    let work = markdown.replace(
+      /```[\s\S]*?```/g,
+      (m) => (stash.push(m) - 1 + "", PH(stash.length - 1))
+    );
+    work = work.replace(/`[^`\n]*`/g, (m) => (stash.push(m) - 1 + "", PH(stash.length - 1)));
+
+    // 2) 逐行处理。不再要求 [N] 前必须是标点——中文紧贴（如"文献[1]所示"）也要能命中。
+    const lines = work.split("\n");
+    const result = lines.map((line) => {
+      // 参考来源列表行：[N] 在行首后接标题文字
+      const refMatch = line.match(/^\[(\d+)\]\s+(.+)$/);
+      if (refMatch) {
+        const ref = refMap[parseInt(refMatch[1])];
+        if (ref && ref.url) return `[${refMatch[1]}] [${refMatch[2]}](${base}${ref.url})`;
+        return line;
+      }
+      // 行内引用：匹配 [N]，但跳过已是 markdown 链接的情况（[文字](url) 形式）。
+      return line.replace(/\[(\d+)\](?!\()/g, (m, num) => {
+        const ref = refMap[parseInt(num)];
+        if (ref && ref.url) return `[${num}](${base}${ref.url})`;
+        return m;
+      });
+    });
+    work = result.join("\n");
+
+    // 3) 还原代码块 / 行内代码
+    work = work.replace(/\uF8FFCODE(\d+)\uF8FF/g, (_, i) => stash[parseInt(i)]);
+    return work;
+  }
 
   // ══════════════════════════════════════════════════════════════════════════
   // Session archive (localStorage)
@@ -289,23 +629,46 @@ ${blocks.join("\n\n---\n\n")}
     if (!chatHistory.length) return;
     const sessions = loadArchivedSessions();
     const title = chatHistory[0]?.content?.slice(0, 50) || "(空会话)";
-    sessions.unshift({ id: Date.now().toString(36), title, date: new Date().toISOString(), messages: [...chatHistory] });
+    sessions.unshift({
+      id: Date.now().toString(36),
+      title,
+      date: new Date().toISOString(),
+      messages: [...chatHistory],
+    });
     if (sessions.length > MAX_ARCHIVED) sessions.length = MAX_ARCHIVED;
-    try { localStorage.setItem(SESSIONS_ARCHIVE_KEY, JSON.stringify(sessions)); } catch (_) {}
+    try {
+      localStorage.setItem(SESSIONS_ARCHIVE_KEY, JSON.stringify(sessions));
+    } catch (_) {
+      /* ignore */
+    }
   }
   function loadArchivedSessions() {
-    try { const r = localStorage.getItem(SESSIONS_ARCHIVE_KEY); return r ? JSON.parse(r) : []; } catch (_) { return []; }
+    try {
+      const r = localStorage.getItem(SESSIONS_ARCHIVE_KEY);
+      return r ? JSON.parse(r) : [];
+    } catch (_) {
+      return [];
+    }
   }
   function restoreArchivedSession(id) {
-    const sessions = loadArchivedSessions(), s = sessions.find(x => x.id === id); if (!s) return;
+    const sessions = loadArchivedSessions(),
+      s = sessions.find((x) => x.id === id);
+    if (!s) return;
     if (chatHistory.length) archiveCurrentSession();
-    chatHistory = s.messages; saveSession();
-    messagesEl.innerHTML = ""; hideEmpty();
+    chatHistory = s.messages;
+    saveSession();
+    messagesEl.innerHTML = "";
+    hideEmpty();
     for (const msg of chatHistory) appendMessageBubble(msg.role, msg.content);
   }
   function removeArchivedSession(id) {
-    let sessions = loadArchivedSessions(); sessions = sessions.filter(x => x.id !== id);
-    try { localStorage.setItem(SESSIONS_ARCHIVE_KEY, JSON.stringify(sessions)); } catch (_) {}
+    let sessions = loadArchivedSessions();
+    sessions = sessions.filter((x) => x.id !== id);
+    try {
+      localStorage.setItem(SESSIONS_ARCHIVE_KEY, JSON.stringify(sessions));
+    } catch (_) {
+      /* ignore */
+    }
     return sessions;
   }
 
@@ -392,6 +755,14 @@ ${blocks.join("\n\n---\n\n")}
             <small>默认关闭。开启后才保存到本地浏览器。</small>
           </span>
         </label>
+        <label class="yuu-ai-check-row">
+          <input id="yuu-setting-debug" type="checkbox">
+          <span class="yuu-ai-check-box" aria-hidden="true"></span>
+          <span class="yuu-ai-check-text">
+            <strong>检索调试模式</strong>
+            <small>显示命中节点、匹配分数和发给模型的 context。</small>
+          </span>
+        </label>
         <div class="yuu-ai-settings-actions">
           <button id="yuu-settings-save" class="yuu-ai-save-btn">保存设置</button>
           <button id="yuu-settings-test" class="yuu-ai-test-btn">测试连接</button>
@@ -418,16 +789,21 @@ ${blocks.join("\n\n---\n\n")}
 
     // Single delegated event listener — data-action based
     root.addEventListener("click", handleAction);
+    // 动态建议问题：根据当前页面上下文生成，无上下文则保留默认
+    injectDynamicSuggestions();
     // Prompt suggestion clicks
-    root.querySelectorAll("[data-prompt]").forEach(btn => {
+    root.querySelectorAll("[data-prompt]").forEach((btn) => {
       btn.addEventListener("click", () => {
         composerInput.value = btn.dataset.prompt;
         handleSend();
       });
     });
     // Enter to send
-    composerInput.addEventListener("keydown", e => {
-      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+    composerInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
     });
     composerInput.addEventListener("input", () => {
       composerInput.style.height = "auto";
@@ -468,17 +844,25 @@ ${blocks.join("\n\n---\n\n")}
     drawer.hidden = false;
   }
   function closeDrawer() {
-    root.querySelectorAll(".yuu-ai-drawer").forEach(d => { d.hidden = true; });
+    root.querySelectorAll(".yuu-ai-drawer").forEach((d) => {
+      d.hidden = true;
+    });
   }
-  function showMessages() { emptyEl.hidden = true; messagesEl.hidden = false; }
-  function hideEmpty() { emptyEl.hidden = true; messagesEl.hidden = false; }
+  function hideEmpty() {
+    emptyEl.hidden = true;
+    messagesEl.hidden = false;
+  }
   function showEmpty() {
-    emptyEl.hidden = false; messagesEl.hidden = true; messagesEl.innerHTML = "";
+    emptyEl.hidden = false;
+    messagesEl.hidden = true;
+    messagesEl.innerHTML = "";
   }
   function newSession() {
     archiveCurrentSession();
-    chatHistory = []; saveSession();
-    closeDrawer(); showEmpty();
+    chatHistory = [];
+    saveSession();
+    closeDrawer();
+    showEmpty();
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -500,26 +884,35 @@ ${blocks.join("\n\n---\n\n")}
   function renderHistoryList(list) {
     const sessions = loadArchivedSessions();
     if (!sessions.length) {
-      list.innerHTML = '<div class="yuu-history-empty">暂无历史会话。<br>开始新对话后，旧会话自动存档。</div>';
+      list.innerHTML =
+        '<div class="yuu-history-empty">暂无历史会话。<br>开始新对话后，旧会话自动存档。</div>';
       return;
     }
-    list.innerHTML = sessions.map(s => {
-      const d = new Date(s.date);
-      const ds = d.toLocaleString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-      return `<div class="yuu-history-item" data-id="${s.id}">
+    list.innerHTML = sessions
+      .map((s) => {
+        const d = new Date(s.date);
+        const ds = d.toLocaleString("zh-CN", {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        return `<div class="yuu-history-item" data-id="${s.id}">
         <span class="yuu-history-title">${escHtml(s.title)}</span>
         <span class="yuu-history-date">${ds} · ${s.messages.length} 条</span>
         <button class="yuu-history-del" data-id="${s.id}" title="删除">&times;</button>
       </div>`;
-    }).join("");
-    list.querySelectorAll(".yuu-history-item").forEach(el => {
-      el.addEventListener("click", e => {
+      })
+      .join("");
+    list.querySelectorAll(".yuu-history-item").forEach((el) => {
+      el.addEventListener("click", (e) => {
         if (e.target.classList.contains("yuu-history-del")) return;
-        restoreArchivedSession(el.dataset.id); closeDrawer();
+        restoreArchivedSession(el.dataset.id);
+        closeDrawer();
       });
     });
-    list.querySelectorAll(".yuu-history-del").forEach(el => {
-      el.addEventListener("click", e => {
+    list.querySelectorAll(".yuu-history-del").forEach((el) => {
+      el.addEventListener("click", (e) => {
         e.stopPropagation();
         removeArchivedSession(el.dataset.id);
         renderHistoryList(list);
@@ -553,7 +946,10 @@ ${blocks.join("\n\n---\n\n")}
     document.getElementById("yuu-setting-base-url").value = Settings.get("base_url");
     document.getElementById("yuu-setting-model").value = Settings.get("model");
     document.getElementById("yuu-setting-api-key").value = Settings.get("api_key");
-    document.getElementById("yuu-setting-remember").checked = Settings.get("remember_key") === "true";
+    document.getElementById("yuu-setting-remember").checked =
+      Settings.get("remember_key") === "true";
+    document.getElementById("yuu-setting-debug").checked =
+      localStorage.getItem("yuu_chat_debug") === "1";
     onProviderChange();
   }
   function saveSettings() {
@@ -564,6 +960,9 @@ ${blocks.join("\n\n---\n\n")}
     Settings.set("api_key", document.getElementById("yuu-setting-api-key").value);
     Settings.set("remember_key", remember ? "true" : "false");
     if (!remember) localStorage.removeItem("yuu_chat_api_key");
+    const debug = document.getElementById("yuu-setting-debug").checked;
+    if (debug) localStorage.setItem("yuu_chat_debug", "1");
+    else localStorage.removeItem("yuu_chat_debug");
     closeDrawer();
   }
 
@@ -576,13 +975,26 @@ ${blocks.join("\n\n---\n\n")}
 
   async function testConnection() {
     const provider = document.getElementById("yuu-setting-provider").value;
-    const apiKey = document.getElementById("yuu-setting-api-key").value.trim() || Settings.get("api_key");
-    if (!apiKey) { setTestStatus("error", "请先填写 API Key"); return; }
+    const apiKey =
+      document.getElementById("yuu-setting-api-key").value.trim() || Settings.get("api_key");
+    if (!apiKey) {
+      setTestStatus("error", "请先填写 API Key");
+      return;
+    }
 
-    const model = (document.getElementById("yuu-setting-model").value || document.getElementById("yuu-setting-model").placeholder).trim();
-    let baseUrl = (document.getElementById("yuu-setting-base-url").value || document.getElementById("yuu-setting-base-url").placeholder).trim();
+    const model = (
+      document.getElementById("yuu-setting-model").value ||
+      document.getElementById("yuu-setting-model").placeholder
+    ).trim();
+    let baseUrl = (
+      document.getElementById("yuu-setting-base-url").value ||
+      document.getElementById("yuu-setting-base-url").placeholder
+    ).trim();
     baseUrl = baseUrl.replace(/\/+$/, "");
-    if (!baseUrl) { setTestStatus("error", "请先填写 Base URL 或选择 Provider"); return; }
+    if (!baseUrl) {
+      setTestStatus("error", "请先填写 Base URL 或选择 Provider");
+      return;
+    }
 
     setTestStatus("loading", "正在测试……");
     const btn = document.getElementById("yuu-settings-test");
@@ -594,12 +1006,26 @@ ${blocks.join("\n\n---\n\n")}
 
       if (isAnthropic) {
         url = `${baseUrl}/v1/messages`;
-        headers = { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" };
-        body = JSON.stringify({ model, max_tokens: 8, messages: [{ role: "user", content: "ping" }] });
+        headers = {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        };
+        body = JSON.stringify({
+          model,
+          max_tokens: 8,
+          messages: [{ role: "user", content: "ping" }],
+        });
       } else {
         url = `${baseUrl}/v1/chat/completions`;
-        headers = { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` };
-        body = JSON.stringify({ model, messages: [{ role: "user", content: "ping" }], max_tokens: 8, stream: false });
+        headers = { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` };
+        body = JSON.stringify({
+          model,
+          messages: [{ role: "user", content: "ping" }],
+          max_tokens: 8,
+          stream: false,
+        });
       }
 
       const resp = await fetch(url, { method: "POST", headers, body });
@@ -610,7 +1036,11 @@ ${blocks.join("\n\n---\n\n")}
         const status = resp.status;
         const text = await resp.text().catch(() => "");
         let msg = "";
-        try { msg = JSON.parse(text).error?.message || ""; } catch (_) {}
+        try {
+          msg = JSON.parse(text).error?.message || "";
+        } catch (_) {
+          /* ignore */
+        }
         if (status === 401) msg = "API Key 无效";
         else if (status === 403) msg = "无权限或浏览器跨域受限";
         else if (status === 404) msg = "Base URL 或模型不存在";
@@ -622,8 +1052,7 @@ ${blocks.join("\n\n---\n\n")}
       const msg = e.message || "";
       if (msg.includes("Failed to fetch") || msg.includes("NetworkError"))
         setTestStatus("error", "连接失败: 可能是 CORS、网络或 Base URL 错误");
-      else
-        setTestStatus("error", `连接失败: ${msg.slice(0, 80)}`);
+      else setTestStatus("error", `连接失败: ${msg.slice(0, 80)}`);
     }
     btn.disabled = false;
   }
@@ -659,7 +1088,65 @@ ${blocks.join("\n\n---\n\n")}
 
   function reRenderKatex(el) {
     if (typeof renderMathInElement !== "function") return;
-    try { renderMathInElement(el, { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }], throwOnError: false }); } catch (_) {}
+    try {
+      renderMathInElement(el, {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false },
+        ],
+        throwOnError: false,
+      });
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Debug card
+  // ══════════════════════════════════════════════════════════════════════════
+
+  function renderDebugCard(hits, contexts, systemPrompt, confidence) {
+    const hitRows = hits
+      .map((h, i) => {
+        const used = contexts.some(
+          (c) =>
+            c.nodeId === h.node.node_id &&
+            c.docTitle === (docCache[h.node.doc_id]?.tree?.title || "")
+        );
+        return `<tr class="${used ? "yuu-debug-used" : ""}">
+        <td>${i + 1}</td><td>${h.score}</td><td>${escHtml(h.node.doc_id)}</td>
+        <td>${escHtml((h.node.breadcrumb || []).join(" > "))}</td>
+        <td>${used ? "✓" : ""}</td>
+      </tr>`;
+      })
+      .join("");
+    const ctxBlocks = contexts
+      .map((c, i) => {
+        const textPreview = escHtml(c.text.slice(0, 120));
+        return `<div class="yuu-debug-ctx">
+        <strong>[${i + 1}] ${escHtml(c.docTitle)} &gt; ${escHtml(c.breadcrumb.join(" > "))}</strong>
+        <span class="yuu-debug-ctx-meta">${c.text.length} chars | ${escHtml(c.sourceId || "")} | ${escHtml(c.url || "")}</span>
+        <pre>${textPreview}…</pre>
+      </div>`;
+      })
+      .join("");
+    const promptPreview = escHtml(systemPrompt.slice(0, 800));
+    const totalChars = contexts.reduce((sum, c) => sum + c.text.length, 0);
+    return `<details class="yuu-debug-card">
+      <summary>检索调试: ${hits.length} hits → ${contexts.length} contexts (${totalChars} chars) | 置信度: ${confidence || "?"}</summary>
+      <div class="yuu-debug-section">
+        <h4>Search Hits</h4>
+        <table class="yuu-debug-table"><thead><tr><th>#</th><th>分数</th><th>文档</th><th>路径</th><th>命中</th></tr></thead><tbody>${hitRows}</tbody></table>
+      </div>
+      <div class="yuu-debug-section">
+        <h4>Context Chunks</h4>
+        ${ctxBlocks}
+      </div>
+      <div class="yuu-debug-section">
+        <h4>System Prompt <span class="yuu-debug-ctx-meta">(${systemPrompt.length} chars)</span></h4>
+        <pre class="yuu-debug-prompt">${promptPreview}…</pre>
+      </div>
+    </details>`;
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -667,44 +1154,86 @@ ${blocks.join("\n\n---\n\n")}
   // ══════════════════════════════════════════════════════════════════════════
 
   async function handleSend() {
-    const query = composerInput.value.trim(); if (!query) return;
+    const query = composerInput.value.trim();
+    if (!query) return;
     const cfg = Settings.resolve();
-    if (!cfg.apiKey) { openDrawer("settings"); return; }
+    if (!cfg.apiKey) {
+      openDrawer("settings");
+      return;
+    }
 
-    composerInput.value = ""; composerInput.style.height = "auto";
+    composerInput.value = "";
+    composerInput.style.height = "auto";
     hideEmpty();
     appendMessageBubble("user", query);
-    chatHistory.push({ role: "user", content: query }); saveSession();
+    chatHistory.push({ role: "user", content: query });
+    saveSession();
 
-    try { await loadIndexes(); } catch (_) { return; }
+    try {
+      await loadIndexes();
+    } catch (_) {
+      return;
+    }
 
     const contentEl = appendMessageBubble("assistant", "<em>检索中……</em>");
     setBusy(true);
 
     let result;
-    try { result = await retrieveContext(query); } catch (e) {
+    try {
+      result = await retrieveContext(query);
+    } catch (e) {
       contentEl.innerHTML = `<span style="color:#dc2626">检索失败: ${escHtml(e.message)}</span>`;
-      setBusy(false); return;
+      setBusy(false);
+      return;
     }
 
-    const { contexts, thin } = result;
+    const { contexts, thin, hits, confidence } = result;
     if (!contexts.length) {
-      contentEl.innerHTML = "当前图书馆中没有找到相关内容。建议换个关键词试试。";
-      setBusy(false); return;
+      contentEl.innerHTML =
+        "没有在图书馆中找到足够相关的内容。<br>你可以换个关键词，或改成更具体的问题。";
+      setBusy(false);
+      return;
     }
 
-    const docNames = [...new Set(contexts.map(c => c.docTitle))];
+    const docNames = [...new Set(contexts.map((c) => c.docTitle))];
+    const systemPrompt = buildSystemPrompt(contexts, thin, confidence);
+    const debugOn = localStorage.getItem("yuu_chat_debug") === "1";
     contentEl.innerHTML = `<em>已从 ${docNames.length} 个文档中检索到 ${contexts.length} 个相关段落……</em>`;
-
-    const systemPrompt = buildSystemPrompt(contexts, thin);
+    if (debugOn) contentEl.innerHTML += renderDebugCard(hits, contexts, systemPrompt, confidence);
     const messages = [...chatHistory.slice(-6)];
 
     try {
       let fullText = "";
-      for await (const chunk of streamText({ provider: cfg.provider, model: cfg.model, baseUrl: cfg.baseUrl, apiKey: cfg.apiKey, system: systemPrompt, messages })) {
+      for await (const chunk of streamText({
+        provider: cfg.provider,
+        model: cfg.model,
+        baseUrl: cfg.baseUrl,
+        apiKey: cfg.apiKey,
+        system: systemPrompt,
+        messages,
+      })) {
         fullText += chunk;
         contentEl.innerHTML = renderMarkdown(fullText);
         messagesEl.scrollTop = messagesEl.scrollHeight;
+        reRenderKatex(contentEl);
+      }
+      // Build reference map and inject clickable links.
+      // 编号规则必须与 buildSystemPrompt 一致（去重后递增），否则链接指错来源。
+      const refMap = {};
+      {
+        const seen = new Set();
+        let n = 0;
+        for (const c of contexts) {
+          const hash = c.text.slice(0, 80);
+          if (seen.has(hash)) continue;
+          seen.add(hash);
+          n++;
+          if (c.url) refMap[n] = { title: c.docTitle, breadcrumb: c.breadcrumb, url: c.url };
+        }
+      }
+      if (Object.keys(refMap).length > 0) {
+        fullText = injectReferenceLinks(fullText, refMap);
+        contentEl.innerHTML = renderMarkdown(fullText);
         reRenderKatex(contentEl);
       }
       chatHistory.push({ role: "assistant", content: fullText });
@@ -717,9 +1246,66 @@ ${blocks.join("\n\n---\n\n")}
   }
 
   // ══════════════════════════════════════════════════════════════════════════
+  // Dynamic suggestions — 从当前页面上下文生成建议问题
+  // ══════════════════════════════════════════════════════════════════════════
+
+  function getPageTitle() {
+    // 优先 article h1，其次 document.title 去掉站点后缀
+    const h1 = document.querySelector("article h1, main h1, h1");
+    if (h1 && h1.textContent.trim()) return h1.textContent.trim();
+    const t = document.title || "";
+    return t.replace(/\s*[•·-]\s*Yuunagi.*$/i, "").trim();
+  }
+
+  function buildDynamicSuggestions() {
+    const path = location.pathname;
+    const title = getPageTitle();
+    if (!title || title.length < 2) return null;
+    const isBook = /\/books?\//.test(path);
+    const isPaper = /\/papers?\//.test(path);
+    const short = title.length > 20 ? title.slice(0, 20) + "…" : title;
+    if (isBook) {
+      return [
+        `总结「${short}」的核心内容`,
+        `「${short}」需要哪些前置知识？`,
+        `「${short}」有什么实际应用？`,
+      ];
+    }
+    if (isPaper) {
+      return [
+        `解释「${short}」的核心贡献`,
+        `「${short}」用了哪些关键方法？`,
+        `「${short}」和哪些理论相关？`,
+      ];
+    }
+    // 首页或其他：用标题做通用建议，但只在标题像"主题"时
+    if (title.length <= 16 && !/^(首页|home|index|关于|about)$/i.test(title)) {
+      return [
+        `介绍一下「${title}」`,
+        `「${title}」的核心概念是什么？`,
+        `关于「${title}」有哪些参考资料？`,
+      ];
+    }
+    return null;
+  }
+
+  function injectDynamicSuggestions() {
+    const suggestions = buildDynamicSuggestions();
+    if (!suggestions) return;
+    const container = root.querySelector(".yuu-ai-prompts");
+    if (!container) return;
+    container.innerHTML = suggestions
+      .map((s) => `<button data-prompt="${escHtml(s)}">${escHtml(s)}</button>`)
+      .join("");
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
   // Init
   // ══════════════════════════════════════════════════════════════════════════
 
-  function init() { if (!document.getElementById("yuu-chat-root")) createDOM(); }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+  function init() {
+    if (!document.getElementById("yuu-chat-root")) createDOM();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
