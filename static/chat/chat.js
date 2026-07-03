@@ -10,17 +10,29 @@
   const PAGEINDEX = `${BASE}pageindex`;
 
   // ── State ────────────────────────────────────────────────────────────────
-  let globalIndex = null, nodeIndex = null, docCache = {}, indexReady = false;
+  let globalIndex = null,
+    nodeIndex = null,
+    indexReady = false;
+  const docCache = {};
   const CHAT_SESSION_KEY = "yuu_chat_session";
   const SESSIONS_ARCHIVE_KEY = "yuu_chat_sessions_archive";
   const MAX_ARCHIVED = 20;
   let chatHistory = loadSession();
 
   function loadSession() {
-    try { const r = sessionStorage.getItem(CHAT_SESSION_KEY); return r ? JSON.parse(r) : []; } catch (_) { return []; }
+    try {
+      const r = sessionStorage.getItem(CHAT_SESSION_KEY);
+      return r ? JSON.parse(r) : [];
+    } catch (_) {
+      return [];
+    }
   }
   function saveSession() {
-    try { sessionStorage.setItem(CHAT_SESSION_KEY, JSON.stringify(chatHistory)); } catch (_) {}
+    try {
+      sessionStorage.setItem(CHAT_SESSION_KEY, JSON.stringify(chatHistory));
+    } catch (_) {
+      /* ignore */
+    }
   }
 
   // ── DOM refs ─────────────────────────────────────────────────────────────
@@ -34,26 +46,36 @@
     if (!response.ok) {
       const text = await response.text().catch(() => "");
       let msg = `HTTP ${response.status}`;
-      try { msg = JSON.parse(text).error?.message || msg; } catch (_) {}
+      try {
+        msg = JSON.parse(text).error?.message || msg;
+      } catch (_) {
+        /* ignore */
+      }
       throw new Error(msg);
     }
-    const reader = response.body.getReader(), decoder = new TextDecoder();
+    const reader = response.body.getReader(),
+      decoder = new TextDecoder();
     let buffer = "";
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n"); buffer = lines.pop() || "";
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
       for (const line of lines) {
         if (!line.startsWith("data: ")) continue;
-        const raw = line.slice(6); if (raw === "[DONE]") return;
+        const raw = line.slice(6);
+        if (raw === "[DONE]") return;
         try {
           const json = JSON.parse(raw);
-          if (json.type === "content_block_delta" && json.delta?.text) { yield json.delta.text; }
-          else if (json.type === "message_stop") return;
+          if (json.type === "content_block_delta" && json.delta?.text) {
+            yield json.delta.text;
+          } else if (json.type === "message_stop") return;
           const c = json.choices?.[0]?.delta?.content;
           if (c) yield c;
-        } catch (_) {}
+        } catch (_) {
+          /* ignore */
+        }
       }
     }
   }
@@ -62,14 +84,30 @@
     if (provider === "anthropic" || provider === "deepseek") {
       return {
         url: `${baseUrl}/v1/messages`,
-        headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
-        body: JSON.stringify({ model, max_tokens: maxTokens || 2048, system, messages, stream: true }),
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens || 2048,
+          system,
+          messages,
+          stream: true,
+        }),
       };
     }
     return {
       url: `${baseUrl}/v1/chat/completions`,
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
-      body: JSON.stringify({ model, max_tokens: maxTokens || 2048, messages: [{ role: "system", content: system }, ...messages], stream: true }),
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens || 2048,
+        messages: [{ role: "system", content: system }, ...messages],
+        stream: true,
+      }),
     };
   }
 
@@ -85,33 +123,64 @@
 
   const Settings = {
     _pfx: "yuu_chat_",
-    _defaults() { return { provider: "anthropic", model: "", base_url: "", api_key: "", remember_key: false }; },
+    _defaults() {
+      return { provider: "anthropic", model: "", base_url: "", api_key: "", remember_key: false };
+    },
     get(key) {
-      const v = sessionStorage.getItem(this._pfx + key); if (v !== null) return v;
+      const v = sessionStorage.getItem(this._pfx + key);
+      if (v !== null) return v;
       return localStorage.getItem(this._pfx + key) || this._defaults()[key] || "";
     },
     set(key, val) {
       sessionStorage.setItem(this._pfx + key, val);
       if (key === "remember_key") {
-        if (val === "true") { const k = this.get("api_key"); if (k) localStorage.setItem(this._pfx + "api_key", k); }
-        else localStorage.removeItem(this._pfx + "api_key");
+        if (val === "true") {
+          const k = this.get("api_key");
+          if (k) localStorage.setItem(this._pfx + "api_key", k);
+        } else localStorage.removeItem(this._pfx + "api_key");
       }
-      if (key !== "api_key" && key !== "remember_key") { try { localStorage.setItem(this._pfx + key, val); } catch (_) {} }
-      if (key === "api_key" && this.get("remember_key") === "true") { localStorage.setItem(this._pfx + key, val); }
+      if (key !== "api_key" && key !== "remember_key") {
+        try {
+          localStorage.setItem(this._pfx + key, val);
+        } catch (_) {
+          /* ignore */
+        }
+      }
+      if (key === "api_key" && this.get("remember_key") === "true") {
+        localStorage.setItem(this._pfx + key, val);
+      }
     },
     resolve() {
       const p = this.get("provider");
-      const model = this.get("model") || {
-        anthropic: "claude-sonnet-4-6", deepseek: "deepseek-v4-flash", openai: "gpt-4o",
-        siliconflow: "deepseek-ai/DeepSeek-V3", openrouter: "anthropic/claude-sonnet-4",
-        zhipu: "glm-4", dashscope: "qwen-plus", ollama: "llama3", gemini: "gemini-2.5-flash", custom: "",
-      }[p] || "";
-      const baseUrl = this.get("base_url") || {
-        anthropic: "https://api.anthropic.com", deepseek: "https://api.deepseek.com/anthropic", openai: "https://api.openai.com",
-        siliconflow: "https://api.siliconflow.cn", openrouter: "https://openrouter.ai/api",
-        zhipu: "https://open.bigmodel.cn/api/paas/v4", dashscope: "https://dashscope.aliyuncs.com/compatible-mode/v1",
-        ollama: "http://localhost:11434", gemini: "https://generativelanguage.googleapis.com/v1beta/openai",
-      }[p] || "";
+      const model =
+        this.get("model") ||
+        {
+          anthropic: "claude-sonnet-4-6",
+          deepseek: "deepseek-v4-flash",
+          openai: "gpt-4o",
+          siliconflow: "deepseek-ai/DeepSeek-V3",
+          openrouter: "anthropic/claude-sonnet-4",
+          zhipu: "glm-4",
+          dashscope: "qwen-plus",
+          ollama: "llama3",
+          gemini: "gemini-2.5-flash",
+          custom: "",
+        }[p] ||
+        "";
+      const baseUrl =
+        this.get("base_url") ||
+        {
+          anthropic: "https://api.anthropic.com",
+          deepseek: "https://api.deepseek.com/anthropic",
+          openai: "https://api.openai.com",
+          siliconflow: "https://api.siliconflow.cn",
+          openrouter: "https://openrouter.ai/api",
+          zhipu: "https://open.bigmodel.cn/api/paas/v4",
+          dashscope: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+          ollama: "http://localhost:11434",
+          gemini: "https://generativelanguage.googleapis.com/v1beta/openai",
+        }[p] ||
+        "";
       return { provider: p, model, baseUrl, apiKey: this.get("api_key") };
     },
   };
@@ -123,10 +192,12 @@
   async function loadIndexes() {
     if (indexReady) return;
     const [gi, ni] = await Promise.all([
-      fetch(`${PAGEINDEX}/global-index.json`).then(r => r.json()),
-      fetch(`${PAGEINDEX}/node-index.json`).then(r => r.json()),
+      fetch(`${PAGEINDEX}/global-index.json`).then((r) => r.json()),
+      fetch(`${PAGEINDEX}/node-index.json`).then((r) => r.json()),
     ]);
-    globalIndex = gi; nodeIndex = ni; indexReady = true;
+    globalIndex = gi;
+    nodeIndex = ni;
+    indexReady = true;
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -142,25 +213,37 @@
 
   function scoreNode(queryTokens, node) {
     let s = 0;
-    const title = (node.title || "").toLowerCase(), excerpt = (node.excerpt || "").toLowerCase();
-    const terms = (node.terms || []).join(" ").toLowerCase(), crumb = (node.breadcrumb || []).join(" ").toLowerCase();
+    const title = (node.title || "").toLowerCase(),
+      excerpt = (node.excerpt || "").toLowerCase();
+    const terms = (node.terms || []).join(" ").toLowerCase(),
+      crumb = (node.breadcrumb || []).join(" ").toLowerCase();
     for (const qt of queryTokens) {
       const q = qt.toLowerCase();
-      if (title.includes(q)) s += 10; else if (crumb.includes(q)) s += 4;
-      else if (terms.includes(q)) s += 3; else if (excerpt.includes(q)) s += 1;
+      if (title.includes(q)) s += 10;
+      else if (crumb.includes(q)) s += 4;
+      else if (terms.includes(q)) s += 3;
+      else if (excerpt.includes(q)) s += 1;
     }
     return s;
   }
 
   function search(query, topK = 10) {
     if (!nodeIndex) return [];
-    const tokens = tokenize(query); if (!tokens.length) return [];
+    const tokens = tokenize(query);
+    if (!tokens.length) return [];
     const scored = [];
-    for (const node of nodeIndex.nodes) { const s = scoreNode(tokens, node); if (s > 0) scored.push({ node, score: s }); }
+    for (const node of nodeIndex.nodes) {
+      const s = scoreNode(tokens, node);
+      if (s > 0) scored.push({ node, score: s });
+    }
     scored.sort((a, b) => b.score - a.score);
-    const seen = new Set(), results = [];
+    const seen = new Set(),
+      results = [];
     for (const item of scored) {
-      if ([...seen].filter(id => id === item.node.doc_id).length < 3) { results.push(item); seen.add(item.node.doc_id); }
+      if ([...seen].filter((id) => id === item.node.doc_id).length < 3) {
+        results.push(item);
+        seen.add(item.node.doc_id);
+      }
       if (results.length >= topK * 2) break;
     }
     return results.slice(0, topK);
@@ -168,55 +251,107 @@
 
   async function loadDocTree(docId) {
     if (docCache[docId] !== undefined) return;
-    const doc = globalIndex?.docs?.find(d => d.id === docId);
+    const doc = globalIndex?.docs?.find((d) => d.id === docId);
     const type = doc?.type || "papers";
     try {
       const resp = await fetch(`${PAGEINDEX}/${type}/${docId}.json`);
       const data = await resp.json();
       const flat = [];
-      (function walk(nodes, crumb) { for (const n of nodes) { const c = [...crumb, n.title]; flat.push({ ...n, _crumb: c }); if (n.nodes) walk(n.nodes, c); } })(data.structure, []);
+      (function walk(nodes, crumb) {
+        for (const n of nodes) {
+          const c = [...crumb, n.title];
+          flat.push({ ...n, _crumb: c });
+          if (n.nodes) walk(n.nodes, c);
+        }
+      })(data.structure, []);
       docCache[docId] = { tree: data, flat };
-    } catch (_) { docCache[docId] = null; }
+    } catch (_) {
+      docCache[docId] = null;
+    }
   }
 
   function buildContextChunk(doc, nodeId, docMeta) {
-    const flat = doc.flat; const idx = flat.findIndex(n => n.node_id === nodeId);
+    const flat = doc.flat;
+    const idx = flat.findIndex((n) => n.node_id === nodeId);
     if (idx < 0) return null;
-    const node = flat[idx], crumb = node._crumb || [node.title], text = node.text || "";
-    const parent = crumb.length > 1 ? flat.find(n => n._crumb?.length === crumb.length - 1 && crumb.slice(0, -1).every((t, i) => n._crumb[i] === t)) : null;
-    const siblings = flat.filter(n => n._crumb?.length === crumb.length && n.node_id !== node.node_id && n._crumb?.slice(0, -1).every((t, i) => crumb[i] === t)).slice(0, 4);
-    const children = flat.filter(n => n._crumb?.length === crumb.length + 1 && n._crumb?.slice(0, -1).every((t, i) => crumb[i] === t)).slice(0, 4);
-    return { docType: docMeta.type || "", docTitle: docMeta.title || docMeta.doc_name || "", docAuthor: docMeta.author || "", nodeId, title: node.title, breadcrumb: crumb, text, parentTitle: parent?.title || "", siblingTitles: siblings.map(n => n.title), childTitles: children.map(n => n.title) };
+    const node = flat[idx],
+      crumb = node._crumb || [node.title],
+      text = node.text || "";
+    const parent =
+      crumb.length > 1
+        ? flat.find(
+            (n) =>
+              n._crumb?.length === crumb.length - 1 &&
+              crumb.slice(0, -1).every((t, i) => n._crumb[i] === t)
+          )
+        : null;
+    const siblings = flat
+      .filter(
+        (n) =>
+          n._crumb?.length === crumb.length &&
+          n.node_id !== node.node_id &&
+          n._crumb?.slice(0, -1).every((t, i) => crumb[i] === t)
+      )
+      .slice(0, 4);
+    const children = flat
+      .filter(
+        (n) =>
+          n._crumb?.length === crumb.length + 1 &&
+          n._crumb?.slice(0, -1).every((t, i) => crumb[i] === t)
+      )
+      .slice(0, 4);
+    return {
+      docType: docMeta.type || "",
+      docTitle: docMeta.title || docMeta.doc_name || "",
+      docAuthor: docMeta.author || "",
+      nodeId,
+      title: node.title,
+      breadcrumb: crumb,
+      text,
+      parentTitle: parent?.title || "",
+      siblingTitles: siblings.map((n) => n.title),
+      childTitles: children.map((n) => n.title),
+    };
   }
 
   async function retrieveContext(query) {
-    const hits = search(query); if (!hits.length) return { contexts: [], docCount: 0, thin: true };
-    const uniqueDocs = [...new Set(hits.map(h => h.node.doc_id))].slice(0, 6);
+    const hits = search(query);
+    if (!hits.length) return { contexts: [], docCount: 0, thin: true };
+    const uniqueDocs = [...new Set(hits.map((h) => h.node.doc_id))].slice(0, 6);
     await Promise.all(uniqueDocs.map(loadDocTree));
-    const contexts = [], seenNodes = new Set();
+    const contexts = [],
+      seenNodes = new Set();
     for (const hit of hits.slice(0, 8)) {
-      const doc = docCache[hit.node.doc_id]; if (!doc) continue;
+      const doc = docCache[hit.node.doc_id];
+      if (!doc) continue;
       if (seenNodes.has(hit.node.doc_id + ":" + hit.node.node_id)) continue;
       seenNodes.add(hit.node.doc_id + ":" + hit.node.node_id);
       const ctx = buildContextChunk(doc, hit.node.node_id, doc.tree);
-      if (ctx && ctx.text) contexts.push(ctx);
+      if (ctx && ctx.text) {
+        ctx.url = hit.node.url || "";
+        contexts.push(ctx);
+      }
     }
     let thin = contexts.length < 2;
     if (thin && query.length > 4) {
       for (const term of tokenize(query).slice(0, 3)) {
         for (const hit of search(term, 4)) {
           if (!docCache[hit.node.doc_id]) await loadDocTree(hit.node.doc_id);
-          const d = docCache[hit.node.doc_id]; if (!d || seenNodes.has(hit.node.doc_id + ":" + hit.node.node_id)) continue;
+          const d = docCache[hit.node.doc_id];
+          if (!d || seenNodes.has(hit.node.doc_id + ":" + hit.node.node_id)) continue;
           seenNodes.add(hit.node.doc_id + ":" + hit.node.node_id);
           const ctx = buildContextChunk(d, hit.node.node_id, d.tree);
-          if (ctx && ctx.text) contexts.push(ctx);
+          if (ctx && ctx.text) {
+            ctx.url = hit.node.url || "";
+            contexts.push(ctx);
+          }
           if (contexts.length >= 6) break;
         }
         if (contexts.length >= 6) break;
       }
       thin = contexts.length < 2;
     }
-    return { contexts, docCount: uniqueDocs.length, thin };
+    return { contexts, docCount: uniqueDocs.length, thin, hits: hits.slice(0, 12) };
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -226,22 +361,36 @@
   const MAX_SECTION_CHARS = 2500;
 
   function buildSystemPrompt(contexts, thin) {
-    const docNames = [...new Set(contexts.map(c => c.docTitle))];
-    const docToc = docNames.map(name => { const dc = contexts.filter(c => c.docTitle === name); const meta = [dc[0].docAuthor, dc[0].docType].filter(Boolean).join(" · "); return `- **${name}**${meta ? ` (${meta})` : ""} — ${dc.length} 个相关段落`; });
-    const blocks = [], seen = new Set();
+    const docNames = [...new Set(contexts.map((c) => c.docTitle))];
+    const docToc = docNames.map((name) => {
+      const dc = contexts.filter((c) => c.docTitle === name);
+      const meta = [dc[0].docAuthor, dc[0].docType].filter(Boolean).join(" · ");
+      return `- **${name}**${meta ? ` (${meta})` : ""} — ${dc.length} 个相关段落`;
+    });
+    const blocks = [],
+      seen = new Set();
     for (let i = 0; i < contexts.length; i++) {
-      const c = contexts[i], hash = c.text.slice(0, 80); if (seen.has(hash)) continue; seen.add(hash);
-      const crumb = c.breadcrumb.join(" > "); let text = c.text; let truncated = false;
-      if (text.length > MAX_SECTION_CHARS) { text = text.slice(0, MAX_SECTION_CHARS) + "\n\n…[已截断，可追问获取完整内容]…"; truncated = true; }
+      const c = contexts[i],
+        hash = c.text.slice(0, 80);
+      if (seen.has(hash)) continue;
+      seen.add(hash);
+      const crumb = c.breadcrumb.join(" > ");
+      let text = c.text;
+      if (text.length > MAX_SECTION_CHARS) {
+        text = text.slice(0, MAX_SECTION_CHARS) + "\n\n…[已截断，可追问获取完整内容]…";
+      }
       let block = `### [${i + 1}] ${crumb}\n*来源: ${c.docTitle}*\n`;
       const nearby = [];
       if (c.parentTitle && c.breadcrumb.length > 1) nearby.push(`上级: ${c.parentTitle}`);
       if (c.siblingTitles.length) nearby.push(`同级: ${c.siblingTitles.join(" / ")}`);
       if (c.childTitles.length) nearby.push(`子节: ${c.childTitles.join(" / ")}`);
       if (nearby.length) block += `*${nearby.join("  |  ")}*\n`;
-      block += `\n${text}`; blocks.push(block);
+      block += `\n${text}`;
+      blocks.push(block);
     }
-    const thinNotice = thin ? "\n> **注意**: 本次检索结果较少，回答可能不完整。\n" : "";
+    const thinNotice = thin
+      ? "\n> **注意**: 本次检索结果较少。如果 Context 不足以回答问题，请如实说明依据不足，不要猜测或编造。\n"
+      : "";
     return `你是 **Yuunagi Library** 的知识助手，基于个人数字图书馆内容的 RAG 问答系统。
 
 ## 检索概览
@@ -271,15 +420,53 @@ ${blocks.join("\n\n---\n\n")}
 
   function renderMarkdown(text) {
     let html = text;
-    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => `<pre><code>${escHtml(code.trim())}</code></pre>`);
+    html = html.replace(
+      /```(\w*)\n([\s\S]*?)```/g,
+      (_, lang, code) => `<pre><code>${escHtml(code.trim())}</code></pre>`
+    );
     html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/\*([^*]+)\*/g, "<em>$1</em>");
-    html = html.replace(/^### (.+)$/gm, "<h4>$1</h4>").replace(/^## (.+)$/gm, "<h3>$1</h3>").replace(/^# (.+)$/gm, "<h2>$1</h2>");
+    html = html
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    html = html
+      .replace(/^### (.+)$/gm, "<h4>$1</h4>")
+      .replace(/^## (.+)$/gm, "<h3>$1</h3>")
+      .replace(/^# (.+)$/gm, "<h2>$1</h2>");
     html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
     html = html.replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br>");
     return `<p>${html}</p>`;
   }
-  function escHtml(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]); }
+  function escHtml(s) {
+    return s.replace(
+      /[&<>"]/g,
+      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]
+    );
+  }
+
+  function injectReferenceLinks(markdown, refMap) {
+    if (!refMap || Object.keys(refMap).length === 0) return markdown;
+    const base = BASE.replace(/\/+$/, "");
+    const lines = markdown.split("\n");
+    const result = lines.map((line) => {
+      // Reference list entry: [N] at line start followed by label text
+      const refMatch = line.match(/^\[(\d+)\]\s+(.+)$/);
+      if (refMatch) {
+        const ref = refMap[parseInt(refMatch[1])];
+        if (ref && ref.url) return `[${refMatch[1]}] [${refMatch[2]}](${base}${ref.url})`;
+        return line;
+      }
+      // Inline citation: [N] in running text, not at line start, not already a link
+      return line.replace(
+        /([\s,.;:，。；：、""''）)>])\[(\d+)\](?!\s*\()/g,
+        (match, prefix, num) => {
+          const ref = refMap[parseInt(num)];
+          if (ref && ref.url) return `${prefix}[${num}](${base}${ref.url})`;
+          return match;
+        }
+      );
+    });
+    return result.join("\n");
+  }
 
   // ══════════════════════════════════════════════════════════════════════════
   // Session archive (localStorage)
@@ -289,23 +476,46 @@ ${blocks.join("\n\n---\n\n")}
     if (!chatHistory.length) return;
     const sessions = loadArchivedSessions();
     const title = chatHistory[0]?.content?.slice(0, 50) || "(空会话)";
-    sessions.unshift({ id: Date.now().toString(36), title, date: new Date().toISOString(), messages: [...chatHistory] });
+    sessions.unshift({
+      id: Date.now().toString(36),
+      title,
+      date: new Date().toISOString(),
+      messages: [...chatHistory],
+    });
     if (sessions.length > MAX_ARCHIVED) sessions.length = MAX_ARCHIVED;
-    try { localStorage.setItem(SESSIONS_ARCHIVE_KEY, JSON.stringify(sessions)); } catch (_) {}
+    try {
+      localStorage.setItem(SESSIONS_ARCHIVE_KEY, JSON.stringify(sessions));
+    } catch (_) {
+      /* ignore */
+    }
   }
   function loadArchivedSessions() {
-    try { const r = localStorage.getItem(SESSIONS_ARCHIVE_KEY); return r ? JSON.parse(r) : []; } catch (_) { return []; }
+    try {
+      const r = localStorage.getItem(SESSIONS_ARCHIVE_KEY);
+      return r ? JSON.parse(r) : [];
+    } catch (_) {
+      return [];
+    }
   }
   function restoreArchivedSession(id) {
-    const sessions = loadArchivedSessions(), s = sessions.find(x => x.id === id); if (!s) return;
+    const sessions = loadArchivedSessions(),
+      s = sessions.find((x) => x.id === id);
+    if (!s) return;
     if (chatHistory.length) archiveCurrentSession();
-    chatHistory = s.messages; saveSession();
-    messagesEl.innerHTML = ""; hideEmpty();
+    chatHistory = s.messages;
+    saveSession();
+    messagesEl.innerHTML = "";
+    hideEmpty();
     for (const msg of chatHistory) appendMessageBubble(msg.role, msg.content);
   }
   function removeArchivedSession(id) {
-    let sessions = loadArchivedSessions(); sessions = sessions.filter(x => x.id !== id);
-    try { localStorage.setItem(SESSIONS_ARCHIVE_KEY, JSON.stringify(sessions)); } catch (_) {}
+    let sessions = loadArchivedSessions();
+    sessions = sessions.filter((x) => x.id !== id);
+    try {
+      localStorage.setItem(SESSIONS_ARCHIVE_KEY, JSON.stringify(sessions));
+    } catch (_) {
+      /* ignore */
+    }
     return sessions;
   }
 
@@ -392,6 +602,14 @@ ${blocks.join("\n\n---\n\n")}
             <small>默认关闭。开启后才保存到本地浏览器。</small>
           </span>
         </label>
+        <label class="yuu-ai-check-row">
+          <input id="yuu-setting-debug" type="checkbox">
+          <span class="yuu-ai-check-box" aria-hidden="true"></span>
+          <span class="yuu-ai-check-text">
+            <strong>检索调试模式</strong>
+            <small>显示命中节点、匹配分数和发给模型的 context。</small>
+          </span>
+        </label>
         <div class="yuu-ai-settings-actions">
           <button id="yuu-settings-save" class="yuu-ai-save-btn">保存设置</button>
           <button id="yuu-settings-test" class="yuu-ai-test-btn">测试连接</button>
@@ -419,15 +637,18 @@ ${blocks.join("\n\n---\n\n")}
     // Single delegated event listener — data-action based
     root.addEventListener("click", handleAction);
     // Prompt suggestion clicks
-    root.querySelectorAll("[data-prompt]").forEach(btn => {
+    root.querySelectorAll("[data-prompt]").forEach((btn) => {
       btn.addEventListener("click", () => {
         composerInput.value = btn.dataset.prompt;
         handleSend();
       });
     });
     // Enter to send
-    composerInput.addEventListener("keydown", e => {
-      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+    composerInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
     });
     composerInput.addEventListener("input", () => {
       composerInput.style.height = "auto";
@@ -468,17 +689,25 @@ ${blocks.join("\n\n---\n\n")}
     drawer.hidden = false;
   }
   function closeDrawer() {
-    root.querySelectorAll(".yuu-ai-drawer").forEach(d => { d.hidden = true; });
+    root.querySelectorAll(".yuu-ai-drawer").forEach((d) => {
+      d.hidden = true;
+    });
   }
-  function showMessages() { emptyEl.hidden = true; messagesEl.hidden = false; }
-  function hideEmpty() { emptyEl.hidden = true; messagesEl.hidden = false; }
+  function hideEmpty() {
+    emptyEl.hidden = true;
+    messagesEl.hidden = false;
+  }
   function showEmpty() {
-    emptyEl.hidden = false; messagesEl.hidden = true; messagesEl.innerHTML = "";
+    emptyEl.hidden = false;
+    messagesEl.hidden = true;
+    messagesEl.innerHTML = "";
   }
   function newSession() {
     archiveCurrentSession();
-    chatHistory = []; saveSession();
-    closeDrawer(); showEmpty();
+    chatHistory = [];
+    saveSession();
+    closeDrawer();
+    showEmpty();
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -500,26 +729,35 @@ ${blocks.join("\n\n---\n\n")}
   function renderHistoryList(list) {
     const sessions = loadArchivedSessions();
     if (!sessions.length) {
-      list.innerHTML = '<div class="yuu-history-empty">暂无历史会话。<br>开始新对话后，旧会话自动存档。</div>';
+      list.innerHTML =
+        '<div class="yuu-history-empty">暂无历史会话。<br>开始新对话后，旧会话自动存档。</div>';
       return;
     }
-    list.innerHTML = sessions.map(s => {
-      const d = new Date(s.date);
-      const ds = d.toLocaleString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-      return `<div class="yuu-history-item" data-id="${s.id}">
+    list.innerHTML = sessions
+      .map((s) => {
+        const d = new Date(s.date);
+        const ds = d.toLocaleString("zh-CN", {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        return `<div class="yuu-history-item" data-id="${s.id}">
         <span class="yuu-history-title">${escHtml(s.title)}</span>
         <span class="yuu-history-date">${ds} · ${s.messages.length} 条</span>
         <button class="yuu-history-del" data-id="${s.id}" title="删除">&times;</button>
       </div>`;
-    }).join("");
-    list.querySelectorAll(".yuu-history-item").forEach(el => {
-      el.addEventListener("click", e => {
+      })
+      .join("");
+    list.querySelectorAll(".yuu-history-item").forEach((el) => {
+      el.addEventListener("click", (e) => {
         if (e.target.classList.contains("yuu-history-del")) return;
-        restoreArchivedSession(el.dataset.id); closeDrawer();
+        restoreArchivedSession(el.dataset.id);
+        closeDrawer();
       });
     });
-    list.querySelectorAll(".yuu-history-del").forEach(el => {
-      el.addEventListener("click", e => {
+    list.querySelectorAll(".yuu-history-del").forEach((el) => {
+      el.addEventListener("click", (e) => {
         e.stopPropagation();
         removeArchivedSession(el.dataset.id);
         renderHistoryList(list);
@@ -553,7 +791,10 @@ ${blocks.join("\n\n---\n\n")}
     document.getElementById("yuu-setting-base-url").value = Settings.get("base_url");
     document.getElementById("yuu-setting-model").value = Settings.get("model");
     document.getElementById("yuu-setting-api-key").value = Settings.get("api_key");
-    document.getElementById("yuu-setting-remember").checked = Settings.get("remember_key") === "true";
+    document.getElementById("yuu-setting-remember").checked =
+      Settings.get("remember_key") === "true";
+    document.getElementById("yuu-setting-debug").checked =
+      localStorage.getItem("yuu_chat_debug") === "1";
     onProviderChange();
   }
   function saveSettings() {
@@ -564,6 +805,9 @@ ${blocks.join("\n\n---\n\n")}
     Settings.set("api_key", document.getElementById("yuu-setting-api-key").value);
     Settings.set("remember_key", remember ? "true" : "false");
     if (!remember) localStorage.removeItem("yuu_chat_api_key");
+    const debug = document.getElementById("yuu-setting-debug").checked;
+    if (debug) localStorage.setItem("yuu_chat_debug", "1");
+    else localStorage.removeItem("yuu_chat_debug");
     closeDrawer();
   }
 
@@ -576,13 +820,26 @@ ${blocks.join("\n\n---\n\n")}
 
   async function testConnection() {
     const provider = document.getElementById("yuu-setting-provider").value;
-    const apiKey = document.getElementById("yuu-setting-api-key").value.trim() || Settings.get("api_key");
-    if (!apiKey) { setTestStatus("error", "请先填写 API Key"); return; }
+    const apiKey =
+      document.getElementById("yuu-setting-api-key").value.trim() || Settings.get("api_key");
+    if (!apiKey) {
+      setTestStatus("error", "请先填写 API Key");
+      return;
+    }
 
-    const model = (document.getElementById("yuu-setting-model").value || document.getElementById("yuu-setting-model").placeholder).trim();
-    let baseUrl = (document.getElementById("yuu-setting-base-url").value || document.getElementById("yuu-setting-base-url").placeholder).trim();
+    const model = (
+      document.getElementById("yuu-setting-model").value ||
+      document.getElementById("yuu-setting-model").placeholder
+    ).trim();
+    let baseUrl = (
+      document.getElementById("yuu-setting-base-url").value ||
+      document.getElementById("yuu-setting-base-url").placeholder
+    ).trim();
     baseUrl = baseUrl.replace(/\/+$/, "");
-    if (!baseUrl) { setTestStatus("error", "请先填写 Base URL 或选择 Provider"); return; }
+    if (!baseUrl) {
+      setTestStatus("error", "请先填写 Base URL 或选择 Provider");
+      return;
+    }
 
     setTestStatus("loading", "正在测试……");
     const btn = document.getElementById("yuu-settings-test");
@@ -594,12 +851,26 @@ ${blocks.join("\n\n---\n\n")}
 
       if (isAnthropic) {
         url = `${baseUrl}/v1/messages`;
-        headers = { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" };
-        body = JSON.stringify({ model, max_tokens: 8, messages: [{ role: "user", content: "ping" }] });
+        headers = {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        };
+        body = JSON.stringify({
+          model,
+          max_tokens: 8,
+          messages: [{ role: "user", content: "ping" }],
+        });
       } else {
         url = `${baseUrl}/v1/chat/completions`;
-        headers = { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` };
-        body = JSON.stringify({ model, messages: [{ role: "user", content: "ping" }], max_tokens: 8, stream: false });
+        headers = { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` };
+        body = JSON.stringify({
+          model,
+          messages: [{ role: "user", content: "ping" }],
+          max_tokens: 8,
+          stream: false,
+        });
       }
 
       const resp = await fetch(url, { method: "POST", headers, body });
@@ -610,7 +881,11 @@ ${blocks.join("\n\n---\n\n")}
         const status = resp.status;
         const text = await resp.text().catch(() => "");
         let msg = "";
-        try { msg = JSON.parse(text).error?.message || ""; } catch (_) {}
+        try {
+          msg = JSON.parse(text).error?.message || "";
+        } catch (_) {
+          /* ignore */
+        }
         if (status === 401) msg = "API Key 无效";
         else if (status === 403) msg = "无权限或浏览器跨域受限";
         else if (status === 404) msg = "Base URL 或模型不存在";
@@ -622,8 +897,7 @@ ${blocks.join("\n\n---\n\n")}
       const msg = e.message || "";
       if (msg.includes("Failed to fetch") || msg.includes("NetworkError"))
         setTestStatus("error", "连接失败: 可能是 CORS、网络或 Base URL 错误");
-      else
-        setTestStatus("error", `连接失败: ${msg.slice(0, 80)}`);
+      else setTestStatus("error", `连接失败: ${msg.slice(0, 80)}`);
     }
     btn.disabled = false;
   }
@@ -659,7 +933,68 @@ ${blocks.join("\n\n---\n\n")}
 
   function reRenderKatex(el) {
     if (typeof renderMathInElement !== "function") return;
-    try { renderMathInElement(el, { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }], throwOnError: false }); } catch (_) {}
+    try {
+      renderMathInElement(el, {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false },
+        ],
+        throwOnError: false,
+      });
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Debug card
+  // ══════════════════════════════════════════════════════════════════════════
+
+  function renderDebugCard(hits, contexts, systemPrompt) {
+    const hitRows = hits
+      .map((h, i) => {
+        const used = contexts.some(
+          (c) =>
+            c.nodeId === h.node.node_id &&
+            c.docTitle === (docCache[h.node.doc_id]?.tree?.title || "")
+        );
+        return `<tr class="${used ? "yuu-debug-used" : ""}">
+        <td>${i + 1}</td><td>${h.score}</td><td>${escHtml(h.node.doc_id)}</td>
+        <td>${escHtml((h.node.breadcrumb || []).join(" > "))}</td>
+        <td>${used ? "✓" : ""}</td>
+      </tr>`;
+      })
+      .join("");
+    const ctxBlocks = contexts
+      .map((c, i) => {
+        const textPreview = escHtml(c.text.slice(0, 120));
+        return `<div class="yuu-debug-ctx">
+        <strong>[${i + 1}] ${escHtml(c.docTitle)} &gt; ${escHtml(c.breadcrumb.join(" > "))}</strong>
+        <span class="yuu-debug-ctx-meta">${c.text.length} chars | ${escHtml(c.url || "")}</span>
+        <pre>${textPreview}…</pre>
+      </div>`;
+      })
+      .join("");
+    const promptPreview = escHtml(systemPrompt.slice(0, 800));
+    const totalChars = contexts.reduce((sum, c) => sum + c.text.length, 0);
+    return `<details class="yuu-debug-card">
+      <summary>检索调试: ${hits.length} hits → ${contexts.length} contexts (${totalChars} chars) | ${thinNotice(contexts)}</summary>
+      <div class="yuu-debug-section">
+        <h4>Search Hits</h4>
+        <table class="yuu-debug-table"><thead><tr><th>#</th><th>分数</th><th>文档</th><th>路径</th><th>命中</th></tr></thead><tbody>${hitRows}</tbody></table>
+      </div>
+      <div class="yuu-debug-section">
+        <h4>Context Chunks</h4>
+        ${ctxBlocks}
+      </div>
+      <div class="yuu-debug-section">
+        <h4>System Prompt <span class="yuu-debug-ctx-meta">(${systemPrompt.length} chars)</span></h4>
+        <pre class="yuu-debug-prompt">${promptPreview}…</pre>
+      </div>
+    </details>`;
+    function thinNotice(ctxs) {
+      return ctxs.length < 2 ? "thin" : "ok";
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -667,44 +1002,77 @@ ${blocks.join("\n\n---\n\n")}
   // ══════════════════════════════════════════════════════════════════════════
 
   async function handleSend() {
-    const query = composerInput.value.trim(); if (!query) return;
+    const query = composerInput.value.trim();
+    if (!query) return;
     const cfg = Settings.resolve();
-    if (!cfg.apiKey) { openDrawer("settings"); return; }
+    if (!cfg.apiKey) {
+      openDrawer("settings");
+      return;
+    }
 
-    composerInput.value = ""; composerInput.style.height = "auto";
+    composerInput.value = "";
+    composerInput.style.height = "auto";
     hideEmpty();
     appendMessageBubble("user", query);
-    chatHistory.push({ role: "user", content: query }); saveSession();
+    chatHistory.push({ role: "user", content: query });
+    saveSession();
 
-    try { await loadIndexes(); } catch (_) { return; }
+    try {
+      await loadIndexes();
+    } catch (_) {
+      return;
+    }
 
     const contentEl = appendMessageBubble("assistant", "<em>检索中……</em>");
     setBusy(true);
 
     let result;
-    try { result = await retrieveContext(query); } catch (e) {
+    try {
+      result = await retrieveContext(query);
+    } catch (e) {
       contentEl.innerHTML = `<span style="color:#dc2626">检索失败: ${escHtml(e.message)}</span>`;
-      setBusy(false); return;
+      setBusy(false);
+      return;
     }
 
-    const { contexts, thin } = result;
+    const { contexts, thin, hits } = result;
     if (!contexts.length) {
-      contentEl.innerHTML = "当前图书馆中没有找到相关内容。建议换个关键词试试。";
-      setBusy(false); return;
+      contentEl.innerHTML =
+        "没有在图书馆中找到足够相关的内容。<br>你可以换个关键词，或改成更具体的问题。";
+      setBusy(false);
+      return;
     }
 
-    const docNames = [...new Set(contexts.map(c => c.docTitle))];
-    contentEl.innerHTML = `<em>已从 ${docNames.length} 个文档中检索到 ${contexts.length} 个相关段落……</em>`;
-
+    const docNames = [...new Set(contexts.map((c) => c.docTitle))];
     const systemPrompt = buildSystemPrompt(contexts, thin);
+    const debugOn = localStorage.getItem("yuu_chat_debug") === "1";
+    contentEl.innerHTML = `<em>已从 ${docNames.length} 个文档中检索到 ${contexts.length} 个相关段落……</em>`;
+    if (debugOn) contentEl.innerHTML += renderDebugCard(hits, contexts, systemPrompt);
     const messages = [...chatHistory.slice(-6)];
 
     try {
       let fullText = "";
-      for await (const chunk of streamText({ provider: cfg.provider, model: cfg.model, baseUrl: cfg.baseUrl, apiKey: cfg.apiKey, system: systemPrompt, messages })) {
+      for await (const chunk of streamText({
+        provider: cfg.provider,
+        model: cfg.model,
+        baseUrl: cfg.baseUrl,
+        apiKey: cfg.apiKey,
+        system: systemPrompt,
+        messages,
+      })) {
         fullText += chunk;
         contentEl.innerHTML = renderMarkdown(fullText);
         messagesEl.scrollTop = messagesEl.scrollHeight;
+        reRenderKatex(contentEl);
+      }
+      // Build reference map and inject clickable links
+      const refMap = {};
+      contexts.forEach((c, i) => {
+        if (c.url) refMap[i + 1] = { title: c.docTitle, breadcrumb: c.breadcrumb, url: c.url };
+      });
+      if (Object.keys(refMap).length > 0) {
+        fullText = injectReferenceLinks(fullText, refMap);
+        contentEl.innerHTML = renderMarkdown(fullText);
         reRenderKatex(contentEl);
       }
       chatHistory.push({ role: "assistant", content: fullText });
@@ -720,6 +1088,9 @@ ${blocks.join("\n\n---\n\n")}
   // Init
   // ══════════════════════════════════════════════════════════════════════════
 
-  function init() { if (!document.getElementById("yuu-chat-root")) createDOM(); }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+  function init() {
+    if (!document.getElementById("yuu-chat-root")) createDOM();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
