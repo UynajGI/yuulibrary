@@ -22,6 +22,8 @@
   let nodeIndex = null;
   let docCache = {};
   const CHAT_SESSION_KEY = "yuu_chat_session";
+  const SESSIONS_ARCHIVE_KEY = "yuu_chat_sessions_archive";
+  const MAX_ARCHIVED = 20;
   let chatHistory = loadSession();
   let indexReady = false;
 
@@ -33,6 +35,52 @@
   }
   function saveSession() {
     try { sessionStorage.setItem(CHAT_SESSION_KEY, JSON.stringify(chatHistory)); } catch (_) {}
+  }
+
+  // ── Archived sessions (localStorage) ───────────────────────────────────
+
+  function archiveCurrentSession() {
+    if (!chatHistory.length) return;
+    const sessions = loadArchivedSessions();
+    const title = chatHistory[0]?.content?.slice(0, 50) || "(空会话)";
+    sessions.unshift({
+      id: Date.now().toString(36),
+      title,
+      date: new Date().toISOString(),
+      messages: [...chatHistory],
+    });
+    if (sessions.length > MAX_ARCHIVED) sessions.length = MAX_ARCHIVED;
+    try { localStorage.setItem(SESSIONS_ARCHIVE_KEY, JSON.stringify(sessions)); } catch (_) {}
+  }
+
+  function loadArchivedSessions() {
+    try {
+      const raw = localStorage.getItem(SESSIONS_ARCHIVE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (_) { return []; }
+  }
+
+  function restoreArchivedSession(id) {
+    const sessions = loadArchivedSessions();
+    const s = sessions.find((x) => x.id === id);
+    if (!s) return;
+    // Archive current session first
+    if (chatHistory.length) archiveCurrentSession();
+    chatHistory = s.messages;
+    saveSession();
+    // Rebuild DOM
+    messagesEl.innerHTML = "";
+    for (const msg of chatHistory) {
+      addMessage(msg.role, msg.content);
+    }
+    addMessage("system", "已恢复历史会话: " + s.title);
+  }
+
+  function removeArchivedSession(id) {
+    let sessions = loadArchivedSessions();
+    sessions = sessions.filter((x) => x.id !== id);
+    try { localStorage.setItem(SESSIONS_ARCHIVE_KEY, JSON.stringify(sessions)); } catch (_) {}
+    return sessions;
   }
 
   // ── DOM refs ─────────────────────────────────────────────────────────────
@@ -500,6 +548,9 @@ ${contextBlock}
             <button id="yuu-chat-new-session-btn" title="新对话" aria-label="新对话">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
+            <button id="yuu-chat-history-btn" title="历史会话" aria-label="历史会话">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </button>
             <button id="yuu-chat-settings-btn" title="设置" aria-label="设置">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
@@ -521,6 +572,10 @@ ${contextBlock}
           <button id="yuu-chat-send-btn" title="发送" aria-label="发送">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
           </button>
+        </div>
+        <div id="yuu-chat-history" class="yuu-chat-hidden">
+          <div class="yuu-history-header"><span>历史会话</span><button id="yuu-history-close-btn">&times;</button></div>
+          <div id="yuu-history-list"></div>
         </div>
         <div id="yuu-chat-settings" class="yuu-chat-hidden">
           <div class="yuu-settings-group">
@@ -574,6 +629,10 @@ ${contextBlock}
     fab.addEventListener("click", openPanel);
     document.getElementById("yuu-chat-close-btn").addEventListener("click", closePanel);
     document.getElementById("yuu-chat-new-session-btn").addEventListener("click", newSession);
+    document.getElementById("yuu-chat-history-btn").addEventListener("click", toggleHistory);
+    document.getElementById("yuu-history-close-btn").addEventListener("click", () => {
+      document.getElementById("yuu-chat-history").classList.add("yuu-chat-hidden");
+    });
     document.getElementById("yuu-chat-settings-btn").addEventListener("click", () => {
       settingsEl.classList.toggle("yuu-chat-hidden");
     });
@@ -607,6 +666,46 @@ ${contextBlock}
   function closePanel() {
     panel.classList.add("yuu-chat-hidden");
     fab.classList.remove("yuu-chat-hidden");
+  }
+
+  function toggleHistory() {
+    const histPanel = document.getElementById("yuu-chat-history");
+    const list = document.getElementById("yuu-history-list");
+    const sessions = loadArchivedSessions();
+
+    if (histPanel.classList.contains("yuu-chat-hidden")) {
+      if (!sessions.length) {
+        addMessage("system", "暂无历史会话。开始新对话后，旧会话会自动存档。");
+        return;
+      }
+      list.innerHTML = sessions.map((s) => {
+        const d = new Date(s.date);
+        const ds = d.toLocaleString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+        return `<div class="yuu-history-item" data-id="${s.id}">
+          <span class="yuu-history-title">${escHtml(s.title)}</span>
+          <span class="yuu-history-date">${ds} · ${s.messages.length} 条</span>
+          <button class="yuu-history-del" data-id="${s.id}">&times;</button>
+        </div>`;
+      }).join("");
+      list.querySelectorAll(".yuu-history-item").forEach((el) => {
+        el.addEventListener("click", (e) => {
+          if (e.target.classList.contains("yuu-history-del")) return;
+          restoreArchivedSession(el.dataset.id);
+          histPanel.classList.add("yuu-chat-hidden");
+        });
+      });
+      list.querySelectorAll(".yuu-history-del").forEach((el) => {
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const remaining = removeArchivedSession(el.dataset.id);
+          if (!remaining.length) histPanel.classList.add("yuu-chat-hidden");
+          else toggleHistory();
+        });
+      });
+      histPanel.classList.remove("yuu-chat-hidden");
+    } else {
+      histPanel.classList.add("yuu-chat-hidden");
+    }
   }
 
   function onProviderChange() {
@@ -647,10 +746,11 @@ ${contextBlock}
   }
 
   function newSession() {
+    archiveCurrentSession();
     chatHistory = [];
     saveSession();
     messagesEl.innerHTML = "";
-    addMessage("system", "新对话已开始。");
+    addMessage("system", "新对话已开始。可在「历史」中查看过往会话。");
   }
 
   function clearAll() {

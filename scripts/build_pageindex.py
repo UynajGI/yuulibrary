@@ -515,6 +515,87 @@ def main():
     print(f"  total size:   {total_kb / 1024:.1f} KB")
 
 
+def changed_docs(file_paths: list[str]) -> set[tuple[str, str]]:
+    """Map changed file paths to affected (type, slug) pairs."""
+    docs = set()
+    for path in file_paths:
+        rel = os.path.relpath(path, CONTENT_DIR)
+        parts = rel.split(os.sep)
+        if parts[0] == "books" and len(parts) >= 2:
+            docs.add(("book", parts[1]))
+        elif parts[0] == "papers" and len(parts) >= 2:
+            docs.add(("paper", parts[1]))
+        elif parts[0] == "notes" and parts[-1].endswith(".md") and parts[-1] != "_index.md":
+            docs.add(("note", os.path.splitext(parts[-1])[0]))
+    return docs
+
+
+def process_one_doc(doc_type: str, slug: str) -> tuple[dict | None, list[dict]]:
+    """Process a single document and return (doc_tree, flat_nodes)."""
+    if doc_type == "book":
+        book_dir = os.path.join(CONTENT_DIR, "books", slug)
+        if os.path.isdir(book_dir):
+            return process_book(slug, book_dir)
+    elif doc_type == "paper":
+        paper_dir = os.path.join(CONTENT_DIR, "papers", slug)
+        if os.path.isdir(paper_dir):
+            return process_paper(slug, paper_dir)
+    elif doc_type == "note":
+        note_path = os.path.join(CONTENT_DIR, "notes", f"{slug}.md")
+        if os.path.isfile(note_path):
+            return process_note(slug, note_path)
+    return None, []
+
+
+def patch_indexes(doc_type: str, slug: str, doc_tree: dict | None, flat: list[dict]) -> None:
+    """Insert/update or remove entries for a single doc in global-index + node-index."""
+    gi_path = os.path.join(STATIC_DIR, "global-index.json")
+    ni_path = os.path.join(STATIC_DIR, "node-index.json")
+
+    gi = {"docs": []}
+    ni = {"nodes": []}
+    if os.path.exists(gi_path):
+        with open(gi_path, "r") as f:
+            gi = json.load(f)
+    if os.path.exists(ni_path):
+        with open(ni_path, "r") as f:
+            ni = json.load(f)
+
+    # Remove old entries for this doc
+    gi["docs"] = [d for d in gi["docs"] if not (d.get("id") == slug and d.get("type") == doc_type)]
+    ni["nodes"] = [n for n in ni["nodes"] if n.get("doc_id") != slug]
+
+    # Add new entries if doc was rebuilt successfully
+    if doc_tree is not None:
+        entry = {
+            "id": slug, "type": doc_type,
+            "title": doc_tree["title"],
+            "author": doc_tree.get("author", ""),
+            "description": doc_tree.get("description", ""),
+            "tags": doc_tree.get("tags", []),
+        }
+        if doc_type == "book":
+            entry["path"] = f"/books/{slug}/"
+            entry["url"] = f"/books/{slug}.html"
+        elif doc_type == "paper":
+            entry["path"] = f"/papers/{slug}/"
+            entry["url"] = f"/papers/{slug}.html"
+            entry["year"] = doc_tree.get("year", "")
+        elif doc_type == "note":
+            entry["path"] = "/notes/"
+            entry["url"] = f"/notes/{slug}.html"
+            entry["date"] = doc_tree.get("date", "")
+            entry["source_type"] = doc_tree.get("source_type", "")
+            entry["source_title"] = doc_tree.get("source_title", "")
+        gi["docs"].append(entry)
+        ni["nodes"].extend(flat)
+
+    with open(gi_path, "w", encoding="utf-8") as f:
+        json.dump(gi, f, indent=2, ensure_ascii=False)
+    with open(ni_path, "w", encoding="utf-8") as f:
+        json.dump(ni, f, indent=2, ensure_ascii=False)
+
+
 if __name__ == "__main__":
     incremental = "--incremental" in sys.argv
     if incremental:
@@ -523,8 +604,27 @@ if __name__ == "__main__":
         if not changed:
             print("PageIndex: nothing changed, skipping build.")
             sys.exit(0)
-        print(f"PageIndex: {len(changed)} files changed, rebuilding...")
-    main()
-    if incremental:
+        docs = changed_docs(changed)
+        print(f"PageIndex: {len(changed)} files changed → {len(docs)} docs to rebuild")
+        os.makedirs(os.path.join(STATIC_DIR, "books"), exist_ok=True)
+        os.makedirs(os.path.join(STATIC_DIR, "papers"), exist_ok=True)
+        os.makedirs(os.path.join(STATIC_DIR, "notes"), exist_ok=True)
+        for doc_type, slug in sorted(docs):
+            doc_tree, flat = process_one_doc(doc_type, slug)
+            if doc_tree is None:
+                print(f"  [skip]  {doc_type}/{slug} (no content)")
+                patch_indexes(doc_type, slug, None, [])
+                # Also remove the JSON file
+                jpath = os.path.join(STATIC_DIR, f"{doc_type}s", f"{slug}.json")
+                if os.path.exists(jpath):
+                    os.remove(jpath)
+                continue
+            out_path = os.path.join(STATIC_DIR, f"{doc_type}s", f"{slug}.json")
+            with open(out_path, "w", encoding="utf-8") as f:
+                json.dump(doc_tree, f, indent=2, ensure_ascii=False)
+            patch_indexes(doc_type, slug, doc_tree, flat)
+            print(f"  [{doc_type}] {slug}  ({len(flat)} nodes)")
         update_fingerprints()
-        print("PageIndex: fingerprints updated.")
+        print(f"PageIndex: incremental build done.")
+    else:
+        main()
