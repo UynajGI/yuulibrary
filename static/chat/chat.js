@@ -1,7 +1,15 @@
 /**
  * Yuunagi Library — Chat Agent
  * BYOK browser-direct mode. PageIndex tree retrieval + multi-provider LLM.
- * Zero dependencies. ~28 KB.
+ * Zero dependencies. ~30 KB.
+ *
+ * ## Reuse in other projects
+ * 1. Copy static/chat/chat.js + chat.css into your project
+ * 2. Include them in your HTML <head>:
+ *    <link rel="stylesheet" href="chat/chat.css">
+ *    <script>window.YUU_CHAT_BASE = "/your-base-path/";</script>
+ *    <script defer src="chat/chat.js"></script>
+ * 3. Generate PageIndex JSONs at {BASE}pageindex/ via scripts/build_pageindex.py
  */
 (function () {
   "use strict";
@@ -151,15 +159,22 @@
     resolve() {
       const p = this.get("provider");
       const model = this.get("model") || {
-        anthropic: "claude-sonnet-4-6",
-        deepseek: "deepseek-v4-flash",
-        openai: "gpt-4o",
+        anthropic: "claude-sonnet-4-6", deepseek: "deepseek-v4-flash",
+        openai: "gpt-4o", siliconflow: "deepseek-ai/DeepSeek-V3",
+        openrouter: "anthropic/claude-sonnet-4", zhipu: "glm-4",
+        dashscope: "qwen-plus", ollama: "llama3", gemini: "gemini-2.5-flash",
         custom: "",
       }[p] || "";
       const baseUrl = this.get("base_url") || {
         anthropic: "https://api.anthropic.com",
         deepseek: "https://api.deepseek.com/anthropic",
         openai: "https://api.openai.com",
+        siliconflow: "https://api.siliconflow.cn",
+        openrouter: "https://openrouter.ai/api",
+        zhipu: "https://open.bigmodel.cn/api/paas/v4",
+        dashscope: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        ollama: "http://localhost:11434",
+        gemini: "https://generativelanguage.googleapis.com/v1beta/openai",
       }[p] || "";
       return { provider: p, model, baseUrl, apiKey: this.get("api_key") };
     },
@@ -471,6 +486,9 @@ ${contextBlock}
         <div id="yuu-chat-header">
           <span>Yuunagi Library · AI 问答</span>
           <div id="yuu-chat-header-actions">
+            <button id="yuu-chat-new-session-btn" title="新对话" aria-label="新对话">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
             <button id="yuu-chat-settings-btn" title="设置" aria-label="设置">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
@@ -500,6 +518,12 @@ ${contextBlock}
               <option value="anthropic">Anthropic (Claude)</option>
               <option value="deepseek">DeepSeek</option>
               <option value="openai">OpenAI</option>
+              <option value="siliconflow">硅基流动 (SiliconFlow)</option>
+              <option value="openrouter">OpenRouter</option>
+              <option value="zhipu">智谱 (GLM)</option>
+              <option value="dashscope">通义千问 (DashScope)</option>
+              <option value="ollama">Ollama (本地)</option>
+              <option value="gemini">Google Gemini</option>
               <option value="custom">自定义兼容端点</option>
             </select>
           </div>
@@ -538,6 +562,7 @@ ${contextBlock}
     // Events
     fab.addEventListener("click", openPanel);
     document.getElementById("yuu-chat-close-btn").addEventListener("click", closePanel);
+    document.getElementById("yuu-chat-new-session-btn").addEventListener("click", newSession);
     document.getElementById("yuu-chat-settings-btn").addEventListener("click", () => {
       settingsEl.classList.toggle("yuu-chat-hidden");
     });
@@ -573,6 +598,12 @@ ${contextBlock}
       anthropic: ["https://api.anthropic.com", "claude-sonnet-4-6"],
       deepseek: ["https://api.deepseek.com/anthropic", "deepseek-v4-flash"],
       openai: ["https://api.openai.com", "gpt-4o"],
+      siliconflow: ["https://api.siliconflow.cn", "deepseek-ai/DeepSeek-V3"],
+      openrouter: ["https://openrouter.ai/api", "anthropic/claude-sonnet-4"],
+      zhipu: ["https://open.bigmodel.cn/api/paas/v4", "glm-4"],
+      dashscope: ["https://dashscope.aliyuncs.com/compatible-mode/v1", "qwen-plus"],
+      ollama: ["http://localhost:11434", "llama3"],
+      gemini: ["https://generativelanguage.googleapis.com/v1beta/openai", "gemini-2.5-flash"],
       custom: ["", ""],
     }[p];
     document.getElementById("yuu-setting-base-url").placeholder = d[0] || "https://...";
@@ -596,6 +627,12 @@ ${contextBlock}
     Settings.set("remember_key", document.getElementById("yuu-setting-remember").checked ? "true" : "false");
     settingsEl.classList.add("yuu-chat-hidden");
     addMessage("system", "设置已保存。可以开始提问了。");
+  }
+
+  function newSession() {
+    chatHistory = [];
+    messagesEl.innerHTML = "";
+    addMessage("system", "新对话已开始。");
   }
 
   function clearAll() {
