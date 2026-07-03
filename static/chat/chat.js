@@ -353,37 +353,51 @@ ${blocks.join("\n\n---\n\n")}
         </div>
         <div class="yuu-ai-history-list"></div>
       </aside>
-      <aside class="yuu-ai-drawer" data-drawer="settings" hidden>
+      <aside class="yuu-ai-drawer yuu-ai-settings" data-drawer="settings" hidden>
         <div class="yuu-ai-drawer-head">
           <strong>设置</strong><button data-action="close-drawer">&times;</button>
         </div>
-        <label>API Provider</label>
-        <select id="yuu-setting-provider">
-          <option value="anthropic">Anthropic (Claude)</option>
-          <option value="deepseek">DeepSeek</option>
-          <option value="openai">OpenAI</option>
-          <option value="siliconflow">硅基流动</option>
-          <option value="openrouter">OpenRouter</option>
-          <option value="zhipu">智谱 GLM</option>
-          <option value="dashscope">通义千问</option>
-          <option value="ollama">Ollama</option>
-          <option value="gemini">Gemini</option>
-          <option value="custom">自定义</option>
-        </select>
-        <label>Base URL</label>
-        <input id="yuu-setting-base-url" type="text" placeholder="自动填充……">
-        <label>Model</label>
-        <input id="yuu-setting-model" type="text" placeholder="自动填充……">
-        <label>API Key</label>
-        <input id="yuu-setting-api-key" type="password" placeholder="sk-……">
-        <div class="yuu-setting-hint" style="font-size:11px;color:var(--secondary,#6e6e73);margin-top:2px">默认关页面清除，勾选"记住"仅存本机</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:14px">
-          <input id="yuu-setting-remember" type="checkbox"><label for="yuu-setting-remember" style="margin:0;font-weight:400">记住 API Key</label>
+        <div class="yuu-ai-field">
+          <label>API Provider</label>
+          <select id="yuu-setting-provider">
+            <option value="anthropic">Anthropic (Claude)</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="openai">OpenAI</option>
+            <option value="siliconflow">硅基流动</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="zhipu">智谱 GLM</option>
+            <option value="dashscope">通义千问</option>
+            <option value="ollama">Ollama</option>
+            <option value="gemini">Gemini</option>
+            <option value="custom">自定义</option>
+          </select>
         </div>
-        <div style="display:flex;gap:8px;margin-top:12px">
-          <button id="yuu-settings-save" style="padding:6px 14px;border-radius:8px;border:none;background:#0fb9b1;color:#fff;cursor:pointer">保存</button>
-          <button id="yuu-settings-clear" style="padding:6px 14px;border-radius:8px;border:1px solid #ccc;background:transparent;cursor:pointer;color:var(--secondary,#6e6e73)">清除所有数据</button>
+        <div class="yuu-ai-field">
+          <label>Base URL</label>
+          <input id="yuu-setting-base-url" type="text" placeholder="自动填充……">
         </div>
+        <div class="yuu-ai-field">
+          <label>Model</label>
+          <input id="yuu-setting-model" type="text" placeholder="自动填充……">
+        </div>
+        <div class="yuu-ai-field">
+          <label>API Key</label>
+          <input id="yuu-setting-api-key" type="password" placeholder="sk-……">
+        </div>
+        <label class="yuu-ai-check-row">
+          <input id="yuu-setting-remember" type="checkbox">
+          <span class="yuu-ai-check-box" aria-hidden="true"></span>
+          <span class="yuu-ai-check-text">
+            <strong>记住 API Key</strong>
+            <small>默认关闭。开启后才保存到本地浏览器。</small>
+          </span>
+        </label>
+        <div class="yuu-ai-settings-actions">
+          <button id="yuu-settings-save" class="yuu-ai-save-btn">保存设置</button>
+          <button id="yuu-settings-test" class="yuu-ai-test-btn">测试连接</button>
+          <button id="yuu-settings-clear-key" class="yuu-ai-clear-btn">清除 API Key</button>
+        </div>
+        <div id="yuu-test-status" class="yuu-ai-test-status" data-status="idle"></div>
       </aside>
     </main>
     <footer class="yuu-ai-composer">
@@ -422,7 +436,8 @@ ${blocks.join("\n\n---\n\n")}
     // Provider change → update placeholders
     document.getElementById("yuu-setting-provider").addEventListener("change", onProviderChange);
     document.getElementById("yuu-settings-save").addEventListener("click", saveSettings);
-    document.getElementById("yuu-settings-clear").addEventListener("click", clearAll);
+    document.getElementById("yuu-settings-test").addEventListener("click", testConnection);
+    document.getElementById("yuu-settings-clear-key").addEventListener("click", clearApiKey);
     loadSettingsForm();
 
     // Restore messages from session
@@ -542,16 +557,82 @@ ${blocks.join("\n\n---\n\n")}
     onProviderChange();
   }
   function saveSettings() {
+    const remember = document.getElementById("yuu-setting-remember").checked;
     Settings.set("provider", document.getElementById("yuu-setting-provider").value);
     Settings.set("base_url", document.getElementById("yuu-setting-base-url").value);
     Settings.set("model", document.getElementById("yuu-setting-model").value);
     Settings.set("api_key", document.getElementById("yuu-setting-api-key").value);
-    Settings.set("remember_key", document.getElementById("yuu-setting-remember").checked ? "true" : "false");
+    Settings.set("remember_key", remember ? "true" : "false");
+    if (!remember) localStorage.removeItem("yuu_chat_api_key");
     closeDrawer();
   }
-  function clearAll() {
-    sessionStorage.clear(); try { localStorage.clear(); } catch (_) {}
-    chatHistory = []; showEmpty(); closeDrawer(); loadSettingsForm();
+
+  function clearApiKey() {
+    document.getElementById("yuu-setting-api-key").value = "";
+    sessionStorage.removeItem("yuu_chat_api_key");
+    localStorage.removeItem("yuu_chat_api_key");
+    setTestStatus("idle", "");
+  }
+
+  async function testConnection() {
+    const provider = document.getElementById("yuu-setting-provider").value;
+    const apiKey = document.getElementById("yuu-setting-api-key").value.trim() || Settings.get("api_key");
+    if (!apiKey) { setTestStatus("error", "请先填写 API Key"); return; }
+
+    const model = (document.getElementById("yuu-setting-model").value || document.getElementById("yuu-setting-model").placeholder).trim();
+    let baseUrl = (document.getElementById("yuu-setting-base-url").value || document.getElementById("yuu-setting-base-url").placeholder).trim();
+    baseUrl = baseUrl.replace(/\/+$/, "");
+    if (!baseUrl) { setTestStatus("error", "请先填写 Base URL 或选择 Provider"); return; }
+
+    setTestStatus("loading", "正在测试……");
+    const btn = document.getElementById("yuu-settings-test");
+    btn.disabled = true;
+
+    try {
+      const isAnthropic = provider === "anthropic" || provider === "deepseek";
+      let url, headers, body;
+
+      if (isAnthropic) {
+        url = `${baseUrl}/v1/messages`;
+        headers = { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" };
+        body = JSON.stringify({ model, max_tokens: 8, messages: [{ role: "user", content: "ping" }] });
+      } else {
+        url = `${baseUrl}/v1/chat/completions`;
+        headers = { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` };
+        body = JSON.stringify({ model, messages: [{ role: "user", content: "ping" }], max_tokens: 8, stream: false });
+      }
+
+      const resp = await fetch(url, { method: "POST", headers, body });
+
+      if (resp.ok) {
+        setTestStatus("success", "连接成功");
+      } else {
+        const status = resp.status;
+        const text = await resp.text().catch(() => "");
+        let msg = "";
+        try { msg = JSON.parse(text).error?.message || ""; } catch (_) {}
+        if (status === 401) msg = "API Key 无效";
+        else if (status === 403) msg = "无权限或浏览器跨域受限";
+        else if (status === 404) msg = "Base URL 或模型不存在";
+        else if (status === 429) msg = "请求过多或余额不足";
+        else if (!msg) msg = `HTTP ${status}`;
+        setTestStatus("error", `连接失败: ${msg}`);
+      }
+    } catch (e) {
+      const msg = e.message || "";
+      if (msg.includes("Failed to fetch") || msg.includes("NetworkError"))
+        setTestStatus("error", "连接失败: 可能是 CORS、网络或 Base URL 错误");
+      else
+        setTestStatus("error", `连接失败: ${msg.slice(0, 80)}`);
+    }
+    btn.disabled = false;
+  }
+
+  function setTestStatus(status, text) {
+    const el = document.getElementById("yuu-test-status");
+    if (!el) return;
+    el.dataset.status = status;
+    el.textContent = text || "";
   }
 
   // ══════════════════════════════════════════════════════════════════════════
