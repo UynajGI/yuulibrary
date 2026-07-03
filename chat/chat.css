@@ -1,0 +1,213 @@
+/* ═══════════════════════════════════════════
+   Yuunagi Library AI Chat
+   ═══════════════════════════════════════════ */
+
+/* ── Root + FAB ────────────────────────────────────────────────────────── */
+.yuu-ai { position: fixed; right: 24px; bottom: 24px; z-index: 9999; }
+
+.yuu-ai-fab {
+  width: 52px; height: 52px; border: none; border-radius: 16px;
+  background: var(--color-link, #2563eb); color: #fff; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.yuu-ai-fab:hover { transform: scale(1.06); box-shadow: 0 6px 20px rgba(0,0,0,0.28); }
+.yuu-ai[data-state="open"] .yuu-ai-fab { display: none; }
+
+/* ── Panel ──────────────────────────────────────────────────────────────── */
+.yuu-ai-panel {
+  display: none;
+  width: min(420px, calc(100vw - 32px));
+  height: min(600px, calc(100vh - 40px));
+  background: var(--body-background, #fff); color: var(--body-font-color, #333);
+  border: 1px solid var(--gray-200, #e5e7eb); border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+  flex-direction: column;
+}
+.yuu-ai[data-state="open"] .yuu-ai-panel { display: flex; }
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.yuu-ai-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-bottom: 1px solid var(--gray-200, #e5e7eb);
+  background: var(--gray-100, #f9fafb); flex-shrink: 0;
+}
+.yuu-ai-brand { display: flex; align-items: center; gap: 8px; }
+.yuu-ai-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #0fb9b1;
+  box-shadow: 0 0 0 3px rgba(15,185,177,0.12); flex-shrink: 0;
+}
+.yuu-ai-title { font-size: 14px; font-weight: 600; }
+.yuu-ai-subtitle { font-size: 11px; color: var(--gray-400, #9ca3af); margin-left: 2px; }
+.yuu-ai-actions { display: flex; gap: 2px; }
+.yuu-ai-actions button {
+  width: 30px; height: 30px; border: none; border-radius: 8px;
+  background: transparent; color: var(--gray-500, #6b7280);
+  font-size: 15px; cursor: pointer; transition: background 0.15s;
+}
+.yuu-ai-actions button:hover { background: var(--gray-200, #e5e7eb); }
+
+/* ── Main (drawer container) ────────────────────────────────────────────── */
+.yuu-ai-main { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+
+/* ── Empty state ────────────────────────────────────────────────────────── */
+.yuu-ai-empty {
+  height: 100%; display: flex; flex-direction: column; justify-content: center;
+  align-items: center; padding: 24px; text-align: center;
+}
+.yuu-ai-empty-icon { font-size: 28px; margin-bottom: 12px; opacity: 0.5; }
+.yuu-ai-empty h2 { margin: 0 0 8px; font-size: 18px; font-weight: 700; }
+.yuu-ai-empty p { margin: 0 0 16px; color: var(--gray-400, #9ca3af); font-size: 13px; line-height: 1.6; max-width: 280px; }
+.yuu-ai-prompts { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 320px; }
+.yuu-ai-prompts button {
+  width: 100%; padding: 10px 14px; border: 1px solid var(--gray-200, #e5e7eb);
+  border-radius: 10px; background: var(--body-background, #fff);
+  color: var(--body-font-color, #333); font-size: 13px; text-align: left;
+  cursor: pointer; transition: border-color 0.15s;
+}
+.yuu-ai-prompts button:hover { border-color: var(--color-link, #2563eb); }
+
+/* ── Messages ───────────────────────────────────────────────────────────── */
+.yuu-ai-messages { height: 100%; overflow-y: auto; padding: 16px; }
+.yuu-ai-message { max-width: 88%; margin-bottom: 12px; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.6; word-wrap: break-word; }
+.yuu-ai-message.user { margin-left: auto; border-bottom-right-radius: 4px; background: var(--color-link, #2563eb); color: #fff; }
+.yuu-ai-message.assistant { margin-right: auto; border-bottom-left-radius: 4px; background: var(--gray-100, #f3f4f6); }
+.yuu-msg-content p { margin: 0 0 8px; }
+.yuu-msg-content p:last-child { margin-bottom: 0; }
+.yuu-msg-content h2, .yuu-msg-content h3, .yuu-msg-content h4 { margin: 8px 0 4px; font-size: 15px; }
+.yuu-msg-content pre { background: #1f2937; color: #e5e7eb; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 13px; margin: 8px 0; }
+.yuu-msg-content code { font-family: monospace; font-size: 13px; }
+.yuu-msg-content :not(pre) > code { background: var(--gray-200, #e5e7eb); padding: 1px 5px; border-radius: 3px; }
+
+/* ── Drawer (history / settings) — must be inside main ─────────────────── */
+.yuu-ai-drawer {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; flex-direction: column; padding: 16px;
+  background: var(--body-background, #fff); overflow-y: auto;
+}
+.yuu-ai-drawer[hidden] { display: none; }
+.yuu-ai-drawer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-size: 15px; }
+.yuu-ai-drawer-head button { border: none; background: none; font-size: 20px; cursor: pointer; color: var(--gray-400, #9ca3af); }
+
+.yuu-ai-drawer label { margin: 10px 0 4px; font-size: 12px; font-weight: 600; color: var(--gray-500, #6b7280); }
+.yuu-ai-drawer input, .yuu-ai-drawer select {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--gray-300, #d1d5db);
+  border-radius: 8px; font-size: 13px; background: var(--body-background, #fff);
+  color: var(--body-font-color, #333); outline: none;
+}
+.yuu-ai-drawer input:focus, .yuu-ai-drawer select:focus { border-color: var(--color-link, #2563eb); }
+
+/* ── History list ────────────────────────────────────────────────────────── */
+.yuu-history-empty { text-align: center; font-size: 13px; color: var(--gray-400, #9ca3af); padding: 24px 0; line-height: 1.6; }
+.yuu-history-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 13px; border: 1px solid transparent; }
+.yuu-history-item:hover { background: var(--gray-100, #f3f4f6); border-color: var(--gray-200, #e5e7eb); }
+.yuu-history-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.yuu-history-date { font-size: 11px; color: var(--gray-400, #9ca3af); white-space: nowrap; }
+.yuu-history-del { border: none; background: none; font-size: 15px; cursor: pointer; color: var(--gray-400, #9ca3af); visibility: hidden; }
+.yuu-history-item:hover .yuu-history-del { visibility: visible; }
+.yuu-history-del:hover { color: #dc2626; }
+
+/* ── Settings form ─────────────────────────────────────────────────────── */
+.yuu-ai-field { margin-bottom: 10px; }
+.yuu-ai-field label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 600; color: var(--gray-500, #6b7280); }
+.yuu-ai-field input, .yuu-ai-field select { width: 100%; padding: 7px 10px; border: 1px solid var(--gray-300, #d1d5db); border-radius: 8px; font-size: 13px; background: var(--body-background, #fff); color: var(--body-font-color, #333); outline: none; }
+.yuu-ai-field input:focus, .yuu-ai-field select:focus { border-color: var(--color-link, #2563eb); }
+
+/* Checkbox row — one clickable label, no split layout */
+.yuu-ai-check-row {
+  display: flex; align-items: flex-start; gap: 10px; margin: 14px 0 12px;
+  cursor: pointer; width: 100%;
+}
+.yuu-ai-check-row input[type="checkbox"] {
+  position: absolute; opacity: 0; width: 0; height: 0;
+}
+.yuu-ai-check-box {
+  width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
+  border: 2px solid var(--gray-300, #d1d5db); background: var(--body-background, #fff);
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.15s, background 0.15s;
+  margin-top: 1px;
+}
+.yuu-ai-check-box::after {
+  content: ""; display: none; width: 10px; height: 6px;
+  border-left: 2px solid #fff; border-bottom: 2px solid #fff;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+.yuu-ai-check-row input:checked + .yuu-ai-check-box {
+  background: #0fb9b1; border-color: #0fb9b1;
+}
+.yuu-ai-check-row input:checked + .yuu-ai-check-box::after { display: block; }
+.yuu-ai-check-row input:focus-visible + .yuu-ai-check-box {
+  box-shadow: 0 0 0 3px rgba(15,185,177,0.2);
+}
+.yuu-ai-check-text strong { display: block; font-size: 13px; font-weight: 600; }
+.yuu-ai-check-text small { display: block; font-size: 11px; color: var(--gray-400, #9ca3af); margin-top: 2px; }
+
+/* Settings action buttons */
+.yuu-ai-settings-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.yuu-ai-save-btn, .yuu-ai-test-btn, .yuu-ai-clear-btn {
+  height: 34px; padding: 0 14px; border-radius: 10px; font-size: 13px;
+  font-family: inherit; cursor: pointer; white-space: nowrap;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.yuu-ai-save-btn { border: none; background: #0f8f84; color: #fff; }
+.yuu-ai-save-btn:hover { opacity: 0.85; }
+.yuu-ai-test-btn { border: 1px solid var(--gray-300, #d1d5db); background: transparent; color: var(--body-font-color, #333); }
+.yuu-ai-test-btn:hover { border-color: #0fb9b1; color: #0fb9b1; }
+.yuu-ai-test-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.yuu-ai-clear-btn { border: 1px solid transparent; background: transparent; color: var(--gray-400, #9ca3af); }
+.yuu-ai-clear-btn:hover { color: #dc2626; }
+
+/* Test connection status */
+.yuu-ai-test-status { margin-top: 8px; font-size: 12px; min-height: 18px; }
+.yuu-ai-test-status[data-status="idle"] { color: var(--gray-400, #9ca3af); }
+.yuu-ai-test-status[data-status="loading"] { color: var(--gray-500, #6b7280); }
+.yuu-ai-test-status[data-status="success"] { color: #0f8f84; }
+.yuu-ai-test-status[data-status="error"] { color: #dc2626; }
+
+/* ── Composer ────────────────────────────────────────────────────────────── */
+.yuu-ai-composer {
+  display: flex; align-items: flex-end; gap: 8px;
+  padding: 10px 14px; border-top: 1px solid var(--gray-200, #e5e7eb);
+  background: var(--body-background, #fff); flex-shrink: 0;
+}
+.yuu-ai-composer textarea {
+  flex: 1; min-height: 38px; max-height: 120px; resize: none;
+  padding: 8px 12px; border: 1px solid var(--gray-300, #d1d5db);
+  border-radius: 10px; font-size: 14px; line-height: 1.5; outline: none;
+  background: var(--body-background, #fff); color: var(--body-font-color, #333);
+  font-family: inherit;
+}
+.yuu-ai-composer textarea:focus { border-color: var(--color-link, #2563eb); }
+.yuu-ai-send {
+  width: 38px; height: 38px; border: none; border-radius: 10px;
+  background: var(--color-link, #2563eb); color: #fff;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: opacity 0.15s;
+}
+.yuu-ai-send:hover { opacity: 0.85; }
+.yuu-ai-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Dark mode ──────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  .yuu-ai-panel { background: #1a1a2e; border-color: #2d2d44; }
+  .yuu-ai-header { background: #16213e; border-bottom-color: #2d2d44; }
+  .yuu-ai-title { color: #e0e0e0; }
+  .yuu-ai-message.assistant { background: #16213e; color: #e0e0e0; }
+  .yuu-ai-composer { background: #1a1a2e; border-top-color: #2d2d44; }
+  .yuu-ai-composer textarea { background: #16213e; color: #e0e0e0; border-color: #2d2d44; }
+  .yuu-ai-drawer { background: #1a1a2e; }
+  .yuu-ai-drawer input, .yuu-ai-drawer select { background: #16213e; color: #e0e0e0; border-color: #2d2d44; }
+  .yuu-ai-prompts button { background: #16213e; color: #e0e0e0; border-color: #2d2d44; }
+  .yuu-ai-actions button { color: #888; }
+  .yuu-ai-actions button:hover { background: #2d2d44; }
+  .yuu-history-item:hover { background: #16213e; border-color: #2d2d44; }
+}
+
+/* ── Mobile ─────────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .yuu-ai { right: 0; bottom: 0; }
+  .yuu-ai-panel { width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100vh; border-radius: 0; }
+}
