@@ -7,6 +7,7 @@
 ```bash
 hugo server -p 1314 --bind 127.0.0.1    # 本地预览（http://localhost:1314/yuulibrary/）
 hugo --gc --minify                        # 生产构建到 public/
+python scripts/build_pageindex.py         # 构建 PageIndex 索引（hugo 前必须跑）
 ```
 
 ## 目录结构
@@ -35,7 +36,11 @@ yuulibrary/
 │   ├── _shortcodes/              # book-toc/callout/definition/theorem/example 等
 │   └── _partials/docs/inject/head.html  # KaTeX + pseudocode.js 加载
 ├── assets/custom.scss            # 全局样式
-├── static/katex/ + pseudocode/ + rough.min.js  # 本地化数学/算法/手绘渲染
+├── static/
+│   ├── katex/ + pseudocode/ + rough.min.js  # 本地化数学/算法/手绘渲染
+│   ├── chat/chat.js + chat.css              # AI 问答 Agent（BYOK 浏览器直连）
+│   └── pageindex/                           # PageIndex 树索引 JSON（gitignore，构建产物）
+├── scripts/build_pageindex.py               # PageIndex 索引构建脚本
 ├── .claude/skills/add-book-to-library/   # 加书 skill
 ├── .claude/skills/add-paper-to-library/  # 加论文 skill
 ├── .claude/skills/add-note-to-library/   # 加笔记 skill
@@ -94,6 +99,16 @@ yuulibrary/
 5. 笔记内容：一句话概括 / 核心思维框架 / 决策启发式 / 表达DNA / 批判性思考 / 关键引用
 6. **善用已有 JS**：rough.js 手绘图（`{{< rough-canvas >}}`）、pseudocode.js 算法（`{{< algorithm >}}`）、KaTeX 数学、mermaid 流程图
 7. **不手动分类**：笔记按 `date` 自动时间排序（最近在前），无需按主题分组
+
+## 聊天 AI 问答
+
+站点内置了一个 BYOK（用户自带 Key）浏览器直连的 AI 问答 Agent。右下角浮动按钮打开聊天面板。
+
+- **检索**：PageIndex 树结构（纯静态 JSON，无 embedding），三层检索（文档级 → 节点级 BM25 → 树扩展）
+- **LLM**：浏览器直连 Anthropic / DeepSeek / OpenAI / 硅基流动 / OpenRouter / 智谱 / 通义千问 / Ollama / Gemini
+- **Key 安全**：默认 sessionStorage（关页面清除），勾选"记住"才 localStorage
+- **构建**：CI 在 Hugo 前自动跑 `python scripts/build_pageindex.py`
+- **复用**：`static/chat/` 可直接复制到其他 Hugo 项目，注入 `window.YUU_CHAT_BASE` 即可
 
 ## 质量验证
 
