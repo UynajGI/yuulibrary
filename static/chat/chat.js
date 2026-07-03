@@ -21,8 +21,19 @@
   let globalIndex = null;
   let nodeIndex = null;
   let docCache = {};
-  let chatHistory = [];
+  const CHAT_SESSION_KEY = "yuu_chat_session";
+  let chatHistory = loadSession();
   let indexReady = false;
+
+  function loadSession() {
+    try {
+      const raw = sessionStorage.getItem(CHAT_SESSION_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (_) { return []; }
+  }
+  function saveSession() {
+    try { sessionStorage.setItem(CHAT_SESSION_KEY, JSON.stringify(chatHistory)); } catch (_) {}
+  }
 
   // ── DOM refs ─────────────────────────────────────────────────────────────
   let fab, panel, messagesEl, inputEl, sendBtn, settingsEl;
@@ -586,6 +597,12 @@ ${contextBlock}
     fab.classList.add("yuu-chat-hidden");
     inputEl.focus();
     loadIndexes().catch(() => {});
+    // Restore messages from session if DOM is empty
+    if (!messagesEl.children.length && chatHistory.length) {
+      for (const msg of chatHistory) {
+        addMessage(msg.role, msg.content);
+      }
+    }
   }
   function closePanel() {
     panel.classList.add("yuu-chat-hidden");
@@ -631,6 +648,7 @@ ${contextBlock}
 
   function newSession() {
     chatHistory = [];
+    saveSession();
     messagesEl.innerHTML = "";
     addMessage("system", "新对话已开始。");
   }
@@ -698,6 +716,7 @@ ${contextBlock}
     inputEl.style.height = "auto";
     addMessage("user", query);
     chatHistory.push({ role: "user", content: query });
+    saveSession();
 
     // Ensure indexes loaded
     try { await loadIndexes(); } catch (_) {
@@ -753,6 +772,7 @@ ${contextBlock}
       }
       chatHistory.push({ role: "assistant", content: fullText });
       if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+      saveSession();
     } catch (e) {
       contentEl.innerHTML += `<span class="yuu-error">\n\n错误: ${escHtml(e.message)}</span>`;
     }
