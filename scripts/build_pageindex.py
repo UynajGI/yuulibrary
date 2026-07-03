@@ -5,6 +5,7 @@ Zero LLM calls — pure heading-based tree construction.
 Output: static/pageindex/{global-index,node-index,books/*,papers/*,notes/*}.json
 """
 
+import hashlib
 import json
 import os
 import re
@@ -13,7 +14,61 @@ import yaml
 
 CONTENT_DIR = os.path.join(os.path.dirname(__file__), "..", "content")
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "pageindex")
+FINGERPRINTS_FILE = os.path.join(STATIC_DIR, ".fingerprints.json")
 BASE_URL = ""  # filled by Hugo relURL at runtime; script uses relative paths
+
+
+# ── fingerprint incremental update ──────────────────────────────────────────
+
+def file_fingerprint(path: str) -> str:
+    """MD5 hash of file contents."""
+    with open(path, "rb") as f:
+        return hashlib.md5(f.read()).hexdigest()
+
+
+def collect_content_files() -> list[str]:
+    """Return all .md files under content/ that should be indexed."""
+    files = []
+    for root, _, fnames in os.walk(CONTENT_DIR):
+        for fn in fnames:
+            if fn.endswith(".md"):
+                files.append(os.path.join(root, fn))
+    return sorted(files)
+
+
+def load_fingerprints() -> dict[str, str]:
+    """Load stored {path: md5} map."""
+    if os.path.exists(FINGERPRINTS_FILE):
+        with open(FINGERPRINTS_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+
+def save_fingerprints(fps: dict[str, str]) -> None:
+    os.makedirs(STATIC_DIR, exist_ok=True)
+    with open(FINGERPRINTS_FILE, "w") as f:
+        json.dump(fps, f, indent=2, sort_keys=True)
+
+
+def changed_files(existing_fps: dict[str, str]) -> list[str]:
+    """Return content files that are new or modified since last build."""
+    current = collect_content_files()
+    changed = []
+    for path in current:
+        old_hash = existing_fps.get(path, "")
+        new_hash = file_fingerprint(path)
+        if new_hash != old_hash:
+            changed.append(path)
+    return changed
+
+
+def update_fingerprints() -> dict[str, str]:
+    """Compute fresh fingerprints for all content files and save."""
+    fps = {}
+    for path in collect_content_files():
+        fps[path] = file_fingerprint(path)
+    save_fingerprints(fps)
+    return fps
 
 # ── front matter ────────────────────────────────────────────────────────────
 
@@ -461,4 +516,15 @@ def main():
 
 
 if __name__ == "__main__":
+    incremental = "--incremental" in sys.argv
+    if incremental:
+        existing = load_fingerprints()
+        changed = changed_files(existing)
+        if not changed:
+            print("PageIndex: nothing changed, skipping build.")
+            sys.exit(0)
+        print(f"PageIndex: {len(changed)} files changed, rebuilding...")
     main()
+    if incremental:
+        update_fingerprints()
+        print("PageIndex: fingerprints updated.")
