@@ -671,41 +671,44 @@ ${contextBlock}
   function toggleHistory() {
     const histPanel = document.getElementById("yuu-chat-history");
     const list = document.getElementById("yuu-history-list");
-    const sessions = loadArchivedSessions();
-
-    if (histPanel.classList.contains("yuu-chat-hidden")) {
-      if (!sessions.length) {
-        addMessage("system", "暂无历史会话。开始新对话后，旧会话会自动存档。");
-        return;
-      }
-      list.innerHTML = sessions.map((s) => {
-        const d = new Date(s.date);
-        const ds = d.toLocaleString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-        return `<div class="yuu-history-item" data-id="${s.id}">
-          <span class="yuu-history-title">${escHtml(s.title)}</span>
-          <span class="yuu-history-date">${ds} · ${s.messages.length} 条</span>
-          <button class="yuu-history-del" data-id="${s.id}">&times;</button>
-        </div>`;
-      }).join("");
-      list.querySelectorAll(".yuu-history-item").forEach((el) => {
-        el.addEventListener("click", (e) => {
-          if (e.target.classList.contains("yuu-history-del")) return;
-          restoreArchivedSession(el.dataset.id);
-          histPanel.classList.add("yuu-chat-hidden");
-        });
-      });
-      list.querySelectorAll(".yuu-history-del").forEach((el) => {
-        el.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const remaining = removeArchivedSession(el.dataset.id);
-          if (!remaining.length) histPanel.classList.add("yuu-chat-hidden");
-          else toggleHistory();
-        });
-      });
-      histPanel.classList.remove("yuu-chat-hidden");
-    } else {
+    if (!histPanel.classList.contains("yuu-chat-hidden")) {
       histPanel.classList.add("yuu-chat-hidden");
+      return;
     }
+    renderHistoryList(list);
+    histPanel.classList.remove("yuu-chat-hidden");
+  }
+
+  function renderHistoryList(list) {
+    const sessions = loadArchivedSessions();
+    if (!sessions.length) {
+      list.innerHTML = '<div class="yuu-history-empty">暂无历史会话。<br>点击 <b>+</b> 开始新对话后，旧会话会自动存档。</div>';
+      return;
+    }
+    list.innerHTML = sessions.map((s) => {
+      const d = new Date(s.date);
+      const ds = d.toLocaleString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+      return `<div class="yuu-history-item" data-id="${s.id}">
+        <span class="yuu-history-title">${escHtml(s.title)}</span>
+        <span class="yuu-history-date">${ds} · ${s.messages.length} 条</span>
+        <button class="yuu-history-del" data-id="${s.id}" title="删除">&times;</button>
+      </div>`;
+    }).join("");
+
+    list.querySelectorAll(".yuu-history-item").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        if (e.target.classList.contains("yuu-history-del")) return;
+        restoreArchivedSession(el.dataset.id);
+        document.getElementById("yuu-chat-history").classList.add("yuu-chat-hidden");
+      });
+    });
+    list.querySelectorAll(".yuu-history-del").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        removeArchivedSession(el.dataset.id);
+        renderHistoryList(list);
+      });
+    });
   }
 
   function onProviderChange() {
