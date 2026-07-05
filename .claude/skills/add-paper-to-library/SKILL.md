@@ -112,6 +112,18 @@ convert <sm提取目录>/images/<hash>.jpg "$DEST/sm-fig2-circuit.webp"
 
 > 也可用现成脚本：`.claude/skills/add-book-to-library/scripts/convert_to_webp.sh <images_dir> <md_dir>`（批量转 + 改引用）。但论文通常手挑几张，直接 `convert` 更可控。
 
+### Phase 2.5：翻译（workflow 脚本）
+
+英文论文的提取正文（MinerU/PDF 提取的 MD）先用脚本翻译，不召唤 subagent：
+
+```bash
+python3 .claude/skills/add-book-to-library/scripts/translate_chapters.py <提取的英文.md>
+```
+
+单文件模式：无术语表（论文是单篇，无跨章一致性问题）。脚本自动验证 + 重试。
+翻译规则已固化进脚本：公式原样、术语首现附英文、元素模板转换同步完成。
+参考文献条目脚本不翻译（保留英文原文）——在 Phase 3 写笔记时手动加中文短评。
+
 ### Phase 3：写笔记 `_index.md`
 
 **整体结构**（参照 `content/papers/berry-phase-solid-state-qubit/_index.md` 和 `content/papers/dissipation-driven-rabi-qpt/_index.md`）：

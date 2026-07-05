@@ -290,57 +290,40 @@ description: "系统动力学基础：要素、连接、目标，存量和流量
 
 ---
 
-### Phase 4.25：英文→中文翻译（Haiku 并行）
+### Phase 4.25：英文→中文翻译（workflow 脚本）
 
-**🔴 英文书籍必须翻译成中文**。翻译在拆分章节后、审核前进行。
+**🔴 英文书籍必须翻译成中文**。翻译用确定性 workflow 脚本，**不召唤 subagent**。
 
-**翻译规则**：
-- 正文、标题、图注、表格内容全部翻译为中文
-- LaTeX 公式 `$...$` 和 `$$...$$` 保持原样不翻译
-- 专业术语首次出现时附英文原文，如：有效市场假说（Efficient Market Hypothesis）
-- 图表编号保留原格式（图1.1、表2.3）
-- 人名保留英文，如：Burton G. Malkiel
-- 书名翻译后附英文，如：《漫步华尔街》（A Random Walk Down Wall Street）
-
-**🔴 翻译时同步转换元素模板**（不要事后补救）：
-- 引用 `---Author, *Book*` → `{{< callout type="quote" >}}quote\nAuthor, Book{{< /callout >}}`
-- 来源/出处 `来源：...` → `{{< caption >}}来源：...{{< /caption >}}`
-- 交叉引用 `第N章` → `[第N章](ch0N.md)`（不在标题行内）
-- 图注 `图N.N 描述` → `{{< caption >}}图N.N 描述{{< /caption >}}`
-
-**执行方式**：每 3-4 章 spawn 一个 Haiku agent。**🔴 prompt 必须包含以下全部指令**，不能只说"翻译"：
-
-```
-翻译规则：
-1. 正文、标题全部翻译为中文，LaTeX公式保持原样
-2. 专业术语首次出现附英文原文
-3. 人名保留英文
-4. front matter 不修改
-
-🔴 同时执行元素模板转换（必须在翻译时完成，不要事后补救）：
-- 引用 ---Author, *Book* → {{< callout type="quote" >}}引用\nAuthor, Book{{< /callout >}}
-- 来源/出处 → {{< caption >}}来源：...{{< /caption >}}
-- 交叉引用 第N章 → [第N章](ch0N.md)
-- 图注 图N.N → {{< caption >}}图N.N 描述{{< /caption >}}
-
-翻译后用 Write 工具写回原文件。
-```
-
-**失败分支**：
-
-| 症状 | 一线修复 | 仍失败 |
-|------|---------|--------|
-| agent 超时 | 缩小批次（2 章/agent） | 逐章单 agent |
-| 翻译后仍有大量英文段落 | grep 检测 → 追加翻译 agent | 手动修复 |
-| 元素模板未转换 | 跑 `convert_elements.py` 补救 | 手动 sed 替换 |
+脚本自动完成：种子章串行建术语表 → 其余章并行翻译 → validate 检查 + 失败重试 → 术语冲突报告。
 
 ```bash
-# 翻译完成后验证
-grep -rn '[A-Z][a-z]\{10,\}' content/books/<slug>/ch*.md | head -20  # 遗漏英文
-grep -c 'callout\|caption' content/books/<slug>/ch*.md | grep -v ':0$'  # 元素模板
+# 步骤1：翻译（种子章串行建术语表 + 其余 asyncio 并发 + validate 验证 + 自动重试）
+python3 .claude/skills/add-book-to-library/scripts/translate_chapters.py content/books/<slug>/
+
+# 步骤2：交叉引用转换（纯 regex，第N章→[第N章](ch0N.md)，补零可靠不依赖 LLM）
+python3 .claude/skills/add-book-to-library/scripts/convert_xrefs.py content/books/<slug>/
+
+# review 术语表（可选，检查是否有冲突需人工裁决）
+cat content/books/<slug>/glossary.json
 ```
 
-🔴 **CHECKPOINT**：确认翻译质量（术语一致性、公式完整性、元素模板数量），用户确认后进 Phase 4.5。
+**翻译规则（已固化进脚本，无需手动传 prompt）**：
+- 正文、标题、图注翻译为中文；LaTeX 公式 `$...$`/`$$...$$` 原样不动
+- 种子章（前2章）首次出现的术语附英文 → 收集进 glossary.json
+- 其余章用 glossary 里的指定译名（不重复附英文），新术语才附英文
+- 元素模板转换（callout/caption）在翻译时同步完成
+- 交叉引用转换由步骤2的 regex 脚本完成（不靠 LLM 补零）
+
+**翻译完成后检查脚本输出报告**：
+- `✓` 通过 / `⚠` 需人工 / `✗` 错误
+- 术语冲突（同一英文术语在不同章有不同中文译法）→ 需手动裁决
+
+对标记"⚠ 需人工"的章节，用 Read 检查问题，手动修复后重跑 validate：
+```bash
+python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/books/<slug>/
+```
+
+🔴 **CHECKPOINT**：确认翻译报告（通过率、术语表、需人工章节），用户确认后进 Phase 4.5。
 
 ---
 
