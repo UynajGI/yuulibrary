@@ -327,23 +327,24 @@ python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/book
 
 ---
 
-### Phase 4.5：逐章审核（Haiku 并行）
+### Phase 4.5：逐章审核
 
-每 4-5 章 spawn 一个 Haiku agent，独立校对：
+每 4-5 章派一个审核 agent（用 `Agent` tool，`model: haiku`）独立校对。
 
-🔴 **第一步：元素模板转换（必须在此阶段完成，事后补救成本翻倍）**
+> **Phase 4.25 已完成的，本阶段不重复**：翻译（translate_chapters.py）、引用/图注/来源的 callout/caption 转换（翻译脚本内置）、交叉引用链接（convert_xrefs.py）。本阶段聚焦脚本无法覆盖的语义检查。
+
+🔴 **元素模板转换（脚本未覆盖的，必须在此阶段完成）**：
 - 例X-X / 例 X-X → `{{< example title="例X-X" >}}...{{< /example >}}`（Read 文件确定例题范围，从标题到下一个例题或标题）
 - 业界事例（独立段落开头）→ `{{< callout type="note" >}}...{{< /callout >}}`
 - 定义/定理/引理（独立块）→ `{{< definition >}}` / `{{< theorem >}}`
-- 来源/出处行 → `{{< caption >}}`
-- 引用 `—Author, *Book*` → `{{< callout type="quote" >}}`
+- 漏网的来源/出处行、`—Author, *Book*` 引用 → `{{< caption >}}` / `{{< callout type="quote" >}}`
 
-**然后继续其他检查：**
+**其他检查：**
 1. **OCR 错误** — 数学符号误识别
-2. **表格图注** — `表N.N`/`图N.N` → `{{< caption >}}`
+2. **表格图注漏网** — `表N.N`/`图N.N` 未被翻译脚本转的 → `{{< caption >}}`
 3. **Mermaid** — 删 `<details>` + mermaid，留原图
 4. **标题层级** — 代码注释 `#` 误为 H1、子节降级
-5. **交叉引用** — `第N章` → `[第N章](ch0N.md)`
+5. **交叉引用查漏** — convert_xrefs.py 漏的语义引用（如"见前文讨论"）
 6. **代码块** — 补 ` ```python ` 围栏、numpy/torch 代码
 7. **伪代码** — 用**小写裸命令**（`state`/`for{}`/`if{}`/`repeat`/`until{}`/`endfor`/`return{}`），不是 `\STATE`/`\FOR`
 
@@ -494,7 +495,7 @@ spot-check 随机抽查 2 章，18 点清单，发现问题直接修。
 | 21 | 首页书架忘加新书卡片 | 更新 `layouts/_shortcodes/bookshelf.html` 加 `<a class="book-row">` |
 | 22 | 封面手写 `<div style="">` | `<section class="book-cover">` 模板 |
 | 23 | 图片用 JPG/PNG 格式 | WebP only（Phase 3 统一转换），质量 80 有损模式 |
-| 24 | 翻译 agent 只说"翻译"不提元素模板 | prompt 必须包含完整翻译规则+元素转换指令（见 Phase 4.25 模板） |
+| 24 | 翻译走 subagent 而非脚本 | 翻译必须用 `translate_chapters.py`（术语表驱动 + 自动验证重试），不召唤 subagent |
 | 25 | 质量检查用普通 agent | 必须用 `Agent(subagent_type: "spot-check")` |
 | 26 | EPUB 转换后不清 pandoc 残留 | `[]{#page}` / `{.class}` / `::: fn1` / `::: blk1` 必须在 Phase 2 清理 |
 | 27 | Part 页面不用 book-part 模板 | 必须用 `<section class="book-part">` + 章节链接卡片（参照 systems-beauty） |
