@@ -119,14 +119,14 @@ sed -i '/<details>/,/<\/details>/d' <提取的.md>
 
 ```bash
 # 步骤1：清洗（删 MinerU 噪声 + 修 LaTeX 碎片）
-python3 .claude/skills/add-paper-to-library/scripts/clean_paper_md.py <提取的.md>
+python3 .claude/skills/add-book-to-library/scripts/clean_markdown.py <提取的.md>
 ```
 
 ```bash
 # 步骤2：翻译（英文→中文，输出到 <提取的>.zh.md，不碰源文件）
 python3 .claude/skills/add-book-to-library/scripts/translate_chapters.py <提取的.md>
 # 翻译后再清洗一次（修翻译引入的公式碎片）
-python3 .claude/skills/add-paper-to-library/scripts/clean_paper_md.py <提取的>.zh.md
+python3 .claude/skills/add-book-to-library/scripts/clean_markdown.py <提取的>.zh.md
 ```
 
 ```bash

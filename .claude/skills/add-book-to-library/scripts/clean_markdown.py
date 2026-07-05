@@ -1,74 +1,348 @@
 #!/usr/bin/env python3
-"""Phase 2: Clean VLM markdown output — LaTeX whitespace, page headers, footnotes, etc."""
-import re, sys
+"""Clean MinerU/pandoc-extracted markdown — unified for book + paper.
 
-def clean(text):
-    fixes = {}
+Pipeline (all rules auto-run, no flags needed):
+  1. Noise removal: publisher metadata, flat TOC, footnotes, email, citations,
+     page headers (book), ■ bullets (book)
+  2. LaTeX repair (scoped to $...$ and $$...$$): digit spacing, command spacing,
+     brace letter spacing, subscript spacing
+  3. Heading hierarchy: ## N.M → ###, ## N.M.K → ####
+  4. Figure caption pairing: Figure N: / 图N： → {{< caption >}}
+  5. Blank line collapse + trailing whitespace
 
-    # 1. Remove digit-spacing in math (1 0 0 -> 100)
-    new_text = re.sub(r'(?<=\d)\s+(?=\d)', '', text)
+Book and paper noise patterns are mutually exclusive (books have no publisher
+metadata, papers have no page headers) — all rules run safely on either type.
 
-    # 2. Fix LaTeX _{} and ^{} whitespace
-    new_text = re.sub(r'([a-zA-Z0-9])\s+([_^])', r'\1\2', new_text)
-    new_text = re.sub(r'([_^])\s+\{', r'\1{', new_text)
-    new_text = re.sub(r'\{\s+', '{', new_text)
-    new_text = re.sub(r'\s+\}', '}', new_text)
+Usage:
+    python3 clean_markdown.py <file.md>          # in-place
+    python3 clean_markdown.py <file.md> --dry-run
+"""
+import argparse
+import os
+import re
+import sys
 
-    # 3. Fix \<cmd> { -> \<cmd>{ for all LaTeX commands
-    new_text = re.sub(r'\\([a-zA-Z]+)\s+\{', r'\\\1{', new_text)
-    new_text = re.sub(r'(\\(?:text|mathrm|mathbf|boldsymbol|mathit|mathcal|mathbb)\{[^}]+?)\s{2,}([^}]*\})', lambda m: m.group(1) + ' ' + m.group(2), new_text)
 
-    # 4. Remove footnote superscripts ($^{N}$)
-    new_text, n = re.subn(r'\s*\\\$\^\{(\d+)\}\\\$', '', new_text)
-    fixes['footnotes_removed'] = n
+# ── Book-specific page headers ───────────────────────────────────────────
+PAGE_HEADERS = {
+    "Brain Teasers", "Probability Theory", "Calculus and Linear Algebra",
+    "Stochastic Process and Stochastic Calculus", "Algorithms and Numerical Methods",
+    "Finance", "Contents",
+    "微积分与线性代数", "概率论", "脑筋急转弯", "随机过程与随机微积分",
+    "算法与数值方法", "金融",
+}
 
-    # 5. Fix ■ bullets
-    new_text = new_text.replace('■', '-')
-    fixes['bullets_fixed'] = new_text.count('-') - text.count('-') if '■' in text else 0
 
-    # 6. Remove stray page headers (standalone chapter names as body text)
-    page_headers = [
-        'Brain Teasers', 'Probability Theory', 'Calculus and Linear Algebra',
-        'Stochastic Process and Stochastic Calculus', 'Algorithms and Numerical Methods',
-        'Finance', 'Contents',
-    ]
-    lines = new_text.split('\n')
+# ── TOC entry detection ──────────────────────────────────────────────────
+def is_toc_entry(line):
+    """Check if a line is a flat TOC entry like '1 引言 2' or 'A 附录 15'."""
+    s = line.strip()
+    if not s or not re.search(r"\s\d+\s*$", s):
+        return False
+    return bool(re.match(r"^(\d+[\.\d]*\s+\S|[A-Z]\s+\S|参考文献\s|References\s|Bibliography\s)", s))
+
+
+# ── Stage 1: Noise removal ───────────────────────────────────────────────
+def remove_noise(lines):
+    """Remove publisher metadata, TOC, footnotes, citations, page headers."""
+    stats = {}
     result = []
-    removed = 0
-    for i, line in enumerate(lines):
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+
+        # --- Paper: publisher metadata ---
+
+        # License block: cc Copyright / cc 版权 / © ...  (skip until blank)
+        if re.match(r"^(cc\s+(版权|Copyright|©)|©\s)", stripped, re.IGNORECASE):
+            stats["license"] = stats.get("license", 0) + 1
+            while i < len(lines) and lines[i].strip():
+                i += 1
+            continue
+
+        # Journal metadata: Received/Accepted/Published/Updated/收到/接受...
+        if re.match(r"^(Received|Accepted|Published|Updated|收到|接受|发布|检查.*更新)", stripped):
+            stats["metadata"] = stats.get("metadata", 0) + 1
+            while i < len(lines) and lines[i].strip() and not lines[i].startswith("#"):
+                i += 1
+            continue
+
+        # Standalone DOI line
+        if re.match(r"^(doi:|DOI:|https?://doi\.org/)", stripped, re.IGNORECASE):
+            stats["doi"] = stats.get("doi", 0) + 1
+            i += 1
+            continue
+
+        # Flat TOC heading: ## 目录 / ## Contents / ## Table of Contents
+        if re.match(r"^##\s+(目录|Contents|Table of Contents)", stripped, re.IGNORECASE):
+            stats["toc"] = stats.get("toc", 0) + 1
+            i += 1
+            while i < len(lines):
+                tl = lines[i].strip()
+                if not tl:
+                    i += 1
+                    continue
+                if is_toc_entry(tl) or re.match(r"^(参考文献|References)\s+\d+", tl, re.IGNORECASE):
+                    i += 1
+                    continue
+                break
+            continue
+
+        # Orphaned TOC entries (heading already removed)
+        if is_toc_entry(stripped):
+            stats["toc"] = stats.get("toc", 0) + 1
+            i += 1
+            continue
+
+        # --- Paper: citation fragments: <sub>[</sub>N<sub>]</sub> → [N] ---
+        new_line = re.sub(r"<sub>\[</sub>([\d,\s–-]+)<sub>\]</sub>", r"[\1]", line)
+        if new_line != line:
+            stats["citation"] = stats.get("citation", 0) + 1
+            line = new_line
+
+        # --- Paper: <sup>?</sup> footnote markers ---
+        new_line = re.sub(r"<sup>[?*]</sup>", "", line)
+        if new_line != line:
+            stats["footnote"] = stats.get("footnote", 0) + 1
+            line = new_line
+
+        # --- Paper: <sup>L</sup> → $\mathbb{L}$ (MinerU math symbol as superscript) ---
+        new_line = re.sub(r"<sup>([A-Z])</sup>", lambda m: f"$\\mathbb{{{m.group(1)}}}$", line)
+        if new_line != line:
+            stats["sup_symbol"] = stats.get("sup_symbol", 0) + 1
+            line = new_line
+
+        # --- Paper: email markers ---
+        new_line = re.sub(r"^\?\s*[\w.+-]+@[\w.-]+\s*$", "", line)
+        if new_line != line:
+            stats["email"] = stats.get("email", 0) + 1
+            line = new_line
+
+        # --- Book: page headers (standalone chapter names as body text) ---
         s = line.strip()
-        if s in page_headers:
-            prev = lines[i-1].strip() if i > 0 else ''
-            nxt = lines[i+1].strip() if i+1 < len(lines) else ''
-            if prev == '' and (nxt == '' or nxt.startswith('#') or nxt.startswith('![')):
-                removed += 1
+        if s in PAGE_HEADERS:
+            prev = lines[i - 1].strip() if i > 0 else ""
+            nxt = lines[i + 1].strip() if i + 1 < len(lines) else ""
+            if prev == "" and (nxt == "" or nxt.startswith("#") or nxt.startswith("![")):
+                stats["page_header"] = stats.get("page_header", 0) + 1
+                i += 1
                 continue
-        # Also remove Chinese page headers
-        if s in ['微积分与线性代数', '概率论', '脑筋急转弯', '随机过程与随机微积分', '算法与数值方法', '金融']:
-            removed += 1
+
+        result.append(line)
+        i += 1
+
+    return result, stats
+
+
+# ── Stage 2: LaTeX repair (scoped to math regions) ──────────────────────
+def fix_math_simple(m, delim):
+    """Fix fragmented LaTeX inside a single math region."""
+    body = m.group(1)
+
+    # 1. Digit-digit spacing: "1 0" → "10"
+    body = re.sub(r"(?<=\d)\s+(?=\d)", "", body)
+
+    # 2. Digit-dot-digit
+    body = re.sub(r"(?<=\d)\s*\.\s*(?=\d)", ".", body)
+
+    # 3. LaTeX command + brace: "\mathrm { " → "\mathrm{"
+    body = re.sub(r"(\\[a-zA-Z]+)\s+\{", r"\1{", body)
+
+    # 4. Collapse single-letter sequences inside \mathrm{text} etc.
+    def collapse_brace(bm):
+        inner = bm.group(2).strip()  # strip leading/trailing spaces
+        if re.match(r"^([a-zA-Z]\s)+[a-zA-Z]$", inner):
+            return bm.group(1) + "{" + inner.replace(" ", "") + "}"
+        return bm.group(0)
+
+    body = re.sub(r"(\\(?:mathrm|mathbf|mathsf|mathit|mathcal|mathbb|text|operatorname)\*?)\s*\{([^}]*)\}", collapse_brace, body)
+
+    # 4b. Collapse single-letter sequences in ANY brace: {m a x} {i j} {k a}
+    def collapse_any_brace(bm):
+        inner = bm.group(1)
+        if not re.match(r"^([a-zA-Z]\s)+[a-zA-Z]$", inner):
+            return bm.group(0)
+        collapsed = inner.replace(" ", "")
+        if set(collapsed) <= set("lcr"):
+            return bm.group(0)
+        return "{" + collapsed + "}"
+
+    body = re.sub(r"\{([a-zA-Z](?:\s+[a-zA-Z])+)\}", collapse_any_brace, body)
+
+    # 5. Subscript/superscript spacing
+    body = re.sub(r"([a-zA-Z0-9\\})\]])\s+([_^])", r"\1\2", body)
+    body = re.sub(r"([_^])\s+\{", r"\1{", body)
+
+    # 6. Brace spaces
+    body = re.sub(r"\{\s+", "{", body)
+    body = re.sub(r"\s+\}", "}", body)
+
+    # 7. Operator spacing: \ = \ → =
+    body = re.sub(r"\\\s+=\s*\\?", "=", body)
+    body = re.sub(r"\\\s+-\s*\\?", "-", body)
+
+    # 8. Collapse multiple spaces
+    body = re.sub(r"  +", " ", body)
+
+    return delim + body + delim
+
+
+# ── Stage 3: Heading hierarchy ───────────────────────────────────────────
+def fix_heading_hierarchy(text):
+    """## N.M → ###, ## N.M.K → ####. Keep ## N (chapter) and ## A (appendix)."""
+    stats = {"headings_demoted": 0}
+    lines = text.split("\n")
+    result = []
+    for line in lines:
+        m = re.match(r"^(##)\s+(\d+\.\d+\.\d+)\s", line)
+        if m:
+            line = "####" + line[2:]
+            stats["headings_demoted"] += 1
+            result.append(line)
+            continue
+        m = re.match(r"^(##)\s+(\d+\.\d+)\s", line)
+        if m:
+            line = "###" + line[2:]
+            stats["headings_demoted"] += 1
+            result.append(line)
             continue
         result.append(line)
-    fixes['page_headers_removed'] = removed
+    return "\n".join(result), stats
 
-    # 7. Collapse 3+ blank lines to 2
-    final = []
-    blank_run = 0
-    for line in result:
-        if line.strip() == '':
-            blank_run += 1
-            if blank_run <= 2:
-                final.append(line)
+
+# ── Stage 4: Figure caption pairing ──────────────────────────────────────
+def pair_figures(text):
+    """Match figure captions with nearby images, wrap in {{< caption >}}."""
+    stats = {"fig_paired": 0, "fig_orphan_caption": 0, "fig_orphan_image": 0}
+    lines = text.split("\n")
+    result_lines = list(lines)
+
+    captions = {}
+    image_lines = []
+    for i, line in enumerate(lines):
+        m = re.match(r"^(图\s*(\d+)\s*[：:.]|Figure\s+(\d+)\s*[：:]|Fig\.?\s+(\d+)\s*[：:.])\s*(.*)", line.strip(), re.IGNORECASE)
+        if m:
+            fig_num = int(m.group(2) or m.group(3) or m.group(4))
+            captions[fig_num] = (i, line.strip())
+        if re.search(r"!\[.*?\]\(images/", line):
+            image_lines.append(i)
+
+    used_images = set()
+    for fig_num, (cap_idx, cap_text) in sorted(captions.items()):
+        best_img = None
+        best_dist = 999
+        for img_idx in image_lines:
+            if img_idx in used_images:
+                continue
+            dist = abs(img_idx - cap_idx)
+            if dist <= 8 and dist < best_dist:
+                best_img = img_idx
+                best_dist = dist
+
+        cap_content = re.sub(
+            r"^(图\s*\d+\s*[：:.]|Figure\s+\d+\s*[：:]|Fig\.?\s+\d+\s*[：:.])\s*",
+            "", cap_text, flags=re.IGNORECASE,
+        )
+        new_caption = f"{{{{< caption >}}}}图{fig_num}：{cap_content}{{{{< /caption >}}}}"
+
+        if best_img is not None:
+            used_images.add(best_img)
+            stats["fig_paired"] += 1
         else:
-            blank_run = 0
-            final.append(line)
+            stats["fig_orphan_caption"] += 1
+        result_lines[cap_idx] = new_caption
 
-    return '\n'.join(final), fixes
+    for img_idx in image_lines:
+        if img_idx not in used_images:
+            near_cap = any(abs(img_idx - c) <= 8 for _, (c, _) in captions.items())
+            if not near_cap:
+                stats["fig_orphan_image"] += 1
 
-if __name__ == '__main__':
-    path = sys.argv[1]
-    with open(path) as f:
-        text = f.read()
-    cleaned, fixes = clean(text)
-    with open(path, 'w') as f:
-        f.write(cleaned)
-    print(f'Cleaned {path}: {fixes}')
+    return "\n".join(result_lines), stats
+
+
+# ── Stage 5: Book-specific misc ──────────────────────────────────────────
+def fix_book_misc(text):
+    """■ → -, book footnote superscripts ($^{N}$)."""
+    stats = {}
+    # ■ bullets
+    if "■" in text:
+        count = text.count("■")
+        text = text.replace("■", "-")
+        stats["bullets"] = count
+    # Book footnote superscripts: $\$^{N}\$` style
+    text, n = re.subn(r"\s*\\?\$\^\{(\d+)\}\\?\$", "", text)
+    if n:
+        stats["book_footnotes"] = n
+    return text, stats
+
+
+# ── Main clean function ──────────────────────────────────────────────────
+def clean(content):
+    """Full cleaning pipeline. Returns (cleaned_content, stats_dict)."""
+    lines = content.split("\n")
+
+    # Stage 1: noise removal
+    lines, noise_stats = remove_noise(lines)
+    text = "\n".join(lines)
+
+    # Stage 1b: book misc (bullets, book footnotes)
+    text, book_stats = fix_book_misc(text)
+
+    # Stage 2: LaTeX repair (scoped to math regions)
+    inline_before = len(re.findall(r"\$[^$\n]+?\$", text))
+    display_before = len(re.findall(r"\$\$", text)) // 2
+    text = re.sub(r"\$\$([\s\S]*?)\$\$", lambda m: fix_math_simple(m, "$$"), text)
+    text = re.sub(r"\$([^$\n]+?)\$", lambda m: fix_math_simple(m, "$"), text)
+
+    # Stage 3: heading hierarchy
+    text, heading_stats = fix_heading_hierarchy(text)
+
+    # Stage 4: figure caption pairing
+    text, fig_stats = pair_figures(text)
+
+    # Stage 5: collapse 3+ blank lines
+    before_blanks = len(re.findall(r"\n{4,}", text))
+    text = re.sub(r"\n{4,}", "\n\n\n", text)
+
+    # Stage 6: trailing whitespace
+    text = "\n".join(l.rstrip() for l in text.split("\n"))
+
+    stats = {**noise_stats, **book_stats, **heading_stats, **fig_stats}
+    stats["math_regions"] = inline_before + display_before
+    if before_blanks:
+        stats["blank_collapse"] = before_blanks
+
+    return text, stats
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Clean MinerU/pandoc markdown (book + paper).")
+    ap.add_argument("md_path", help="path to markdown file")
+    ap.add_argument("--dry-run", action="store_true", help="preview without writing")
+    args = ap.parse_args()
+
+    if not os.path.isfile(args.md_path):
+        print(f"Error: {args.md_path} not found", file=sys.stderr)
+        return 1
+
+    with open(args.md_path, encoding="utf-8") as f:
+        content = f.read()
+
+    cleaned, stats = clean(content)
+    total = sum(v for v in stats.values() if isinstance(v, int))
+    detail = ", ".join(f"{k}:{v}" for k, v in sorted(stats.items()))
+
+    if not args.dry_run:
+        with open(args.md_path, "w", encoding="utf-8") as f:
+            f.write(cleaned)
+        print(f"✓ {os.path.basename(args.md_path)}: {detail}")
+    else:
+        print(f"[dry-run] {os.path.basename(args.md_path)}: {detail}")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

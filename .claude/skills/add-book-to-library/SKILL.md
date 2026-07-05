@@ -175,7 +175,12 @@ WebP 转换在 Phase 3 统一处理。
 
 ### Phase 2：清洗 Markdown
 
-1. 跑 `scripts/clean_markdown.py`（LaTeX 空白、数字间距、页眉泄露）
+1. 跑 `scripts/clean_markdown.py`（统一清洗，自动完成）：
+   - **噪声删除**：出版元数据（cc/Copyright/Received/DOI）、平面目录、脚注标记、email、引用碎片（`<sub>[</sub>`→`[`）、页眉
+   - **LaTeX 碎片修复**（scoped 到 `$...$` 内）：数字间距（`0 . 1`→`0.1`）、命令空格（`\mathrm {`→`\mathrm{`）、花括号字母空格（`{m a x}`→`{max}`）、下标空格
+   - **标题层级**：`## N.M`→`### N.M`（MinerU 平铺修复）
+   - **图注配对**：`Figure N:`→`{{< caption >}}`
+   - **Book 专属**：■ bullet→`-`、脚注上标删除、页眉删除
 2. 逐条检查 MinerU 损坏（13 项清单详见 `references/cleanup-reference.md`）：
    - `$$` 误包正文、孤儿 `$$`、标题平铺、裸代码、缩进丢失、转义残留、
      `def__init__` 粘连、代码注释被标为标题、`mineru-algorithm` div 等
@@ -185,8 +190,7 @@ WebP 转换在 Phase 3 统一处理。
    - `[text](file.xhtml)` → 保留 text，删除链接
    - `::: fn1` / `::: blk1` / `:::` → 删除整行
    - `{height="100%"}` 等 inline attributes → 删除
-4. 删除版权信息（ISBN、客服热线/邮箱）
-5. **列表标准化**：`（1）` `①` `●` `1）` `◆` → `1.` / `- ` 标准 Markdown 列表
+4. **列表标准化**：`（1）` `①` `●` `1）` `◆` → `1.` / `- ` 标准 Markdown 列表
 
 🔴 **CHECKPOINT**：展示清理前后对比，用户确认后继续。
 
