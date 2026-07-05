@@ -48,15 +48,17 @@ RESIDUAL_EN_RE = re.compile(r"[A-Z][a-z]{10,}")  # long English words = missed t
 SYSTEM_PROMPT = """你是专业翻译。将英文 markdown 正文翻译为中文，严格遵守：
 
 1. LaTeX 公式 $...$ 和 $$...$$ 和 \\tag{} 100% 原样不动
-2. 人名保留英文；书名译后附英文：《漫步华尔街》（A Random Walk Down Wall Street）
-3. 图表编号保留原格式：图1.1、表2.3
-4. Chapter N / Section N.M 忠实翻译为"第N章"/"第N.M节"（不加 markdown 链接）
-5. 元素模板转换（翻译时同步完成）：
+2. 人名保留英文：Haoyu Guan, Wenxian Zhang（不要翻译人名）
+3. 机构名保留英文原文：Key Laboratory of Artificial Micro- and Nano-structures...（不要翻译机构名）
+4. 书名译后附英文：《漫步华尔街》（A Random Walk Down Wall Street）
+5. 图表编号保留原格式：图1.1、表2.3
+6. Chapter N / Section N.M 忠实翻译为"第N章"/"第N.M节"（不加 markdown 链接）
+7. 元素模板转换（翻译时同步完成）：
    - 引用 —Author, *Book* → {{< callout type="quote" >}}引用内容\\nAuthor, Book{{< /callout >}}
    - 来源/出处行 → {{< caption >}}来源：...{{< /caption >}}
    - 图注 图N.N 描述 → {{< caption >}}图N.N 描述{{< /caption >}}
-6. 不要修改 front matter（--- 之间的内容）
-7. 输出完整译文，不要加任何解释或注释"""
+8. 不要修改 front matter（--- 之间的内容）
+9. 输出完整译文，不要加任何解释或注释"""
 
 
 def build_user_prompt(body: str, glossary: dict, is_seed: bool) -> str:
@@ -104,13 +106,14 @@ def extract_glossary(text: str):
     return cleaned, terms
 
 
-def check_quality(path: str):
-    """Run validate_file + residual English check. Returns (passed, issues_summary)."""
+def check_quality(path: str, source_body: str = ""):
+    """Run validate_file + residual English + truncation check. Returns (passed, issues_summary)."""
     issues = validate_file(path)
     errors = [msg for level, msg in issues if level == ERR]
 
     with open(path, encoding="utf-8") as f:
         content = f.read()
+    _, body = split_front_matter(content)
     residual = len(RESIDUAL_EN_RE.findall(content))
 
     problems = []
@@ -118,6 +121,13 @@ def check_quality(path: str):
         problems.extend(f"[E] {e}" for e in errors)
     if residual > 8:
         problems.append(f"遗漏英文长词 {residual} 处（>8，可能未翻译完整段落）")
+
+    # Truncation detection: translated body should be at least 20% of source length
+    # (Chinese is more compact than English, but 20% is a safe floor)
+    if source_body:
+        ratio = len(body) / max(len(source_body), 1)
+        if ratio < 0.2:
+            problems.append(f"译文长度仅为源文的 {ratio:.0%}，可能被截断")
 
     return len(problems) == 0, "; ".join(problems) if problems else "ok"
 
@@ -136,10 +146,148 @@ def is_chinese_text(body: str) -> bool:
     return cjk / total > 0.3
 
 
+# ── Reference section isolation ──────────────────────────────────────────
+REF_HEADING_RE = re.compile(r"^##\s+(References|参考文献|Bibliography|文献)", re.MULTILINE | re.IGNORECASE)
+
+
+def isolate_references(body: str):
+    """Split body into (main_text, ref_text).
+
+    References section (## References / ## 参考文献 / ## Bibliography) and
+    everything after it is kept as-is (not translated). Authors, journal names,
+    and titles must stay in original language.
+
+    Returns (main_body, ref_section_or_empty).
+    """
+    m = REF_HEADING_RE.search(body)
+    if not m:
+        return body, ""
+    split_pos = m.start()
+    return body[:split_pos], body[split_pos:]
+
+
 # ── LLM call ─────────────────────────────────────────────────────────────
 async def translate_text(client, body: str, glossary: dict, is_seed: bool, feedback: str = "") -> str:
-    """Call LLM to translate body text. Returns translated text (may include glossary markers)."""
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    """Call LLM to translate body text. Returns translated text (may include glossary markers).
+
+    For long texts (> CHUNK_THRESHOLD chars), splits into chunks at $$ boundaries
+    and translates sequentially, concatenating results. This prevents truncation
+    when max_tokens is exhausted mid-translation.
+
+    References section is isolated and kept as-is (not translated).
+    """
+    # Isolate references — never translate bibliographic entries
+    body, ref_section = isolate_references(body)
+
+    if len(body) <= CHUNK_THRESHOLD:
+        translated = await _translate_once(client, body, glossary, is_seed, feedback)
+    else:
+        chunks = split_into_chunks(body, CHUNK_THRESHOLD)
+        results = []
+        prev_context = ""
+        for i, chunk in enumerate(chunks):
+            chunk_feedback = feedback if i == 0 else ""
+            context_note = ""
+            if prev_context:
+                context_note = f"上文已翻译内容结尾：...{prev_context}。请保持术语和指代一致。"
+            chunk_translated = await _translate_once(client, chunk, glossary, is_seed, chunk_feedback, context_note)
+            results.append(chunk_translated)
+            prev_context = chunk_translated[-200:] if len(chunk_translated) > 200 else chunk_translated
+        translated = "\n\n".join(results)
+
+    # Append references as-is (heading translated, entries kept original)
+    if ref_section:
+        translated = translated.rstrip() + "\n\n" + translate_ref_heading(ref_section)
+
+    return translated
+
+
+def translate_ref_heading(ref_section: str) -> str:
+    """Translate only the heading of references section, keep entries as-is."""
+    ref_section = re.sub(
+        r"^##\s+(References|Bibliography)\b",
+        "## 参考文献",
+        ref_section,
+        flags=re.IGNORECASE,
+    )
+    return ref_section
+
+
+CHUNK_THRESHOLD = 6000  # chars — split long texts above this (conservative for token safety)
+
+
+def split_into_chunks(text: str, max_size: int) -> list:
+    """Split text into chunks at safe boundaries.
+
+    Priority of split points (safest first):
+      1. After $$...$$ blocks (display math)
+      2. After ## headings (section boundaries)
+      3. After paragraph breaks (\\n\\n)
+      4. After sentence-ending punctuation (。.！！？？)
+
+    Never splits inside a $$...$$ block.
+    """
+    if len(text) <= max_size:
+        return [text]
+
+    chunks = []
+    remaining = text
+
+    while len(remaining) > max_size:
+        # Find the best split point within the first max_size chars
+        search_region = remaining[:max_size]
+
+        # Try splitting after the last $$ block boundary (must be even $$ count)
+        split_pos = -1
+        # Find all $$ positions and pick the last one that gives even count
+        dd_positions = [m.start() for m in re.finditer(r"\$\$", search_region)]
+        for dd_pos in reversed(dd_positions):
+            if dd_pos < max_size // 4:
+                break
+            # $$ count up to and including this one must be even (closed block)
+            if (search_region[:dd_pos].count("$$") + 1) % 2 == 0:
+                split_pos = dd_pos + 2
+                break
+
+        # Try splitting after the last ## heading
+        if split_pos < 0:
+            headings = list(re.finditer(r"^##\s+.+$", search_region, re.MULTILINE))
+            if len(headings) > 1:
+                split_pos = headings[-1].start()
+
+        # Try splitting at the last paragraph break
+        if split_pos < 0:
+            split_pos = search_region.rfind("\n\n")
+            if split_pos < max_size // 4:
+                split_pos = -1
+
+        # Try splitting at the last sentence end
+        if split_pos < 0:
+            for punct in ["。", "．", "！", "？", ". ", "! ", "? "]:
+                pos = search_region.rfind(punct)
+                if pos > max_size // 4:
+                    split_pos = pos + len(punct)
+                    break
+
+        # Hard fallback: cut at max_size
+        if split_pos < 0:
+            split_pos = max_size
+
+        chunks.append(remaining[:split_pos])
+        remaining = remaining[split_pos:].lstrip()
+
+    if remaining:
+        chunks.append(remaining)
+
+    return chunks
+
+
+async def _translate_once(client, body: str, glossary: dict, is_seed: bool, feedback: str = "", context_note: str = "") -> str:
+    """Single LLM call to translate body text."""
+    system = SYSTEM_PROMPT
+    if context_note:
+        system += f"\n\n## 上下文\n{context_note}"
+    messages = [{"role": "system", "content": system}]
     user_msg = build_user_prompt(body, glossary, is_seed)
     if feedback:
         user_msg += f"\n\n---\n⚠ 上次翻译有以下问题，请修正：\n{feedback}\n请重新翻译完整内容。"
@@ -154,18 +302,31 @@ async def translate_text(client, body: str, glossary: dict, is_seed: bool, feedb
     return resp.choices[0].message.content or ""
 
 
+def translated_path(path, in_place=False):
+    """翻译输出路径。in_place=True 时原地写（book：文件本身就是内容）；
+    in_place=False 时写 .zh.md（paper：源文件是 MinerU 提取，不碰）"""
+    if in_place:
+        return path
+    base, ext = os.path.splitext(path)
+    return base + ".zh" + ext
+
+
 # ── Per-chapter translation with retry ───────────────────────────────────
-async def translate_chapter(client, path: str, glossary: dict, is_seed: bool, max_retry: int, sem: asyncio.Semaphore):
+async def translate_chapter(client, path: str, glossary: dict, is_seed: bool, max_retry: int, sem: asyncio.Semaphore, in_place: bool = True):
     """Translate one chapter with validation + retry. Returns (status, retries, issues, glossary)."""
     async with sem:
         fname = os.path.basename(path)
+        out_path = translated_path(path, in_place)
         with open(path, encoding="utf-8") as f:
             content = f.read()
         fm, body = split_front_matter(content)
 
         # 中文文件跳过翻译，只跑格式化（交叉引用 regex 转换）
         if is_chinese_text(body):
-            stats = convert_xrefs_file(path)
+            # 中文文件复制到 .zh.md 再跑格式化（不碰源文件）
+            import shutil
+            shutil.copy2(path, out_path)
+            stats = convert_xrefs_file(out_path)
             n = stats.get("total", 0)
             return ("skipped", 0, f"已是中文，跳过翻译，转换 {n} 处交叉引用", {})
 
@@ -180,12 +341,12 @@ async def translate_chapter(client, path: str, glossary: dict, is_seed: bool, ma
             # Strip glossary markers, collect terms
             translated, new_terms = extract_glossary(translated)
 
-            # Write back
-            with open(path, "w", encoding="utf-8") as f:
+            # Write to output file (never touch source)
+            with open(out_path, "w", encoding="utf-8") as f:
                 f.write(fm + translated)
 
-            # Validate
-            passed, issues = check_quality(path)
+            # Validate the output file (pass source body for truncation check)
+            passed, issues = check_quality(out_path, body)
             if passed:
                 return ("ok", attempt, issues, new_terms)
 
@@ -319,10 +480,11 @@ async def translate_single(path: str, max_retry: int):
     print(f"翻译 {fname}...")
 
     status, retries, issues, _ = await translate_chapter(
-        client, path, {}, is_seed=False, max_retry=max_retry, sem=asyncio.Semaphore(1)
+        client, path, {}, is_seed=False, max_retry=max_retry, sem=asyncio.Semaphore(1), in_place=False
     )
     tag = "✓" if status == "ok" else ("⏭" if status == "skipped" else ("⚠" if status == "manual" else "✗"))
-    print(f"{tag} {fname} (重试{retries}次) — {issues}")
+    out = translated_path(path)
+    print(f"{tag} {fname} → {os.path.basename(out)} (重试{retries}次) — {issues}")
     return 1 if status == "error" else 0
 
 
