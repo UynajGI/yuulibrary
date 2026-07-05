@@ -42,6 +42,7 @@
   // Mini Provider SDK
   // ══════════════════════════════════════════════════════════════════════════
 
+  // 结构化 SSE 事件：{type:"thinking"|"text"|"tool_calls"|"stop", ...}
   async function* readSSE(response) {
     if (!response.ok) {
       const text = await response.text().catch(() => "");
@@ -56,6 +57,7 @@
     const reader = response.body.getReader(),
       decoder = new TextDecoder();
     let buffer = "";
+    const toolCallBuffers = {}; // index → {id, name, arguments}
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -68,11 +70,47 @@
         if (raw === "[DONE]") return;
         try {
           const json = JSON.parse(raw);
-          if (json.type === "content_block_delta" && json.delta?.text) {
-            yield json.delta.text;
+          // ── OpenAI 协议（DeepSeek / OpenAI / 兼容端点）──
+          const choice = json.choices?.[0];
+          if (choice) {
+            const delta = choice.delta || {};
+            if (delta.reasoning_content) yield { type: "thinking", text: delta.reasoning_content };
+            if (delta.content) yield { type: "text", text: delta.content };
+            if (delta.tool_calls) {
+              for (const tc of delta.tool_calls) {
+                const idx = tc.index ?? 0;
+                if (!toolCallBuffers[idx])
+                  toolCallBuffers[idx] = { id: "", name: "", arguments: "" };
+                if (tc.id) toolCallBuffers[idx].id = tc.id;
+                if (tc.function?.name) toolCallBuffers[idx].name = tc.function.name;
+                if (tc.function?.arguments) toolCallBuffers[idx].arguments += tc.function.arguments;
+              }
+            }
+            if (choice.finish_reason) {
+              if (choice.finish_reason === "tool_calls") {
+                yield { type: "tool_calls", calls: Object.values(toolCallBuffers) };
+              }
+              yield { type: "stop", reason: choice.finish_reason, usage: json.usage };
+              return;
+            }
+            continue;
+          }
+          // ── Anthropic 协议（保留兼容）──
+          if (json.type === "content_block_delta") {
+            if (json.delta?.type === "thinking_delta" && json.delta.thinking) {
+              yield { type: "thinking", text: json.delta.thinking };
+            } else if (json.delta?.text) {
+              yield { type: "text", text: json.delta.text };
+            }
+          } else if (json.delta?.type === "input_json_delta" && json.delta.partial_json) {
+            const idx = json.index ?? 0;
+            if (!toolCallBuffers[idx]) toolCallBuffers[idx] = { id: "", name: "", arguments: "" };
+            toolCallBuffers[idx].arguments += json.delta.partial_json;
+          } else if (json.type === "message_delta" && json.delta?.stop_reason === "tool_use") {
+            yield { type: "tool_calls", calls: Object.values(toolCallBuffers) };
+          } else if (json.type === "message_delta" && json.delta?.stop_reason) {
+            yield { type: "stop", reason: json.delta.stop_reason };
           } else if (json.type === "message_stop") return;
-          const c = json.choices?.[0]?.delta?.content;
-          if (c) yield c;
         } catch (_) {
           /* ignore */
         }
@@ -80,8 +118,18 @@
     }
   }
 
-  function buildRequest({ provider, model, baseUrl, apiKey, system, messages, maxTokens }) {
-    if (provider === "anthropic" || provider === "deepseek") {
+  function buildRequest({
+    provider,
+    model,
+    baseUrl,
+    apiKey,
+    system,
+    messages,
+    maxTokens,
+    tools,
+    thinking,
+  }) {
+    if (provider === "anthropic") {
       return {
         url: `${baseUrl}/v1/messages`,
         headers: {
@@ -92,22 +140,45 @@
         },
         body: JSON.stringify({
           model,
-          max_tokens: maxTokens || 2048,
+          max_tokens: maxTokens || 4096,
           system,
           messages,
           stream: true,
+          ...(tools?.length
+            ? {
+                tools: tools.map((t) => ({
+                  name: t.function.name,
+                  description: t.function.description,
+                  input_schema: t.function.parameters,
+                })),
+                tool_choice: { type: "auto" },
+              }
+            : {}),
+          ...(thinking
+            ? { thinking: { type: "enabled", budget_tokens: Math.min(maxTokens || 4096, 8000) } }
+            : {}),
         }),
       };
+    }
+    // OpenAI 兼容协议（含 DeepSeek / OpenAI / SiliconFlow / GLM / DashScope / Gemini / Ollama）
+    const body = {
+      model,
+      max_tokens: maxTokens || 4096,
+      messages: [{ role: "system", content: system }, ...messages],
+      stream: true,
+    };
+    if (tools?.length) {
+      body.tools = tools;
+      body.tool_choice = "auto";
+    }
+    // DeepSeek 思考模式：顶层 thinking 参数。"disabled" 关，"enabled" 开（默认开）。
+    if (provider === "deepseek") {
+      body.thinking = { type: thinking ? "enabled" : "disabled" };
     }
     return {
       url: `${baseUrl}/v1/chat/completions`,
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model,
-        max_tokens: maxTokens || 2048,
-        messages: [{ role: "system", content: system }, ...messages],
-        stream: true,
-      }),
+      body: JSON.stringify(body),
     };
   }
 
@@ -171,7 +242,7 @@
         this.get("base_url") ||
         {
           anthropic: "https://api.anthropic.com",
-          deepseek: "https://api.deepseek.com/anthropic",
+          deepseek: "https://api.deepseek.com",
           openai: "https://api.openai.com",
           siliconflow: "https://api.siliconflow.cn",
           openrouter: "https://openrouter.ai/api",
@@ -555,6 +626,76 @@ ${blocks.join("\n\n---\n\n")}
   }
 
   // ══════════════════════════════════════════════════════════════════════════
+  // Agent: tools + system prompt + tool execution
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // search_library 工具：复用现有 BM25 检索，包装成 OpenAI tool schema
+  const LIBRARY_TOOLS = [
+    {
+      type: "function",
+      function: {
+        name: "search_library",
+        description:
+          "在个人数字图书馆中检索书籍、论文、笔记内容。当需要查找事实、概念、章节内容、文献时使用。可用不同的关键词多次检索以覆盖不同角度。",
+        parameters: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string",
+              description: "检索关键词或问题，用文档中可能出现的原词效果最好",
+            },
+          },
+          required: ["query"],
+        },
+      },
+    },
+  ];
+
+  // retrieveContext 返回结构化 contexts，这里转成给模型的纯文本（agent 模式）
+  async function retrieveContextAsText(query) {
+    const result = await retrieveContext(query);
+    const { contexts, confidence } = result;
+    if (!contexts.length) return { text: "未找到相关内容。", contexts: [], confidence };
+    const blocks = contexts.map(
+      (c, i) =>
+        `### [${i + 1}] ${c.breadcrumb.join(" > ")}\n*来源: ${c.docTitle} | source_id: ${c.sourceId}*\n\n${truncateAtBoundary(
+          c.text,
+          MAX_SECTION_CHARS
+        )}`
+    );
+    const text = `${blocks.join("\n\n---\n\n")}\n\n检索置信度: ${confidence}`;
+    return { text, contexts, confidence };
+  }
+
+  // 执行工具调用，返回字符串结果
+  async function executeTool(name, args) {
+    if (name === "search_library") {
+      const r = await retrieveContextAsText(args.query);
+      // 把 contexts 挂到返回值上，供 agent loop 累积引用
+      r.__contexts = r.contexts;
+      return r;
+    }
+    return { text: `未知工具: ${name}` };
+  }
+
+  // agent 模式的 system prompt：不预填 context（模型自己用工具查）
+  function buildAgentSystemPrompt() {
+    return `你是 **Yuunagi Library** 的知识助手，基于个人数字图书馆的 RAG 问答系统。
+
+## 工作方式
+- 你有 search_library 工具，可以检索图书馆中的书籍、论文、笔记
+- 回答用户问题前，**必须先调用 search_library 检索**，不要凭记忆回答
+- 如果第一次检索结果不够，可以换关键词再检索，或从不同角度多检索几次
+- 只能基于检索到的内容回答，不要使用外部知识编造
+
+## 回答规则
+- 每个关键论断标注来源编号 [N]，对应检索结果中的 [N]
+- 回答末尾列出参考来源，格式：\n[1] 文档名 > 章节 > 节名
+- 检索结果不足时明确说明"当前图书馆中没有足够依据"，不要硬答
+- 回答使用中文，专业术语保留原文。公式用 KaTeX：行内 $...$，行间 $$...$$`;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
   // Markdown
   // ══════════════════════════════════════════════════════════════════════════
 
@@ -763,6 +904,14 @@ ${blocks.join("\n\n---\n\n")}
             <small>显示命中节点、匹配分数和发给模型的 context。</small>
           </span>
         </label>
+        <label class="yuu-ai-check-row">
+          <input id="yuu-setting-thinking" type="checkbox">
+          <span class="yuu-ai-check-box" aria-hidden="true"></span>
+          <span class="yuu-ai-check-text">
+            <strong>思考模式</strong>
+            <small>开启后模型先思考再回答（更慢但更准，占用 token 预算）。仅 DeepSeek/Anthropic 有效。</small>
+          </span>
+        </label>
         <div class="yuu-ai-settings-actions">
           <button id="yuu-settings-save" class="yuu-ai-save-btn">保存设置</button>
           <button id="yuu-settings-test" class="yuu-ai-test-btn">测试连接</button>
@@ -928,7 +1077,7 @@ ${blocks.join("\n\n---\n\n")}
     const p = document.getElementById("yuu-setting-provider").value;
     const d = {
       anthropic: ["https://api.anthropic.com", "claude-sonnet-4-6"],
-      deepseek: ["https://api.deepseek.com/anthropic", "deepseek-v4-flash"],
+      deepseek: ["https://api.deepseek.com", "deepseek-v4-flash"],
       openai: ["https://api.openai.com", "gpt-4o"],
       siliconflow: ["https://api.siliconflow.cn", "deepseek-ai/DeepSeek-V3"],
       openrouter: ["https://openrouter.ai/api", "anthropic/claude-sonnet-4"],
@@ -950,6 +1099,8 @@ ${blocks.join("\n\n---\n\n")}
       Settings.get("remember_key") === "true";
     document.getElementById("yuu-setting-debug").checked =
       localStorage.getItem("yuu_chat_debug") === "1";
+    document.getElementById("yuu-setting-thinking").checked =
+      localStorage.getItem("yuu_chat_thinking") !== "0"; // 默认开
     onProviderChange();
   }
   function saveSettings() {
@@ -963,6 +1114,10 @@ ${blocks.join("\n\n---\n\n")}
     const debug = document.getElementById("yuu-setting-debug").checked;
     if (debug) localStorage.setItem("yuu_chat_debug", "1");
     else localStorage.removeItem("yuu_chat_debug");
+    const thinking = document.getElementById("yuu-setting-thinking").checked;
+    if (thinking)
+      localStorage.removeItem("yuu_chat_thinking"); // 默认开 = key 不存在
+    else localStorage.setItem("yuu_chat_thinking", "0");
     closeDrawer();
   }
 
@@ -1001,7 +1156,7 @@ ${blocks.join("\n\n---\n\n")}
     btn.disabled = true;
 
     try {
-      const isAnthropic = provider === "anthropic" || provider === "deepseek";
+      const isAnthropic = provider === "anthropic";
       let url, headers, body;
 
       if (isAnthropic) {
@@ -1153,6 +1308,27 @@ ${blocks.join("\n\n---\n\n")}
   // Send — search → retrieve → reason → stream
   // ══════════════════════════════════════════════════════════════════════════
 
+  // 渲染思考块 + 正文：思考折叠在 <details>，正文正常 markdown
+  function renderThinkingAndText(thinking, text, toolTrail) {
+    const parts = [];
+    if (thinking) {
+      parts.push(
+        `<details class="yuu-thinking"><summary>💭 思考过程</summary><div class="yuu-thinking-body">${renderMarkdown(
+          thinking
+        )}</div></details>`
+      );
+    }
+    if (toolTrail && toolTrail.length) {
+      parts.push(`<div class="yuu-tool-trail">${toolTrail.join("")}</div>`);
+    }
+    if (text) {
+      parts.push(renderMarkdown(text));
+    } else if (!parts.length) {
+      parts.push("<em>……</em>");
+    }
+    return parts.join("");
+  }
+
   async function handleSend() {
     const query = composerInput.value.trim();
     if (!query) return;
@@ -1175,68 +1351,135 @@ ${blocks.join("\n\n---\n\n")}
       return;
     }
 
-    const contentEl = appendMessageBubble("assistant", "<em>检索中……</em>");
+    const contentEl = appendMessageBubble("assistant", "<em>准备中……</em>");
     setBusy(true);
 
-    let result;
-    try {
-      result = await retrieveContext(query);
-    } catch (e) {
-      contentEl.innerHTML = `<span style="color:#dc2626">检索失败: ${escHtml(e.message)}</span>`;
-      setBusy(false);
-      return;
-    }
-
-    const { contexts, thin, hits, confidence } = result;
-    if (!contexts.length) {
-      contentEl.innerHTML =
-        "没有在图书馆中找到足够相关的内容。<br>你可以换个关键词，或改成更具体的问题。";
-      setBusy(false);
-      return;
-    }
-
-    const docNames = [...new Set(contexts.map((c) => c.docTitle))];
-    const systemPrompt = buildSystemPrompt(contexts, thin, confidence);
+    const thinkingOn = localStorage.getItem("yuu_chat_thinking") !== "0"; // 默认开
     const debugOn = localStorage.getItem("yuu_chat_debug") === "1";
-    contentEl.innerHTML = `<em>已从 ${docNames.length} 个文档中检索到 ${contexts.length} 个相关段落……</em>`;
-    if (debugOn) contentEl.innerHTML += renderDebugCard(hits, contexts, systemPrompt, confidence);
+    const systemPrompt = buildAgentSystemPrompt();
     const messages = [...chatHistory.slice(-6)];
+    const MAX_LOOPS = 4; // 最多 4 轮工具调用，防死循环
+
+    let finalText = "";
+    let finalThinking = "";
+    const allContexts = []; // 累积所有轮检索到的 context，供最终引用注入
+    const toolTrail = []; // UI 工具调用轨迹 HTML 片段
 
     try {
-      let fullText = "";
-      for await (const chunk of streamText({
-        provider: cfg.provider,
-        model: cfg.model,
-        baseUrl: cfg.baseUrl,
-        apiKey: cfg.apiKey,
-        system: systemPrompt,
-        messages,
-      })) {
-        fullText += chunk;
-        contentEl.innerHTML = renderMarkdown(fullText);
-        messagesEl.scrollTop = messagesEl.scrollHeight;
-        reRenderKatex(contentEl);
+      for (let loop = 0; loop < MAX_LOOPS; loop++) {
+        let roundText = "";
+        let roundThinking = "";
+        let toolCalls = null;
+        let stopReason = null;
+
+        // 流式渲染本轮
+        for await (const chunk of streamText({
+          provider: cfg.provider,
+          model: cfg.model,
+          baseUrl: cfg.baseUrl,
+          apiKey: cfg.apiKey,
+          system: systemPrompt,
+          messages,
+          tools: LIBRARY_TOOLS,
+          thinking: thinkingOn,
+          maxTokens: thinkingOn ? 8192 : 4096,
+        })) {
+          if (chunk.type === "thinking") {
+            roundThinking += chunk.text;
+            finalThinking += chunk.text;
+            contentEl.innerHTML = renderThinkingAndText(finalThinking, roundText, toolTrail);
+          } else if (chunk.type === "text") {
+            roundText += chunk.text;
+            finalText = roundText;
+            contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
+            reRenderKatex(contentEl);
+          } else if (chunk.type === "tool_calls") {
+            toolCalls = chunk.calls;
+          } else if (chunk.type === "stop") {
+            stopReason = chunk.reason;
+          }
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        // 没有工具调用 → 本轮是最终回答，退出循环
+        if (stopReason !== "tool_calls" || !toolCalls?.length) break;
+
+        // 执行工具，回填到 messages
+        messages.push({
+          role: "assistant",
+          content: roundText || null,
+          tool_calls: toolCalls.map((tc) => ({
+            id: tc.id,
+            type: "function",
+            function: { name: tc.name, arguments: tc.arguments },
+          })),
+        });
+        for (const tc of toolCalls) {
+          let args = {};
+          try {
+            args = JSON.parse(tc.arguments || "{}");
+          } catch (_) {
+            /* ignore */
+          }
+          // UI: 显示工具调用过程
+          toolTrail.push(
+            `<div class="yuu-tool-step">🔍 检索: <code>${escHtml(args.query || tc.arguments)}</code></div>`
+          );
+          contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
+
+          const toolResult = await executeTool(tc.name, args);
+          // 累积 context 供最终引用注入
+          if (toolResult.__contexts) allContexts.push(...toolResult.__contexts);
+
+          messages.push({
+            role: "tool",
+            tool_call_id: tc.id,
+            content: toolResult.text || JSON.stringify(toolResult),
+          });
+        }
+        // 下一轮提示
+        contentEl.innerHTML = renderThinkingAndText(
+          finalThinking,
+          "<em>已检索，正在综合回答……</em>",
+          toolTrail
+        );
+        finalText = "";
       }
-      // Build reference map and inject clickable links.
-      // 编号规则必须与 buildSystemPrompt 一致（去重后递增），否则链接指错来源。
-      const refMap = {};
-      {
+
+      // 引用注入：用所有轮累积的 allContexts 构建 refMap
+      if (allContexts.length) {
+        const refMap = {};
         const seen = new Set();
         let n = 0;
-        for (const c of contexts) {
+        for (const c of allContexts) {
           const hash = c.text.slice(0, 80);
           if (seen.has(hash)) continue;
           seen.add(hash);
           n++;
           if (c.url) refMap[n] = { title: c.docTitle, breadcrumb: c.breadcrumb, url: c.url };
         }
+        if (Object.keys(refMap).length > 0) {
+          finalText = injectReferenceLinks(finalText, refMap);
+        }
       }
-      if (Object.keys(refMap).length > 0) {
-        fullText = injectReferenceLinks(fullText, refMap);
-        contentEl.innerHTML = renderMarkdown(fullText);
-        reRenderKatex(contentEl);
+
+      // debug 卡片（如果有 context）
+      if (debugOn && allContexts.length) {
+        const debugHits = allContexts
+          .slice(0, 12)
+          .map((c, i) => ({
+            node: { doc_id: c.docTitle, node_id: c.nodeId, breadcrumb: c.breadcrumb },
+            score: "?",
+          }));
+        contentEl.innerHTML =
+          renderThinkingAndText(finalThinking, finalText, toolTrail) +
+          renderDebugCard(debugHits, allContexts.slice(0, 8), systemPrompt, "agent");
+      } else {
+        contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
       }
-      chatHistory.push({ role: "assistant", content: fullText });
+      reRenderKatex(contentEl);
+
+      chatHistory.push({ role: "assistant", content: finalText });
       if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
       saveSession();
     } catch (e) {
