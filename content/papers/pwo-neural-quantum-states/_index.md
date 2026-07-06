@@ -1236,4 +1236,86 @@ $J_{1} {-} J_{2}$ 海森堡模型
 
 ## 阅读笔记
 
+### 一句话概括
 
+本文提出了**近端波函数优化（PWO）**，一种受RL中PPO启发的信任域一阶优化器，用于训练自回归神经量子态（NQS）。核心方法：(1) 在stoquastic哈密顿量假设下证明VMC梯度等价于Born分布上的优势策略梯度（命题3.1）；(2) 幅值通道裁剪概率比到$[1-10^{-3},1+10^{-3}]$，相位通道裁剪包裹相位增量到$[-\pi, \pi]$内的$0.3$；(3) 理论证明一阶一致性（定理4.1）和不保真度能量界（定理4.2）。实验结论：在1D横场伊辛模型上，PWO在$\sim5$分钟达到$\epsilon_{\text{rel}}=10^{-7}$，比minSR（$\sim30$分钟）快约6倍；在$J_1{-}J_2$链上，minSR 10次运行中6次NaN崩溃，PWO无NaN且在$\sim15$分钟达$10^{-7}$；PWO能将1.5B参数RWKV-7作为NQS微调，规模超出此前工作三个数量级。
+
+### 核心论证链
+
+1. **动机：自回归NQS解决了采样问题，但优化成为新瓶颈。** MCMC采样NQS受自相关和慢混合困扰，自回归模型通过分解Born分布实现精确独立采样，消除了采样瓶颈。然而，Adam忽略了波函数空间的Fubini-Study几何导致不稳定收敛，SR/minSR虽考虑了几何但需求解$O(M^2P+M^3)$线性系统——在大网络和大样本下过高，因此需要一种既能处理几何信息又保持一阶优化可扩展性的算法。
+
+2. **形式化等价：stoquastic哈密顿量下VMC梯度退化为策略梯度。** VMC梯度包含$\mathbb{E}[E_\theta^{\text{loc}}\nabla_\theta\log\mathcal{P}_\theta] + \mathbb{E}[\nabla_\theta E_\theta^{\text{loc}}]$两项。第二项在stoquastic假设下（非对角元非正、基态实正）因$(\mathbf{s},\mathbf{s}')$对称性抵消为零（附录B.1证明），从而梯度纯化为$\mathbb{E}[(E_\theta^{\text{loc}}-\bar{E})\nabla_\theta\log\mathcal{P}_\theta]$——这正是REINFORCE策略梯度。因此，变分能量最小化可视为以Born分布为策略、中心化局域能量为优势函数的RL问题。
+
+3. **算法设计：PPO的双通道裁剪扩展到复波函数。** 基于上述等价性，将PPO的信任域裁剪引入NQS：幅值通道中，采样构型存储后被复用$K=4$次内部更新，每次$r_\theta=\mathcal{P}_\theta/\mathcal{P}_{\theta_{\text{old}}}$被裁剪到$[1-\epsilon,1+\epsilon]$以防止概率比突变。但PPO仅处理实值概率，而VMC梯度有复值相位成分——因此额外引入第二个裁剪替代函数：在相位通道中裁剪包裹相位差$\phi_\theta$到$[-\delta,\delta]$，并将$r_\theta$的梯度从相位项中用stop_gradient分离（式(17)），以确保参考点处梯度精确匹配原始VMC。
+
+4. **理论保证：局部梯度一致性 + 全局不保真度能量界。** 定理4.1证明PWO在$\theta=\theta_{\text{old}}$处的梯度与VMC梯度严格相等——裁剪在参考点不激活，因此"局部"无近似误差。定理4.2给出任意有限更新下的能量变化上界：主项是替代函数$\mathcal{A}_{\theta_{\text{old}}}(\theta)=2\mathbb{E}[\sqrt{r}(\cos\alpha A^R+\sin\alpha A^I)]$，残差项为$2\|\hat{H}-E\mathbb{1}\|_\infty(1-\sqrt{1-\mathcal{I}})$——如果更新保持波函数接近（小$\mathcal{I}$），则真实能量降低可由替代函数负值确保。
+
+5. **实验验证——简单系统：PWO在收敛速度和稳定性上均优于基线。** 在1D横场Ising上，PWO约5分钟达$\epsilon_{\text{rel}}=10^{-7}$，minSR需约30分钟——差距主要来自minSR每一步需雅可比收缩和线性求解的额外开销。在$J_1{-}J_2$链（Majumdar-Ghosh点，强阻挫）上，minSR在10次运行中6次出现NaN（数值病态），Adam比PWO高出数个数量级出现平台，PWO则在$\sim15$分钟稳定达$10^{-7}$——"稳定性是最好的速度"。
+
+6. **实验验证——2D+扩展：趋势一致，但精度低于SOTA。** 在$10\times10$方晶格$J_1{-}J_2$模型上，PWO在相同挂钟时间内能量低于Adam，V分数持续降低（表明往本征态收敛）。规模实验表明中等NQS（1.4M参数）下Adam需约4倍时间达PWO同等精度，但4小时长时运行后Adam能量更低——PWO的快速收敛优势在极长时间窗口可能被Adam超越。
+
+7. **极限测试：1.5B参数验证PWO不因规模崩溃。** RWKV-7作为自回归NQS（1.5B参数，超出此前NQS工作三个数量级）在12格点Ising上微调：PWO相对误差和V分数均低于Adam，全程训练稳定——证明裁剪替代函数不随参数量增大而失效。但该实验物理意义有限（12格点Ising可精确对角化），主要是"规模冒烟测试"。
+
+### 实验参数详解
+
+| 参数 | 数值 | 含义 |
+|---|---|---|
+| 1D格点数$N$ | 12 | 所有1D基准系统和RWKV微调共用的链长 |
+| 2D晶格尺寸 | $10\times10$ | 方晶格$J_1-J_2$模型，100个自旋 |
+| 批次采样数$M$ | 1024（1D），2048（缩放），150（RWKV） | 每轮从Born分布精确抽取的构型数 |
+| PPO内轮次$K$ | 4 | 每采样批次复用的内部更新次数 |
+| 幅值裁剪$\epsilon$ | $10^{-3}$ | 概率比$r_\theta$的信任域半径 |
+| 相位裁剪$\delta$ | 0.3 | 包裹相位差$|\phi_\theta|$的信任域半径（弧度） |
+| 峰值学习率 | $10^{-4}$（PWO/Ising），$10^{-4}$（PWO/Heisenberg），$3\times10^{-4}$（Adam/Heisenberg） | 余弦单周期调度峰值 |
+| 学习率转换步数 | 5000(Ising/Adam)，20000(Ising/PWO)，40000($J_1-J_2$) | 调度退火总步数 |
+| GRU循环层数 | 3 | 自回归主干网络深度 |
+| GRU隐藏维度 | 256 | 循环层神经元数 |
+| minSR对角偏移 | $10^{-2}$ | SR矩阵正则化参数 |
+| SPRING动量 | 0.8 | KFAC型动量系数 |
+| RWKV模型参数量 | 1,500,000,000 | 微调实验的LLM规模 |
+| 二维块自回归块大小 | $2\times2$ | $10\times10$晶格划分为25个块 |
+
+### 批判性思考
+
+1. **stoquastic假设的覆盖范围——等价性仅对实正波函数严格成立。** 命题3.1的证明核心是式(39)双重和的对称抵消，这依赖于：$\hat{H}_{\mathbf{s},\mathbf{s}'}$为实数且$\psi_\theta(\mathbf{s})>0$（Perron-Frobenius）。对于带符号问题的费米子或阻挫海森堡模型，波函数有符号振荡，对称抵消不成立，$\mathbb{E}[\nabla_\theta E_\theta^{\text{loc}}]\neq0$。这意味着PWO的幅值裁剪会丢失梯度中的一部分，图3中$J_1-J_2$上的收敛可能因剩余修正项（未被裁剪项覆盖）而受损。
+
+2. **裁剪信任域仅是"经验性"而非"保证性"——全局条件不满足则推论4.3失效。** 推论4.3要求对所有$\mathbf{s}\in\{\pm1\}^N$满足$r_\theta(\mathbf{s})\in[1-\epsilon,1+\epsilon]$和$|\alpha_\theta(\mathbf{s})|\leq\delta$。但PWO只在采样批次上施加裁剪，其他$2^N-M$个未采样构型可能任意违反约束——由于参数共享，一次违反所有构型的更新可能发生。论文附录B.7明确承认"仅鼓励而非保证"，这意味着定理4.3的条件性改进在实际训练中的激活频率未知。
+
+3. **挂钟时间的比较存在"方法本身速度差异"的混淆因子。** PWO每一步是$O(P)$的一阶操作，minSR需$O(M^2P+M^3)$。论文图2显示PWO比minSR快约6倍达相同精度，但未分析"如果minSR用相同挂钟时间做更多迭代（减少$M$或使用更大lr）能否追上"。更公平的比较应是"相同计算预算$\tau$下谁的精度更高"而非"谁先到达某个精度"——因为minSR单步质量高但慢，PWO单步质量低但快，综合取决于问题。
+
+4. **相位通道裁剪策略的理论选择缺乏比较论证。** 相位项$L_{\text{arg}}^{\text{clip}}$裁剪$\phi_\theta$而非$\exp(i\phi_\theta)$或相位比，其选择动机是"on-policy时梯度一致"（式(17)的stop_gradient设计）。但裁剪$\phi_\theta$到$[-\delta,\delta]$意味着相位变化超过$\delta$后梯度被完全截断——这等价于设定一个"相位移动上限"，而物理上波函数相位可能与$\hat{H}$的符号结构密切相关。论文未比较其他相位正则化（如L2相位惩罚、余弦相似度裁剪）的效果，未排除本文策略仅为"恰好管用的启发式"的可能性。
+
+5. **RWKV微调实验缺乏物理动机——12格点Ising无需1.5B参数。** 12格点Ising模型可精确对角化，基态能量已知。用1.5B参数LLM拟合这一简单问题属于严重的过参数化。论文虽自评"并非说明LLM是正确归纳偏置"，但该实验的实质信息仅是"PWO不因参数量爆炸而训练崩溃"，对于物理应用的价值有限——未测试PWO是否能发现此前不可及的大系统基态或新物理现象。
+
+### 局限性
+
+- **stoquastic假设排除了大量物理上有重要意义的系统——** 命题3.1的VMC-to-RL等价性对费米子符号问题、量子化学非Born-Oppenheimer哈密顿量以及一般阻挫自旋模型不严格成立，限制了PWO在量子化学和材料计算中的应用（论文附录B.1明确此条件）。
+- **1D+小规模基准对结论的泛化能力支持有限——** 所有精确误差基准均基于$N=12$的1D链，这远小于典型NQS应用（如Rende et al. 2024的$20\times20$ PEPS）。论文未在$N>100$的1D系统或$20\times20$以上的2D系统中验证PWO的收敛可靠性和内存扩展性。
+- **minSR的高NaN率未被系统性地优化消除——** 在$J_1{-}J_2$链上minSR有60%NaN，但论文未进行回归化强度（对角偏移$\lambda$）的精细扫描来最小化NaN率，也未增加样本数$M$来改善数值条件（$M$越大SR矩阵条件越好）。因此minSR的"不稳定"可能源于次优超参数而非方法本身缺陷。
+- **理论保证的局部性无法解释全局收敛行为——** 定理4.1仅保证参考点处梯度一致，定理4.2给出对任意有限更新的上界但未保证该上界的单调递减性。对于非凸的NQS损失景观，PWO的训练轨迹可能被裁剪行为引导至低质量局部极小——实验未系统考察不同随机种子下最终能量的离散程度。
+- **相位裁剪$\delta=0.3$的选择缺乏敏感度分析——** 论文对所有哈密顿量固定$\delta=0.3$和$\epsilon=10^{-3}$，未报告这些超参数对最终能量和收敛速度的敏感性。如果PWO的最佳$\delta$随系统尺寸、纠缠度或相位通道的初始尺度剧烈变化，则该算法的实际适用性受限。
+- **与二阶方法的"精度上限"比较缺失——** 论文仅报告了PWO优于minSR/SPRING的相对精度，但未给出"已知最佳变分能量"作为上界参考（如论文自身引用的Rende et al. 2024的低能）。PWO在30分钟后$10\times10$ $J_1{-}J_2$上的能量$-185$距已知最佳约$-199$差距约7%，表明PWO可能在接近精确解时效率下降。
+
+### 关键公式速查
+
+- $$\nabla_{\boldsymbol{\theta}} E [ \psi_{\boldsymbol{\theta}} ] = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \left[ \left(E_{\boldsymbol{\theta}}^{\text{loc}} (\mathbf{s}) - \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \left[ E_{\boldsymbol{\theta}}^{\text{loc}} (\mathbf{s}) \right]\right) \nabla_{\boldsymbol{\theta}} \log \mathcal{P}_{\boldsymbol{\theta}} (\mathbf{s}) \right]$$ — VMC梯度的策略梯度形式（stoquastic假设），式(14)
+- $$L_{\mathrm{mod}}^{\mathrm{clip}} (\pmb{\theta}) = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\pmb{\theta}_{\mathrm{old}}}} \left[ \max \left(r_{\pmb{\theta}} (\mathbf{s}) A_{\pmb{\theta}_{\mathrm{old}}}^{\mathrm{R}} (\mathbf{s}), \mathrm{clip} (r_{\pmb{\theta}} (\mathbf{s}), 1 - \epsilon , 1 + \epsilon) A_{\pmb{\theta}_{\mathrm{old}}}^{\mathrm{R}} (\mathbf{s})\right) \right]$$ — PWO幅值通道裁剪代理损失，式(15)
+- $$L_{\mathrm{arg}}^{\mathrm{clip}} (\pmb{\theta}) = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\pmb{\theta}_{\mathrm{old}}}} \left[ \mathrm{sg} \big (r_{\pmb{\theta}} (\mathbf{s}) \big) \max \big (\phi_{\pmb{\theta}} (\mathbf{s}) A_{\pmb{\theta}_{\mathrm{old}}}^{\mathrm{I}} (\mathbf{s}), \mathrm{clip} \big (\phi_{\pmb{\theta}} (\mathbf{s}), - \delta , \delta \big) A_{\pmb{\theta}_{\mathrm{old}}}^{\mathrm{I}} (\mathbf{s}) \big) \right]$$ — PWO相位通道裁剪代理损失（含stop_gradient），式(17)
+- $$E [ \psi_{\pmb{\theta}} ] - E [ \psi_{\pmb{\theta}_{\mathrm{old}}} ] \leq \mathcal{A}_{\pmb{\theta}_{\mathrm{old}}} (\pmb{\theta}) + 2 \bigg \| \hat{H} - E [ \psi_{\pmb{\theta}_{\mathrm{old}}} ] \mathbb{1} \bigg \| _{\infty} \left(1 - \sqrt{1 - \mathcal{I} (\psi_{\pmb{\theta}_{\mathrm{old}}} , \psi_{\pmb{\theta}})}\right)$$ — 不保真度能量界，定理4.2，式(21)
+- $$\left. \nabla_{\boldsymbol{\theta}} \left(L_{\mathrm{mod}}^{\mathrm{clip}} (\boldsymbol{\theta}) + L_{\mathrm{arg}}^{\mathrm{clip}} (\boldsymbol{\theta})\right) \right| _{\boldsymbol{\theta} = \boldsymbol{\theta}_{\mathrm{old}}} = \left. \nabla_{\boldsymbol{\theta}} E [ \psi_{\boldsymbol{\theta}} ] \right| _{\boldsymbol{\theta} = \boldsymbol{\theta}_{\mathrm{old}}}$$ — PWO一阶一致性，定理4.1，式(19)
+- $$S_{ij} = \mathrm{Re} \left\{\mathrm{Cov}_{\mathbf{s} \sim \mathcal{P}_{\theta}} \left[ O_{i}^{*} (\mathbf{s}), O_{j} (\mathbf{s}) \right] \right\}$$ — Fubini-Study度量（SR的Fisher矩阵），式(12)
+
+### 术语对照
+
+| 中文 | 英文 | 含义 |
+|---|---|---|
+| 神经量子态 | Neural Quantum State (NQS) | 用神经网络参数化多体波函数的方法 |
+| 自回归模型 | Autoregressive model | 分解Born分布为条件概率乘积，实现精确独立采样 |
+| 变分蒙特卡洛 | Variational Monte Carlo (VMC) | 用采样估计能量和梯度的一类方法 |
+| 随机重配置 | Stochastic Reconfiguration (SR) | 用Fubini-Study度量预处理的自然梯度下降 |
+| minSR | minimum SR | 将$P\times P$求逆降为$M\times M$的SR变体 |
+| 近端策略优化 | Proximal Policy Optimization (PPO) | RL中裁剪概率比实现信任域的算法 |
+| 近端波函数优化 | Proximal Wavefunction Optimization (PWO) | 本文提出的NQS信任域优化算法 |
+| 包裹相位差 | Wrapped phase difference | 经atan2处理、取值$[-\pi,\pi]$的相位增量 |
+| Fubini-Study度量 | Fubini-Study metric | 量子态空间的Riemannian度量（$\propto$不保真度） |
+| 阻挫 $J_1-J_2$ 模型 | Frustrated $J_1{-}J_2$ model | 含最近邻和次近邻耦合的海森堡模型，$J_2/J_1=0.5$为Majumdar-Ghosh点 |

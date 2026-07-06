@@ -344,7 +344,12 @@ def fix_bare_latex(text):
 
 
 def strip_preamble(text):
-    """Remove LLM preamble lines before the first ### heading."""
+    """Remove LLM preamble lines before the first ### heading.
+
+    If no ### heading is found, return the text as-is (don't strip everything).
+    This guards against the case where the LLM outputs content without ### markers
+    (e.g. starts with bold text, a paragraph, or uses ## instead).
+    """
     lines = text.split("\n")
     result = []
     found_first_heading = False
@@ -353,9 +358,18 @@ def strip_preamble(text):
             if line.strip().startswith("###"):
                 found_first_heading = True
                 result.append(line)
-            # skip lines before first ### (preamble/寒暄)
+            elif re.match(r"^\*\*|^[^\s#\-\*]", line.strip()):
+                # Non-heading content line — probably not preamble, include it
+                found_first_heading = True
+                result.append(line)
+            # skip preamble lines (empty, greetings, etc.)
             continue
         result.append(line)
+    if not found_first_heading and not result:
+        # No ### heading found at all — return original text, strip only obvious
+        # preamble boilerplate
+        cleaned = re.sub(r'^.*(以下是|好的|这是|以下是修正版|修正版如下)[^\n]*\n', '', text, count=1)
+        return cleaned
     return "\n".join(result)
 
 
