@@ -198,6 +198,11 @@ hugo --gc 2>&1 | tail -10
      [ -f "content/papers/<slug>/$img" ] && echo "OK $img" || echo "MISSING $img"
    done
    ```
+   🔴 **额外校验（防翻译丢图）**：比对源文和 `_index.md` 的图片引用数是否一致：
+   ```bash
+   python3 -c "import re; s=len(re.findall(r'!\[\]\(images/', open('pdfs/papers/<id>-out/<file>.md').read())); d=len(re.findall(r'!\[\]\(images/', open('content/papers/<slug>/_index.md').read())); print(f'源文 {s} 张, _index {d} 张'); exit(1 if d<s else 0)"
+   ```
+   不一致 → 翻译丢图（`translate_chapters.py` 的 `restore_images()` 应自动补回，若仍缺手跑脚本）
 
 5. **数学渲染**：检查 HTML 里有 KaTeX 定界符透传
    ```bash
@@ -254,6 +259,7 @@ grep "^date" content/papers/<slug>/_index.md
 | 标签没聚合到 `/tags/` | `_index.md` 的 `tags` 数组写对（中文标签 OK） | — |
 | 阅读笔记消失 | `strip_preamble` bug——分析不是 `###` 开头则整段丢弃（如 LLM 输出"以下是修正版："）。已修复，但生成后仍需 grep 7 栏目确认 | 重跑 `generate_paper_note.py` |
 | 附录/尾部章节漏翻（全英文） | API 输出 token 超限导致尾部 chunk 截断。`CHUNK_THRESHOLD` 已降为 4500，截断检测已收紧。翻译报告中的"可能漏翻"提示需认真对待 | 补译后重跑 clean + generate |
+| **译文图片丢失**（源文 8 张图译文只剩 2 张） | `translate_chapters.py` 已内置 `restore_images()`：翻译后自动比对源文/译文图片引用数，缺失的按 caption 图号对齐补回（确定性，不依赖 LLM）。仍丢失→检查源文 caption 是否含"图N"标记 | 手动用 `restore_images(src, dst)` 补 |
 | 论文较长被拒绝 | `LONG_PAPER_THRESHOLD` 100K 太激进（含大量图/公式的论文字符数虚高），已改为 200K。不是综述的论文被拒可手动绕过 | — |
 | 算法块未用伪代码 JS | `generate_paper_note.py` 不处理算法格式。翻译后检查 ` ```matlab ` / ` ```python ` 围栏中是否有伪代码，手动转为 `{{< algorithm >}}<pre class="pseudocode">` | 手动转换，参照 `content/_reference/elements.md` |
 

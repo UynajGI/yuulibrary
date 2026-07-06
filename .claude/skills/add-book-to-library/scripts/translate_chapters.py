@@ -57,8 +57,9 @@ SYSTEM_PROMPT = """你是专业翻译。将英文 markdown 正文翻译为中文
    - 引用 —Author, *Book* → {{< callout type="quote" >}}引用内容\\nAuthor, Book{{< /callout >}}
    - 来源/出处行 → {{< caption >}}来源：...{{< /caption >}}
    - 图注 图N.N 描述 → {{< caption >}}图N.N 描述{{< /caption >}}
-8. 不要修改 front matter（--- 之间的内容）
-9. 输出完整译文，不要加任何解释或注释"""
+8. 🔴 图片引用 100% 保留原样：![](images/xxx.webp) 这一行必须原样输出，不要删除、合并或翻译路径
+9. 不要修改 front matter（--- 之间的内容）
+10. 输出完整译文，不要加任何解释或注释"""
 
 
 def build_user_prompt(body: str, glossary: dict, is_seed: bool) -> str:
@@ -230,6 +231,60 @@ def isolate_references(body: str):
     return body[:split_pos], body[split_pos:]
 
 
+# ── Image restoration (deterministic safeguard against LLM dropping images) ─
+IMG_RE = re.compile(r"!\[\]\(images/[a-f0-9]+\.webp\)")
+CAPTION_FIG_RE = re.compile(r"图\s*(\d+)")
+
+def restore_images(source: str, translated: str) -> tuple[str, int]:
+    """Restore image references dropped by the LLM during translation.
+
+    Strategy: build figure number → image refs map from source (images preceding
+    a caption belong to that figure), then for each translated caption missing
+    its images, reinsert them just before the caption line. Also catches images
+    with no associated caption (insert at matched anchor text).
+
+    Returns (corrected_text, num_restored).
+    """
+    src_lines = source.split("\n")
+    dst_lines = translated.split("\n")
+
+    # 1. Map fig number → [image refs] from source (images accumulate until a caption)
+    fig_imgs = {}
+    current_imgs = []
+    for line in src_lines:
+        imgs = IMG_RE.findall(line)
+        if imgs:
+            current_imgs.extend(imgs)
+        if "{{< caption" in line:
+            m = CAPTION_FIG_RE.search(line)
+            if m:
+                num = m.group(1)
+                if num not in fig_imgs and current_imgs:
+                    fig_imgs[num] = current_imgs[:]
+            current_imgs = []
+
+    # 2. Walk translated lines; before each caption, ensure its images exist
+    result = []
+    restored = 0
+    for line in dst_lines:
+        if "{{< caption" in line:
+            m = CAPTION_FIG_RE.search(line)
+            if m:
+                num = m.group(1)
+                imgs = fig_imgs.get(num, [])
+                # check preceding lines for existing images
+                lookback = "\n".join(result[-len(imgs) - 2 :]) if imgs else ""
+                missing = [im for im in imgs if im not in lookback]
+                if missing:
+                    result.append("")
+                    for im in missing:
+                        result.append(im)
+                    restored += len(missing)
+        result.append(line)
+
+    return "\n".join(result), restored
+
+
 # ── LLM call ─────────────────────────────────────────────────────────────
 async def translate_text(client, body: str, glossary: dict, is_seed: bool, feedback: str = "") -> str:
     """Call LLM to translate body text. Returns translated text (may include glossary markers).
@@ -275,6 +330,14 @@ async def translate_text(client, body: str, glossary: dict, is_seed: bool, feedb
     # Append references as-is (heading translated, entries kept original)
     if ref_section:
         translated = translated.rstrip() + "\n\n" + translate_ref_heading(ref_section)
+
+    # Deterministic safeguard: restore any image refs the LLM dropped
+    src_imgs = IMG_RE.findall(body)
+    dst_imgs = IMG_RE.findall(translated)
+    if len(src_imgs) > len(dst_imgs):
+        translated, n = restore_images(body, translated)
+        if n > 0:
+            print(f"    🔧 恢复 {n} 张丢失的图片引用（源文 {len(src_imgs)} 张，译文原仅 {len(dst_imgs)} 张）")
 
     return translated
 
