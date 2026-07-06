@@ -166,7 +166,10 @@ python3 .claude/skills/add-paper-to-library/scripts/generate_paper_note.py \
 
 **综述路由**：如果论文 MD > 20000 字符（综述级别），脚本自动提示走 book 流程翻译拆章，产物仍放 `content/papers/<slug>/`。
 
-🔴 **CHECKPOINT**：检查生成的 `_index.md`——结构化分析栏目是否齐全、公式是否原样、cross-link 是否指向真实存在的论文。
+🔴 **CHECKPOINT**：检查生成的 `_index.md`——
+- **翻译完整性**：`python3 -c "import re; lines=open('content/papers/<slug>/_index.md').readlines(); blocks=[i for i,l in enumerate(lines) if re.search(r'[a-zA-Z]{20,}',l) and not re.search(r'[一-鿿]',l) and not l.strip().startswith('!') and not l.strip().startswith('{{<')]; print(f'{len(blocks)} English lines')"` —— 超过 5 行说明有漏翻
+- **分析栏目齐全**：`grep -c "一句话概括\|核心论证链\|实验参数\|批判性思考\|局限性\|关键公式速查\|术语对照" content/papers/<slug>/_index.md` —— 必须 ≥7
+- **公式是否原样**、cross-link 是否指向真实存在的论文
 
 ### Phase 4：build 验证
 
@@ -249,6 +252,10 @@ grep "^date" content/papers/<slug>/_index.md
 | 参考文献被翻译成中文 | `translate_chapters.py` 有参考文献隔离（`## References` 后原样保留） | 确认源文件参考文献 section 标题是 `## References` |
 | 论文没进 `/papers/` 列表 | 检查 `_index.md`（不是普通 .md）+ front matter `title`/`weight` | 检查 `category` 数组是否合法 |
 | 标签没聚合到 `/tags/` | `_index.md` 的 `tags` 数组写对（中文标签 OK） | — |
+| 阅读笔记消失 | `strip_preamble` bug——分析不是 `###` 开头则整段丢弃（如 LLM 输出"以下是修正版："）。已修复，但生成后仍需 grep 7 栏目确认 | 重跑 `generate_paper_note.py` |
+| 附录/尾部章节漏翻（全英文） | API 输出 token 超限导致尾部 chunk 截断。`CHUNK_THRESHOLD` 已降为 4500，截断检测已收紧。翻译报告中的"可能漏翻"提示需认真对待 | 补译后重跑 clean + generate |
+| 论文较长被拒绝 | `LONG_PAPER_THRESHOLD` 100K 太激进（含大量图/公式的论文字符数虚高），已改为 200K。不是综述的论文被拒可手动绕过 | — |
+| 算法块未用伪代码 JS | `generate_paper_note.py` 不处理算法格式。翻译后检查 ` ```matlab ` / ` ```python ` 围栏中是否有伪代码，手动转为 `{{< algorithm >}}<pre class="pseudocode">` | 手动转换，参照 `content/_reference/elements.md` |
 
 ---
 
@@ -271,6 +278,9 @@ grep "^date" content/papers/<slug>/_index.md
 | 13 | SM 全文逐字翻译 | SM 提炼要点（方法表、与正文对照、额外结论） |
 | 14 | cross-link 指向不存在的笔记 | 脚本扫 global-index.json 按 tags 匹配，找不到不写 |
 | 15 | 翻译/分析走 subagent | 翻译走 translate_chapters.py，分析走 generate_paper_note.py |
+| 16 | 翻译后不扫漏翻直接进分析 | 翻译报告里的"可能漏翻"必须认真对待；生成后 grep 英文行数确认 < 5 |
+| 17 | 分析生成后不验证栏目齐全 | `grep -c` 7 栏目名必须 ≥7，0 = strip_preamble bug 吞了整篇 |
+| 18 | 算法伪代码留在 ` ```matlab ` 围栏里 | 转为 `{{< algorithm >}}<pre class="pseudocode">` + 小写裸命令 |
 
 ---
 
