@@ -30,7 +30,7 @@ yuulibrary/
 │   ├── notes/                    # 笔记（扁平存放，每篇一个 .md）
 │   │   ├── _index.md             # section 定义
 │   │   ├── <slug>.md             # 笔记正文（title/description/date/author/tags/weight）
-│   ├── papers/                   # 论文笔记（带 author/year/tags）
+│   ├── papers/                   # 论文笔记（arXiv 一级 category 数组，带 author/year/tags）
 │   └── _reference/               # 元素模板速查（_ 前缀，菜单隐藏）
 ├── layouts/
 │   ├── _shortcodes/              # book-toc/callout/definition/theorem/example 等
@@ -40,6 +40,7 @@ yuulibrary/
 │   ├── katex/ + pseudocode/ + rough.min.js  # 本地化数学/算法/手绘渲染
 │   ├── chat/chat.js + chat.css              # AI 问答 Agent（BYOK 浏览器直连）
 │   └── pageindex/                           # PageIndex 树索引 JSON（gitignore，构建产物）
+├── data/                       # Hugo data（symlink → .claude/skills/*/data/）
 ├── scripts/build_pageindex.py               # PageIndex 索引构建脚本
 ├── .claude/skills/add-book-to-library/   # 加书 skill（clean_markdown.py / translate_chapters.py / convert_xrefs.py / validate_book.py）
 ├── .claude/skills/add-paper-to-library/  # 加论文 skill（generate_paper_note.py）
@@ -81,11 +82,11 @@ yuulibrary/
 1. 去重（`grep -ril "<作者>" content/papers/`）→ PDF 归档到 `pdfs/papers/`（含 SM 文件）
 2. **优先复用已有 MinerU 提取**（`find ~ -name "*.md" | xargs grep "<标题>"`），没有再提取
 3. **全部图片带上** → `content/papers/<slug>/images/`，用 `convert_to_webp.sh` 批量转 WebP（hash 文件名，和书一致）
-4. `content/papers/<slug>/_index.md`（**必须是 `_index.md`**，不是普通 .md），front matter 全齐：`title`(中文)/`description`/`date`/`author`/`year`/`tags`/`links`/`weight`
+4. `content/papers/<slug>/_index.md`（**必须是 `_index.md`**，不是普通 .md），front matter 全齐：`title`(中文)/`description`/`date`/`author`/`year`/`category`(数组)/`tags`/`links`/`weight`。**`category` 是 arXiv 一级分类数组**（`["quant-ph"]`, `["quant-ph", "cond-mat"]`），查 `data/arxiv_categories.json`
 5. **翻译 + 结构化分析用 workflow 脚本**（不召唤 subagent）：
-   - `clean_markdown.py` — 统一清洗（book+paper）：噪声删除 + LaTeX 碎片修复 + 图注配对 + 标题层级
-   - `translate_chapters.py <file.md>` — 翻译（输出到 `.zh.md`，不碰源文件；分段翻译防截断；自动验证重试）
-   - `generate_paper_note.py <file.zh.md> --slug <slug> --meta <meta.json>` — ReAct 结构化分析（7 栏目：一句话概括/核心论证链/实验参数/批判思考/局限性/公式速查/术语对照）+ cross-link + 组装 `_index.md`
+   - `clean_markdown.py` — 统一清洗（book+paper）：噪声删除 + LaTeX 碎片修复 + 图注配对 + 标题层级 + ref 分行 + `<details>` 删除
+   - `translate_chapters.py <file.md>` — 翻译（输出到 `.zh.md`，不碰源文件；分段翻译防截断；自动验证重试；漏翻块检测）
+   - `generate_paper_note.py <file.zh.md> --slug <slug> --meta <meta.json>` — ReAct 结构化分析（7 栏目 + 自我审查改进）+ cross-link + 组装 `_index.md`。category 支持数组多归属
 6. **🔴 LaTeX 公式 100% 原样**；图注用 `{{< caption >}}`，强调用 `{{< callout >}}`
 7. **🔴 日期陷阱**：`date` 写昨天（如 `2026-07-04`），别写「今天」——Hugo 不构建未来日期的页面，且**不报错**。详见 skill
 8. `hugo --gc` → **验证 `public/papers/<slug>/index.html` 真的生成了**（不生成 = 日期在未来）

@@ -74,6 +74,16 @@ def remove_noise(lines):
             i += 1
             continue
 
+        # --- Paper: MinerU <details> data tables (not real figures) ---
+        if re.match(r"^</?details>?$", stripped):
+            stats["details"] = stats.get("details", 0) + 1
+            i += 1
+            while i < len(lines) and not re.match(r"^</details>$", lines[i].strip()):
+                i += 1
+            if i < len(lines):
+                i += 1  # skip </details>
+            continue
+
         # Flat TOC heading: ## 目录 / ## Contents / ## Table of Contents
         if re.match(r"^##\s+(目录|Contents|Table of Contents)", stripped, re.IGNORECASE):
             stats["toc"] = stats.get("toc", 0) + 1
@@ -285,6 +295,22 @@ def clean(content):
 
     # Stage 1: noise removal
     lines, noise_stats = remove_noise(lines)
+
+    # Stage 1c: separate consecutive reference entries with blank lines
+    # MinerU often produces consecutive [N] lines without blank line separation,
+    # causing Markdown to render them as a single paragraph.
+    ref_line_count = 0
+    ref_sep_lines = []
+    for line in lines:
+        is_ref = bool(re.match(r"^\[\d+\]", line.strip()))
+        if is_ref and ref_sep_lines and re.match(r"^\[\d+\]", ref_sep_lines[-1].strip()):
+            ref_sep_lines.append("")
+            ref_line_count += 1
+        ref_sep_lines.append(line)
+    if ref_line_count:
+        lines = ref_sep_lines
+        noise_stats["ref_sep"] = ref_line_count
+
     text = "\n".join(lines)
 
     # Stage 1b: book misc (bullets, book footnotes)

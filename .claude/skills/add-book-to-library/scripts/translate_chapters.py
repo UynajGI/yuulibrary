@@ -31,7 +31,7 @@ from convert_xrefs import convert_file as convert_xrefs_file  # noqa: E402
 # ── Config ───────────────────────────────────────────────────────────────
 try:
     from dotenv import load_dotenv
-    load_dotenv(os.path.join(SCRIPT_DIR, "..", "..", "..", ".env"))
+    load_dotenv(os.path.join(SCRIPT_DIR, "..", "..", "..", "..", ".env"))
 except ImportError:
     pass  # dotenv not installed, rely on env vars being set
 
@@ -107,14 +107,14 @@ def extract_glossary(text: str):
 
 
 def check_quality(path: str, source_body: str = ""):
-    """Run validate_file + residual English + truncation check. Returns (passed, issues_summary)."""
+    """Run validate_file + residual English + untranslated block + truncation check."""
     issues = validate_file(path)
     errors = [msg for level, msg in issues if level == ERR]
 
     with open(path, encoding="utf-8") as f:
         content = f.read()
     _, body = split_front_matter(content)
-    residual = len(RESIDUAL_EN_RE.findall(content))
+    residual = len(RESIDUAL_EN_RE.findall(body))  # body only, not front matter
 
     problems = []
     if errors:
@@ -122,14 +122,74 @@ def check_quality(path: str, source_body: str = ""):
     if residual > 8:
         problems.append(f"遗漏英文长词 {residual} 处（>8，可能未翻译完整段落）")
 
-    # Truncation detection: translated body should be at least 20% of source length
-    # (Chinese is more compact than English, but 20% is a safe floor)
+    # Untranslated block detection: 3+ consecutive non-empty, non-heading,
+    # non-math lines that are pure English → likely a skipped section.
+    untranslated = find_untranslated_blocks(body)
+    if untranslated:
+        locations = [f"§{h}" for h in untranslated[:3]]
+        problems.append(f"可能漏翻 {len(untranslated)} 块：{', '.join(locations)}")
+
+    # Truncation detection
     if source_body:
         ratio = len(body) / max(len(source_body), 1)
         if ratio < 0.2:
             problems.append(f"译文长度仅为源文的 {ratio:.0%}，可能被截断")
 
     return len(problems) == 0, "; ".join(problems) if problems else "ok"
+
+
+def find_untranslated_blocks(body: str):
+    """Detect 3+ consecutive non-empty lines of pure English (likely untranslated).
+
+    Returns list of preceding ##/### heading texts for each block, or ['<body start>'].
+    """
+    lines = body.split("\n")
+    blocks = []
+    current_block = []
+    last_heading = ""
+    prev_heading = ""
+
+    for line in lines:
+        stripped = line.strip()
+        # Track headings for location context
+        hm = re.match(r"^(#{1,3})\s+(.+)", stripped)
+        if hm:
+            prev_heading = hm.group(2).strip()[:40]
+            if current_block and len(current_block) >= 3:
+                blocks.append(last_heading or prev_heading)
+            current_block = []
+            last_heading = prev_heading
+            continue
+
+        if not stripped:
+            if current_block and len(current_block) >= 3:
+                blocks.append(last_heading or prev_heading)
+            current_block = []
+            continue
+
+        # Skip math-only lines, front matter markers
+        if re.match(r"^[\$\s\\\{\}_\^\[\]\d+\-*/=<>\(\),.]+$", stripped):
+            continue
+
+        # Skip lines that already have CJK
+        if re.search(r"[一-鿿]", stripped):
+            if current_block and len(current_block) >= 3:
+                blocks.append(last_heading or prev_heading)
+            current_block = []
+            continue
+
+        # Count English content: needs at least 5 alpha chars to count as "English line"
+        if len(re.findall(r"[a-zA-Z]", stripped)) >= 5:
+            current_block.append(stripped)
+        else:
+            if current_block and len(current_block) >= 3:
+                blocks.append(last_heading or prev_heading)
+            current_block = []
+
+    if current_block and len(current_block) >= 3:
+        blocks.append(last_heading or prev_heading)
+
+    return blocks
 
 
 def is_chinese_text(body: str) -> bool:
