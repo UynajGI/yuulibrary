@@ -1,13 +1,20 @@
 {{/*
   论文分类书架 — arXiv 一级分类，数组多归属，全自动生成。
 
-  读取 data/arxiv_categories.json 获取分类名。
+  读取 data/arxiv_categories.json 获取分类名和 hidden 标记。
   Paper front matter: category: ["quant-ph", "cond-mat"]
   一篇论文可以出现在多个分类书架下。
 
-  catDefs 只定义展示用的 icon + desc，不参与论文匹配。
-  匹配完全由 paper 的 category 数组控制。
+  隐藏分类：在 data/arxiv_categories.json 里给分类加 "hidden": true。
 */}}
+
+{{/* ── 从 JSON 读取隐藏分类列表 ── */}}
+{{ $isHidden := dict }}
+{{ range $key, $val := .Site.Data.arxiv_categories.categories }}
+  {{ if $val.hidden }}
+    {{ $isHidden = merge $isHidden (dict $key true) }}
+  {{ end }}
+{{ end }}
 
 {{/* ── 分类展示定义（icon + desc）；不在此列表中的 category 仍会出现在书架 ── */}}
 {{ $catDisplay := dict
@@ -31,12 +38,25 @@
   "history"  (dict "icon" "📜" "desc" "历史：经济史、科学史、文明史")
 }}
 
-{{/* ── 收集所有论文 section 页 ── */}}
+{{/* ── 收集所有论文 section 页（排除纯隐藏分类的论文） ── */}}
 {{ $allPapers := where .Site.Pages "Section" "papers" }}
 {{ $paperSections := slice }}
 {{ range $allPapers }}
   {{ if and .IsSection .Params.year (ne .RelPermalink "/yuulibrary/papers/") (ne .RelPermalink "/papers/") }}
-    {{ $paperSections = $paperSections | append . }}
+    {{ $cats := .Params.category | default (slice) }}
+    {{ $catList := slice }}
+    {{ if eq (printf "%T" $cats) "string" }}
+      {{ $catList = slice $cats }}
+    {{ else }}
+      {{ range $cats }}{{ $catList = $catList | append . }}{{ end }}
+    {{ end }}
+    {{ $hasVisibleCat := false }}
+    {{ range $catList }}
+      {{ if not (index $isHidden .) }}{{ $hasVisibleCat = true }}{{ end }}
+    {{ end }}
+    {{ if or (eq (len $catList) 0) $hasVisibleCat }}
+      {{ $paperSections = $paperSections | append . }}
+    {{ end }}
   {{ end }}
 {{ end }}
 {{ $paperSections = sort $paperSections "Params.weight" "asc" }}
@@ -61,8 +81,10 @@
     {{ end }}
     {{ range $catList }}
       {{ $key := . }}
-      {{ $existing := index $catPapers $key | default (slice) }}
-      {{ $catPapers = merge $catPapers (dict $key ($existing | append $paper)) }}
+      {{ if not (index $isHidden $key) }}
+        {{ $existing := index $catPapers $key | default (slice) }}
+        {{ $catPapers = merge $catPapers (dict $key ($existing | append $paper)) }}
+      {{ end }}
     {{ end }}
   {{ end }}
 {{ end }}

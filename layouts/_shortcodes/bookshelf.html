@@ -1,14 +1,11 @@
 {{/*
-  书架分类卡片 — 全自动生成。读 data/book_categories.json 获分类名，
+  书架分类卡片 — 全自动生成。读 data/book_categories.json 获分类名和 hidden 标记，
   category 字段数组多归属，一篇可在多个书架下出现。
   新增书籍只需填好 _index.md 的 category 数组即可，无需改此文件。
 
-  隐藏分类：$hiddenCats 中的分类不在首页展示（内容保留，仅隐去展示）。
-  要恢复展示，从此列表删除对应 key 即可。
+  隐藏分类：在 data/book_categories.json 里给分类加 "hidden": true，
+  该分类不在首页书架展示（内容保留，URL 可访问）。去掉该字段即恢复展示。
 */}}
-
-{{/* ── 隐藏分类（暂时不展示的分类 key）── */}}
-{{ $hiddenCats := slice "quant" }}
 
 {{/* ── 分类展示定义（icon + desc），不参与匹配 ── */}}
 {{ $catDisplay := dict
@@ -19,10 +16,12 @@
   "physics" (dict "icon" "⚛️" "desc" "量子光学、统计物理、理论物理")
 }}
 
-{{/* ── 辅助函数：判断分类是否隐藏 ── */}}
+{{/* ── 从 JSON 读取隐藏分类列表 ── */}}
 {{ $isHidden := dict }}
-{{ range $hiddenCats }}
-  {{ $isHidden = merge $isHidden (dict . true) }}
+{{ range $key, $val := .Site.Data.book_categories.categories }}
+  {{ if $val.hidden }}
+    {{ $isHidden = merge $isHidden (dict $key true) }}
+  {{ end }}
 {{ end }}
 
 {{/* ── 收集所有书籍 section 页（排除纯隐藏分类的书） ── */}}
