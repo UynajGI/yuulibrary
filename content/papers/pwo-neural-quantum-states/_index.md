@@ -20,7 +20,7 @@ Juan Agustín Duque<sup>1,2,∗</sup> Sergio García-Heredia<sup>2,∗</sup> Vin
 
 <sup>2</sup>Applied Quantum Algorithms ⟨aQa$\mathbb{L}$⟩, LIACS & LION, Leiden University, Leiden, Netherlands <sup>3</sup>QuTech and Kavli Institute of Nanoscience, Delft University of Technology, Delft, Netherlands
 
-<sup>4</sup>CIFAR AI Chair <juanduquevan@gmail.com> <sup>∗</sup>共同第一作者。 <sup>†</sup>共同指导。
+<sup>4</sup>CIFAR AI Chair juanduquevan@gmail.com <sup>∗</sup>共同第一作者。 <sup>†</sup>共同指导。
 
 ### 摘要
 
@@ -117,23 +117,16 @@ $$
 L (\pmb{\theta}) \approx \bar{E}_{\pmb{\theta}}^{\mathrm{loc}} \equiv \frac{1}{M} \sum_{i = 1}^{M} E_{\pmb{\theta}}^{\mathrm{loc}} (\mathbf{s}_{i}).\tag{10}
 $$
 
-<div class="mineru-algorithm" style="white-space: pre-wrap; font-family:monospace;">
+```matlab
 算法 1: 近端波函数优化 (PWO)
-
 输入: 哈密顿量 $\hat{H}$, NQS $\psi_{\theta}$, 批次大小 $M$, 内部轮次 $K$, 幅度裁剪 $\epsilon$, 相位裁剪 $\delta$ 初始化 $\theta$
-
 while 未收敛 do
-
 $\theta_{\text{old}} \leftarrow \theta$
-
 采样 $\{\mathbf{s}_i\}_{i=1}^M \sim \mathcal{P}_{\theta_{\text{old}}}$
-
 缓存 $\{\mathbf{s}_i\}_{i=1}^M$ 的参考对数概率 $\log \mathcal{P}_{\theta_{\text{old}}}(\mathbf{s}_i)$; 相位 $\arg \psi_{\theta_{\text{old}}}(\mathbf{s}_i)$; 以及归一化的实部和虚部优势 $A_{\theta_{\text{old}}}^{\text{R}}(\mathbf{s}_i)$ 和 $A_{\theta_{\text{old}}}^{\text{I}}(\mathbf{s}_i)$。
-
 for $k = 1, \ldots, K$ do
-
     计算 $\{\mathbf{s}_i\}_{i=1}^M$ 的当前对数概率 $\log \mathcal{P}_{\theta}(\mathbf{s}_i)$ 和相位 $\arg \psi_{\theta}(\mathbf{s}_i)$ $r_i \leftarrow \exp(\log \mathcal{P}_{\theta}(\mathbf{s}_i) - \log \mathcal{P}_{\theta_{\text{old}}}(\mathbf{s}_i))$ $\phi_i \leftarrow 2 \cdot \text{atan}_2 (\sin (\arg \psi_{\theta}(\mathbf{s}_i) - \arg \psi_{\theta_{\text{old}}}(\mathbf{s}_i)), \cos (\arg \psi_{\theta}(\mathbf{s}_i) - \arg \psi_{\theta_{\text{old}}}(\mathbf{s}_i)))$ $\ell_i^R \leftarrow \max(r_i A_{\theta_{\text{old}}}^{\text{R}}(\mathbf{s}_i), \text{clip}(r_i, 1 - \epsilon, 1 + \epsilon) A_{\theta_{\text{old}}}^{\text{R}}(\mathbf{s}_i))$ $\ell_i^I \leftarrow \text{stop\_gradient}(r_i) \cdot \max(\phi_i A_{\theta_{\text{old}}}^{\text{I}}(\mathbf{s}_i), \text{clip}(\phi_i, -\delta, \delta) A_{\theta_{\text{old}}}^{\text{I}}(\mathbf{s}_i))$ $\theta \leftarrow \theta - \eta \nabla_{\theta} \frac{1}{M} \sum_{i=1}^{M} (\ell_i^R + \ell_i^I)$。
-</div>
+```
 
 通过对式 (8) 求导（见附录 B.2），可以证明其关于 θ 的梯度可以表示为关于 $\mathcal{P}_{\pmb{\theta}}$ 的期望值，并使用 MCMC 采样或自回归模型的直接采样进行估计：
 
@@ -324,7 +317,7 @@ $$
 
 ### 可复现性声明
 
-复现我们实验的代码可在 <https://github.com/jduquevan/> hyperscalenqs 获取。完整的实验细节，包括超参数搜索、模型架构、优化器设置、样本预算和扩展配置，见附录D。
+复现我们实验的代码可在 https://github.com/jduquevan/ hyperscalenqs 获取。完整的实验细节，包括超参数搜索、模型架构、优化器设置、样本预算和扩展配置，见附录D。
 
 ### 致谢
 
@@ -332,103 +325,103 @@ $$
 
 ### 参考文献
 
-Alekh Agarwal, Nan Jiang, Sham Kakade, and Wen Sun. Reinforcement Learning: Theory and Algorithms. Draft/Preprint, 2021. URL <https://rltheorybook.github.io/.>
+Alekh Agarwal, Nan Jiang, Sham Kakade, and Wen Sun. Reinforcement Learning: Theory and Algorithms. Draft/Preprint, 2021. URL https://rltheorybook.github.io/.
 
-Rishabh Agarwal, Max Schwarzer, Pablo Samuel Castro, Aaron Courville, and Marc G. Bellemare. Deep reinforcement learning at the edge of the statistical precipice. arXiv preprint arXiv:2108.13264, 2022. doi: 10.48550/arXiv.2108.13264. URL <https://arxiv.org/abs/> 2108.13264.
+Rishabh Agarwal, Max Schwarzer, Pablo Samuel Castro, Aaron Courville, and Marc G. Bellemare. Deep reinforcement learning at the edge of the statistical precipice. arXiv preprint arXiv:2108.13264, 2022. doi: 10.48550/arXiv.2108.13264. URL https://arxiv.org/abs/ 2108.13264.
 
-Shun-ichi Amari. Natural gradient works efficiently in learning. Neural Computation, 10(2): 251–276, 1998. doi: 10.1162/089976698300017746. URL <https://doi.org/10.1162/> 089976698300017746.
+Shun-ichi Amari. Natural gradient works efficiently in learning. Neural Computation, 10(2): 251–276, 1998. doi: 10.1162/089976698300017746. URL https://doi.org/10.1162/ 089976698300017746.
 
 Ariel Barr, Willem Gispen, and Austen Lamacraft. Quantum ground states from reinforcement learning. In Proceedings of the First Mathematical and Scientific Machine Learning Conference, volume 107 of Proceedings of Machine Learning Research, pages 635–653, 2020. URL https: //proceedings.mlr.press/v107/barr20a.html.
 
-Giuseppe Carleo and Matthias Troyer. Solving the quantum many-body problem with artificial neural networks. Science, 355(6325):602–606, 2017. doi: 10.1126/science.aag2302. URL <https://doi.org/10.1126/science.aag2302.>
+Giuseppe Carleo and Matthias Troyer. Solving the quantum many-body problem with artificial neural networks. Science, 355(6325):602–606, 2017. doi: 10.1126/science.aag2302. URL https://doi.org/10.1126/science.aag2302.
 
 Ao Chen and Markus Heyl. Empowering deep neural quantum states through efficient optimization. Nature Physics, 20(9):1476–1481, 2024. doi: 10.1038/s41567-024-02566-1. URL https: //doi.org/10.1038/s41567-024-02566-1.
 
-Hongwei Chen, Douglas Gerard Hendry, Phillip E. Weinberg, and Adrian Feiguin. Systematic improvement of neural network quantum states using Lanczos. In Advances in Neural Information Processing Systems, 2022. URL <https://openreview.net/forum?id=qZUHvvtbzy.>
+Hongwei Chen, Douglas Gerard Hendry, Phillip E. Weinberg, and Adrian Feiguin. Systematic improvement of neural network quantum states using Lanczos. In Advances in Neural Information Processing Systems, 2022. URL https://openreview.net/forum?id=qZUHvvtbzy.
 
-Kenny Choo, Antonio Mezzacapo, and Giuseppe Carleo. Fermionic neural-network states for ab-initio electronic structure. Nature Communications, 11(1):2368, 2020. doi: 10.1038/ s41467-020-15724-9. URL <https://doi.org/10.1038/s41467-020-15724-9.>
+Kenny Choo, Antonio Mezzacapo, and Giuseppe Carleo. Fermionic neural-network states for ab-initio electronic structure. Nature Communications, 11(1):2368, 2020. doi: 10.1038/ s41467-020-15724-9. URL https://doi.org/10.1038/s41467-020-15724-9.
 
 Anna Dawid, Julian Arnold, Borja Requena, Alexander Gresch, Marcin Płodzien, Kaelan Donatella,´ Kim A. Nicoli, Paolo Stornati, Rouven Koch, Miriam Büttner, Robert Okuła, Gorka Muñoz Gil, Rodrigo A. Vargas-Hernández, Alba Cervera-Lierta, Juan Carrasquilla, Vedran Dunjko, Marylou Gabrié, Patrick Huembeli, Evert van Nieuwenburg, Filippo Vicentini, Lei Wang, Sebastian J. Wetzel, Giuseppe Carleo, Eliška Greplová, Roman Krems, Florian Marquardt, Michał Tomza, Maciej Lewenstein, and Alexandre Dauphin. Machine Learning in Quantum Sciences. Cambridge University Press, 2025. ISBN 9781009504935. doi: 10.1017/9781009504942. URL https: //doi.org/10.1017/9781009504942.
 
-Luigi Del Debbio, Gian Mario Manca, and Ettore Vicari. Critical slowing down of topological modes. Physics Letters B, 594(3–4):315–323, 2004. doi: 10.1016/j.physletb.2004.05.038. URL <https://doi.org/10.1016/j.physletb.2004.05.038.>
+Luigi Del Debbio, Gian Mario Manca, and Ettore Vicari. Critical slowing down of topological modes. Physics Letters B, 594(3–4):315–323, 2004. doi: 10.1016/j.physletb.2004.05.038. URL https://doi.org/10.1016/j.physletb.2004.05.038.
 
-Mehdi Drissi, James W. T. Keeble, Javier Rozalén Sarmiento, and Arnau Rios. Second-order optimization strategies for neural network quantum states. Philosophical Transactions of the Royal Society A, 382(2275):20240057, 2024. doi: 10.1098/rsta.2024.0057. URL <https://doi.org/> 10.1098/rsta.2024.0057.
+Mehdi Drissi, James W. T. Keeble, Javier Rozalén Sarmiento, and Arnau Rios. Second-order optimization strategies for neural network quantum states. Philosophical Transactions of the Royal Society A, 382(2275):20240057, 2024. doi: 10.1098/rsta.2024.0057. URL https://doi.org/ 10.1098/rsta.2024.0057.
 
-Chloé Gauvin-Ndiaye, Joseph Tindall, Javier Robledo Moreno, and Antoine Georges. Mott transition and volume law entanglement with neural quantum states. Physical Review Letters, 134(7): 076502, 2025. doi: 10.1103/PhysRevLett.134.076502. URL <https://doi.org/10.1103/> PhysRevLett.134.076502.
+Chloé Gauvin-Ndiaye, Joseph Tindall, Javier Robledo Moreno, and Antoine Georges. Mott transition and volume law entanglement with neural quantum states. Physical Review Letters, 134(7): 076502, 2025. doi: 10.1103/PhysRevLett.134.076502. URL https://doi.org/10.1103/ PhysRevLett.134.076502.
 
-Willem Gispen and Austen Lamacraft. Ground states of quantum many body lattice models via reinforcement learning. In Proceedings of the 2nd Mathematical and Scientific Machine Learning Conference, volume 145 of Proceedings of Machine Learning Research, pages 369–385, 2022. URL <https://proceedings.mlr.press/v145/gispen22a.html.>
+Willem Gispen and Austen Lamacraft. Ground states of quantum many body lattice models via reinforcement learning. In Proceedings of the 2nd Mathematical and Scientific Machine Learning Conference, volume 145 of Proceedings of Machine Learning Research, pages 369–385, 2022. URL https://proceedings.mlr.press/v145/gispen22a.html.
 
-Gil Goldshlager, Nilin Abrahamsen, and Lin Lin. A Kaczmarz-inspired approach to accelerate the optimization of neural network wavefunctions. Journal of Computational Physics, 516: 113351, 2024. doi: 10.1016/j.jcp.2024.113351. URL <https://doi.org/10.1016/j.jcp.> 2024.113351.
+Gil Goldshlager, Nilin Abrahamsen, and Lin Lin. A Kaczmarz-inspired approach to accelerate the optimization of neural network wavefunctions. Journal of Computational Physics, 516: 113351, 2024. doi: 10.1016/j.jcp.2024.113351. URL https://doi.org/10.1016/j.jcp. 2024.113351.
 
-Jan Hermann, Zeno Schätzle, and Frank Noé. Deep-neural-network solution of the electronic Schrödinger equation. Nature Chemistry, 12(10):891–897, 2020. doi: 10.1038/s41557-020-0544-y. URL <https://doi.org/10.1038/s41557-020-0544-y.>
+Jan Hermann, Zeno Schätzle, and Frank Noé. Deep-neural-network solution of the electronic Schrödinger equation. Nature Chemistry, 12(10):891–897, 2020. doi: 10.1038/s41557-020-0544-y. URL https://doi.org/10.1038/s41557-020-0544-y.
 
-Mohamed Hibat-Allah, Martin Ganahl, Lauren E. Hayward, Roger G. Melko, and Juan Carrasquilla. Recurrent neural network wave functions. Physical Review Research, 2(2):023358, 2020. doi: 10.1103/PhysRevResearch.2.023358. URL <https://doi.org/10.1103/PhysRevResearch.> 2.023358.
+Mohamed Hibat-Allah, Martin Ganahl, Lauren E. Hayward, Roger G. Melko, and Juan Carrasquilla. Recurrent neural network wave functions. Physical Review Research, 2(2):023358, 2020. doi: 10.1103/PhysRevResearch.2.023358. URL https://doi.org/10.1103/PhysRevResearch. 2.023358.
 
 Roger A. Horn and Charles R. Johnson. Matrix Analysis. Cambridge University Press, Cambridge, 2 edition, 2012. ISBN 9780521839402. doi: 10.1017/CBO9780511810817. URL https: //doi.org/10.1017/CBO9780511810817.
 
-Jeongwoo Jae, Jeonghoon Hong, Jinho Choo, and Yeong-Dae Kwon. Reinforcement learning to learn quantum states for Heisenberg scaling accuracy. Advanced Quantum Technologies, 8(10), 2025. doi: 10.1002/qute.202500206. URL <https://doi.org/10.1002/qute.202500206.>
+Jeongwoo Jae, Jeonghoon Hong, Jinho Choo, and Yeong-Dae Kwon. Reinforcement learning to learn quantum states for Heisenberg scaling accuracy. Advanced Quantum Technologies, 8(10), 2025. doi: 10.1002/qute.202500206. URL https://doi.org/10.1002/qute.202500206.
 
-Sham Kakade and John Langford. Approximately optimal approximate reinforcement learning. In Proceedings of the Nineteenth International Conference on Machine Learning, pages 267–274, 2002. URL <https://dl.acm.org/doi/10.5555/645531.656005.>
+Sham Kakade and John Langford. Approximately optimal approximate reinforcement learning. In Proceedings of the Nineteenth International Conference on Machine Learning, pages 267–274, 2002. URL https://dl.acm.org/doi/10.5555/645531.656005.
 
-Diederik P. Kingma and Jimmy Ba. Adam: A method for stochastic optimization. arXiv preprint arXiv:1412.6980, 2014. doi: 10.48550/arXiv.1412.6980. URL <https://arxiv.org/abs/1412.> 6980.
+Diederik P. Kingma and Jimmy Ba. Adam: A method for stochastic optimization. arXiv preprint arXiv:1412.6980, 2014. doi: 10.48550/arXiv.1412.6980. URL https://arxiv.org/abs/1412. 6980.
 
-Hannah Lange, Anka Van de Walle, Atiye Abedinnia, and Annabelle Bohrdt. From architectures to applications: A review of neural quantum states. arXiv preprint arXiv:2402.09402, 2024. doi: 10.48550/arXiv.2402.09402. URL <https://arxiv.org/abs/2402.09402.>
+Hannah Lange, Anka Van de Walle, Atiye Abedinnia, and Annabelle Bohrdt. From architectures to applications: A review of neural quantum states. arXiv preprint arXiv:2402.09402, 2024. doi: 10.48550/arXiv.2402.09402. URL https://arxiv.org/abs/2402.09402.
 
-Jing Liu, Ying Tang, and Pan Zhang. Efficient optimization of variational autoregressive networks with natural gradient. Physical Review E, 111(2):025304, 2025. doi: 10.1103/PhysRevE.111.025304. URL <https://doi.org/10.1103/PhysRevE.111.025304.>
+Jing Liu, Ying Tang, and Pan Zhang. Efficient optimization of variational autoregressive networks with natural gradient. Physical Review E, 111(2):025304, 2025. doi: 10.1103/PhysRevE.111.025304. URL https://doi.org/10.1103/PhysRevE.111.025304.
 
-James Martens and Roger Grosse. Optimizing neural networks with Kronecker-factored approximate curvature. In Proceedings of the 32nd International Conference on Machine Learning, pages 2408–2417, 2015. URL <https://proceedings.mlr.press/v37/martens15.html.>
+James Martens and Roger Grosse. Optimizing neural networks with Kronecker-factored approximate curvature. In Proceedings of the 32nd International Conference on Machine Learning, pages 2408–2417, 2015. URL https://proceedings.mlr.press/v37/martens15.html.
 
-Ejaaz Merali, Mohamed Hibat-Allah, Mohammad Kohandel, Richard T. Scalettar, and Ehsan Khatami. Parallel scan recurrent neural quantum states for scalable variational monte carlo, 2026. URL <https://arxiv.org/abs/2605.13807.>
+Ejaaz Merali, Mohamed Hibat-Allah, Mohammad Kohandel, Richard T. Scalettar, and Ehsan Khatami. Parallel scan recurrent neural quantum states for scalable variational monte carlo, 2026. URL https://arxiv.org/abs/2605.13807.
 
 M. Schuyler Moss, Roeland Wiersema, Mohamed Hibat-Allah, Juan Carrasquilla, and Roger G. Melko. Leveraging recurrence in neural network wavefunctions for large-scale simulations of Heisenberg antiferromagnets on the square lattice. Physical Review B, 112(13):134450, 2025. ISSN 2469-9950. doi: 10.1103/6ccd-wzhz.
 
-M. Schuyler Moss, Alev Orfi, Christopher Roth, Anirvan M. Sengupta, Antoine Georges, Dries Sels, Anna Dawid, and Agnes Valenti. Double descent: When do neural quantum states generalize? Physical Review E, 113(4):045303, 2026. ISSN 2470-0045. doi: 10.1103/cwmj-fxr4. URL <https://link.aps.org/doi/10.1103/cwmj-fxr4.>
+M. Schuyler Moss, Alev Orfi, Christopher Roth, Anirvan M. Sengupta, Antoine Georges, Dries Sels, Anna Dawid, and Agnes Valenti. Double descent: When do neural quantum states generalize? Physical Review E, 113(4):045303, 2026. ISSN 2470-0045. doi: 10.1103/cwmj-fxr4. URL https://link.aps.org/doi/10.1103/cwmj-fxr4.
 
 Yusuke Nomura and Masatoshi Imada. Dirac-type nodal spin liquid revealed by refined quantum many-body solver using neural-network wave function, correlation ratio, and level spectroscopy. Physical Review X, 11(3):031034, 2021. doi: 10.1103/PhysRevX.11.031034. URL https: //doi.org/10.1103/PhysRevX.11.031034.
 
-Jannes Nys, Gabriel Pescia, Alessandro Sinibaldi, and Giuseppe Carleo. Ab-initio variational wave functions for the time-dependent many-electron Schrödinger equation. Nature Communications, 15(1):9404, 2024. doi: 10.1038/s41467-024-53672-w. URL <https://doi.org/10.1038/> s41467-024-53672-w.
+Jannes Nys, Gabriel Pescia, Alessandro Sinibaldi, and Giuseppe Carleo. Ab-initio variational wave functions for the time-dependent many-electron Schrödinger equation. Nature Communications, 15(1):9404, 2024. doi: 10.1038/s41467-024-53672-w. URL https://doi.org/10.1038/ s41467-024-53672-w.
 
-Bo Peng, Ruichong Zhang, Daniel Goldstein, Eric Alcaide, Xingjian Du, Haowen Hou, Jiaju Lin, Jiaxing Liu, Janna Lu, William Merrill, Guangyu Song, Kaifeng Tan, Saiteja Utpala, Nathan Wilce, Johan S. Wind, Tianyi Wu, Daniel Wuttke, and Christian Zhou-Zheng. RWKV-7 “goose” with expressive dynamic state evolution. arXiv preprint arXiv:2503.14456, 2025. doi: 10.48550/arXiv. 2503.14456. URL <https://arxiv.org/abs/2503.14456.>
+Bo Peng, Ruichong Zhang, Daniel Goldstein, Eric Alcaide, Xingjian Du, Haowen Hou, Jiaju Lin, Jiaxing Liu, Janna Lu, William Merrill, Guangyu Song, Kaifeng Tan, Saiteja Utpala, Nathan Wilce, Johan S. Wind, Tianyi Wu, Daniel Wuttke, and Christian Zhou-Zheng. RWKV-7 “goose” with expressive dynamic state evolution. arXiv preprint arXiv:2503.14456, 2025. doi: 10.48550/arXiv. 2503.14456. URL https://arxiv.org/abs/2503.14456.
 
-Gabriel Pescia, Jannes Nys, Jane Kim, Alessandro Lovato, and Giuseppe Carleo. Message-passing neural quantum states for the homogeneous electron gas. Physical Review B, 110(3):035108, 2024. doi: 10.1103/PhysRevB.110.035108. URL <https://doi.org/10.1103/PhysRevB.110.> 035108.
+Gabriel Pescia, Jannes Nys, Jane Kim, Alessandro Lovato, and Giuseppe Carleo. Message-passing neural quantum states for the homogeneous electron gas. Physical Review B, 110(3):035108, 2024. doi: 10.1103/PhysRevB.110.035108. URL https://doi.org/10.1103/PhysRevB.110. 035108.
 
-David Pfau, James S. Spencer, Alexander G. D. G. Matthews, and W. M. C. Foulkes. Ab initio solution of the many-electron Schrödinger equation with deep neural networks. Physical Review Research, 2(3):033429, 2020. doi: 10.1103/PhysRevResearch.2.033429. URL <https://doi.> org/10.1103/PhysRevResearch.2.033429.
+David Pfau, James S. Spencer, Alexander G. D. G. Matthews, and W. M. C. Foulkes. Ab initio solution of the many-electron Schrödinger equation with deep neural networks. Physical Review Research, 2(3):033429, 2020. doi: 10.1103/PhysRevResearch.2.033429. URL https://doi. org/10.1103/PhysRevResearch.2.033429.
 
-Yi Ren and Donald Goldfarb. Efficient subsampled Gauss-Newton and natural gradient methods for training neural networks. arXiv preprint arXiv:1906.02353, 2019. doi: 10.48550/arXiv.1906.02353. URL <https://arxiv.org/abs/1906.02353.>
+Yi Ren and Donald Goldfarb. Efficient subsampled Gauss-Newton and natural gradient methods for training neural networks. arXiv preprint arXiv:1906.02353, 2019. doi: 10.48550/arXiv.1906.02353. URL https://arxiv.org/abs/1906.02353.
 
 Riccardo Rende, Luciano Loris Viteritti, Lorenzo Bardone, Federico Becca, and Sebastian Goldt. A simple linear algebra identity to optimize large-scale neural network quantum states. Communications Physics, 7(1):260, 2024. doi: 10.1038/s42005-024-01732-4. URL https: //doi.org/10.1038/s42005-024-01732-4.
 
 Riccardo Rende, Luciano Loris Viteritti, Federico Becca, Antonello Scardicchio, Alessandro Laio, and Giuseppe Carleo. Foundation neural-networks quantum states as a unified ansatz for multiple hamiltonians. Nature Communications, 16(1):7213, 2025. doi: 10.1038/s41467-025-62098-x.
 
-Herbert Robbins and Sutton Monro. A stochastic approximation method. The Annals of Mathematical Statistics, 22(3):400–407, 1951. doi: 10.1214/aoms/1177729586. URL <https://doi.org/10.> 1214/aoms/1177729586
+Herbert Robbins and Sutton Monro. A stochastic approximation method. The Annals of Mathematical Statistics, 22(3):400–407, 1951. doi: 10.1214/aoms/1177729586. URL https://doi.org/10. 1214/aoms/1177729586
 
-Bidipta Sarkar, Mattie Fellows, Juan Agustin Duque, Alistair Letcher, Antonio León Villares, Anya Sims, Clarisse Wibault, Dmitry Samsonov, Dylan Cope, Jarek Liesen, Kang Li, Lukas Seier, Theo Wolf, Uljad Berdica, Valentin Mohl, Alexander David Goldie, Aaron Courville, Karin Sevegnani, Shimon Whiteson, and Jakob Nicolaus Foerster. Evolution strategies at the hyperscale. arXiv preprint arXiv:2511.16652, 2026. doi: 10.48550/arXiv.2511.16652. URL <https://arxiv.org/abs/2511.16652.>
+Bidipta Sarkar, Mattie Fellows, Juan Agustin Duque, Alistair Letcher, Antonio León Villares, Anya Sims, Clarisse Wibault, Dmitry Samsonov, Dylan Cope, Jarek Liesen, Kang Li, Lukas Seier, Theo Wolf, Uljad Berdica, Valentin Mohl, Alexander David Goldie, Aaron Courville, Karin Sevegnani, Shimon Whiteson, and Jakob Nicolaus Foerster. Evolution strategies at the hyperscale. arXiv preprint arXiv:2511.16652, 2026. doi: 10.48550/arXiv.2511.16652. URL https://arxiv.org/abs/2511.16652.
 
-John Schulman, Sergey Levine, Philipp Moritz, Michael I. Jordan, and Pieter Abbeel. Trust region policy optimization. arXiv preprint arXiv:1502.05477, 2015. doi: 10.48550/arXiv.1502.05477. URL <https://arxiv.org/abs/1502.05477.>
+John Schulman, Sergey Levine, Philipp Moritz, Michael I. Jordan, and Pieter Abbeel. Trust region policy optimization. arXiv preprint arXiv:1502.05477, 2015. doi: 10.48550/arXiv.1502.05477. URL https://arxiv.org/abs/1502.05477.
 
-John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov. Proximal policy optimization algorithms. arXiv preprint arXiv:1707.06347, 2017. doi: 10.48550/arXiv.1707.06347. URL <https://arxiv.org/abs/1707.06347.>
+John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov. Proximal policy optimization algorithms. arXiv preprint arXiv:1707.06347, 2017. doi: 10.48550/arXiv.1707.06347. URL https://arxiv.org/abs/1707.06347.
 
-Kristof T. Schütt, Huziel E. Sauceda, Pieter-Jan Kindermans, Alexandre Tkatchenko, and Klaus-Robert Müller. Schnet—a deep learning architecture for molecules and materials. The Journal of Chemical Physics, 148(24):241722, 2018. doi: 10.1063/1.5019779. URL <https://doi.org/10.> 1063/1.5019779.
+Kristof T. Schütt, Huziel E. Sauceda, Pieter-Jan Kindermans, Alexandre Tkatchenko, and Klaus-Robert Müller. Schnet—a deep learning architecture for molecules and materials. The Journal of Chemical Physics, 148(24):241722, 2018. doi: 10.1063/1.5019779. URL https://doi.org/10. 1063/1.5019779.
 
-Or Sharir, Yoav Levine, Noam Wies, Giuseppe Carleo, and Amnon Shashua. Deep autoregressive models for the efficient variational simulation of many-body quantum systems. Physical Review Letters, 124(2):020503, 2020. doi: 10.1103/PhysRevLett.124.020503. URL <https://doi.org/> 10.1103/PhysRevLett.124.020503.
+Or Sharir, Yoav Levine, Noam Wies, Giuseppe Carleo, and Amnon Shashua. Deep autoregressive models for the efficient variational simulation of many-body quantum systems. Physical Review Letters, 124(2):020503, 2020. doi: 10.1103/PhysRevLett.124.020503. URL https://doi.org/ 10.1103/PhysRevLett.124.020503.
 
-Ahmedeo Shokry, Alessandro Santini, and Filippo Vicentini. When less is more: Approximating the quantum geometric tensor with block structures. arXiv preprint arXiv:2510.08430, 2025. doi: 10.48550/arXiv.2510.08430. URL <https://arxiv.org/abs/2510.08430.>
+Ahmedeo Shokry, Alessandro Santini, and Filippo Vicentini. When less is more: Approximating the quantum geometric tensor with block structures. arXiv preprint arXiv:2510.08430, 2025. doi: 10.48550/arXiv.2510.08430. URL https://arxiv.org/abs/2510.08430.
 
-Leslie N. Smith and Nicholay Topin. Super-convergence: Very fast training of neural networks using large learning rates. arXiv preprint arXiv:1708.07120, 2018. doi: 10.48550/arXiv.1708.07120. URL <https://arxiv.org/abs/1708.07120.>
+Leslie N. Smith and Nicholay Topin. Super-convergence: Very fast training of neural networks using large learning rates. arXiv preprint arXiv:1708.07120, 2018. doi: 10.48550/arXiv.1708.07120. URL https://arxiv.org/abs/1708.07120.
 
-Sandro Sorella. Green function Monte Carlo with stochastic reconfiguration. Physical Review Letters, 80(20):4558–4561, 1998. doi: 10.1103/PhysRevLett.80.4558. URL <https://doi.org/> 10.1103/PhysRevLett.80.4558.
+Sandro Sorella. Green function Monte Carlo with stochastic reconfiguration. Physical Review Letters, 80(20):4558–4561, 1998. doi: 10.1103/PhysRevLett.80.4558. URL https://doi.org/ 10.1103/PhysRevLett.80.4558.
 
-Ingrid von Glehn, James S. Spencer, and David Pfau. A self-attention ansatz for ab-initio quantum chemistry. In International Conference on Learning Representations, 2023. URL <https:// openreview.net/forum?id=xveTeHVlF7j.
+Ingrid von Glehn, James S. Spencer, and David Pfau. A self-attention ansatz for ab-initio quantum chemistry. In International Conference on Learning Representations, 2023. URL https:// openreview.net/forum?id=xveTeHVlF7j.
 
-Jia-Qi Wang, Rong-Qiang He, and Zhong-Yi Lu. Generalized Lanczos method for systematic optimization of neural-network quantum states. Physical Review B, 113(8):085120, 2026. doi: 10.1103/PhysRevB.113.085120. URL <https://doi.org/10.1103/PhysRevB.113.085120.>
+Jia-Qi Wang, Rong-Qiang He, and Zhong-Yi Lu. Generalized Lanczos method for systematic optimization of neural-network quantum states. Physical Review B, 113(8):085120, 2026. doi: 10.1103/PhysRevB.113.085120. URL https://doi.org/10.1103/PhysRevB.113.085120.
 
 Ronald J. Williams. Simple statistical gradient-following algorithms for connectionist reinforcement learning. Machine Learning, 8(3–4):229–256, 1992. doi: 10.1007/BF00992696. URL https: //doi.org/10.1007/BF00992696.
 
-Ulli Wolff. Critical slowing down. Nuclear Physics B - Proceedings Supplements, 17:93–102, 1990. doi: 10.1016/0920-5632(90)90224-I. URL <https://doi.org/10.1016/0920-5632(90)> 90224-I.
+Ulli Wolff. Critical slowing down. Nuclear Physics B - Proceedings Supplements, 17:93–102, 1990. doi: 10.1016/0920-5632(90)90224-I. URL https://doi.org/10.1016/0920-5632(90) 90224-I.
 
-Dian Wu, Riccardo Rossi, Filippo Vicentini, Nikita Astrakhantsev, Federico Becca, Xiaodong Cao, Juan Carrasquilla, Francesco Ferrari, Antoine Georges, Mohamed Hibat-Allah, Masatoshi Imada, Andreas M. Läuchli, Guglielmo Mazzola, Antonio Mezzacapo, Andrew Millis, Javier Robledo Moreno, Titus Neupert, Yusuke Nomura, Jannes Nys, Olivier Parcollet, Rico Pohle, Imelda Romero, Michael Schmid, J. Maxwell Silvester, Sandro Sorella, Luca F. Tocchio, Lei Wang, Steven R. White, Alexander Wietek, Qi Yang, Yiqi Yang, Shiwei Zhang, and Giuseppe Carleo. Variational benchmarks for quantum many-body problems. Science, 386(6719):296–301, 2024. doi: 10.1126/science.adg9774. URL <https://doi.org/10.1126/science.adg9774.>
+Dian Wu, Riccardo Rossi, Filippo Vicentini, Nikita Astrakhantsev, Federico Becca, Xiaodong Cao, Juan Carrasquilla, Francesco Ferrari, Antoine Georges, Mohamed Hibat-Allah, Masatoshi Imada, Andreas M. Läuchli, Guglielmo Mazzola, Antonio Mezzacapo, Andrew Millis, Javier Robledo Moreno, Titus Neupert, Yusuke Nomura, Jannes Nys, Olivier Parcollet, Rico Pohle, Imelda Romero, Michael Schmid, J. Maxwell Silvester, Sandro Sorella, Luca F. Tocchio, Lei Wang, Steven R. White, Alexander Wietek, Qi Yang, Yiqi Yang, Shiwei Zhang, and Giuseppe Carleo. Variational benchmarks for quantum many-body problems. Science, 386(6719):296–301, 2024. doi: 10.1126/science.adg9774. URL https://doi.org/10.1126/science.adg9774.
 
-Li Yang, Zhaoqi Leng, Guangyuan Yu, Ankit Patel, Wen-Jun Hu, and Han Pu. Deep learningenhanced variational Monte Carlo method for quantum many-body physics. Physical Review Research, 2(1):012039, 2020. doi: 10.1103/PhysRevResearch.2.012039. URL <https://doi.> org/10.1103/PhysRevResearch.2.012039.
+Li Yang, Zhaoqi Leng, Guangyuan Yu, Ankit Patel, Wen-Jun Hu, and Han Pu. Deep learningenhanced variational Monte Carlo method for quantum many-body physics. Physical Review Research, 2(1):012039, 2020. doi: 10.1103/PhysRevResearch.2.012039. URL https://doi. org/10.1103/PhysRevResearch.2.012039.
 
 ### Appendix
 
@@ -452,78 +445,83 @@ D.8 RWKV-7 on Ising Model. 31
 E.1 Individual Seed Plots for All Hamiltonias. 32
 E.2 Scaling Samples and System Sizes. 33
 E.3 Individual Seed Plots for RWKV7 Fine-tuning. 34
+### 狄拉克符号
 
-### A Dirac Notation
+本附录将自包含地介绍本文使用的狄拉克括号记号。
 
-This appendix provides a self-contained introduction to the Dirac (bra-ket) notation used throughout the paper.
+希尔伯特空间。量子态存在于一个称为希尔伯特空间的复向量空间 $\mathcal{H}$ 中，该空间配备了内积。对于由N个自旋-1/2粒子组成的系统，希尔伯特空间为 $\mathcal{H} = \dot{(} \mathbb{C}^{2} )^{\otimes N}$，其维度为 $2^{N}$。一个自然的正交归一基是计算（自旋）基，其元素 |s⟩ 由二进制自旋构型 $\mathbf{s} \in \{\pm 1 \}^{N}$ 索引。
 
-Hilbert space. A quantum state lives in a complex vector space H called a Hilbert space, equipped with an inner product. For a system of N spin-1/2 particles, the Hilbert space is $\mathcal{H} = \dot{(} \mathbb{C}^{2} )^{\otimes N}$ , which has dimension $2^{N}$ . A natural orthonormal basis is the computational (spin) basis, whose elements |s⟩ are indexed by binary spin configurations $\mathbf{s} \in \{\pm 1 \}^{N}$
-
-Ket vectors. A quantum state is written as a ket $| \psi \rangle$ , which is simply a column vector in H. Any state can be expanded in the computational basis,
+右矢。量子态写作右矢 $| \psi \rangle$，它仅仅是 $\mathcal{H}$ 中的一个列向量。任何态都可以在计算基下展开：
 
 $$
 | \psi \rangle = \sum_{\mathbf{s} \in \{\pm 1 \}^{N}} \psi (\mathbf{s}) | \mathbf{s} \rangle ,\tag{25}
 $$
 
-where each coefficient $\psi ( \mathbf{s} ) \in \mathbb{C}$ is the amplitude of configuration s. The vector $| \psi \rangle$ is therefore completely specified by the mapping $\mathbf{s} \mapsto \boldsymbol \psi ( \mathbf{s} )$ , which NQS parameterize with a neural network.
+其中每个系数 $\psi ( \mathbf{s} ) \in \mathbb{C}$ 是构型 s 的振幅。因此，向量 $| \psi \rangle$ 完全由映射 $\mathbf{s} \mapsto \boldsymbol \psi ( \mathbf{s} )$ 确定，NQS使用神经网络对其进行参数化。
 
-Bra vectors and inner product. The bra ⟨ψ| is the conjugate transpose (Hermitian adjoint) of |ψ⟩,
+左矢与内积。左矢 ⟨ψ| 是 |ψ⟩ 的共轭转置（厄米共轭）：
 
 $$
 \langle \psi | = | \psi \rangle^{\dagger}.\tag{26}
 $$
 
-The inner product of two states is written $\langle \phi | \psi \rangle$ , which evaluates to the complex number $\sum_{\mathbf{s}} \phi ( \mathbf{s} )^{*} \psi ( \mathbf{\hat{s}} )$ . When $\phi = \psi$ this gives the squared norm $\begin{array} {r} {\langle \psi | \psi \rangle = \sum_{\mathbf{s}} | \psi ( \mathbf{s} ) | ^{2} \geq 0} \end{array}$ , with equality only for the zero vector. The basis states are orthonormal:
+两个态的内积写作 $\langle \phi | \psi \rangle$，其值为复数 $\sum_{\mathbf{s}} \phi ( \mathbf{s} )^{*} \psi ( \mathbf{\hat{s}} )$。当 $\phi = \psi$ 时，得到范数平方 $\begin{array} {r} {\langle \psi | \psi \rangle = \sum_{\mathbf{s}} | \psi ( \mathbf{s} ) | ^{2} \geq 0} \end{array}$，等号仅当为零向量时成立。基态是正交归一的：
 
 $$
 \langle \mathbf{s} | \mathbf{s}^{\prime} \rangle = \delta_{\mathbf{s}, \mathbf{s}^{\prime}},\tag{27}
 $$
 
-where $\delta_{\mathbf{s} , \mathbf{s}^{\prime}}$ is the Kronecker delta.
+其中 $\delta_{\mathbf{s} , \mathbf{s}^{\prime}}$ 是克罗内克δ函数。
 
-Completeness relation. The basis states form a complete set, meaning the identity operator <sup>1</sup> can be resolved as
+完备性关系。基态构成完备集，这意味着单位算符<sup>1</sup>可以分解为：
 
 $$
 \sum_{\mathbf{s}} | \mathbf{s} \rangle \langle \mathbf{s} | = \mathbb{1}.\tag{28}
 $$
 
-This is used repeatedly in derivations (e.g. Appendix B.2) to insert a basis expansion and convert abstract operator equations into sums over spin configurations.
+在推导中（例如附录B.2）会反复使用此式来插入基展开，将抽象的算符方程转化为自旋构型上的求和。
 
-Operators and matrix elements. A quantum operator $\hat{A}$ is a linear map $\mathcal{H} \mathcal{H} ,$ , represented as a $2^{N} \times 2^{N}$ matrix in the computational basis. The entry at row s and column s<sup>′</sup> is the matrix element
+算符与矩阵元。量子算符 $\hat{A}$ 是一个线性映射 $\mathcal{H} \to \mathcal{H}$，在计算基下表示为 $2^{N} \times 2^{N}$ 矩阵。位于行s和列s<sup>′</sup>的矩阵元为：
 
 $$
 \langle \mathbf{s} | \hat{A} | \mathbf{s}^{\prime} \rangle = \langle \mathbf{s} | (\hat{A} | \mathbf{s}^{\prime} \rangle) = (\mathbf{A})_{\mathbf{s}, \mathbf{s}^{\prime}}.\tag{29}
 $$
 
-An operator is Hermitian (or self-adjoint) if $\hat{A} = \hat{A}^{\dagger}$ , which implies real eigenvalues. The Hamiltonian H<sup>ˆ</sup> is always Hermitian because energy is a real-valued observable.
+若 $\hat{A} = \hat{A}^{\dagger}$，则算符是厄米的（或自伴的），这意味着其特征值为实数。哈密顿量 H<sup>ˆ</sup> 总是厄米的，因为能量是实数值可观测物理量。
 
-Expectation value. The expected value of an observable $\hat{A}$ in state $| \psi \rangle$ is
+期望值。可观测物理量 $\hat{A}$ 在态 $| \psi \rangle$ 中的期望值为：
 
 $$
 \langle \hat{A} \rangle_{\psi} := \frac{\langle \psi | \hat{A} | \psi \rangle}{\langle \psi | \psi \rangle}.\tag{30}
 $$
 
-For the Hamiltonian, this gives the variational energy $E [ \psi ] = \left. \psi | \hat{H} | \psi \right. / \left. \psi | \psi \right.$ that NQS minimizes. When |ψ⟩ is normalized $( \langle \psi | \psi \rangle = 1 )$ , the denominator can be dropped.
+对于哈密顿量，这给出了NQS最小化的变分能量 $E [ \psi ] = \left. \psi | \hat{H} | \psi \right. / \left. \psi | \psi \right.$。当 |ψ⟩ 归一化时 $( \langle \psi | \psi \rangle = 1 )$，分母可省略。
 
-### Summary table.
+### 汇总表
 
-<table><tr><td>Dirac symbol</td><td>Linear-algebra equivalent</td><td>Meaning in this paper</td></tr><tr><td> $|\psi\rangle$ </td><td>column vector in  $\mathbb{C}^{2^N}$ </td><td>quantum state / wavefunction</td></tr><tr><td> $\langle\psi|$ </td><td>conjugate row vector</td><td>dual / adjoint state</td></tr><tr><td> $\langle\phi|\psi\rangle$ </td><td> $\phi^\dagger\psi$  (dot product)</td><td>inner product; overlap of two states</td></tr><tr><td> $\langle\psi|\psi\rangle$ </td><td> $\| \psi \| ^2$ </td><td>squared norm; = 1 for normalized states</td></tr><tr><td> $|s\rangle$ </td><td>standard basis vector  $e_s$ </td><td>spin-configuration basis state</td></tr><tr><td> $\langle s|\hat{H}|s'\rangle$ </td><td> $(\mathbf{H})_{s,s'}$  matrix entry</td><td>Hamiltonian matrix element</td></tr><tr><td> $\langle\psi|\hat{H}|\psi\rangle$ </td><td> $\psi^\dagger\mathbf{H}\psi$  (quadratic form)</td><td>(unnormalized) variational energy</td></tr><tr><td> $\sum_s |s\rangle \langle s|$ </td><td> $\mathbb{1}_{2^N}$  (identity matrix)</td><td>completeness / resolution of identity</td></tr></table>
+<table>
+<tr><td>狄拉克符号</td><td>线性代数等价</td><td>本文中的含义</td></tr>
+<tr><td> $|\psi\rangle$ </td><td> $\mathbb{C}^{2^N}$ 中的列向量</td><td>量子态/波函数</td></tr>
+<tr><td> $\langle\psi|$ </td><td>共轭行向量</td><td>对偶/伴随态</td></tr>
+<tr><td> $\langle\phi|\psi\rangle$ </td><td> $\phi^\dagger\psi$ (点积)</td><td>内积；两个态的重叠</td></tr>
+<tr><td> $\langle\psi|\psi\rangle$ </td><td> $\| \psi \| ^2$ </td><td>范数平方；归一化态为1</td></tr>
+<tr><td> $|s\rangle$ </td><td>标准基向量 $e_s$ </td><td>自旋构型基态</td></tr>
+<tr><td> $\langle s|\hat{H}|s'\rangle$ </td><td> $(\mathbf{H})_{s,s'}$ 矩阵元</td><td>哈密顿量矩阵元</td></tr>
+<tr><td> $\langle\psi|\hat{H}|\psi\rangle$ </td><td> $\psi^\dagger\mathbf{H}\psi$ (二次型)</td><td>(未归一化)变分能量</td></tr>
+<tr><td> $\sum_s |s\rangle \langle s|$ </td><td> $\mathbb{1}_{2^N}$ (单位矩阵)</td><td>完备性/单位分解</td></tr>
+</table>## B 数学陈述## B.1 命题3.1的证明
 
-### B Mathematical Statements
-
-### B.1 Proof of Proposition 3.1
-
-Proposition 3.1 (Policy-gradient form of variational energy minimization). Assume the Hamiltonian is stoquastic, i.e. its matrix representation in a chosen computational basis has non-positive offdiagonal elements. Then we can assume $f_{\pmb \theta} = \log \psi_{\pmb \theta} = \log | \bar{\psi}_{\pmb \theta} |$ , and the gradient of the variational energy can be written in policy-gradient form as
+命题3.1 (变分能量最小化的策略梯度形式)。假设哈密顿量是stoquastic的，即在所选计算基下的矩阵表示中非对角元素非正。那么我们可以设 $f_{\pmb \theta} = \log \psi_{\pmb \theta} = \log | \bar{\psi}_{\pmb \theta} |$ ，且变分能量的梯度可以写成策略梯度形式
 
 $$
 \nabla_{\boldsymbol{\theta}} E [ \psi_{\boldsymbol{\theta}} ] = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \big [ \big (E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) - \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} [ E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) ] \big) \nabla_{\boldsymbol{\theta}} \log \mathcal{P}_{\boldsymbol{\theta}} (\mathbf{s}) \big ].\tag{14}
 $$
 
-In particular, variational energy minimization is equivalent to an advantage policy-gradient update over configurations. For a proof, see Appendix B.1.
+特别地，变分能量最小化等价于对构型进行优势策略梯度更新。证明见附录B.1。
 
-Proof. We follow the proof strategy of the policy gradient theorem [Agarwal et al., 2021] to connect the standard NQS/VMC gradient estimator with REINFORCE-style updates when the probability distribution is parameterized autoregressively.
+证明。我们遵循策略梯度定理的证明策略 [Agarwal et al., 2021]，将标准NQS/VMC梯度估计器与概率分布自回归参数化时的REINFORCE型更新联系起来。
 
-Differentiating gives
+求导可得
 
 $$
 \nabla_{\pmb{\theta}} E [ \psi_{\pmb{\theta}} ] = \nabla_{\pmb{\theta}} \sum_{\mathbf{s}} \mathcal{P}_{\pmb{\theta}} (\mathbf{s}) E_{\pmb{\theta}}^{\mathrm{loc}} (\mathbf{s})\tag{31}
@@ -541,13 +539,13 @@ $$
 = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \big [ E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) \nabla_{\boldsymbol{\theta}} \log \mathcal{P}_{\boldsymbol{\theta}} (\mathbf{s}) \big ] + \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \big [ \nabla_{\boldsymbol{\theta}} E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) \big ].\tag{34}
 $$
 
-We now analyze the second term. Define the log-derivative observable
+现在分析第二项。定义对数导数可观测量
 
 $$
 \mathbf{O} (\mathbf{s}) := \nabla_{\boldsymbol{\theta}} \log \psi_{\boldsymbol{\theta}} (\mathbf{s}),
 $$
 
-then
+则
 
 $$
 \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \big [ \nabla_{\boldsymbol{\theta}} E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) \big ] = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \Bigg [ \nabla_{\boldsymbol{\theta}} \sum_{\mathbf{s}^{\prime}} \frac{\psi_{\boldsymbol{\theta}} (\mathbf{s}^{\prime})}{\psi_{\boldsymbol{\theta}} (\mathbf{s})} \left< \mathbf{s} | \hat{H} | \mathbf{s}^{\prime} \right> \Bigg ]\tag{35}
@@ -565,27 +563,27 @@ $$
 = \sum_{\mathbf{s}} \mathcal{P}_{\boldsymbol{\theta}} (\mathbf{s}) \sum_{\mathbf{s}^{\prime}} \hat{H}_{\mathbf{s}, \mathbf{s}^{\prime}} \frac{\psi_{\boldsymbol{\theta}} (\mathbf{s}^{\prime})}{\psi_{\boldsymbol{\theta}} (\mathbf{s})} (\mathbf{O} (\mathbf{s}^{\prime}) - \mathbf{O} (\mathbf{s})),\tag{38}
 $$
 
-where ${\hat{H}}_{\mathbf{s} , \mathbf{s}^{\prime}} = \langle \mathbf{s} | {\hat{H}} | \mathbf{s}^{\prime} \rangle$ , which gives the double-sum form
+其中 ${\hat{H}}_{\mathbf{s} , \mathbf{s}^{\prime}} = \langle \mathbf{s} | {\hat{H}} | \mathbf{s}^{\prime} \rangle$ ，可得双重和形式
 
 $$
 \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \big [ \nabla_{\boldsymbol{\theta}} E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) \big ] = \frac{1}{Z_{\boldsymbol{\theta}}} \sum_{\mathbf{s}, \mathbf{s}^{\prime}} \psi_{\boldsymbol{\theta}} (\mathbf{s}) \psi_{\boldsymbol{\theta}} (\mathbf{s}^{\prime}) \hat{H}_{\mathbf{s}, \mathbf{s}^{\prime}} (\mathbf{O} (\mathbf{s}^{\prime}) - \mathbf{O} (\mathbf{s})).\tag{39}
 $$
 
-At this point, the only remaining question is whether the second term in (39) vanishes. This happens when the Hamiltonian is stoquastic in the chosen basis. In that case, its matrix elements are real and Hermiticity implies $\hat{H}_{\mathbf{s} , \mathbf{s}^{\prime}} = \hat{H}_{\mathbf{s}^{\prime} , \mathbf{s}}$ . Moreover, according to Perron-Frobenius [Horn and Johnson, 2012], all the components of the ground state wavefunction of a stoquastic Hamiltonian are real and strictly positive, so $\psi_{\pmb{\theta}} ( \mathbf{s} ) = | \psi_{\pmb{\theta}} ( \mathbf{s} )$ and the log-derivative observable $\mathbf{O} ( \mathbf{s} )$ is real-valued.
+至此，唯一遗留的问题是(39)中的第二项是否为零。当哈密顿量在所选基下是stoquastic时，该情形成立。此时其矩阵元为实数，且埃尔米特性意味着 $\hat{H}_{\mathbf{s} , \mathbf{s}^{\prime}} = \hat{H}_{\mathbf{s}^{\prime} , \mathbf{s}}$ 。此外，根据Perron-Frobenius定理 [Horn and Johnson, 2012]，stoquastic哈密顿量基态波函数的所有分量都是实数且严格为正，因此 $\psi_{\pmb{\theta}} ( \mathbf{s} ) = | \psi_{\pmb{\theta}} ( \mathbf{s} )$ 且对数导数可观测量 $\mathbf{O} ( \mathbf{s} )$ 为实值。
 
-Under this assumption, the factor $\psi_{\pmb \theta} ( \mathbf{s} ) \psi_{\pmb \theta} ( \mathbf{s}^{\prime} ) \hat{H}_{\mathbf{s} , \mathbf{s}^{\prime}}$ in (39) is symmetric under exchanging s and $\mathbf{s}^{\prime} {\mathrm{.}}$ , whereas the difference $\mathbf{O} ( \mathbf{s}^{\prime} ) - \mathbf{O} ( \mathbf{\bar{s}} )$ is antisymmetric. Therefore, each term in the double sum cancels with the term obtained by swapping s and $\mathbf{s}^{\prime}$ , and the whole sum is zero. Hence,
+在此假设下，(39)中的因子 $\psi_{\pmb \theta} ( \mathbf{s} ) \psi_{\pmb \theta} ( \mathbf{s}^{\prime} ) \hat{H}_{\mathbf{s} , \mathbf{s}^{\prime}}$ 在交换s和$\mathbf{s}^{\prime} {\mathrm{.}}$ 时对称，而差值 $\mathbf{O} ( \mathbf{s}^{\prime} ) - \mathbf{O} ( \mathbf{\bar{s}} )$ 是反对称的。因此，双重和中的每一项与交换s和$\mathbf{s}^{\prime}$ 得到的项相互抵消，整个和为零。故，
 
 $$
 \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \big [ \nabla_{\boldsymbol{\theta}} E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) \big ] = 0.\tag{40}
 $$
 
-Substituting back into (34) yields the pure score-function (policy-gradient) estimator:
+代回(34)得到纯得分函数(策略梯度)估计器：
 
 $$
 \nabla_{\boldsymbol{\theta}} E [ \psi_{\boldsymbol{\theta}} ] = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \left[ E_{\boldsymbol{\theta}}^{\text{loc}} (\mathbf{s}) \nabla_{\boldsymbol{\theta}} \log \mathcal{P}_{\boldsymbol{\theta}} (\mathbf{s}) \right].\tag{41}
 $$
 
-Moreover, for any constant c that doesn’t depend on s,
+此外，对于任何不依赖于s的常数c，
 
 $$
 \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} [ c \nabla_{\boldsymbol{\theta}} \log \mathcal{P}_{\boldsymbol{\theta}} (\mathbf{s}) ] = c \sum_{\mathbf{s}} \mathcal{P}_{\boldsymbol{\theta}} (\mathbf{s}) \nabla_{\boldsymbol{\theta}} \log \mathcal{P}_{\boldsymbol{\theta}} (\mathbf{s})\tag{42}
@@ -603,35 +601,33 @@ $$
 = c \nabla_{\theta} 1 = 0.\tag{45}
 $$
 
-So we may subtract any constant baseline without bias [Agarwal et al., 2021]. Choosing the baseline as the global energy $\begin{array} {r} {\dot{E [ \psi_{\pmb \theta} ]} = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\pmb \theta}} [ E_{\pmb \theta}^{\mathrm{loc}} ( \mathbf{s} ) ]} \end{array}$ gives the form
+因此我们可以减去任意常数基线而不引入偏差 [Agarwal et al., 2021]。选取全局能量 $\begin{array} {r} {\dot{E [ \psi_{\pmb \theta} ]} = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\pmb \theta}} [ E_{\pmb \theta}^{\mathrm{loc}} ( \mathbf{s} ) ]} \end{array}$ 作为基线，得到形式
 
 $$
 \nabla_{\boldsymbol{\theta}} E [ \psi_{\boldsymbol{\theta}} ] = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \big [ \big (E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) - \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} [ E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) ] \big) \nabla_{\boldsymbol{\theta}} \log \mathcal{P}_{\boldsymbol{\theta}} (\mathbf{s}) \big ],\tag{46}
 $$
 
-which is analogous to the Advantage form of the REINFORCE estimator [Agarwal et al., 2021].
+这类似于REINFORCE估计器的优势形式 [Agarwal et al., 2021]。## B.2 变分梯度推导
 
-### B.2 Variational Gradient Derivation
-
-In this section, we show how to derive the well known VMC-gradient in Eq. (11) [Carleo and Troyer, 2017] from Eq. (8). We start from the general expression for the energy, valid for any (not necessarily normalized) state |ψ<sub>θ</sub>⟩:
+本节中，我们展示如何从式(8)推导出式(11)中著名的VMC梯度 [Carleo and Troyer, 2017]。我们从能量的通用表达式出发，该表达式适用于任意（不一定是归一化的）态 $|\psi_{\boldsymbol{\theta}}\rangle$：
 
 $$
 E [ \psi_{\boldsymbol{\theta}} ] = \frac{\langle \psi_{\boldsymbol{\theta}} | \hat{H} | \psi_{\boldsymbol{\theta}} \rangle}{\langle \psi_{\boldsymbol{\theta}} | \psi_{\boldsymbol{\theta}} \rangle}.\tag{47}
 $$
 
-Differentiating with respect to $\theta_{k}$ using the quotient rule and the Hermiticity of $\hat{H}$ gives:
+利用商法则和 $\hat{H}$ 的厄米性对 $\theta_{k}$ 求导可得：
 
 $$
 \partial_{\theta_{k}} E [ \psi_{\boldsymbol{\theta}} ] = \frac{2 \operatorname{Re} \left\{\left(\partial_{\theta_{k}} \langle \psi_{\boldsymbol{\theta}} |\right) \hat{H} | \psi_{\boldsymbol{\theta}} \rangle \right\}}{\langle \psi_{\boldsymbol{\theta}} | \psi_{\boldsymbol{\theta}} \rangle} - E [ \psi_{\boldsymbol{\theta}} ] \frac{2 \operatorname{Re} \left\{\left(\partial_{\theta_{k}} \langle \psi_{\boldsymbol{\theta}} |\right) | \psi_{\boldsymbol{\theta}} \rangle \right\}}{\langle \psi_{\boldsymbol{\theta}} | \psi_{\boldsymbol{\theta}} \rangle}.\tag{48}
 $$
 
-Since the final result is norm-invariant, we now choose the convenient normalization $\langle \psi_{\pmb \theta} | \psi_{\pmb \theta} \rangle = 1$ which simplifies the expression to:
+由于最终结果与范数无关，我们选择方便的归一化条件 $\langle \psi_{\pmb \theta} | \psi_{\pmb \theta} \rangle = 1$，从而将表达式简化为：
 
 $$
 \partial_{\theta_{k}} E [ \psi_{\boldsymbol{\theta}} ] = 2 \operatorname{Re} \left\{\left(\partial_{\theta_{k}} \langle \psi_{\boldsymbol{\theta}} |\right) (\hat{H} - E [ \psi_{\boldsymbol{\theta}} ]) | \psi_{\boldsymbol{\theta}} \rangle \right\}.\tag{49}
 $$
 
-We insert the completeness relation $\begin{array} {r} {\sum_{\mathbf{s}} | \mathbf{s} \rangle \langle \mathbf{s} | = \mathbb{I}} \end{array}$ twice and use $\mathcal{P}_{\pmb{\theta}} ( \mathbf{s} ) = | \psi_{\pmb{\theta}} ( \mathbf{s} ) | ^{2}$
+我们两次插入完备性关系 $\begin{array} {r} {\sum_{\mathbf{s}} | \mathbf{s} \rangle \langle \mathbf{s} | = \mathbb{I}} \end{array}$ 并使用 $\mathcal{P}_{\pmb{\theta}} ( \mathbf{s} ) = | \psi_{\pmb{\theta}} ( \mathbf{s} ) | ^{2}$ 得到：
 
 $$
 \left(\partial_{\theta_{k}} \langle \psi_{\pmb{\theta}} |\right) \big (\hat{H} - E [ \psi_{\pmb{\theta}} ] \big) | \psi_{\pmb{\theta}} \rangle = \sum_{\mathbf{s}} (\partial_{\theta_{k}} \langle \psi_{\pmb{\theta}} |) | \mathbf{s} \rangle \langle \mathbf{s} | \big (\hat{H} - E [ \psi_{\pmb{\theta}} ] \big) | \psi_{\pmb{\theta}} \rangle\tag{50}
@@ -655,27 +651,25 @@ $$
 
 (55)
 
-where in the last step we used that $E [ \psi_{\pmb \theta} ] = \mathbb{E}_{{\mathbf s} \sim \mathcal{P}_{\pmb \theta}} [ E_{\pmb \theta}^{\mathrm{loc}} ( {\mathbf s} ) ]$ . Therefore,
+其中最后一步我们利用了 $E [ \psi_{\pmb \theta} ] = \mathbb{E}_{{\mathbf s} \sim \mathcal{P}_{\pmb \theta}} [ E_{\pmb \theta}^{\mathrm{loc}} ( {\mathbf s} ) ]$。因此，
 
 $$
 \partial_{\theta_{k}} E [ \psi_{\boldsymbol{\theta}} ] = 2 \operatorname{Re} \left\{\mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \Big [ O_{k}^{*} (\mathbf{s}) \Big (E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) - \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} [ E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) ] \Big) \Big ] \right\}.\tag{56}
-$$
+$$## B.3 变分梯度分解
 
-### B.3 Variational Gradient Decomposition
-
-For the development of a practical algorithm we can decompose the VMC gradient into its probability and phase components as follows. Starting from the standard VMC/NQS gradient estimator we can write
+为开发实用算法，可将VMC梯度分解为概率分量和相位分量，具体如下。从标准VMC/NQS梯度估计器出发，可写出
 
 $$
 \nabla_{\boldsymbol{\theta}} E [ \psi_{\boldsymbol{\theta}} ] = 2 \mathrm{Re} \left\{\mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \big [ \big (E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) - \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} [ E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) ] \big) \mathbf{O} (\mathbf{s})^{*} \big ] \right\}.\tag{57}
 $$
 
-Recall that ∗ is the complex conjugate, and
+回忆∗表示复共轭，且
 
 $$
 E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) = \operatorname{Re} \left\{E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) \right\} + i \cdot \operatorname{Im} \left\{E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) \right\}, \quad \mathbf{O} (\mathbf{s}) = \operatorname{Re} \left\{\mathbf{O} (\mathbf{s}) \right\} + i \cdot \operatorname{Im} \left\{\mathbf{O} (\mathbf{s}) \right\}.\tag{58}
 $$
 
-For convenience, we denote $E_{R} : = \operatorname{Re} {\left\{E_{\pmb{\theta}}^{\mathrm{loc}} ( \mathbf{s} ) \right\}}$ and $E_{I} : = \operatorname{Im} {\big \{} E_{\theta}^{\mathrm{loc}} ( \mathbf{s} ) {\big \}}$ (analogously for $\mathbf{O} ( \mathbf{s} ) )$ . We can now write
+为方便起见，记$E_{R} : = \operatorname{Re} {\left\{E_{\pmb{\theta}}^{\mathrm{loc}} ( \mathbf{s} ) \right\}}$和$E_{I} : = \operatorname{Im} {\big \{} E_{\theta}^{\mathrm{loc}} ( \mathbf{s} ) {\big \}}$（对$\mathbf{O} ( \mathbf{s} )$类似）。现在可写出
 
 $$
 \nabla_{\boldsymbol{\theta}} E [ \psi_{\boldsymbol{\theta}} ] = 2 \mathrm{Re} \left\{\mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \big [ \big ((E_{R} - \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} [ E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) ]) + i E_{I} \big) (O_{R} - i O_{I}) \big ] \right\}\tag{59}
@@ -686,14 +680,14 @@ $$
 $$
 
 $$
-\;-\; i (E_{R} - \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} [ E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) ]) O_{I} + i E_{I} O_{R} + E_{I} O_{I} ] \}\tag{61}
+- i (E_{R} - \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} [ E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) ]) O_{I} + i E_{I} O_{R} + E_{I} O_{I} ] \}\tag{61}
 $$
 
 $$
 = 2 \mathrm{Re} \left\{\mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \big [ (E_{R} - \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} [ E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) ]) O_{R} \big ] \right\} + 2 \mathrm{Re} \left\{\mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} [ E_{I} O_{I} ] \right\},\tag{62}
 $$
 
-which shows exactly how to update our model, when we parameterize the real and imaginary parts of the amplitude separately. Moreover, we can subtract a constant baseline, c, from the second term (corresponding to the imaginary parts of our parameterization) to reduce the variance:
+这精确展示了当分别参数化振幅的实部和虚部时，应如何更新模型。此外，我们可以从第二项（对应参数化的虚部）减去常数基线c以降低方差：
 
 $$
 2 \operatorname{Re} \left\{\mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\theta}} [ E_{I} (O_{I} - c) ] \right\} = 2 \operatorname{Re} \left\{\mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\theta}} [ E_{I} O_{I} ] \right\} - 2 \operatorname{Re} \left\{\mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\theta}} [ E_{I} c ] \right\}\tag{63}
@@ -707,27 +701,27 @@ $$
 = 2 \mathrm{Re} \{\mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\theta}} [ E_{I} O_{I} ] \},\tag{65}
 $$
 
-where line 65 comes from the reality of expected values under Hermitian operators. So like before, we may subtract a baseline to reduce variance.
+其中第65行来源于厄米算符下期望值的实性。因此与之前一样，我们可以减去基线以降低方差。
 
-To find the variance-minimizing constant, consider the one-sample estimator for the imaginary contribution to the gradient
+为寻找方差最小化常数，考虑梯度的虚部贡献的单样本估计器
 
 $$
 g_{I} (\mathbf{s}; c) := 2 E_{I} (\mathbf{s}) (O_{I} (\mathbf{s}) - c).\tag{66}
 $$
 
-Since $\mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\pmb{\theta}}} [ E_{I} ( \mathbf{s} ) ] = 0$ , subtracting any constant c leaves the estimator unbiased:
+由于$\mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\pmb{\theta}}} [ E_{I} ( \mathbf{s} ) ] = 0$，减去任意常数c保持估计无偏：
 
 $$
 \mathbb{E} [ g_{I} (\mathbf{s}; c) ] = 2 \mathbb{E} [ E_{I} (\mathbf{s}) O_{I} (\mathbf{s}) ].\tag{67}
 $$
 
-Therefore, the optimal constant is the one that minimizes $\mathbb{V} ( g_{I} ( \mathbf{s} ; c ) )$ , or equivalently its second moment:
+因此，最优常数是使$\mathbb{V} ( g_{I} ( \mathbf{s} ; c ) )$最小化的常数，等价于最小化其二阶矩：
 
 $$
 \underset{c} {\operatorname{argmin}} \mathbb{E} \Big [ E_{I} (\mathbf{s})^{2} (O_{I} (\mathbf{s}) - c)^{2} \Big ].\tag{68}
 $$
 
-Differentiating with respect to c and setting the derivative to zero gives
+对c求导并令导数为零得
 
 $$
 0 = \frac{\partial}{\partial c} \mathbb{E} \left[ E_{I} (\mathbf{s})^{2} (O_{I} (\mathbf{s}) - c)^{2} \right]\tag{69}
@@ -737,79 +731,77 @@ $$
 = - 2 \mathbb{E} \left[ E_{I} (\mathbf{s})^{2} (O_{I} (\mathbf{s}) - c) \right],\tag{70}
 $$
 
-hence the variance-minimizing baseline is
+因此方差最小化基线为
 
 $$
 c^{\star} = \frac{\mathbb{E} \left[ E_{I} (\mathbf{s})^{2} O_{I} (\mathbf{s}) \right]}{\mathbb{E} \left[ E_{I} (\mathbf{s})^{2} \right]}.\tag{71}
 $$
 
-If $O_{I} ( \mathbf{s} )$ is vector-valued, this formula is applied coordinate-wise. We tried using this minimizer in practice, but its implementation requires adding an extra forward and backward pass, making it significantly slower than the vanilla gradient expression.
+若$O_{I} ( \mathbf{s} )$为向量值，此公式逐坐标应用。我们在实践中尝试使用该最小化器，但其实现需要额外的前向和反向传播，导致其速度显著慢于原始梯度表达式。## B.4 精确复振幅分解
 
-### B.4 Exact Complex-Amplitude Decomposition
-
-We now derive an exact decomposition of the energy difference between two normalized complex wavefunctions. Let $| \psi_{\pmb{\theta}} \rangle$ be the reference state and $| \psi_{\pmb{\theta}^{\prime}} \rangle$ be the candidate state. We choose the global phase of $| \psi_{\pmb{\theta}^{\prime}} \rangle$ so that
+现在推导两个归一化复波函数之间能量差的精确分解。设 $| \psi_{\pmb{\theta}} \rangle$ 为参考态，$| \psi_{\pmb{\theta}^{\prime}} \rangle$ 为候选态。选择 $| \psi_{\pmb{\theta}^{\prime}} \rangle$ 的整体相位使得
 
 $$
 \langle \psi_{\pmb{\theta}} | \psi_{\pmb{\theta}^{\prime}} \rangle = | \langle \psi_{\pmb{\theta}} | \psi_{\pmb{\theta}^{\prime}} \rangle | = \sqrt{1 - \mathcal{I} (\psi_{\pmb{\theta}} , \psi_{\pmb{\theta}^{\prime}})}.\tag{72}
 $$
 
-Define
+定义
 
 $$
 r_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s}) := \frac{\mathcal{P}_{\boldsymbol{\theta}^{\prime}} (\mathbf{s})}{\mathcal{P}_{\boldsymbol{\theta}} (\mathbf{s})}, \qquad z_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s}) := \frac{\psi_{\boldsymbol{\theta}^{\prime}} (\mathbf{s})}{\psi_{\boldsymbol{\theta}} (\mathbf{s})}.\tag{73}
 $$
 
-Writing
+写作
 
 $$
 z_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s}) = \sqrt{r_{\boldsymbol{\theta}^{\prime} ; \boldsymbol{\theta}} (\mathbf{s})} e^{i \alpha_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s})},
 $$
 
-we take the wrapped phase difference
+我们取环绕相位差
 
 $$
 \alpha_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s}) = \operatorname{atan}_{2} \left(\sin \left(\arg \psi_{\boldsymbol{\theta}^{\prime}} (\mathbf{s}) - \arg \psi_{\boldsymbol{\theta}} (\mathbf{s})\right), \cos \left(\arg \psi_{\boldsymbol{\theta}^{\prime}} (\mathbf{s}) - \arg \psi_{\boldsymbol{\theta}} (\mathbf{s})\right)\right).\tag{74}
 $$
 
-For later use, define the PWO phase increment
+为后续使用，定义PWO相位增量
 
 $$
 \phi_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s}) := 2 \alpha_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s}).\tag{75}
 $$
 
-The factor of two appears because the VMC phase gradient in Eq. (62) contains $2 A_{\theta}^{\mathrm{I}} \nabla$ arg ψ<sub>θ</sub>.
+因子2的出现是因为式(62)中的VMC相位梯度包含 $2 A_{\theta}^{\mathrm{I}} \nabla \arg \psi_{\theta}$。
 
-Theorem B.1 (Exact complex-amplitude decomposition). Let
+**定理B.1 (精确复振幅分解)**。设
 
 $$
 \hat{K}_{\boldsymbol{\theta}} := \hat{H} - E [ \psi_{\boldsymbol{\theta}} ] \mathbb{1}, \qquad | \eta \rangle := | \psi_{\boldsymbol{\theta}^{\prime}} \rangle - | \psi_{\boldsymbol{\theta}} \rangle ,
 $$
 
-and let
+并设
 
 $$
 \Delta E_{\boldsymbol{\theta}}^{\mathrm{loc}} := E_{\boldsymbol{\theta}}^{\mathrm{loc}} - E [ \psi_{\boldsymbol{\theta}} ] = A_{\boldsymbol{\theta}}^{\mathrm{R}} + i A_{\boldsymbol{\theta}}^{\mathrm{I}}.
 $$
 
-Then
+则
 
 $$
 E [ \psi_{\pmb{\theta}^{\prime}} ] - E [ \psi_{\pmb{\theta}} ] = 2 \mathrm{Re} \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\pmb{\theta}}} \left[ z_{\pmb{\theta}^{\prime}; \pmb{\theta}} (\mathbf{s})^{*} \Delta E_{\pmb{\theta}}^{\mathrm{loc}} (\mathbf{s}) \right] + \langle \eta | \hat{K}_{\pmb{\theta}} | \eta \rangle .\tag{76}
 $$
 
-Consequently,
+因此，
 
 $$
 E [ \psi_{\pmb{\theta}^{\prime}} ] - E [ \psi_{\pmb{\theta}} ] \leq 2 \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\pmb{\theta}}} \left[ \sqrt{r} \cos \alpha A_{\pmb{\theta}}^{\mathrm{R}} \right] + 2 \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\pmb{\theta}}} \left[ \sqrt{r} \sin \alpha A_{\pmb{\theta}}^{\mathrm{I}} \right]\tag{77}
 $$
 
 $$
-\;+\; 2 \Big \| \hat{H} - E [ \psi_{\pmb{\theta}} ] \mathbb{1} \Big \| _{\infty} \left(1 - \sqrt{1 - \mathcal{I} (\psi_{\pmb{\theta}} , \psi_{\pmb{\theta}^{\prime}})}\right),\tag{78}
++ 2 \Big \| \hat{H} - E [ \psi_{\pmb{\theta}} ] \mathbb{1} \Big \| _{\infty} \left(1 - \sqrt{1 - \mathcal{I} (\psi_{\pmb{\theta}} , \psi_{\pmb{\theta}^{\prime}})}\right),\tag{78}
 $$
 
-where, for readability, we have suppressed the $( \pmb \theta^{\prime} ; \pmb \theta )$ subscripts on r and α.
+其中，为清晰起见，我们省略了 $r$ 和 $\alpha$ 上的 $( \pmb \theta^{\prime} ; \pmb \theta )$ 下标。
 
-Proof. Since $\langle \psi_{\pmb \theta} | \hat{K}_{\pmb \theta} | \psi_{\pmb \theta} \rangle = 0$ , expanding around the reference state gives
+**证明**。由于 $\langle \psi_{\pmb \theta} | \hat{K}_{\pmb \theta} | \psi_{\pmb \theta} \rangle = 0$，在参考态附近展开得
 
 $$
 \begin{array}{r l} & E [ \psi_{\boldsymbol{\theta}^{\prime}} ] - E [ \psi_{\boldsymbol{\theta}} ] = \langle \psi_{\boldsymbol{\theta}^{\prime}} | \hat{K}_{\boldsymbol{\theta}} | \psi_{\boldsymbol{\theta}^{\prime}} \rangle \\ & \qquad = 2 \operatorname{Re} \langle \eta | \hat{K}_{\boldsymbol{\theta}} | \psi_{\boldsymbol{\theta}} \rangle + \langle \eta | \hat{K}_{\boldsymbol{\theta}} | \eta \rangle . \end{array}\tag{79}
@@ -817,13 +809,13 @@ $$
 
 (80)
 
-Moreover, $\eta ( \mathbf{s} ) = ( z_{\theta^{\prime} ; \theta} ( \mathbf{s} ) - 1 ) \psi_{\theta} ( \mathbf{s} )$ , and
+此外，$\eta ( \mathbf{s} ) = ( z_{\theta^{\prime} ; \theta} ( \mathbf{s} ) - 1 ) \psi_{\theta} ( \mathbf{s} )$，且
 
 $$
 \langle \mathbf{s} | \hat{K}_{\boldsymbol{\theta}} | \psi_{\boldsymbol{\theta}} \rangle = \psi_{\boldsymbol{\theta}} (\mathbf{s}) \Delta E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}).
 $$
 
-Therefore,
+因此，
 
 $$
 \begin{array}{r l} & {\langle \eta | \hat{K}_{\boldsymbol{\theta}} | \psi_{\boldsymbol{\theta}} \rangle = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \left[ (z_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s})^{*} - 1) \Delta E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) \right]} \\ & {\qquad = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \left[ z_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s})^{*} \Delta E_{\boldsymbol{\theta}}^{\mathrm{loc}} (\mathbf{s}) \right],} \end{array}\tag{81}
@@ -831,55 +823,53 @@ $$
 
 (82)
 
-because $\begin{array} {r} {\mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\pmb{\theta}}} [ \Delta E_{\pmb{\theta}}^{\mathrm{loc}} ( \mathbf{s} ) ] = 0} \end{array}$ . The residual satisfies
+因为 $\begin{array} {r} {\mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\pmb{\theta}}} [ \Delta E_{\pmb{\theta}}^{\mathrm{loc}} ( \mathbf{s} ) ] = 0} \end{array}$。残差满足
 
 $$
 \langle \eta | \hat{K}_{\boldsymbol{\theta}} | \eta \rangle \leq \left| \langle \eta | \hat{K}_{\boldsymbol{\theta}} | \eta \rangle \right| \leq \left\| \hat{K}_{\boldsymbol{\theta}} \right\| _{\infty} \| \eta \| ^{2}.\tag{83}
 $$
 
-By the phase convention in Eq. (72),
+根据式(72)的相位约定，
 
 $$
 \left\| \eta \right\| ^{2} = 2 - 2 \operatorname{Re} \left\langle \psi_{\boldsymbol{\theta}} | \psi_{\boldsymbol{\theta}^{\prime}} \right\rangle = 2 \left(1 - \sqrt{1 - \mathcal{I} (\psi_{\boldsymbol{\theta}} , \psi_{\boldsymbol{\theta}^{\prime}})}\right).\tag{84}
 $$
 
-Finally,
+最后，
 
 $$
 \mathrm{Re} \left[ z^{*} \Delta E_{\boldsymbol{\theta}}^{\mathrm{loc}} \right] = \sqrt{r} \left(\cos \alpha A_{\boldsymbol{\theta}}^{\mathrm{R}} + \sin \alpha A_{\boldsymbol{\theta}}^{\mathrm{I}}\right),\tag{85}
 $$
 
-which proves the result.
+由此得证。## B.5 振幅与相位置信域约束不保真度
 
-### B.5 Amplitude and Phase Trust Regions Control Infidelity
+上述基于保守策略迭代（CPI）的界限，取决于当前波函数与候选波函数之间的不保真度。我们现在证明，对Born分布和相位的独立置信域能够推导出这样一类不保真度置信域。
 
-The bound above, in the Conservative Policy Iteration (CPI) style, depends on the infidelity between the current and candidate wavefunctions. We now show that separate trust regions on the Born distribution and the phase imply such an infidelity trust region.
-
-Lemma B.2 (Amplitude and phase trust regions imply an infidelity trust region). Let $0 \leq \epsilon < 1$ and $0 \leq \delta \leq \pi / 2 .$ . Assume that we have no measure zero events and that for every configuration with $\begin{array} {r} {\mathcal{P}_{\pmb{\theta}} ( \mathbf{s} ) > 0 ,} \end{array}$
+引理B.2（振幅与相位置信域蕴含不保真度置信域）。设$0 \leq \epsilon < 1$且$0 \leq \delta \leq \pi / 2$。假设不存在测度为零的事件，并且对于每个满足$\begin{array} {r} {\mathcal{P}_{\pmb{\theta}} ( \mathbf{s} ) > 0 ,} \end{array}$的构型，有
 
 $$
 1 - \epsilon \leq r_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s}) \leq 1 + \epsilon ,\tag{86}
 $$
 
-and that the phases satisfy, up to a global phase,
+且相位在全局相位意义下满足
 
 $$
 \left| \alpha_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s}) \right| \leq \delta / 2.\tag{87}
 $$
 
-Then
+则有
 
 $$
 \mathcal{I} (\psi_{\boldsymbol{\theta}}, \psi_{\boldsymbol{\theta}^{\prime}}) \leq 1 - \cos^{2} \left(\frac{\delta}{2}\right) \frac{1 + \sqrt{1 - \epsilon^{2}}}{2}.\tag{88}
 $$
 
-Proof. The overlap satisfies
+**证明**。重叠量满足
 
 $$
 \langle \psi_{\boldsymbol{\theta}^{\prime}} | \psi_{\boldsymbol{\theta}} \rangle = \sum_{\mathbf{s}} \sqrt{\mathcal{P}_{\boldsymbol{\theta}} (\mathbf{s}) \mathcal{P}_{\boldsymbol{\theta}^{\prime}} (\mathbf{s})} e^{i \alpha_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s})} = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \left[ \sqrt{r_{\boldsymbol{\theta}^{\prime} ; \boldsymbol{\theta}} (\mathbf{s})} e^{i \alpha_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s})} \right].\tag{89}
 $$
 
-Since $| \alpha_{\pmb{\theta}^{\prime} ; \pmb{\theta}} ( \mathbf{s} ) | \leq \delta / 2 \leq \pi / 4$
+由于$| \alpha_{\pmb{\theta}^{\prime} ; \pmb{\theta}} ( \mathbf{s} ) | \leq \delta / 2 \leq \pi / 4$，可得
 
 $$
 | \langle \psi_{\boldsymbol{\theta}^{\prime}} | \psi_{\boldsymbol{\theta}} \rangle | \geq \mathrm{Re} \langle \psi_{\boldsymbol{\theta}^{\prime}} | \psi_{\boldsymbol{\theta}} \rangle\tag{90}
@@ -893,85 +883,83 @@ $$
 \geq \cos \left(\frac{\delta}{2}\right) \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \left[ \sqrt{r_{\boldsymbol{\theta}^{\prime} ; \boldsymbol{\theta}} (\mathbf{s})} \right].\tag{92}
 $$
 
-It remains to lower bound the amplitude factor. Set $a_{0} = 1 {-} \epsilon{\mathrm{and}} b_{0} = 1 {+} \epsilon .$ . Since $r_{\pmb{\theta}^{\prime} ; \pmb{\theta}} ( \mathbf{s} ) \in [ a_{0} , b_{0} ]$ and $\sqrt{x}$ is concave, it lies above its chord on $[ a_{0} , b_{0} ]$
+接下来需要给出振幅因子的下界。设$a_{0} = 1 {-} \epsilon{\mathrm{and}} b_{0} = 1 {+} \epsilon$。由于$r_{\pmb{\theta}^{\prime} ; \pmb{\theta}} ( \mathbf{s} ) \in [ a_{0} , b_{0} ]$且$\sqrt{x}$是凹函数，其图像位于区间$[ a_{0} , b_{0} ]$上弦的上方：
 
 $$
 \sqrt{r_{\boldsymbol{\theta}^{\prime} ; \boldsymbol{\theta}} (\mathbf{s})} \geq \frac{b_{0} - r_{\boldsymbol{\theta}^{\prime} ; \boldsymbol{\theta}} (\mathbf{s})}{b_{0} - a_{0}} \sqrt{a_{0}} + \frac{r_{\boldsymbol{\theta}^{\prime} ; \boldsymbol{\theta}} (\mathbf{s}) - a_{0}}{b_{0} - a_{0}} \sqrt{b_{0}}.\tag{93}
 $$
 
-Taking expectations, using linearity of expectation and
+取期望，利用期望的线性性质及
 
 $$
 \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} [ r_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s}) ] = \sum_{\mathbf{s}} \mathcal{P}_{\boldsymbol{\theta}^{\prime}} (\mathbf{s}) = 1,\tag{94}
 $$
 
-gives
+得到
 
 $$
 \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \left[ \sqrt{r_{\boldsymbol{\theta}^{\prime} ; \boldsymbol{\theta}} (\mathbf{s})} \right] \geq \frac{b_{0} - 1}{b_{0} - a_{0}} \sqrt{a_{0}} + \frac{1 - a_{0}}{b_{0} - a_{0}} \sqrt{b_{0}} = \frac{\sqrt{1 - \epsilon} + \sqrt{1 + \epsilon}}{2}.\tag{95}
 $$
 
-Combining Eqs. (92) and (95), then squaring, gives Eq. (88). The compact form follows from
+结合式(92)与式(95)，再取平方，即得式(88)。其紧凑形式源于
 
 $$
 \left(\frac{\sqrt{1 - \epsilon} + \sqrt{1 + \epsilon}}{2}\right)^{2} = \frac{1 + \sqrt{1 - \epsilon^{2}}}{2}.
 $$
 
-The small-trust-region expansion follows from $\cos^{2} \delta = 1 - \delta^{2} + O ( \delta^{4} )$ and $( 1 + \sqrt{1 - \epsilon^{2}} ) / 2 = $ $1 - \epsilon^{2} / 4 + O ( \epsilon^{4} )$ □
+小置信域展开可由$\cos^{2} \delta = 1 - \delta^{2} + O ( \delta^{4} )$和$( 1 + \sqrt{1 - \epsilon^{2}} ) / 2 = $ $1 - \epsilon^{2} / 4 + O ( \epsilon^{4} )$得到。□## B.6 PWO替代上界与一阶一致性
 
-### B.6 PWO Surrogate Upper Bound and First-Order Consistency
+现在我们将精确复振幅分解与实际PWO替代函数建立联系。精确分解包含系数 $2 \sqrt{r}$ cos α 和 $2 \sqrt{r}$ sin α，而PWO使用更简单的一阶替代r和 $r \phi = 2 r \alpha$。以下引理控制相位近似误差。
 
-We now relate the exact complex-amplitude decomposition to the practical PWO surrogate. The exact decomposition contains the coefficients $2 \sqrt{r}$ cos α and $2 \sqrt{r}$ sin α, whereas PWO uses the simpler first-order surrogates r and $r \phi = 2 r \alpha$ . The following lemma controls the phase approximation error.
-
-Lemma B.3 (Quadratic error of the PWO phase coefficient). For every $t \geq 0$ and $\alpha \in [ - \pi , \pi ]$
+引理B.3（PWO相位系数的二次误差）。对于任意 $t \geq 0$ 和 $\alpha \in [ - \pi , \pi ]$
 
 $$
 \left| 2 t \sin \alpha - 2 t^{2} \alpha \right| \leq 4 \pi^{2} \left| t e^{i \alpha} - 1 \right| ^{2}.\tag{96}
 $$
 
-Proof. Set
+证明：设
 
 $$
 d (t, \alpha) := | t e^{i \alpha} - 1 | ^{2} = (t - 1)^{2} + 2 t (1 - \cos \alpha).\tag{97}
 $$
 
-We consider three ranges of t. If $0 \leq t \leq 1 / 2 ,$ then $d ( t , \alpha ) \geq ( 1 - t )^{2} \geq 1 / 4$ , while
+我们考虑t的三个范围。若 $0 \leq t \leq 1 / 2$，则 $d ( t , \alpha ) \geq ( 1 - t )^{2} \geq 1 / 4$，同时
 
 $$
 | 2 t \sin \alpha - 2 t^{2} \alpha | \leq 2 t + 2 \pi t^{2} \leq 1 + \frac{\pi}{2} \leq 4 \pi^{2} d (t, \alpha).\tag{98}
 $$
 
-$\mathrm{If} t \geq 2$ , then $d ( t , \alpha ) \geq ( t - 1 )^{2} \geq t^{2} / 4$ , and
+若$ t \geq 2$，则 $d ( t , \alpha ) \geq ( t - 1 )^{2} \geq t^{2} / 4$，且
 
 $$
 \left| 2 t \sin \alpha - 2 t^{2} \alpha \right| \leq 2 t + 2 \pi t^{2} \leq 4 \pi^{2} d (t, \alpha).\tag{99}
 $$
 
-It remains to consider $1 / 2 \leq t \leq 2$ . We write
+只需考虑 $1 / 2 \leq t \leq 2$ 的情况。我们写
 
 $$
 2 t \sin \alpha - 2 t^{2} \alpha = 2 t (\sin \alpha - \alpha) + 2 t \alpha (1 - t),\tag{100}
 $$
 
-and use the bounds, derived from the Taylor expansions, | sin $\alpha - \alpha | \leq \alpha^{2} / 2$ and $1 - \cos \alpha \ge 2 \alpha^{2} / \pi^{2}$ on $[ - \pi , \pi ]$ . Thus
+并利用由泰勒展开推导出的界：在 $[ - \pi , \pi ]$ 上，| sin $\alpha - \alpha | \leq \alpha^{2} / 2$ 且 $1 - \cos \alpha \ge 2 \alpha^{2} / \pi^{2}$ 。因此
 
 $$
 d (t, \alpha) \geq (t - 1)^{2} + \frac{4 t \alpha^{2}}{\pi^{2}}.\tag{101}
 $$
 
-The term $t \alpha^{2}$ is bounded by $( \pi^{2} / 4 ) d ( t , \alpha )$ . For the mixed term, let $x = | 1 - t |$ and $y = 2 \sqrt{t} | \alpha | / \pi$ Then $d ( t , \alpha ) \geq x^{2} + y^{2}$ and
+项 $t \alpha^{2}$ 被 $( \pi^{2} / 4 ) d ( t , \alpha )$ 所界。对于混合项，设 $x = | 1 - t |$ 和 $y = 2 \sqrt{t} | \alpha | / \pi$，则 $d ( t , \alpha ) \geq x^{2} + y^{2}$ 且
 
 $$
 2 t | \alpha | | 1 - t | = \pi \sqrt{t} x y \leq \frac{\pi \sqrt{t}}{2} (x^{2} + y^{2}) \leq \frac{\pi \sqrt{2}}{2} d (t, \alpha).\tag{102}
 $$
 
-Combining these bounds gives
+综合这些界得到
 
 $$
 | 2 t \sin \alpha - 2 t^{2} \alpha | \leq \left(\frac{\pi^{2}}{4} + \frac{\pi \sqrt{2}}{2}\right) d (t, \alpha) \leq 4 \pi^{2} d (t, \alpha).\tag{103}
 $$
 
-Define the unclipped PWO surrogates
+定义未裁剪的PWO替代函数
 
 $$
 S_{\mathrm{mod}} (\pmb{\theta}^{\prime}; \pmb{\theta}) := \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\pmb{\theta}}} \left[ r_{\pmb{\theta}^{\prime}; \pmb{\theta}} (\mathbf{s}) A_{\pmb{\theta}}^{\mathrm{R}} (\mathbf{s}) \right],\tag{104}
@@ -981,31 +969,31 @@ $$
 S_{\mathrm{arg}} (\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}) := \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\boldsymbol{\theta}}} \left[ r_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s}) \phi_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s}) A_{\boldsymbol{\theta}}^{\mathrm{I}} (\mathbf{s}) \right].\tag{105}
 $$
 
-Theorem B.4 (PWO modulus–phase surrogate upper bound). Assume $A_{\theta}^{\mathrm{R}}$ and $A_{\theta}^{\mathrm{I}}$ are bounded. Then
+定理B.4（PWO模-相位替代上界）。假设 $A_{\theta}^{\mathrm{R}}$ 和 $A_{\theta}^{\mathrm{I}}$ 有界。则
 
 $$
 E [ \psi_{\boldsymbol{\theta}^{\prime}} ] - E [ \psi_{\boldsymbol{\theta}} ] \leq S_{\mathrm{mod}} (\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}) + S_{\mathrm{arg}} (\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}) + 2 C_{\boldsymbol{\theta}} \left(1 - \sqrt{1 - \mathcal{I} (\psi_{\boldsymbol{\theta}} , \psi_{\boldsymbol{\theta}^{\prime}})}\right),\tag{106}
 $$
 
-where one may take
+其中可取
 
 $$
 C_{\boldsymbol{\theta}} = \left\| \hat{H} - E [ \psi_{\boldsymbol{\theta}} ] \mathbb{1} \right\| _{\infty} + \left\| A_{\boldsymbol{\theta}}^{\mathrm{R}} \right\| _{\infty} + 4 \pi^{2} \left\| A_{\boldsymbol{\theta}}^{\mathrm{I}} \right\| _{\infty}.\tag{107}
 $$
 
-In particular,
+特别地，
 
 $$
 E [ \psi_{\boldsymbol{\theta}^{\prime}} ] - E [ \psi_{\boldsymbol{\theta}} ] \leq S_{\mathrm{mod}} (\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}) + S_{\mathrm{arg}} (\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}) + 2 C_{\boldsymbol{\theta}} \mathcal{I} (\psi_{\boldsymbol{\theta}}, \psi_{\boldsymbol{\theta}^{\prime}}).\tag{108}
 $$
 
-Proof. For readability, write $r = r_{\pmb{\theta}^{\prime} ; \pmb{\theta}} , \alpha = \alpha_{\pmb{\theta}^{\prime} ; \pmb{\theta}} , \phi = 2 \alpha$ , and $z = {\sqrt{r}} e^{i \alpha}$ . Since
+证明：为便于阅读，记 $r = r_{\pmb{\theta}^{\prime} ; \pmb{\theta}} , \alpha = \alpha_{\pmb{\theta}^{\prime} ; \pmb{\theta}} , \phi = 2 \alpha$ 和 $z = {\sqrt{r}} e^{i \alpha}$。由于
 
 $$
 \left| z - 1 \right| ^{2} = 1 + r - 2 \sqrt{r} \cos \alpha ,
 $$
 
-and $\begin{array} {r} {\mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\pmb{\theta}}} [ A_{\pmb{\theta}}^{\mathrm{R}} ] = 0} \end{array}$ , we have
+且 $\begin{array} {r} {\mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\pmb{\theta}}} [ A_{\pmb{\theta}}^{\mathrm{R}} ] = 0} \end{array}$，我们有
 
 $$
 2 \mathbb{E}_{\mathcal{P}_{\theta}} [ \sqrt{r} \cos \alpha A_{\theta}^{\mathrm{R}} ] = \mathbb{E}_{\mathcal{P}_{\theta}} [ r A_{\theta}^{\mathrm{R}} ] - \mathbb{E}_{\mathcal{P}_{\theta}} [ | z - 1 | ^{2} A_{\theta}^{\mathrm{R}} ]\tag{109}
@@ -1015,7 +1003,7 @@ $$
 \leq S_{\mathrm{mod}} + \left\| A_{\pmb{\theta}}^{\mathrm{R}} \right\| _{\infty} \mathbb{E}_{\mathcal{P}_{\pmb{\theta}}} [ | z - 1 | ^{2} ].\tag{110}
 $$
 
-For the phase term, apply Lemma B.3 with $t = {\sqrt{r}} ;$
+对于相位项，应用引理B.3，取 $t = {\sqrt{r}}$：
 
 $$
 2 \mathbb{E}_{\mathcal{P}_{\boldsymbol{\theta}}} [ \sqrt{r} \sin \alpha A_{\boldsymbol{\theta}}^{\mathrm{I}} ] = \mathbb{E}_{\mathcal{P}_{\boldsymbol{\theta}}} [ r \phi A_{\boldsymbol{\theta}}^{\mathrm{I}} ] + \mathbb{E}_{\mathcal{P}_{\boldsymbol{\theta}}} [ (2 \sqrt{r} \sin \alpha - 2 r \alpha) A_{\boldsymbol{\theta}}^{\mathrm{I}} ]\tag{111}
@@ -1025,7 +1013,7 @@ $$
 \leq S_{\mathrm{arg}} + 4 \pi^{2} \big \| A_{\pmb{\theta}}^{\mathrm{I}} \big \| _{\infty} \mathbb{E}_{\mathcal{P}_{\pmb{\theta}}} [ | z - 1 | ^{2} ].\tag{112}
 $$
 
-Finally,
+最后，
 
 $$
 \mathbb{E}_{\mathcal{P}_{\boldsymbol{\theta}}} [ | z - 1 | ^{2} ] = \left\| \psi_{\boldsymbol{\theta}^{\prime}} - \psi_{\boldsymbol{\theta}} \right\| ^{2}\tag{113}
@@ -1035,23 +1023,23 @@ $$
 = 2 \left(1 - \sqrt{1 - \mathcal{I} (\psi_{\boldsymbol{\theta}} , \psi_{\boldsymbol{\theta}^{\prime}})}\right),\tag{114}
 $$
 
-where we used the global-phase convention Eq. (72). Combining Eqs. (78), (110), and (112) proves Eq. (106). The linear-infidelity form follows from $1 - {\sqrt{1 - x}} \leq x$ □
+其中我们使用了全局相位惯例式(72)。结合式(78)、(110)和(112)证明了式(106)。线性保真度形式由 $1 - {\sqrt{1 - x}} \leq x$ 推出。□
 
-Theorem B.5 (First-order consistency of the PWO surrogate). Assume that ψ is differentiable in a neighborhood of the reference parameters. For the phase surrogate, detach the importance ratio from the gradient computation:
+定理B.5（PWO替代的一阶一致性）。假设 $\psi$ 在参考参数邻域内可微。对于相位替代，将重要性比率从梯度计算中分离：
 
 $$
 S_{\mathrm{arg}} (\pmb{\theta}^{\prime}; \pmb{\theta}) = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\pmb{\theta}}} \left[ \mathrm{sg} \left(r_{\pmb{\theta}^{\prime}; \pmb{\theta}} (\mathbf{s})\right) \phi_{\pmb{\theta}^{\prime}; \pmb{\theta}} (\mathbf{s}) A_{\pmb{\theta}}^{\mathrm{I}} (\mathbf{s}) \right].
 $$
 
-Then
+则
 
 $$
 \nabla_{\pmb{\theta}^{\prime}} \left[ S_{\mathrm{mod}} (\pmb{\theta}^{\prime}; \pmb{\theta}) + S_{\mathrm{arg}} (\pmb{\theta}^{\prime}; \pmb{\theta}) \right] \big | _{\pmb{\theta}^{\prime} = \pmb{\theta}} = \nabla_{\pmb{\theta}} E [ \psi_{\pmb{\theta}} ].\tag{115}
 $$
 
-The same derivative is obtained from the clipped objectives at the reference point, since $r = 1$ and $\phi = 0$ lie in the interior of the clipping intervals.
+在参考点处，从裁剪目标函数也能得到相同的导数，因为 $r = 1$ 和 $\phi = 0$ 位于裁剪区间内部。
 
-Proof. At ${\pmb \theta}^{\prime} = {\pmb \theta}_{\ast}$
+证明：在 ${\pmb \theta}^{\prime} = {\pmb \theta}_{\ast}$ 处
 
 $$
 \left. \nabla_{\boldsymbol{\theta}^{\prime}} r_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s}) \right| _{\boldsymbol{\theta}^{\prime} = \boldsymbol{\theta}} = \nabla_{\boldsymbol{\theta}} \log \mathcal{P}_{\boldsymbol{\theta}} (\mathbf{s}) = 2 \nabla_{\boldsymbol{\theta}} \log | \psi_{\boldsymbol{\theta}} (\mathbf{s}) |,\tag{116}
@@ -1061,23 +1049,21 @@ $$
 \left. \nabla_{\boldsymbol{\theta}^{\prime}} \phi_{\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}} (\mathbf{s}) \right| _{\boldsymbol{\theta}^{\prime} = \boldsymbol{\theta}} = 2 \nabla_{\boldsymbol{\theta}} \arg \psi_{\boldsymbol{\theta}} (\mathbf{s}).\tag{117}
 $$
 
-Therefore the gradient of $S_{\mathrm{mod}}$ recovers the $2 A_{\pmb{\theta}}^{\mathrm{R}} \pmb{\nabla}$ log $| \psi_{\pmb{\theta}} |$ term in Eq. (62), while the detached phase surrogate recovers the $2 A_{\theta}^{\mathrm{I}} \nabla$ arg ψ<sub>θ</sub> term. Thus the sum of the two surrogate gradients equals the VMC gradient. □
+因此 $S_{\mathrm{mod}}$ 的梯度恢复了式(62)中的 $2 A_{\pmb{\theta}}^{\mathrm{R}} \pmb{\nabla}$ log $| \psi_{\pmb{\theta}} |$ 项，而分离后的相位替代恢复了 $2 A_{\theta}^{\mathrm{I}} \nabla$ arg ψ<sub>θ</sub> 项。因此两个替代梯度的和等于VMC梯度。□
 
-Theorem 4.1 (First-order consistency of PWO). Let $| \psi_{\pmb{\theta}} \rangle$ be differentiable at $\pmb{\theta}_{\mathrm{old}}$ , and assume common support. For $\epsilon , \delta > 0$
+定理4.1（PWO的一阶一致性）。设 $| \psi_{\pmb{\theta}} \rangle$ 在 $\pmb{\theta}_{\mathrm{old}}$ 处可微，且假设公共支撑集。对于 $\epsilon , \delta > 0$
 
 $$
 \nabla_{\boldsymbol{\theta}} \left(L_{\mathrm{mod}}^{\mathrm{clip}} (\boldsymbol{\theta}) + L_{\mathrm{arg}}^{\mathrm{clip}} (\boldsymbol{\theta})\right) \bigg | _{\boldsymbol{\theta} = \boldsymbol{\theta}_{\mathrm{old}}} = \left. \nabla_{\boldsymbol{\theta}} E [ \psi_{\boldsymbol{\theta}} ] \right| _{\boldsymbol{\theta} = \boldsymbol{\theta}_{\mathrm{old}}}.\tag{19}
 $$
 
-For a proof see Appendix B.6.
+证明见附录B.6。
 
-Proof. Since clipping is inactive to first order at $r = 1$ and $\phi = 0 .$ , the clipped objectives have the same derivative at the reference point and the proof of Theorem B.5 still applies. □
+证明：由于在 $r = 1$ 和 $\phi = 0$ 处裁剪到一阶无效，裁剪目标函数在参考点具有相同的导数，定理B.5的证明仍然适用。□## B.7 裁剪PWO改进保证
 
-### B.7 Clipped PWO Improvement Certificate
+最终，我们将PWO替代界与幅度-相位保真度控制相结合。这给出了对应于裁剪PWO目标的确定性总体级保证。
 
-We finally combine the PWO surrogate bound with the amplitude–phase infidelity control. This gives the deterministic population-level certificate corresponding to the clipped PWO objective.
-
-Define the clipped losses
+定义裁剪损失：
 
 $$
 L_{\mathrm{mod}}^{\mathrm{clip}} (\pmb{\theta}^{\prime}; \pmb{\theta}) := \mathbb{E}_{\mathcal{P}_{\pmb{\theta}}} \left[ \max \left(r A_{\pmb{\theta}}^{\mathrm{R}}, \mathrm{clip} (r, 1 - \epsilon , 1 + \epsilon) A_{\pmb{\theta}}^{\mathrm{R}}\right) \right],\tag{118}
@@ -1087,9 +1073,9 @@ $$
 L_{\mathrm{arg}}^{\mathrm{clip}} (\boldsymbol{\theta}^{\prime}; \boldsymbol{\theta}) := \mathbb{E}_{\mathcal{P}_{\boldsymbol{\theta}}} \left[ \operatorname{sg} (r) \max \left(\phi A_{\boldsymbol{\theta}}^{\mathrm{I}}, \mathrm{clip} (\phi , - \delta , \delta) A_{\boldsymbol{\theta}}^{\mathrm{I}}\right) \right],\tag{119}
 $$
 
-where, as above, $r = r_{\theta^{\prime} ; \theta}$ and $\phi = \phi_{\pmb{\theta}^{\prime} ; \pmb{\theta}} = 2 \alpha$
+其中，如上所述，$r = r_{\theta^{\prime} ; \theta}$ 且 $\phi = \phi_{\pmb{\theta}^{\prime} ; \pmb{\theta}} = 2 \alpha$。
 
-Corollary 4.3 (Clipped PWO improvement certificate). Assume the conditions of Theorem $4.2 ,$ bounded centered local energies, and global constraints $r_{\pmb{\theta}} ( \mathbf{s} ) \in [ 1 - \epsilon , 1 + \epsilon ]$ and $| \alpha_{\pmb \theta} ( \mathbf{s} ) | \leq \delta$ for all s, with $0 \leq \epsilon \leq 1$ and $0 \le \delta \le \pi$ . Then there exists $C_{\theta_{\mathrm{old}}} < \infty$ such that
+**推论4.3（裁剪PWO改进保证）**。假设定理4.2的条件成立，包括有界中心局域能量，以及全局约束 $r_{\pmb{\theta}} ( \mathbf{s} ) \in [ 1 - \epsilon , 1 + \epsilon ]$ 和 $| \alpha_{\pmb \theta} ( \mathbf{s} ) | \leq \delta$ 对所有s成立，其中 $0 \leq \epsilon \leq 1$ 且 $0 \le \delta \le \pi$。那么存在 $C_{\theta_{\mathrm{old}}} < \infty$，使得：
 
 $$
 E [ \psi_{\boldsymbol{\theta}} ] - E [ \psi_{\boldsymbol{\theta}_{\mathrm{old}}} ] \leq L_{\mathrm{mod}}^{\mathrm{clip}} (\boldsymbol{\theta}) + L_{\mathrm{arg}}^{\mathrm{clip}} (\boldsymbol{\theta}) + 2 C_{\boldsymbol{\theta}_{\mathrm{old}}} \left(1 - \frac{1 + \sqrt{1 - \epsilon^{2}}}{2} \cos^{2} \left(\frac{\delta}{2}\right)\right).
@@ -1097,277 +1083,157 @@ $$
 
 (22)
 
-For a proof see Appendix B.7.
+证明见附录B.7。
 
-Proof of Corollary 4.3. The clipped energy bound first follows from the linear-infidelity bound (108) and the pointwise inequalities
+**推论4.3的证明**。首先，根据线性保真度界(108)和逐点不等式：
 
 $$
 L_{\mathrm{mod}}^{\mathrm{clip}} (\pmb{\theta}) \geq S_{\mathrm{mod}} (\pmb{\theta}; \pmb{\theta}_{\mathrm{old}}), \qquad L_{\mathrm{arg}}^{\mathrm{clip}} (\pmb{\theta}) \geq S_{\mathrm{arg}} (\pmb{\theta}; \pmb{\theta}_{\mathrm{old}}),\tag{120}
 $$
 
-which hold because each clipped objective takes the maximum of the unclipped term and its clipped counterpart, and sg(r) has the same forward value as r. Thus
+可得到裁剪能量界。这些不等式成立是因为每个裁剪目标取未裁剪项与其裁剪对应项的最大值，且sg(r)的前向值与r相同。因此：
 
 $$
 E [ \psi_{\boldsymbol{\theta}} ] - E [ \psi_{\boldsymbol{\theta}_{\mathrm{old}}} ] \leq L_{\mathrm{mod}}^{\mathrm{clip}} (\boldsymbol{\theta}) + L_{\mathrm{arg}}^{\mathrm{clip}} (\boldsymbol{\theta}) + 2 C_{\boldsymbol{\theta}_{\mathrm{old}}} \mathcal{I} (\psi_{\boldsymbol{\theta}_{\mathrm{old}}}, \psi_{\boldsymbol{\theta}}).\tag{121}
 $$
 
-By Lemma B.2, the assumptions $r_{\pm} \in [ 1 - \epsilon , 1 + \epsilon ] \mathrm{~ a n d ~} | \phi_{\pmb{\theta}} | \leq \delta$ imply
+根据引理B.2，假设 $r_{\pm} \in [ 1 - \epsilon , 1 + \epsilon ]$ 和 $| \phi_{\pmb{\theta}} | \leq \delta$ 意味着：
 
 $$
 \mathcal{I} \left(\psi_{\boldsymbol{\theta}_{\text{old}}}, \psi_{\boldsymbol{\theta}}\right) \leq 1 - \frac{1 + \sqrt{1 - \epsilon^{2}}}{2} \cos^{2} \left(\frac{\delta}{2}\right),\tag{122}
 $$
 
-because the wrapped phase itself is $\phi_{\pmb{\theta}} / 2$ . Substituting this estimate into the previous display gives Eq. (22). □
+因为折叠相位本身是 $\phi_{\pmb{\theta}} / 2$。将此估计代入前式即得方程(22)。□
 
-PWO only encourages, but does not guarantee, the global trust-region conditions required by the certificate. First, the initial step is always taken from the unclipped objective, since clipping is inactive at $( \pmb{\theta} = \pmb{\theta}_{\mathrm{old}} )$ . Second, even after clipping activates on a sampled configuration, an update driven by other unclipped configurations can still change its amplitude or phase because all configurations share parameters. Thus, clipping controls the empirical surrogate on the sampled batch, but does not impose pointwise bounds globally. The certificate should therefore be read as a conditional guarantee for realized updates that satisfy the amplitude and phase trust regions over the full support.
+PWO仅鼓励但并不能保证该保证所需的全局信任域条件。首先，初始步骤总是从非裁剪目标出发，因为在 $(\pmb{\theta} = \pmb{\theta}_{\mathrm{old}})$ 时裁剪未激活。其次，即使裁剪在某个采样配置上激活，由其他未裁剪配置驱动的更新仍可能改变其幅度或相位，因为所有配置共享参数。因此，裁剪控制了采样批次上的经验替代函数，但并未在全局施加逐点界。因此，该保证应被解读为对满足整个支撑集上幅度和相位信任域的实际更新的条件性保证。## C 附加章节## C.1 随机重构的数值成本与改进
 
-### C Additional Sections
+使用原始SR公式进行优化时会出现显著瓶颈。朴素实现涉及对 $P \times P$ 矩阵求逆，其中 $P$ 表示参数数量。Chen与Heyl [2024]证明可将该求逆问题转化为对大小为 $M \times M$ 的矩阵求逆，其中 $M$ 是蒙特卡洛估计中每次迭代使用的样本数——该方法名为minSR，其思想源自机器学习优化文献[Ren and Goldfarb, 2019]。minSR的计算复杂度为 $O(M^{2} P) + O(M^{3})$，而非 $O(P^{3})$，内存占用仅 $O(M P)$，而非 $O(P^{2})$。该方法已成功训练具有约 $3 \times 10^{5}$ 参数的Vision Transformer，为 $1 \bar{0} \times \bar{10} \ J_1\text{-}J_2$ 海森堡体系的Majumdar–Ghosh点这一困难基准提供了迄今最低能量[Rende et al., 2024]。
 
-### C.1 Numerical Cost of Stochastic Reconfiguration and Improvements
+尽管minSR带来了改进，但部分NQS优化实现（尤其针对电子结构问题）仍采用KFAC [Martens and Grosse, 2015]而非SR。对于需要大量样本训练网络的问题，$O(M^{3})$ 的计算成本仍可能过高；KFAC提供了实用折衷方案：通过块对角近似避免显式矩阵求逆，在牺牲希尔伯特空间几何信息潜在代价下实现可扩展性。KFAC广泛应用于费米子系统[Choo et al., 2020]，NQS在此类系统中取得显著成果，涵盖FermiNet [Pfau et al., 2020]、SchNet [Schütt et al., 2018]、PauliNet [Hermann et al., 2020]及近期基于Transformer的方法[von Glehn et al., 2023]。
 
-A significant bottleneck arises when using the original SR formulation for optimization. The vanilla implementation involves inverting a $P \stackrel{-} {\times} P$ matrix, where $P$ denotes the number of parameters. Alternatively, Chen and Heyl [2024] showed that this inversion problem can be recast into one that inverts a matrix of size $M \times M$ , where M is the number of samples used per iteration in the Monte Carlo estimation – this goes by the name of minSR and builds upon ideas from the machine learning optimization literature [Ren and Goldfarb, 2019]. The required operations for minSR are $O ( M^{2} \breve{P} ) \stackrel{\cdot} {+} O ( M^{3} )$ instead of ${\bar{O}} ( P^{3} )$ , and the memory usage is only $O ( M P )$ instead of $O ( P^{2} )$ . It was used to train a Vision Transformer with around $\mathrm{3 \times 10^{\overline{{5}}}}$ parameters, giving the lowest energy so far for the difficult benchmark of the Majumdar–Ghosh point of the $1 \bar{0} \times \bar{10} \ J 1 {-} \ J 2$ Heisenberg system [Rende et al., 2024].
-
-Despite the improvements brought by minSR, several implementations of NQS optimization, especially for electronic structure problems, employ KFAC [Martens and Grosse, 2015] instead of SR. The $O ( \bar{M}^{3} )$ cost can still be prohibitive when training networks for problems that require a large number of samples; KFAC provides a practical compromise: it avoids explicit matrix inversion through block-diagonal approximation, offering scalability at the potential cost of missing information about the geometry of the Hilbert space. KFAC is commonly used for applications to fermionic systems [Choo et al., 2020], where NQS achieved remarkable results, including architectures like FermiNet [Pfau et al., 2020], SchNet [Schütt et al., 2018], PauliNet [Hermann et al., 2020], and more recent transformer-based approaches [von Glehn et al., 2023].
-
-Recent advances have aimed to improve upon both approaches. These include SPRING, which combines minSR and KFAC to avoid explicit inversion [Goldshlager et al., 2024], methods that exploit block-diagonal structure in the quantum geometric tensor to improve conditioning and scalability [Nys et al., 2024, Shokry et al., 2025], and variational Lanczos techniques that accelerate convergence by extracting information across multiple eigenstates [Wang et al., 2026]. For a more detailed analysis of improvements in second-order optimization of NQS, the reader can refer to Drissi et al. [2024].
-
-### C.2 Relative Speed of PWO per Iteration
+近期研究致力于改进上述两种方法：包括结合minSR与KFAC以避免显式求逆的SPRING [Goldshlager et al., 2024]、利用量子几何张量块对角结构优化条件数与扩展性的方法[Nys et al., 2024, Shokry et al., 2025]，以及通过提取多本征态信息加速收敛的变分Lanczos技术[Wang et al., 2026]。关于NQS二阶优化改进的详细分析，读者可参阅Drissi et al. [2024]。## C.2 PWO每次迭代的相对速度
 
 ![](images/ca8eff981af5f629374fc1d4c2c1686ed2a60000196b22d7257020c2a1769072.webp)
-(a) Wall-clock time per optimizer iteration.
+(a) 每次优化器迭代的墙上时间。
 
 ![](images/b2b4ab0f74347212d4b41b106ef0fe79c9fdac48c4c4f0da4be98aff96b4883b.webp)
-(b) Normalized iteration speed relative to SPRING.
-{{< caption >}}图7：Per-iteration computational cost and normalized iteration speed for PWO and the baseline optimizers on the Heisenberg $J_{1} {-} J_{2}$ chain with the default architecture D.2. Both measurements are obtained on a single NVIDIA L40S GPU. Normalized speed is reported as the number of optimizer iterations per unit time relative to SPRING, so higher is faster.{{< /caption >}}
+(b) 相对于SPRING的归一化迭代速度。
+{{< caption >}}图7：在默认架构D.2的Heisenberg $J_{1} {-} J_{2}$ 链上，PWO与基线优化器的每次迭代计算成本及归一化迭代速度。两项测量均在单个NVIDIA L40S GPU上完成。归一化速度报告为单位时间内相对于SPRING的优化器迭代次数，因此数值越高表示速度越快。{{< /caption >}}
 
-Beyond convergence in wall-clock time, it is useful to isolate the computational cost of each optimization update. Figure 7b compares the normalized iteration speed (optimization steps per unit of time) of PWO against the baselines. The speed advantage over minSR is expected: PWO is a first-order method and does not require constructing or inverting the stochastic-reconfiguration matrix. In contrast, minSR replaces the original $P \times P \operatorname{SR}$ solve by an $\mathbf{\bar{\boldsymbol{M}}} \times \mathbf{\boldsymbol{M}}$ solve, where $\breve{M}$ is the number of samples, but it still requires expensive Jacobian contractions and a matrix inversion or linear solve. PWO avoids this curvature computation entirely.
+除了墙上时间的收敛性之外，单独分析每次优化更新的计算成本也很有价值。图7b比较了PWO与基线优化器的归一化迭代速度（单位时间内的优化步数）。相对于minSR的速度优势是预期的：PWO是一阶方法，无需构建或求逆随机重构矩阵。相比之下，minSR将原始$P \times P$规模的重构矩阵求解替换为$\mathbf{\bar{\boldsymbol{M}}} \times \mathbf{\boldsymbol{M}}$规模（其中$\breve{M}$为样本数）的求解，但仍需要昂贵的雅可比收缩运算以及矩阵求逆或线性求解。PWO完全避免了这种曲率计算。
 
-The comparison with Adam is more subtle. A single PWO update has additional bookkeeping relative to Adam, including probability ratios, clipping terms, and wrapped phase increments. However, in VMC the dominant cost is often not the optimizer algebra itself, but sampling configurations and evaluating the corresponding local energies. PWO computes local energies and advantages once for a sampled batch and then reuses that batch across multiple proximal inner epochs. Adam, in contrast, performs a single update per sampled batch, so the local-energy overhead is paid again for each parameter update. Thus, PWO can amortize the expensive energy computation across several optimization steps, making its effective per-update cost competitive with Adam despite the more structured surrogate objective.
+与Adam的比较则更为微妙。单次PWO更新相比Adam涉及额外的簿记工作，包括概率比率、裁剪项和包裹相位增量。然而在变分蒙特卡洛中，主要计算成本往往并非优化器本身的代数运算，而是采样构型及评估对应的局域能量。PWO对采样批次仅计算一次局域能量和优势，然后在该批次上重复利用进行多次邻近内循环迭代。相比之下，Adam每次采样批次仅执行单次更新，因此每次参数更新都需要重新承担局域能量的计算开销。因此，PWO能够将昂贵的能量计算分摊到多个优化步骤中，尽管其替代目标函数的结构更为复杂，但每次更新的有效成本仍能与Adam相媲美。## C.3 为何选择RWKV？
 
-### C.3 Why RWKV?
+RWKV是一种特别适合大规模自回归神经量子态（NQS）的自然架构，因为它兼具序列模型的表达能力和循环推理的特性。与基于Transformer的自回归模型不同，RWKV无需不断增长的键值缓存，因此其每个标记的推理成本和内存占用在序列长度上保持恒定[Peng等，2025]。这与自回归变分蒙特卡洛（VMC）高度契合——在VMC中，自旋构型被顺序生成，且模型评估在蒙特卡洛优化过程中被反复调用。循环架构在更广泛的自回归NQS中也被证明是成功的，它能够从玻恩分布中精确独立采样，同时避免马尔可夫链混合问题[Hibat-Allah等，2020，Merali等，2026]。此外，近期关于超大规模RWKV微调的研究为将十亿参数级别的循环模型适配到非标准优化目标提供了实践基础[Sarkar等，2026]。基于这些原因，RWKV成为检验投影波函数优化（PWO）能否超越传统NQS架构的关键压力测试工具。## C.4 PWO的局限性
 
-RWKV is a particularly natural architecture for large-scale autoregressive NQS because it combines the expressivity of sequence models with recurrent inference. Unlike Transformer-based autoregressive models, RWKV does not require a growing key-value cache, so its per-token inference cost and memory footprint remain constant in the sequence length [Peng et al., 2025]. This is well aligned with autoregressive VMC, where spin configurations are generated sequentially and model evaluations are repeatedly invoked during Monte Carlo optimization. Recurrent architectures have also been successful in autoregressive NQS more broadly, where they provide exact independent sampling from the Born distribution while avoiding Markov-chain mixing issues [Hibat-Allah et al., 2020, Merali et al., 2026]. Finally, recent hyperscale RWKV fine-tuning work provides a practical implementation foundation for adapting billion-parameter recurrent models to nonstandard optimization objectives [Sarkar et al., 2026]. For these reasons, RWKV is a useful stress test for whether PWO can scale beyond conventional NQS architectures.
+尽管PWO受到一阶一致性结果和修剪改进上界的支持，但该理论仍具有局部性和保守性：它依赖于共同支撑和有界性假设，并且不适用于神经网络训练的全局收敛分析。在实证方面，我们的结果包括一维链、受挫的二维方晶格以及大规模RWKV微调实验，但这些仍不能构成跨哈密顿量族的综合性NQS基准测试。特别地，在更大规模的二维系统、费米子模型以及电子结构问题上的广泛验证仍待解决。最后，PWO引入了额外的优化超参数，例如振幅和相位修剪阈值以及内层迭代次数，其最优值可能取决于哈密顿量、拟设、系统尺寸和样本预算。## D 实验细节## D.1 超参数搜索
 
-### C.4 Limitations of PWO
+针对每种方法，我们通过网格扫描对学习率进行小型超参数搜索，并选取验证性能最佳的配置。对于PWO，我们还额外调整用于控制振幅和相位替代目标的裁剪参数。具体而言，在选定初始学习率后，我们独立地逐次对每个裁剪参数进行网格搜索，同时固定先前找到的最优值。这种顺序方法提供了一种简单且计算可行的手段来调整PWO特有的额外超参数，无需对所有组合进行穷举联合扫描。
 
-Although PWO is supported by a first-order consistency result and a clipped improvement bound, the theory remains local and conservative: it relies on common-support and boundedness assumptions and does not imply global convergence for neural-network training. Empirically, our results include one dimensional chains, a frustrated two-dimensional square lattice, and a large-scale RWKV fine-tuning experiment, but they are still not a comprehensive NQS benchmark across Hamiltonian families. In particular, broader validation on larger two-dimensional systems, fermionic models, and electronicstructure problems remains open. Finally, PWO introduces additional optimization hyperparameters, such as amplitude and phase clipping thresholds and the number of inner epochs, whose optimal values may depend on the Hamiltonian, ansatz, system size, and sample budget.
+对于包括PWO在内的基于Adam的方法，我们采用余弦单周期学习率调度方案[Smith and Topin, 2018]。学习率首先在短预热阶段升至峰值，随后通过余弦衰减平滑退火至较小的终值。峰值学习率通过上述网格搜索选定，其他调度参数在不同运行中保持固定。对于每次采样批次执行多次优化轮次的PWO，我们按PPO轮次数缩放转换视界，使调度方案在可比较的外迭代时间尺度上演进。对于minSR和SPRING，恒定学习率的性能优于周期性调度方案。
 
-### D Experimental Details
+由于海森堡链和J1–J2链的优化问题比横向场伊辛模型更具挑战性，我们在这些设置中采用更长的学习率调度方案（对比附录D.3-D.5）。具体而言，我们为海森堡链分配的转换步数多于伊辛模型，而为J1–J2链分配的转换步数多于海森堡链。这使优化器在面对更复杂的哈密顿量时拥有更长的退火视界，同时在不同问题间保持调度结构固定。为提升可读性，我们分别报告每种哈密顿量的方法特定超参数。首先展示伊辛配置，随后在后续各小节中呈现海森堡和J1–J2设置。## D.2 神经量子态架构
 
-### D.1 Hyperparameter search
+在所有实验中，我们对PWO和minSR采用相同的自回归循环神经网络，确保性能差异来自优化器而非参数化。给定自旋构型 $\mathbf{s} \in \{\pm 1 \}^{N}$ ，我们将自旋映射为二进制标记，在序列开头添加起始标记，并使用维度为32的学习型标记嵌入和学习型位置嵌入对所得序列进行嵌入。嵌入后的输入被投影至维度256，随后经过tanh非线性变换和层归一化。主干网络包含带有残差连接的GRU循环模块。基于共享的循环表示，我们使用两个独立的两层MLP头部和GELU激活函数：幅度头部通过log-softmax输出条件对数概率，相位头部通过经π缩放的tanh非线性变换输出有界相位。该模型包含140万参数。除非另有说明，所有方法和哈密顿量均采用相同架构。共享超参数汇总于表2。
 
-For each method, we perform a small hyperparameter search over the learning rate using a grid sweep and select the configuration with the best validation performance. For PWO, we additionally tune the clipping parameters that control the amplitude and phase surrogate objectives. Specifically, after selecting an initial learning rate, we independently grid search each clipping parameter while holding the best values found so far fixed. This sequential procedure provides a simple and computationally tractable way to tune the additional PWO-specific hyperparameters without requiring an exhaustive joint sweep over all combinations.
+<table><tr><td>架构超参数</td><td>值</td></tr><tr><td>标记嵌入维度</td><td>32</td></tr><tr><td>位点嵌入</td><td>学习型</td></tr><tr><td>主干网络输入维度</td><td>256</td></tr><tr><td>主干网络非线性变换</td><td>tanh</td></tr><tr><td>主干网络归一化</td><td>层归一化</td></tr><tr><td>循环主干网络</td><td>GRU</td></tr><tr><td>GRU层数</td><td>3</td></tr><tr><td>GRU隐藏维度</td><td>256</td></tr><tr><td>幅度头部</td><td>2层MLP</td></tr><tr><td>相位头部</td><td>2层MLP</td></tr><tr><td>头部隐藏维度</td><td>256</td></tr><tr><td>头部激活函数</td><td>GELU</td></tr><tr><td>相位输出</td><td> $\pi \tanh(\cdot)$ </td></tr><tr><td>相位缩放</td><td> $\pi$ </td></tr></table>
 
-For Adam-based methods, including PWO, we use a cosine one-cycle learning-rate schedule [Smith and Topin, 2018]. The learning rate is first increased to a peak value during a short warmup phase and is then annealed smoothly to a small final value by cosine decay. The peak learning rate is selected by the grid search above, while the other schedule parameters are fixed across runs. For PWO, which performs multiple optimization epochs per sampled batch, we scale the transition horizon by the number of PPO epochs so that the schedule evolves on a comparable outer-iteration timescale. For minSR and SPRING, a constant learning rate performed better than scheduled variants.
+表2：所有哈密顿量和优化方法共享的NQS架构。Adam、PWO、minSR和SPRING均使用相同的基于GRU的自回归参数化。## D.3 伊辛模型
 
-Because the Heisenberg and J1–J2 chains are more challenging optimization problems than the transverse-field Ising model, we use longer learning-rate schedules for these settings (compare Appendices D.3-D.5). In particular, we allocate more transition steps to the Heisenberg chain than to Ising, and more transition steps to J1–J2 than to Heisenberg. This gives the optimizer a longer annealing horizon on the harder Hamiltonians, while keeping the schedule structure fixed across problems. To improve readability, we report the method-specific hyper-parameters for each Hamiltonian separately. The Ising configuration is shown first, followed by the Heisenberg and J1–J2 settings in the subsequent subsections.
+<table><tr><td>超参数</td><td>Adam</td><td>PWO</td><td>minSR</td><td>SPRING</td></tr><tr><td>优化器/方法</td><td>Adam</td><td>Adam + PWO</td><td>minSR</td><td>SPRING</td></tr><tr><td>学习率</td><td> $10^{-5}$ </td><td> $10^{-5}$ </td><td> $10^{-2}$ </td><td> $10^{-2}$ </td></tr><tr><td>峰值学习率</td><td> $10^{-4}$ </td><td> $10^{-4}$ </td><td>-</td><td>-</td></tr><tr><td>过渡步数</td><td>5,000</td><td>20,000</td><td>-</td><td>-</td></tr><tr><td>PPO 轮次</td><td>-</td><td>4</td><td>-</td><td>-</td></tr><tr><td>PPO 裁剪  $\epsilon$ </td><td>-</td><td> $10^{-3}$ </td><td>-</td><td>-</td></tr><tr><td>优势归一化</td><td>-</td><td>是</td><td>-</td><td>-</td></tr><tr><td>相位损失</td><td>-</td><td> $\Delta\phi$ 裁剪</td><td>-</td><td>-</td></tr><tr><td>相位系数</td><td>-</td><td>1.0</td><td>-</td><td>-</td></tr><tr><td>相位裁剪</td><td>-</td><td>0.3</td><td>-</td><td>-</td></tr><tr><td>中心化虚部优势</td><td>-</td><td>是</td><td>-</td><td>-</td></tr><tr><td>归一化虚部优势</td><td>-</td><td>是</td><td>-</td><td>-</td></tr><tr><td>相位雅可比基线</td><td>-</td><td>是</td><td>-</td><td>-</td></tr><tr><td>SR 对角偏移</td><td>-</td><td>-</td><td> $10^{-2}$ </td><td> $10^{-2}$ </td></tr><tr><td>NTK / minSR 模式</td><td>-</td><td>-</td><td>是</td><td>是</td></tr><tr><td>即时 SR</td><td>-</td><td>-</td><td>是</td><td>是</td></tr><tr><td>SPRING 动量</td><td>-</td><td>-</td><td>-</td><td>0.8</td></tr></table>
 
-### D.2 Neural Quantum State Architecture
+表3：伊辛实验使用的超参数。所有方法均采用 $N = 12$、周期性边界条件、$J = 1 , h = 1$、复数值神经量子态、1024个训练样本、精确对角化进行评估，以及每200次迭代评估一次。Adam和PWO使用余弦单周期调度。## D.4 海森堡链
 
-Across experiments, we use the same autoregressive recurrent neural network for PWO and minSR, ensuring that performance differences arise from the optimizer rather than the parametrization. Given a spin configuration $\mathbf{s} \in \{\pm 1 \}^{N}$ , we map spins to binary tokens, prepend a beginning-of-sequence token, and embed the resulting sequence with learned token embeddings of dimension 32 and learned positional embeddings. The embedded inputs are projected to dimension 256, followed by a tanh nonlinearity and layer normalization. The backbone consists of GRU layers with residual connections between recurrent blocks. From the shared recurrent representation, we use two separate two-layer MLP heads and GELU activations: an amplitude head, which outputs conditional log-probabilities via a log-softmax, and a phase head, which outputs bounded phases through a tanh nonlinearity scaled by π. The model has 1.4M parameters. Unless otherwise stated, all methods and Hamiltonians use the same architecture. The shared hyperparameters are summarized in Table 2.
+<table><tr><td>超参数</td><td>Adam</td><td>PWO</td><td>minSR</td><td>SPRING</td></tr><tr><td>优化器/方法</td><td>Adam</td><td>Adam + PWO</td><td>minSR</td><td>SPRING</td></tr><tr><td>学习率参数/恒定学习率</td><td> $10^{-5}$ </td><td> $10^{-5}$ </td><td> $10^{-3}$ </td><td> $10^{-3}$ </td></tr><tr><td>峰值学习率</td><td> $3 \times 10^{-4}$ </td><td> $10^{-4}$ </td><td>-</td><td>-</td></tr><tr><td>过渡步数</td><td>10,000</td><td>40,000</td><td>-</td><td>-</td></tr><tr><td>PPO 轮数</td><td>-</td><td>4</td><td>-</td><td>-</td></tr><tr><td>PPO 裁剪参数 $\epsilon$ </td><td>-</td><td> $10^{-3}$ </td><td>-</td><td>-</td></tr><tr><td>优势函数归一化</td><td>-</td><td>是</td><td>-</td><td>-</td></tr><tr><td>相位损失</td><td>-</td><td> $\Delta\phi$ 裁剪</td><td>-</td><td>-</td></tr><tr><td>相位系数</td><td>-</td><td>1.0</td><td>-</td><td>-</td></tr><tr><td>相位裁剪阈值</td><td>-</td><td>0.3</td><td>-</td><td>-</td></tr><tr><td>中心化虚部优势</td><td>-</td><td>是</td><td>-</td><td>-</td></tr><tr><td>归一化虚部优势</td><td>-</td><td>是</td><td>-</td><td>-</td></tr><tr><td>相位雅可比基线</td><td>-</td><td>是</td><td>-</td><td>-</td></tr><tr><td>SR 对角偏移</td><td>-</td><td>-</td><td> $10^{-2}$ </td><td> $10^{-2}$ </td></tr><tr><td>NTK / minSR 模式</td><td>-</td><td>-</td><td>是</td><td>是</td></tr><tr><td>即时 SR</td><td>-</td><td>-</td><td>是</td><td>是</td></tr><tr><td>SPRING 动量</td><td>-</td><td>-</td><td>-</td><td>0.8</td></tr></table>
 
-<table><tr><td>Architecture hyperparameter</td><td>Value</td></tr><tr><td>Token embedding dimension</td><td>32</td></tr><tr><td>Site embeddings</td><td>Learned</td></tr><tr><td>Backbone input dimension</td><td>256</td></tr><tr><td>Backbone nonlinearity</td><td>tanh</td></tr><tr><td>Backbone normalization</td><td>Layer normalization</td></tr><tr><td>Recurrent backbone</td><td>GRU</td></tr><tr><td>Number of GRU layers</td><td>3</td></tr><tr><td>GRU hidden dimension</td><td>256</td></tr><tr><td>Amplitude head</td><td>2-layer MLP</td></tr><tr><td>Phase head</td><td>2-layer MLP</td></tr><tr><td>Head hidden dimension</td><td>256</td></tr><tr><td>Head activation</td><td>GELU</td></tr><tr><td>Phase output</td><td> $\pi \tanh(\cdot)$ </td></tr><tr><td>Phase scale</td><td> $\pi$ </td></tr></table>
+表4：海森堡链实验的超参数。所有方法均采用 $N = 12$ 、周期边界条件、耦合强度 $J = 0.25$ 、无符号规则、复值神经量子态、1024个训练样本、精确评估，以及每200次迭代进行评估。Adam和PWO使用余弦单周期学习率调度；minSR和SPRING使用恒定学习率。## D.5 海森堡 $J_{1} {-} J_{2}$ 链
 
-Table 2: Shared NQS architecture used across all Hamiltonians and optimization methods. The same autoregressive GRU-based parameterization is used for Adam, PWO, minSR, and SPRING.
+<table><tr><td>超参数</td><td>Adam</td><td>PWO</td><td>minSR</td><td>SPRING</td></tr><tr><td>优化器/方法</td><td>Adam</td><td>Adam + PWO</td><td>minSR</td><td>SPRING</td></tr><tr><td>学习率参数/恒定学习率</td><td>$10^{-5}$</td><td>$10^{-5}$</td><td>$10^{-3}$</td><td>$10^{-3}$</td></tr><tr><td>峰值学习率</td><td>$3 \times 10^{-4}$</td><td>$10^{-4}$</td><td>-</td><td>-</td></tr><tr><td>转换步数</td><td>10,000</td><td>40,000</td><td>-</td><td>-</td></tr><tr><td>PPO 轮次</td><td>-</td><td>4</td><td>-</td><td>-</td></tr><tr><td>PPO 截断 $\epsilon$</td><td>-</td><td>$10^{-3}$</td><td>-</td><td>-</td></tr><tr><td>优势函数归一化</td><td>-</td><td>是</td><td>-</td><td>-</td></tr><tr><td>相位损失</td><td>-</td><td>$\Delta\phi$ 截断</td><td>-</td><td>-</td></tr><tr><td>相位系数</td><td>-</td><td>1.0</td><td>-</td><td>-</td></tr><tr><td>相位截断</td><td>-</td><td>0.3</td><td>-</td><td>-</td></tr><tr><td>中心化虚部优势</td><td>-</td><td>是</td><td>-</td><td>-</td></tr><tr><td>归一化虚部优势</td><td>-</td><td>是</td><td>-</td><td>-</td></tr><tr><td>相位雅可比基线</td><td>-</td><td>是</td><td>-</td><td>-</td></tr><tr><td>SR 对角偏移</td><td>-</td><td>-</td><td>$10^{-2}$</td><td>$10^{-2}$</td></tr><tr><td>NTK / minSR 模式</td><td>-</td><td>-</td><td>是</td><td>是</td></tr><tr><td>即时 SR</td><td>-</td><td>-</td><td>是</td><td>是</td></tr><tr><td>SPRING 动量</td><td>-</td><td>-</td><td>-</td><td>0.8</td></tr></table>
 
-### D.3 Ising Model
+表5：受挫海森堡 $J_{1} {-} J_{2}$ 实验的超参数设置。所有方法均采用 $N = 12$ 周期边界条件，耦合强度 $J_{1} = 1$ 和 $J_{2} = 0.5$，无符号规则，复值神经量子态，1024个训练样本，精确评估，每200次迭代评估一次。Adam和PWO使用余弦单周期学习率调度；minSR和SPRING使用恒定学习率。## D.6 二维 $J_{1} {-} J_{2}$ 正方晶格实验
 
-<table><tr><td>Hyperparameter</td><td>Adam</td><td>PWO</td><td>minSR</td><td>SPRING</td></tr><tr><td>Optimizer / method</td><td>Adam</td><td>Adam + PWO</td><td>minSR</td><td>SPRING</td></tr><tr><td>Learning rate</td><td> $10^{-5}$ </td><td> $10^{-5}$ </td><td> $10^{-2}$ </td><td> $10^{-2}$ </td></tr><tr><td>Peak learning rate</td><td> $10^{-4}$ </td><td> $10^{-4}$ </td><td>-</td><td>-</td></tr><tr><td>Transition steps</td><td>5,000</td><td>20,000</td><td>-</td><td>-</td></tr><tr><td>PPO epochs</td><td>-</td><td>4</td><td>-</td><td>-</td></tr><tr><td>PPO clip  $\epsilon$ </td><td>-</td><td> $10^{-3}$ </td><td>-</td><td>-</td></tr><tr><td>Advantage normalization</td><td>-</td><td>Yes</td><td>-</td><td>-</td></tr><tr><td>Phase loss</td><td>-</td><td> $\Delta\phi$ clip</td><td>-</td><td>-</td></tr><tr><td>Phase coefficient</td><td>-</td><td>1.0</td><td>-</td><td>-</td></tr><tr><td>Phase clip</td><td>-</td><td>0.3</td><td>-</td><td>-</td></tr><tr><td>Center imaginary advantage</td><td>-</td><td>Yes</td><td>-</td><td>-</td></tr><tr><td>Normalize imaginary advantage</td><td>-</td><td>Yes</td><td>-</td><td>-</td></tr><tr><td>Phase Jacobian baseline</td><td>-</td><td>Yes</td><td>-</td><td>-</td></tr><tr><td>SR diagonal shift</td><td>-</td><td>-</td><td> $10^{-2}$ </td><td> $10^{-2}$ </td></tr><tr><td>NTK / minSR mode</td><td>-</td><td>-</td><td>Yes</td><td>Yes</td></tr><tr><td>On-the-fly SR</td><td>-</td><td>-</td><td>Yes</td><td>Yes</td></tr><tr><td>SPRING momentum</td><td>-</td><td>-</td><td>-</td><td>0.8</td></tr></table>
-
-Table 3: Hyperparameters used for the Ising experiments. All methods use $N = 12$ , periodic boundary conditions, $J = 1 , h = 1$ , complex-valued neural quantum states, 1024 training samples, exact diagonalization for evaluation, and evaluation every 200 iterations. Adam and PWO use the cosine one-cycle schedule.
-
-### D.4 Heisenberg Chain
-
-<table><tr><td>Hyperparameter</td><td>Adam</td><td>PWO</td><td>minSR</td><td>SPRING</td></tr><tr><td>Optimizer / method</td><td>Adam</td><td>Adam + PWO</td><td>minSR</td><td>SPRING</td></tr><tr><td>LR parameter / constant LR</td><td> $10^{-5}$ </td><td> $10^{-5}$ </td><td> $10^{-3}$ </td><td> $10^{-3}$ </td></tr><tr><td>Peak learning rate</td><td> $3 \times 10^{-4}$ </td><td> $10^{-4}$ </td><td>-</td><td>-</td></tr><tr><td>Transition steps</td><td>10,000</td><td>40,000</td><td>-</td><td>-</td></tr><tr><td>PPO epochs</td><td>-</td><td>4</td><td>-</td><td>-</td></tr><tr><td>PPO clip  $\epsilon$ </td><td>-</td><td> $10^{-3}$ </td><td>-</td><td>-</td></tr><tr><td>Advantage normalization</td><td>-</td><td>Yes</td><td>-</td><td>-</td></tr><tr><td>Phase loss</td><td>-</td><td> $\Delta\phi$ clip</td><td>-</td><td>-</td></tr><tr><td>Phase coefficient</td><td>-</td><td>1.0</td><td>-</td><td>-</td></tr><tr><td>Phase clip</td><td>-</td><td>0.3</td><td>-</td><td>-</td></tr><tr><td>Center imaginary advantage</td><td>-</td><td>Yes</td><td>-</td><td>-</td></tr><tr><td>Normalize imaginary advantage</td><td>-</td><td>Yes</td><td>-</td><td>-</td></tr><tr><td>Phase Jacobian baseline</td><td>-</td><td>Yes</td><td>-</td><td>-</td></tr><tr><td>SR diagonal shift</td><td>-</td><td>-</td><td> $10^{-2}$ </td><td> $10^{-2}$ </td></tr><tr><td>NTK / minSR mode</td><td>-</td><td>-</td><td>Yes</td><td>Yes</td></tr><tr><td>On-the-fly SR</td><td>-</td><td>-</td><td>Yes</td><td>Yes</td></tr><tr><td>SPRING momentum</td><td>-</td><td>-</td><td>-</td><td>0.8</td></tr></table>
-
-Table 4: Hyperparameters for the Heisenberg-chain experiments. All methods use $N = 12 .$ periodic boundary conditions, coupling $J = 0.25 ,$ , no sign rule, complex-valued neural quantum states, 1024 training samples, exact evaluation, and evaluation every 200 iterations. Adam and PWO use a cosine one-cycle learning-rate schedule; minSR and SPRING use a constant learning rate.
-
-### D.5 Heisenberg $J_{1} {-} J_{2}$ Chain
-
-<table><tr><td>Hyperparameter</td><td>Adam</td><td>PWO</td><td>minSR</td><td>SPRING</td></tr><tr><td>Optimizer / method</td><td>Adam</td><td>Adam + PWO</td><td>minSR</td><td>SPRING</td></tr><tr><td>LR parameter / constant LR</td><td> $10^{-5}$ </td><td> $10^{-5}$ </td><td> $10^{-3}$ </td><td> $10^{-3}$ </td></tr><tr><td>Peak learning rate</td><td> $3 \times 10^{-4}$ </td><td> $10^{-4}$ </td><td>-</td><td>-</td></tr><tr><td>Transition steps</td><td>10,000</td><td>40,000</td><td>-</td><td>-</td></tr><tr><td>PPO epochs</td><td>-</td><td>4</td><td>-</td><td>-</td></tr><tr><td>PPO clip  $\epsilon$ </td><td>-</td><td> $10^{-3}$ </td><td>-</td><td>-</td></tr><tr><td>Advantage normalization</td><td>-</td><td>Yes</td><td>-</td><td>-</td></tr><tr><td>Phase loss</td><td>-</td><td> $\Delta\phi$ clip</td><td>-</td><td>-</td></tr><tr><td>Phase coefficient</td><td>-</td><td>1.0</td><td>-</td><td>-</td></tr><tr><td>Phase clip</td><td>-</td><td>0.3</td><td>-</td><td>-</td></tr><tr><td>Center imaginary advantage</td><td>-</td><td>Yes</td><td>-</td><td>-</td></tr><tr><td>Normalize imaginary advantage</td><td>-</td><td>Yes</td><td>-</td><td>-</td></tr><tr><td>Phase Jacobian baseline</td><td>-</td><td>Yes</td><td>-</td><td>-</td></tr><tr><td>SR diagonal shift</td><td>-</td><td>-</td><td> $10^{-2}$ </td><td> $10^{-2}$ </td></tr><tr><td>NTK / minSR mode</td><td>-</td><td>-</td><td>Yes</td><td>Yes</td></tr><tr><td>On-the-fly SR</td><td>-</td><td>-</td><td>Yes</td><td>Yes</td></tr><tr><td>SPRING momentum</td><td>-</td><td>-</td><td>-</td><td>0.8</td></tr></table>
-
-Table 5: Hyperparameters for the frustrated Heisenberg $J_{1} {-} J_{2}$ experiments. All methods use $N = 12$ periodic boundary conditions, couplings $J_{1} = 1$ and $J_{2} = 0.5 ,$ , no sign rule, complex-valued neural quantum states, 1024 training samples, exact evaluation, and evaluation every 200 iterations. Adam and PWO use a cosine one-cycle learning-rate schedule; minSR and SPRING use a constant learning rate.
-
-### D.6 Two-dimensional $J_{1} {-} J_{2}$ square-lattice experiment
-
-Using the same method hyper-parameters as above, we evaluate PWO on the frustrated spin-1/2 $J_{1} {-} \bar{J_{2}}$ Heisenberg model on a two-dimensional square lattice,
+采用与上文相同的方法超参数，我们在二维正方晶格的阻挫自旋-1/2 $J_{1} {-} \bar{J_{2}}$ 海森堡模型上评估PWO性能：
 
 $$
 \hat{H}_{J_{1} - J_{2}}^{\mathrm{2D}} = J_{1} \sum_{\langle i, j \rangle} \hat{\mathbf{S}}_{i} \cdot \hat{\mathbf{S}}_{j} + J_{2} \sum_{\langle \langle i, j \rangle \rangle} \hat{\mathbf{S}}_{i} \cdot \hat{\mathbf{S}}_{j},\tag{123}
 $$
 
-where $\langle i , j \rangle$ and $\langle \langle i , j \rangle \rangle$ denote nearest- and next-nearest-neighbor pairs, respectively. We use an $L \times L$ square lattice with $L = 10$ , periodic boundary conditions, $J_{1} = 1$ , and ${\bar{J}}_{2} = 0 . {\bar{5}}$ . All runs are restricted to the zero-magnetization sector, $S_{\mathrm{tot}}^{z} = 0$ , by masking infeasible autoregressive choices during sampling and evaluation.
+其中 $\langle i , j \rangle$ 和 $\langle \langle i , j \rangle \rangle$ 分别表示最近邻和次近邻对。我们使用 $L \times L$ 正方晶格，其中 $L = 10$ ，采用周期性边界条件，$J_{1} = 1$ 且 ${\bar{J}}_{2} = 0 . {\bar{5}}$ 。所有运行均限于零磁化子空间 $S_{\mathrm{tot}}^{z} = 0$ ，通过在采样和评估过程中屏蔽不可行的自回归选择实现。
 
-For this experiment we use a complex-valued patch-autoregressive transformer designed for twodimensional lattices. Instead of generating spins one at a time, the model partitions the $10 \times 10$ lattice into non-overlapping $2 \times 2$ patches. Each patch is represented as a categorical token with vocabulary size $2^{4} = 16 .$ , so the full configuration is generated as a sequence of
+本实验使用针对二维晶格设计的复值块自回归Transformer。该模型并非逐个生成自旋，而是将 $10 \times 10$ 晶格划分为不重叠的 $2 \times 2$ 块。每个块表示为词表大小为 $2^{4} = 16$ 的分类标记，因此完整配置生成为
 
 $$
 T = \left(\frac{L}{2}\right)^{2} = 25\tag{124}
 $$
 
-autoregressive tokens. The wavefunction is factorized over patch tokens as
+个自回归标记的序列。波函数按块标记分解为
 
 $$
 \log \psi_{\theta} (\mathbf{s}) = \sum_{t = 1}^{T} \left[ \frac{1}{2} \log p_{\theta} (a_{t} \mid a_{< t}) + i \phi_{\theta} (a_{t} \mid a_{< t}) \right],\tag{125}
 $$
 
-where the factor $1 / 2$ corresponds to the Born-rule convention $P_{\theta} ( \mathbf{s} ) = | \psi_{\theta} ( \mathbf{s} ) | ^{2}$
+其中因子 $1 / 2$ 对应Born规则约定 $P_{\theta} ( \mathbf{s} ) = | \psi_{\theta} ( \mathbf{s} ) | ^{2}$ 。
 
-The model prepends a beginning-of-sequence token and embeds patch tokens with learned token embeddings of dimension 64. We also use learned site embeddings and prefix-count features that encode the partial magnetization constraint. These embeddings are projected to width 96, normalized with layer normalization, and passed through an 8-layer causal transformer backbone. Each transformer block uses 6 attention heads, two-dimensional axial RoPE with base 100, residual connections, and a feedforward width of $4 \times 96 = 384$
+模型预置一个序列起始标记，并通过维度64的可学习标记嵌入对块标记进行嵌入。我们还使用可学习位置嵌入和编码部分磁化约束的前缀计数特征。这些嵌入投影至宽度96，通过层归一化归一化后，传入8层因果Transformer主干。每个Transformer块使用6个注意力头、基数为100的二维轴向RoPE、残差连接和 $4 \times 96 = 384$ 的前馈宽度。
 
-From the final transformer representation, the model uses separate amplitude and phase heads. Both heads are two-layer MLPs with hidden dimension 192 and GELU activations. The amplitude head outputs masked conditional log-probabilities through a log-softmax, ensuring exact normalization over feasible patch choices. The phase head outputs centered phase increments using a π tanh(·) parameterization, with small initialization scale $\mathrm{\dot{1} 0^{- 3}}$ . This gives an exactly sampleable complex autoregressive neural quantum state adapted to the two-dimensional square lattice.
+从最终Transformer表示中，模型使用独立的振幅头和相位头。两个头均为隐藏维度192并使用GELU激活的双层MLP。振幅头通过log-softmax输出掩蔽条件对数概率，确保对可行块选择进行精确归一化。相位头使用 $\pi \tanh(\cdot)$ 参数化输出中心化相位增量，初始化尺度为 $\mathrm{\dot{1} 0^{- 3}}$ 。这产生了精确可采样的复自回归神经量子态，适配二维正方晶格。
 
-While the aim of this experiment is to compare optimizers and not to achieve the state-of-the-art variational energy (around -199.0536 [Rende et al., 2024]), we note that the energy of the PWOtrained autoregressive transformer of 1.5M parameters is −185 after 30 mins, reaches −195.6 after 24 hours, and keeps decreasing. The run is on a single GPU and imposes no symmetries, except for zero-magnetization sampling.
+尽管本实验旨在比较优化器而非追求最先进变分能量（约-199.0536 [Rende et al., 2024]），我们注意到PWO训练的150万参数自回归Transformer在30分钟后能量为-185，24小时后达到-195.6并持续下降。运行在单GPU上，除零磁化采样外未施加任何对称性。
 
-<table><tr><td>Hyperparameter</td><td>Value</td></tr><tr><td>Lattice size</td><td> $10 \times 10$ </td></tr><tr><td>Number of spins</td><td>100</td></tr><tr><td>Boundary conditions</td><td>Periodic</td></tr><tr><td>Hamiltonian couplings</td><td> $J_1 = 1, J_2 = 0.5$ </td></tr><tr><td>Magnetization sector</td><td> $S_{\text{tot}}^z = 0$ </td></tr><tr><td>Patch size</td><td> $2 \times 2$ </td></tr><tr><td>Patch vocabulary size</td><td>16</td></tr><tr><td>Autoregressive tokens</td><td>25</td></tr><tr><td>Token embedding dimension</td><td>64</td></tr><tr><td>Transformer width</td><td>96</td></tr><tr><td>Transformer depth</td><td>8</td></tr><tr><td>Attention heads</td><td>6</td></tr><tr><td>Transformer MLP hidden dimension</td><td>384</td></tr><tr><td>RoPE type</td><td>2D axial RoPE</td></tr><tr><td>RoPE base</td><td>100</td></tr><tr><td>Amplitude head</td><td>2-layer MLP</td></tr><tr><td>Phase head</td><td>2-layer MLP</td></tr><tr><td>Head hidden dimension</td><td>192</td></tr><tr><td>Phase parameterization</td><td> $\pi \tanh(\cdot)$ </td></tr><tr><td>Phase initialization std.</td><td> $10^{-3}$ </td></tr><tr><td>Prefix-count features</td><td>Yes</td></tr><tr><td>Learned site embeddings</td><td>Yes</td></tr></table>
+<table><tr><td>超参数</td><td>数值</td></tr><tr><td>晶格尺寸</td><td> $10 \times 10$ </td></tr><tr><td>自旋数量</td><td>100</td></tr><tr><td>边界条件</td><td>周期</td></tr><tr><td>哈密顿量耦合</td><td> $J_1 = 1, J_2 = 0.5$ </td></tr><tr><td>磁化子空间</td><td> $S_{\text{tot}}^z = 0$ </td></tr><tr><td>块大小</td><td> $2 \times 2$ </td></tr><tr><td>块词表大小</td><td>16</td></tr><tr><td>自回归标记</td><td>25</td></tr><tr><td>标记嵌入维度</td><td>64</td></tr><tr><td>Transformer宽度</td><td>96</td></tr><tr><td>Transformer深度</td><td>8</td></tr><tr><td>注意力头数</td><td>6</td></tr><tr><td>Transformer MLP隐藏维度</td><td>384</td></tr><tr><td>RoPE类型</td><td>二维轴向RoPE</td></tr><tr><td>RoPE基数</td><td>100</td></tr><tr><td>振幅头</td><td>双层MLP</td></tr><tr><td>相位头</td><td>双层MLP</td></tr><tr><td>头部隐藏维度</td><td>192</td></tr><tr><td>相位参数化</td><td> $\pi \tanh(\cdot)$ </td></tr><tr><td>相位初始化标准差</td><td> $10^{-3}$ </td></tr><tr><td>前缀计数特征</td><td>是</td></tr><tr><td>可学习位置嵌入</td><td>是</td></tr></table>
 
-Table 6: Architecture used for the two-dimensional frustrated $J_{1} {-} J_{2}$ square-lattice experiment. The model is a complex patch-autoregressive transformer over $2 \times 2$ spin patches, with two-dimensional axial RoPE and an exact zero-magnetization constraint enforced through autoregressive masking.
+表6：用于二维阻挫 $J_{1} {-} J_{2}$ 正方晶格实验的架构。该模型是 $2 \times 2$ 自旋块上的复块自回归Transformer，采用二维轴向RoPE并通过自回归掩蔽强制执行精确零磁化约束。## D.7 规模缩放实验
 
-### D.7 Scaling Experiment
+为研究性能如何随模型容量缩放，我们在阻挫海森堡 $J_{1} {-} J_{2}$ 链 $( N = 12 , J_{1} = 1 , J_{2} \overset{-} {=} 0 . \overset{-} {5}$ ，周期性边界条件) 上，使用 PWO、Adam 和 minSR 训练了三种模型规模。所有三种规模共享附录 D.2 中描述的自回归 GRU 架构；它们仅在循环层数和隐藏维度上有所不同。表 7 总结了这些规模及其对应的总参数量。
 
-To study how performance scales with model capacity, we train three model sizes on the frustrated Heisenberg $J_{1} {-} J_{2}$ chain $( N = 12 , J_{1} = 1 , J_{2} \overset{-} {=} 0 . \overset{-} {5}$ , periodic boundary conditions) using PWO, Adam, and minSR. All three sizes share the same autoregressive GRU architecture described in Appendix D.2; they differ only in the number of recurrent layers and hidden dimensions. Table 7 summarises the sizes and the corresponding total parameter counts.
+<table><tr><td>规模</td><td>GRU 层数</td><td>RNN 隐藏层</td><td>输出头隐藏层</td><td>参数量</td></tr><tr><td>微小型</td><td>1</td><td>64</td><td>64</td><td>44,452</td></tr><tr><td>小型</td><td>2</td><td>128</td><td>128</td><td>269,156</td></tr><tr><td>中型</td><td>3</td><td>256</td><td>256</td><td>1,456,356</td></tr></table>
 
-<table><tr><td>Size</td><td>GRU layers</td><td>RNN hidden</td><td>Head hidden</td><td>Parameters</td></tr><tr><td>Tiny</td><td>1</td><td>64</td><td>64</td><td>44,452</td></tr><tr><td>Small</td><td>2</td><td>128</td><td>128</td><td>269,156</td></tr><tr><td>Medium</td><td>3</td><td>256</td><td>256</td><td>1,456,356</td></tr></table>
+表 7：规模缩放实验中使用的模型规模。所有模型均使用嵌入维度 32，并在具有 $N = 12$ 个格点的阻挫海森堡 $J_{1} {-} J_{2}$ 链上进行评估。参数量包含整个自回归网络（嵌入层、循环主干、振幅输出头、相位输出头）的所有权重和偏置。
 
-Table 7: Model sizes used in the scaling experiment. All models use an embedding dimension of 32 and are evaluated on the frustrated Heisenberg $J_{1} {-} J_{2}$ chain with $N = 12$ sites. Parameter counts include all weights and biases of the full autoregressive network (embedding, recurrent backbone, amplitude head, and phase head).
+规模缩放实验中每种优化方法使用的超参数列于表 8。调度和裁剪参数与主要 $J_{1} {-} J_{2}$ 实验相同（见表 5 和表 2）；仅转移步数有所不同，以适配模型规模的变化。
 
-The hyperparameters used for each optimization method in the scaling experiment are listed in Table 8. The schedule and clipping parameters are identical to those of the main $J_{1} {-} J_{2}$ experiments (see Tables 5 and 2); only the number of transition steps differs to account for the change in model size.
+<table><tr><td>超参数</td><td>Adam</td><td>PWO</td><td>minSR</td></tr><tr><td>优化器 / 方法</td><td>Adam</td><td>Adam + PWO</td><td>minSR</td></tr><tr><td>学习率</td><td> $10^{-5}$ </td><td> $10^{-5}$ </td><td> $10^{-3}$ </td></tr><tr><td>峰值学习率</td><td> $3 \times 10^{-4}$ </td><td> $10^{-4}$ </td><td>-</td></tr><tr><td>转移步数</td><td>40,000</td><td>40,000</td><td>-</td></tr><tr><td>PPO 轮次</td><td>-</td><td>4</td><td>-</td></tr><tr><td>PPO 裁剪  $\epsilon$ </td><td>-</td><td> $10^{-3}$ </td><td>-</td></tr><tr><td>优势函数归一化</td><td>-</td><td>是</td><td>-</td></tr><tr><td>相位损失</td><td>-</td><td> $\Delta\phi$ 裁剪</td><td>-</td></tr><tr><td>相位系数</td><td>-</td><td>1.0</td><td>-</td></tr><tr><td>相位裁剪值</td><td>-</td><td>0.3</td><td>-</td></tr><tr><td>中心化虚部优势</td><td>-</td><td>是</td><td>-</td></tr><tr><td>归一化虚部优势</td><td>-</td><td>是</td><td>-</td></tr><tr><td>相位雅可比基线</td><td>-</td><td>是</td><td>-</td></tr><tr><td>SR 对角偏移</td><td>-</td><td>-</td><td> $10^{-2}$ </td></tr><tr><td>NTK / minSR 模式</td><td>-</td><td>-</td><td>是</td></tr><tr><td>即时 SR</td><td>-</td><td>-</td><td>是</td></tr><tr><td>训练样本数</td><td></td><td>2,048</td><td></td></tr><tr><td>随机种子数</td><td></td><td>10</td><td></td></tr></table>
 
-<table><tr><td>Hyperparameter</td><td>Adam</td><td>PWO</td><td>minSR</td></tr><tr><td>Optimizer / method</td><td>Adam</td><td>Adam + PWO</td><td>minSR</td></tr><tr><td>Learning rate</td><td> $10^{-5}$ </td><td> $10^{-5}$ </td><td> $10^{-3}$ </td></tr><tr><td>Peak learning rate</td><td> $3 \times 10^{-4}$ </td><td> $10^{-4}$ </td><td>-</td></tr><tr><td>Transition steps</td><td>40,000</td><td>40,000</td><td>-</td></tr><tr><td>PPO epochs</td><td>-</td><td>4</td><td>-</td></tr><tr><td>PPO clip  $\epsilon$ </td><td>-</td><td> $10^{-3}$ </td><td>-</td></tr><tr><td>Advantage normalization</td><td>-</td><td>Yes</td><td>-</td></tr><tr><td>Phase loss</td><td>-</td><td> $\Delta\phi$ clip</td><td>-</td></tr><tr><td>Phase coefficient</td><td>-</td><td>1.0</td><td>-</td></tr><tr><td>Phase clip</td><td>-</td><td>0.3</td><td>-</td></tr><tr><td>Center imaginary advantage</td><td>-</td><td>Yes</td><td>-</td></tr><tr><td>Normalize imaginary advantage</td><td>-</td><td>Yes</td><td>-</td></tr><tr><td>Phase Jacobian baseline</td><td>-</td><td>Yes</td><td>-</td></tr><tr><td>SR diagonal shift</td><td>-</td><td>-</td><td> $10^{-2}$ </td></tr><tr><td>NTK / minSR mode</td><td>-</td><td>-</td><td>Yes</td></tr><tr><td>On-the-fly SR</td><td>-</td><td>-</td><td>Yes</td></tr><tr><td>Training samples</td><td></td><td>2,048</td><td></td></tr><tr><td>Seeds</td><td></td><td>10</td><td></td></tr></table>
+表 8：阻挫海森堡 $J_{1} {-} J_{2}$ 链 $( N = 12 , \bar{J}_{1}^{-} = \bar{1} , J_{2} = 0.5 .$ ，周期性边界条件) 规模缩放实验的超参数。所有方法和规模使用相同的优化超参数；仅在不同运行中改变模型架构（见表 7）。Adam 和 PWO 使用余弦单周期学习率调度；minSR 使用恒定学习率。## D.8 RWKV-7在伊辛模型上的应用
 
-Table 8: Hyperparameters for the scaling experiment on the frustrated Heisenberg $J_{1} {-} J_{2}$ chain $( N = 12 , \bar{J}_{1}^{-} = \bar{1} , J_{2} = 0.5 .$ , periodic boundary conditions). All methods and sizes use the same optimization hyperparameters; only the model architecture varies across runs (see Table 7). Adam and PWO use a cosine one-cycle learning-rate schedule; minSR uses a constant learning rate.
+<table><tr><td>超参数</td><td>Adam</td><td>PWO</td></tr><tr><td>优化器/方法</td><td>Adam</td><td>Adam + PWO</td></tr><tr><td>模型</td><td>RWKV-7</td><td>RWKV-7</td></tr><tr><td>模型大小</td><td>1.5B</td><td>1.5B</td></tr><tr><td>学习率</td><td> $10^{-5}$ </td><td> $10^{-5}$ </td></tr><tr><td>转移步数</td><td>1,200</td><td>4,800</td></tr><tr><td>衰减率</td><td>0.5</td><td>0.5</td></tr><tr><td>PPO训练轮数</td><td>-</td><td>4</td></tr><tr><td>PPO裁剪系数  $\epsilon$ </td><td>-</td><td> $10^{-3}$ </td></tr><tr><td>优势函数归一化</td><td>-</td><td>是</td></tr><tr><td>批量大小</td><td>150</td><td>150</td></tr><tr><td>算力配置</td><td>2</td><td>2</td></tr><tr><td>评估样本数</td><td>4,096</td><td>4,096</td></tr><tr><td>评估批量大小</td><td>128</td><td>128</td></tr><tr><td>精确对角化</td><td>是</td><td>是</td></tr></table>
 
-### D.8 RWKV-7 on Ising Model
-
-<table><tr><td>Hyperparameter</td><td>Adam</td><td>PWO</td></tr><tr><td>Optimizer / method</td><td>Adam</td><td>Adam + PWO</td></tr><tr><td>Model</td><td>RWKV-7</td><td>RWKV-7</td></tr><tr><td>Model size</td><td>1.5B</td><td>1.5B</td></tr><tr><td>Learning rate</td><td> $10^{-5}$ </td><td> $10^{-5}$ </td></tr><tr><td>Transition steps</td><td>1,200</td><td>4,800</td></tr><tr><td>Decay rate</td><td>0.5</td><td>0.5</td></tr><tr><td>PPO epochs</td><td>-</td><td>4</td></tr><tr><td>PPO clip  $\epsilon$ </td><td>-</td><td> $10^{-3}$ </td></tr><tr><td>Advantage normalization</td><td>-</td><td>Yes</td></tr><tr><td>Batch size</td><td>150</td><td>150</td></tr><tr><td>Machine power</td><td>2</td><td>2</td></tr><tr><td>Evaluation samples</td><td>4,096</td><td>4,096</td></tr><tr><td>Evaluation batch size</td><td>128</td><td>128</td></tr><tr><td>Exact diagonalization</td><td>Yes</td><td>Yes</td></tr></table>
-
-Table 9: Hyperparameters for the RWKV-7 fine-tuning experiments on the transverse-field Ising model. Both methods use an autoregressive RWKV-7 model with 1.5B parameters, $N = 12 .$ , periodic boundary conditions, $J = 1 , h = 1$ , exact diagonalization for evaluation, and samples drawn exactly from the autoregressive Born distribution. Adam corresponds to the single-epoch first-order baseline, while PWO performs four proximal inner epochs per sampled batch.
-
-### E Additional Figures
-
-### E.1 Individual Seed Plots for All Hamiltonias
+表9：在横场伊辛模型上对RWKV-7进行微调实验的超参数。两种方法均使用具有1.5B参数的自回归RWKV-7模型，$N = 12$，周期边界条件，$J = 1 , h = 1$，采用精确对角化进行评估，样本均从自回归Born分布中精确抽取。Adam对应单周期的一阶基线方法，而PWO方法则在每个采样批次中执行四个近端内循环。## E 补充图表## E.1 所有哈密顿量的独立种子图
 
 ![](images/1c87e26d483cd99c841c685f4f16a1c171d8853086f88b4377267b63c9345b84.webp)
 
-Ising model
+伊辛模型
 ![](images/775da47c30475b88884d3d45bad42670c69adcfaa14c409278f0947368fde218.webp)
 
 ![](images/6e4c4383785b78f1586ddb6434d7a247c35df8e70dfeab08ca5015d607e1cf4b.webp)
 
-Heisenberg chain
+海森堡链
 ![](images/67d83c20bb505ab2134b14f44fb4df762008aca4e39bde9d3eea83a764ea04bc.webp)
 
-$J_{1} {-} J_{2}$ Heisenberg model
+$J_{1} {-} J_{2}$ 海森堡模型
 ![](images/dc59fb93b2f4038ef1644f403090083fb1b1702f5f401a2d9c9acb69ad4dc29b.webp)
 
 ![](images/3d9117c7a9fb5a247e74f8ed9065a0b74e35599efbe6e2d59764d3e885ef835a.webp)
 
-Square-lattice $J_{1} {-} J_{2}$ Heisenberg model
+正方晶格 $J_{1} {-} J_{2}$ 海森堡模型
 ![](images/c509392c341bd60f3e71679c6b6769649e2e28632e304abfa150185ee6209694.webp)
 
 ![](images/c0e87cd1083da0e2276cd8c41a2d918e15c9cc61383e14351c44602f7ede5531.webp)
-{{< caption >}}图8：Individual-seed learning curves for all Hamiltonians. Each row corresponds to one Hamiltonian, and the right column reports the V-score.{{< /caption >}}
-
-### E.2 Scaling Samples and System Sizes
+{{< caption >}}图8：所有哈密顿量的独立种子学习曲线。每一行对应一个哈密顿量，右列报告V分数。{{< /caption >}}## E.2 样本与系统规模的缩放
 
 ![](images/7b69e8222f9517ecb3b86bd2e44891160c30d3d1800635db24d77cd3ce3fdc44.webp)
-{{< caption >}}图9：Wall-clock scaling comparison across number of samples and optimization methods. Boxplots show the interquartile mean relative error over seeds, with boxes indicating the interquartile range and lines indicating the min and max. Results are grouped by model size and wall-clock time, and run on a single NVIDIA A100 GPU.{{< /caption >}}
+{{< caption >}}图9：不同样本数与优化方法下的实际时间缩放对比。箱线图展示了各随机种子间的四分位平均相对误差，箱体表示四分位距，线条表示最小值和最大值。结果按模型规模和实际运行时间分组，均在单个NVIDIA A100 GPU上运行。{{< /caption >}}
 
 ![](images/edc0ede99bcdee6f9efe085f5f58ace7ca92d5f8300eb3866aa51d88b09d7c53.webp)
-{{< caption >}}图10：Wall-clock scaling comparison across system size and optimization methods. Boxplots show the interquartile mean relative error over seeds, with boxes indicating the interquartile range and lines indicating the min and max. Results are grouped by model size and wall-clock time, and run on a single NVIDIA A100 GPU.{{< /caption >}}
-
-### E.3 Individual Seed Plots for RWKV7 Fine-tuning
+{{< caption >}}图10：不同系统规模与优化方法下的实际时间缩放对比。箱线图展示了各随机种子间的四分位平均相对误差，箱体表示四分位距，线条表示最小值和最大值。结果按模型规模和实际运行时间分组，均在单个NVIDIA A100 GPU上运行。{{< /caption >}}## E.3 RWKV7微调中的独立种子绘图
 
 ![](images/5cbf89fe86edac43f3f392f3fae1f5fe82da0024d8d693995ec1dd758094c720.webp)
 
 ![](images/30281a422c5bc5f9b26d501de52478396297154c0f4f43fa3a766b8a6fd16382.webp)
-{{< caption >}}图11：Individual-seed fine-tuning curves for the 1.5B-parameter RWKV-7 neural quantum state on the transverse-field Ising model. Each curve corresponds to one random seed, with relative error shown on the left and V-score on the right. PWO consistently remains stable across seeds and reaches lower final error and variance than the Adam baseline, indicating that the proximal objective improves robustness even in the billion-parameter regime.{{< /caption >}}
+{{< caption >}}图11：1.5B参数RWKV-7神经量子态在横场伊辛模型上的独立种子微调曲线。每条曲线对应一个随机种子，左侧展示相对误差，右侧展示V分数。PWO在不同种子间始终保持稳定，且最终误差和方差均低于Adam基线，表明即使在十亿参数规模下，近端目标函数仍能提升鲁棒性。{{< /caption >}}
 
 ---
 
 ## 阅读笔记
 
-### 一句话概括
 
-本文提出近端波函数优化（PWO），一种受强化学习近端策略优化（PPO）启发的神经量子态（NQS）训练算法，针对自回归 NQS 在 Born 分布精确采样优势下优化方法薄弱的问题。核心发现是：在 stoquastic 哈密顿量假设下，变分能量最小化的梯度可等价为 Born 分布上的优势加权策略梯度（命题3.1），从而将 PPO 的裁剪信任域机制引入 VMC。PWO 裁剪幅值通道的概率比变化（$\epsilon = 10^{-3}$）和相位通道的包裹相位增量（$\delta = 0.3$），避免显式矩阵求逆，在 $K=4$ 次内部更新中复用同一批次样本。在一维 $N=12$ 横向场伊辛链上，PWO 约 5 分钟达到相对误差 $10^{-7}$，比 minSR 快约 6 倍；在阻挫 $J_1$-$J_2$ 链上仅 PWO 稳定收敛至 $10^{-7}$（minSR 60% 运行为 NaN），并首次将 NQS 优化扩展至 1.5B 参数的 RWKV-7 语言模型。
-
-### 核心论证链
-
-1. **问题识别——自回归 NQS 优化存在空白**：自回归 NQS 解决了从 Born 分布精确独立采样的瓶颈，但缺乏匹配的优化方法——Adam 忽略波函数几何导致不稳定，SR/minSR 需矩阵求逆（$O(P^3)$ 或 $O(M^2P + M^3)$）在大模型和大样本方案中不可行。这定位了"一阶优化的可扩展性与自然梯度的几何原则性"之间的空白，目标是设计一种兼具两者优势的 NQS 训练算法。
-
-2. **建立 RL-NQS 等价性以引入信任域框架**：在 stoquastic 哈密顿量（非对角非正）下证明命题3.1——变分能量梯度可写成策略梯度形式，其中构型 $\mathbf{s}$ 对应动作空间，Born 分布 $\mathcal{P}_{\theta}(\mathbf{s})$ 对应策略 $\pi_{\theta}(a|s)$，中心化局域能量 $E_{\theta}^{\mathrm{loc}}(\mathbf{s}) - \mathbb{E}[E_{\theta}^{\mathrm{loc}}]$ 对应优势函数。这给出了一个形式化框架：NQS 优化可被重新表述为 RL 安全策略优化问题。
-
-3. **设计 PWO 的核心算法机制**：基于上述等价性，引入两个裁剪代理损失——幅值通道裁剪概率比 $r_{\theta} = \mathcal{P}_{\theta}/\mathcal{P}_{\theta_{\mathrm{old}}}$（式15），相位通道裁剪包裹相位增量 $\phi_{\theta}$（式17）。相位目标中的停止梯度算子 $\mathrm{sg}(r_{\theta})$ 是关键设计——它分离了重要性权重与相位梯度，确保 $\theta = \theta_{\mathrm{old}}$ 时组合代理损失的梯度精确等于原始 VMC 梯度（定理4.1）。
-
-4. **给出理论保证——局部一致性与改进界**：定理4.1证明在 $\theta = \theta_{\mathrm{old}}$ 处 PWO 代理损失梯度与 VMC 梯度等价，这保证了首次内部更新方向无误。定理4.2建立有限更新下的能量-不保真度界：真实能量变化不超过替代函数 $+$ 保真度惩罚项。推论4.3在全局裁剪条件（$r_{\theta} \in [1-\epsilon, 1+\epsilon]$, $|\phi_{\theta}| \leq \delta$）下给出可证改进条件，虽在神经网络训练中无法严格满足，但为裁剪启发式提供了概念正当性。
-
-5. **实验验证——一维自旋链**：在 $N=12$ 横向场伊辛链（stoquastic，无符号问题）上，PWO ~5 分钟达 $\epsilon_{\mathrm{rel}}=10^{-7}$，minSR ~30 分钟（慢 6 倍，因每步矩阵求逆）。在 $J_1$-$J_2$ 链（非 stoquastic，强符号结构）上，PWO ~15 分钟达 $10^{-7}$，而 minSR 10 次运行 6 次 NaN，Adam 出现离群值平台（相对误差 $\sim 10^{-2}$）。这证明裁剪代理目标在困难阻挫问题上的数值稳定性超越了一阶和二阶方法。
-
-6. **扩展到更大规模**：在 $10 \times 10$ 阻挫方晶格（$N=100$，patch-autoregressive Transformer）上，PWO 30 分钟达 $-185$，24 小时降至 $-195.6$ 且持续下降，快于 Adam。在 1.5B 参数 RWKV-7 微调一维伊辛模型上，PWO 比 Adam 达到更低的最终误差和 V 分数，证明在超出此前 NQS 模型规模三个数量级时，近端目标函数依然有效。
-
-### 实验参数详解
-
-| 参数 | 数值 | 含义 |
-|------|------|------|
-| 系统尺寸 | $N=12$ (1D), $10\times 10$ (2D) | 自旋数，周期边界条件 |
-| 训练样本数 | 1024 (1D), 150 (RWKV) | 每外循环采样的构型数 |
-| PPO 内轮次 $K$ | 4 | 每批次复用的优化步数 |
-| 幅值裁剪阈值 $\epsilon$ | $10^{-3}$ | 概率比裁剪范围 $[1-\epsilon, 1+\epsilon]$ |
-| 相位裁剪阈值 $\delta$ | 0.3 (rad) | 包裹相位增量裁剪范围 $[-\delta, \delta]$ |
-| 学习率 | $10^{-5}$ (Adam/PWO基), $10^{-2}$ (minSR/SPRING) | 基础优化步长 |
-| cosine 峰值学习率 | $10^{-4}$ (Ising), $10^{-4}$ ($J_1$-$J_2$ PWO), $3\times10^{-4}$ ($J_1$-$J_2$ Adam) | 预热后最大学习率 |
-| cosine transition steps | 20000 (Ising PWO), 40000 ($J_1$-$J_2$ PWO) | 预热到退火的过渡步数 |
-| 模型参数量 | 1.4M (GRU), 1.5M (2D Transformer), 1.5B (RWKV-7) | NQS 架构容量 |
-| GRU 隐藏维度 | 256 | 1D GRU backbone 宽度 |
-| Transformer 宽度/深度 | 96 / 8 层 | 2D patch Transformer 架构 |
-| 2D patch 尺寸 | $2 \times 2$ | 分块自回归 token，词汇量 16 |
-| 相位输出参数化 | $\pi \tanh(\cdot)$ | 输出相位在 $[-\pi, \pi]$ 范围 |
-| 磁化约束 | $S^z_{\mathrm{tot}} = 0$ (2D) | 自回归 masking 强制零磁化 |
-| SR 对角偏移 | $10^{-2}$ (minSR/SPRING) | 防止 Fubini-Study 矩阵病态 |
-| 随机种子数 | 10 | 统计聚合用四分位均值 (IQM) |
-
-### 批判性思考
-
-**1. stoquastic 假设与非 stoquastic 基准之间的理论鸿沟未弥合**：命题3.1严格依赖 stoquastic 条件——哈密顿量非对角元非正，波函数可取实正，变分梯度退化为概率分布上的策略梯度。但核心实验 $J_1$-$J_2$ 链（$J_1=1, J_2=0.5$）是非 stoquastic 的——次近邻耦合引入符号结构，相位通道无法被忽略。此时 RL 等价性不成立，相位裁剪代理（式17）的有效性完全依赖经验。论文未提供在非 stoquastic 下相位裁剪梯度与真 VMC 梯度之间的偏离界。
-
-**2. 样本复用率 $K=4$ 对梯度保真度的影响缺乏量化分析**：PWO 在固定批次上执行 $K=4$ 次更新，重要性权重 $r_{\theta}$ 随内部迭代偏离 1。虽然定理4.1保证 $\theta=\theta_{\mathrm{old}}$ 处梯度匹配，但第 2-4 次内部更新的梯度偏差 $\|\nabla L_{\text{clip}}(\theta) - \nabla E[\psi_{\theta}]\|$ 无封闭上界。推论4.3的改进保证要求全局裁剪——网络参数更新导致的构型概率变化在未采样构型上不可控。$K=4$ 的选择仅凭经验（隐式假设 $r_{\theta}$ 在 4 次更新内保持在 $[1-\epsilon, 1+\epsilon]$），缺乏梯度偏差的解析或数值刻画。
-
-**3. minSR 计算复杂度对比的选择性呈现**：论文指出 minSR 复杂度 $O(M^2P + M^3)$ 反向约为 $P=1.4\times10^6, M=1024$ 时 $M^2P \approx 1.5\times 10^{12}$，以此强调 PWO 的一阶优势。但忽略了三件事：(a) PWO 的 $K=4$ 内轮次将每外循环的前向/反向传播成本放大 4 倍；(b) 图7b 显示 PWO 迭代速度比 Adam 慢约 25-30%，论文归因于"局域能量计算主导"忽略了梯度计算本身的额外开销在更大模型下的放大；(c) minSR 的结构可以充分利用 GPU 批量矩阵运算（Jacobian contraction 可通过一次前向模式自动微分完成），论文未报告实际 GPU 峰值利用率对比。
-
-**4. 优化器比较的学习率调度不对称**：PWO 和 Adam 使用精心调的 cosine one-cycle 调度（含预热和退火阶段），而 minSR/SPRING 使用常数学习率（"minSR 使用常数学习率表现更好"）。这意味着 PWO 的优势部分来自调度策略而非近端代理本身。公平比较应为所有方法使用统一策略（如对所有方法搜索最佳调度），或证明 minSR/SPRING 在优化调度后效益为零。同样，minSR 在 $J_1$-$J_2$ 上 60% 的运行 NaN——论文未系统探索不同对角偏移（如 $10^{-1}, 10^{-3}$）能否稳定 minSR。
-
-**5. RWKV-7 微调实验的泛化性证据不足**：1.5B 参数微调仅验证横向场伊辛链——最简单 stoquastic 基准且 $N=12$。支撑论点"跨三个数量级规模"时，仅验证了模型大小这一维度，未验证问题难度维度。在阻挫问题或二维系统上使用 1.5B NQS 的结果缺失，使得"规模扩展有效"的结论限定于最简单场景。
-
-### 局限性
-
-- **stoquastic 假设限制**：命题3.1要求哈密顿量在计算基下非对角元非正，排除费米子哈密顿量、含规范场格点模型以及多数量子化学哈密顿量。对非 stoquastic 系统的相位通道，RL 等价性不成立——PWO 相位裁剪缺乏理论对应，其有效性仅依赖 $J_1$-$J_2$ 链的有限经验。
-- **改进保证的全局性缺失**：推论4.3要求对所有构型 $\mathbf{s}$ 满足 $r_{\theta}(\mathbf{s}) \in [1-\epsilon, 1+\epsilon]$ 和 $|\alpha_{\theta}(\mathbf{s})| \leq \delta$——这对神经网络参数更新在实际中不可验证（未采样构型的概率比不可知）。因此理论保证不具操作性，裁剪仅提供了一个启发式信任域。定理4.2的保真度界依赖于精确 $\mathcal{I}$ 计算，在指数大的希尔伯特空间中不可行。
-- **小系统验证与可扩展性担忧**：1D 实验仅 $N=12$，2D 为 $N=100$。关键词"自回归"的优势之一是精确采样，但重要性权重 $r_{\theta}$ 的方差随系统尺寸 $N$ 指数增长——每构型的对数概率 $\log \mathcal{P}_{\theta}(\mathbf{s})$ 与 $N$ 线性正比，$r_{\theta}$ 在小更新下也易超出 $[1-\epsilon, 1+\epsilon]$。$N=12$ 场景下 $r_{\theta}$ 方差可控，但 $N=50$ 或 $N=100$ 时样本复用是否退化未经检验（附录 E.2 仅扩展至 $N=20$）。
-- **相位裁剪的数值不稳定性风险**：相位目标（式17）使用包裹相位差 $\phi_{\theta}$（通过 atan2 计算），在相位角靠近 $\pm\pi$ 边界时 atan2 的梯度接近无穷，可能引起反向传播不稳定。论文未讨论相位包裹处理（unwrapping）机制，也未分析 $\delta=0.3$ 时边界行为。
-- **超参数的哈密顿量依赖性**：$\epsilon=10^{-3}, \delta=0.3, K=4$ 在每个哈密顿量上分别搜索得到。论文未提供敏感度分析——$\epsilon$ 增加一个数量级（$10^{-2}$）或 $K$ 增加至 8 时的收敛行为未知。在未知哈密顿量上超参数调整的开销可能抵消部分收敛优势。
-- **2D 系统的理想化条件**：$10 \times 10$ 阻挫方晶格实验采用 $2\times2$ patch tokenization（25 token 序列）和零磁化约束。使用的 patch-autoregressive Transformer（1.5M 参数）不是该系统的最优架构——文献 [Rende et al., 2024] 报导的态优变分能量约 $-199.05$，PWO 在 30 分钟只达 $-185$（24 小时后 $-195.6$），表明架构/初始化的影响超过优化器本身。
-
-### 关键公式速查
-
-- $$E[\psi_{\theta}] = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\theta}}[E_{\theta}^{\mathrm{loc}}(\mathbf{s})]$$ — 变分能量作为 Born 分布下局域能量的期望，式(8)
-- $$\nabla_{\theta} E[\psi_{\theta}] = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\theta}}\left[ (E_{\theta}^{\mathrm{loc}}(\mathbf{s}) - \mathbb{E}[E_{\theta}^{\mathrm{loc}}]) \nabla_{\theta} \log \mathcal{P}_{\theta}(\mathbf{s}) \right]$$ — stoquastic 假设下策略梯度形式的 VMC 梯度（命题3.1），式(14)
-- $$L_{\mathrm{mod}}^{\mathrm{clip}}(\theta) = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\theta_{\mathrm{old}}}}\left[ \max\left( r_{\theta} A_{\theta_{\mathrm{old}}}^{\mathrm{R}}, \ \mathrm{clip}(r_{\theta}, 1-\epsilon, 1+\epsilon) A_{\theta_{\mathrm{old}}}^{\mathrm{R}} \right) \right]$$ — PWO 幅值通道裁剪代理损失，式(15)
-- $$L_{\mathrm{arg}}^{\mathrm{clip}}(\theta) = \mathbb{E}_{\mathbf{s} \sim \mathcal{P}_{\theta_{\mathrm{old}}}}\left[ \mathrm{sg}(r_{\theta}) \max\left( \phi_{\theta} A_{\theta_{\mathrm{old}}}^{\mathrm{I}}, \ \mathrm{clip}(\phi_{\theta}, -\delta, \delta) A_{\theta_{\mathrm{old}}}^{\mathrm{I}} \right) \right]$$ — PWO 相位通道裁剪代理损失（含停止梯度），式(17)
-- $$E[\psi_{\theta}] - E[\psi_{\theta_{\mathrm{old}}}] \leq \mathcal{A}_{\theta_{\mathrm{old}}}(\theta) + 2 \| \hat{H} - E[\psi_{\theta_{\mathrm{old}}}] \mathbb{1} \|_{\infty} \left(1 - \sqrt{1 - \mathcal{I}(\psi_{\theta_{\mathrm{old}}}, \psi_{\theta})}\right)$$ — 不保真度能量界，定理4.2，式(21)
-- $$S_{ij} = \mathrm{Re}\{ \mathrm{Cov}_{\mathbf{s} \sim \mathcal{P}_{\theta}}[ O_i^*(\mathbf{s}), O_j(\mathbf{s}) ] \}$$ — Fubini-Study 度量/量子 Fisher 矩阵，SR 的几何预处理核心，式(12)
-- $$\mathcal{P}_{\theta}(\mathbf{s}) = |\psi_{\theta}(\mathbf{s})|^2 / \sum_{\mathbf{s}'} |\psi_{\theta}(\mathbf{s}')|^2$$ — Born 分布（自旋构型概率），式(9)
-
-### 术语对照
-
-| 中文 | 英文 | 含义 |
-|------|------|------|
-| 神经量子态 | Neural Quantum State (NQS) | 用神经网络参数化量子多体波函数的框架 |
-| 自回归模型 | Autoregressive Model | 将 Born 分布分解为条件概率乘积，支持精确独立采样 |
-| 变分蒙特卡洛 | Variational Monte Carlo (VMC) | 用蒙特卡洛采样估计变分能量及其梯度的技术 |
-| 随机重配置 | Stochastic Reconfiguration (SR) | 使用 Fubini-Study 度量预处理梯度的量子自然梯度法 |
-| 近端策略优化 | Proximal Policy Optimization (PPO) | RL 中通过裁剪代理损失实现信任域更新的算法 |
-| 近端波函数优化 | Proximal Wavefunction Optimization (PWO) | 本文提出的 NQS 优化算法，将 PPO 裁剪机制引入 VMC |
-| Fubini-Study 度量 | Fubini-Study Metric | 量子态空间中量子 Fisher 矩阵对应的黎曼度量 |
-| 局域能量 | Local Energy $E_{\theta}^{\mathrm{loc}}(\mathbf{s})$ | 给定构型 $\mathbf{s}$ 下哈密顿量期望的蒙特卡洛估计 |
-| minSR | Minimum Sample Stochastic Reconfiguration | SR 的样本-规模变体，$P \times P$ 求逆转为 $M \times M$ |
-| stoquastic 哈密顿量 | Stoquastic Hamiltonian | 非对角元均非正的哈密顿量，波函数可取实正形式 |
-| Majumdar-Ghosh 点 | Majumdar-Ghosh Point | $J_2/J_1 = 0.5$ 处高度纠缠的二聚化基态，阻挫基准 |

@@ -129,11 +129,15 @@ def check_quality(path: str, source_body: str = ""):
         locations = [f"§{h}" for h in untranslated[:3]]
         problems.append(f"可能漏翻 {len(untranslated)} 块：{', '.join(locations)}")
 
-    # Truncation detection
+    # Truncation detection: Chinese is typically 30-50% shorter than English,
+    # but the presence of LaTeX (kept verbatim) pushes the ratio up. A ratio
+    # below 0.4 is suspicious and below 0.2 is almost certainly truncated.
     if source_body:
         ratio = len(body) / max(len(source_body), 1)
         if ratio < 0.2:
-            problems.append(f"译文长度仅为源文的 {ratio:.0%}，可能被截断")
+            problems.append(f"译文长度仅为源文的 {ratio:.0%}，严重截断")
+        elif ratio < 0.4:
+            problems.append(f"译文长度仅为源文的 {ratio:.0%}，可能部分截断")
 
     return len(problems) == 0, "; ".join(problems) if problems else "ok"
 
@@ -251,6 +255,19 @@ async def translate_text(client, body: str, glossary: dict, is_seed: bool, feedb
             if prev_context:
                 context_note = f"上文已翻译内容结尾：...{prev_context}。请保持术语和指代一致。"
             chunk_translated = await _translate_once(client, chunk, glossary, is_seed, chunk_feedback, context_note)
+
+            # Per-chunk truncation detection: if output is suspiciously short,
+            # re-split into smaller pieces and translate individually.
+            ratio = len(chunk_translated) / max(len(chunk), 1)
+            if ratio < 0.3 and len(chunk) > 2000:
+                # Likely truncated — split into halves and retry
+                sub_chunks = split_into_chunks(chunk, max(len(chunk) // 2, 1500))
+                sub_results = []
+                for sc in sub_chunks:
+                    sub_translated = await _translate_once(client, sc, glossary, is_seed, "")
+                    sub_results.append(sub_translated)
+                chunk_translated = "\n\n".join(sub_results)
+
             results.append(chunk_translated)
             prev_context = chunk_translated[-200:] if len(chunk_translated) > 200 else chunk_translated
         translated = "\n\n".join(results)
@@ -273,7 +290,9 @@ def translate_ref_heading(ref_section: str) -> str:
     return ref_section
 
 
-CHUNK_THRESHOLD = 6000  # chars — split long texts above this (conservative for token safety)
+CHUNK_THRESHOLD = 4500  # chars — split above this. 4500 chars input → ~3500 chars output (Chinese
+                         # is 30% shorter, but LaTeX stays verbatim) → ~6000 total tokens including
+                         # system prompt (~500) + glossary (~200). Well within MAX_TOKENS=8192 margin.
 
 
 def split_into_chunks(text: str, max_size: int) -> list:

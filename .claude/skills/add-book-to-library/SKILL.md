@@ -334,24 +334,53 @@ python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/book
 
 ### Phase 4.5：逐章审核
 
-每 4-5 章派一个审核 agent 独立校对。调用方式：
+**🔴 处理顺序（机械化优先，AI 兜底）**：
+1. `format_theorems.py` 批量加粗段落级定理/定义（数学教材必备，MinerU 不标标题）
+2. 机械 grep 扫描（非标准列表、弯引号、callout 内 heading）
+3. 派审核 agent 并行做语义判断（定理块边界、例题范围、OCR 修正）
+4. `validate_book.py` 兜底
+
+#### 步骤 1：机械化加粗定理/定义块（数学教材必跑）
+
+MinerU 把 `定理 2.2.1 ...`、`定义 3.1.1 ...` 作为**普通段落**输出（行首直接写，不标标题），后续 agent 难以批量识别。先跑脚本加粗：
+
+```bash
+python3 .claude/skills/add-book-to-library/scripts/format_theorems.py content/books/<slug>/
+# 输出：ch01.md: 3 处 ... 共 N 处定理/定义/引理/推论/性质块加粗
+```
+
+加粗后形如 `**定理 2.2.1**　如果矩阵 A ...`，agent 据此识别块边界转 shortcode。**幂等**（已加粗的不会再处理）。
+
+#### 步骤 2：机械 grep 扫描
+
+```bash
+grep -rn '^●\|^◆\|^①\|^（[0-9]）' content/books/<slug>/
+grep -rn 'type="[^"]*"' content/books/<slug>/
+grep -rn '^### .*学家\|^### .*作者' content/books/<slug>/
+# 命中 → sed 机械化修复，不依赖 AI 逐一判断
+```
+
+#### 步骤 3：派审核 agent（每 3-4 章一个，并行）
 
 ```
-Agent(prompt: "审核 content/books/<slug>/ch01.md ~ ch04.md，按以下清单逐章检查并修复：
-1. OCR 数学符号错误  2. 表格图注漏网→{{< caption >}}  3. Mermaid→删<details>留原图
-4. 标题层级（代码注释#误为H1、子节降级）  5. 交叉引用查漏  6. 代码块补围栏
-7. 伪代码用小写裸命令  8. 元素模板漏网（例题/定义/定理/业界事例）
-修复后用 Write 写回文件。")
+Agent(prompt: "审核 content/books/<slug>/ch01.md ~ ch03.md，按以下清单逐章检查并修复：
+1. **定理/定义块转 shortcode**：**定理 X.Y.Z**　... → {{< theorem title="定理 X.Y.Z" >}}...{{< /theorem >}}
+   - 定义 → {{< definition >}}，引理/推论 → {{< theorem type="引理"/"推论" >}}
+   - 块边界：从 **定理 X.Y.Z** 行到下一个空行后的非缩进段落（"证："或下一定理/小节标题）
+   - 块内 $$...$$ 公式一并包进 shortcode
+   - 超过 3 段或含复杂列表的块**保持原样**（避免破坏结构）
+2. **例题转 shortcode**：#### 例 X.Y.Z → {{< example title="例 X.Y.Z" >}}...{{< /example >}}
+3. **图注配对**：![](images/x.webp) + 图N-N 描述 → {{< caption >}}...{{< /caption >}}
+4. OCR 数学符号错误  5. 交叉引用查漏  6. 代码块补围栏
+不要动 LaTeX 公式、代码块、标题层级、图片引用。修复后用 Write 写回文件。")
 ```
-
-> **Phase 4.25 已完成的，本阶段不重复**：翻译（translate_chapters.py）、引用/图注/来源的 callout/caption 转换（翻译脚本内置）、交叉引用链接（convert_xrefs.py）。本阶段聚焦脚本无法覆盖的语义检查。
 
 > **Phase 4.25 已完成的，本阶段不重复**：翻译（translate_chapters.py）、引用/图注/来源的 callout/caption 转换（翻译脚本内置）、交叉引用链接（convert_xrefs.py）。本阶段聚焦脚本无法覆盖的语义检查。
 
 🔴 **元素模板转换（脚本未覆盖的，必须在此阶段完成）**：
 - 例X-X / 例 X-X → `{{< example title="例X-X" >}}...{{< /example >}}`（Read 文件确定例题范围，从标题到下一个例题或标题）
 - 业界事例（独立段落开头）→ `{{< callout type="note" >}}...{{< /callout >}}`
-- 定义/定理/引理（独立块）→ `{{< definition >}}` / `{{< theorem >}}`
+- 定义/定理/引理（独立块）→ `{{< definition >}}` / `{{< theorem >}}`（步骤 1 已加粗，agent 据此识别）
 - 漏网的来源/出处行、`—Author, *Book*` 引用 → `{{< caption >}}` / `{{< callout type="quote" >}}`
 
 **其他检查：**
@@ -387,6 +416,7 @@ grep -rn '^### .*学家\|^### .*作者' content/books/<slug>/
 ---
 title: "<书名>"
 description: "<一句话简介>"
+author: "<作者>"          # 🔴 必填！bookshelf.html 用 .Params.author 过滤，缺了书架不显示
 weight: 1
 BookCollapseSection: true
 tags: ["标签1", "标签2"]
@@ -477,6 +507,8 @@ spot-check 随机抽查 2 章，18 点清单，发现问题直接修。
 | 代码无高亮 / 裸露 | ` ```python ` 围栏 | Phase 4.5 补 fence |
 | 图注/解答块样式丢失 | 用 shortcode 不是 `<div>` | `{{< caption >}}` / `{{< solution >}}` |
 | shortcode 内 markdown 不解析 | 模板用 `.Inner \| .Page.RenderString` | 检查 shortcode 定义 |
+| 书架不显示新书 | `_index.md` 缺 `author` 字段（bookshelf.html 隐式依赖） | 加 `author: "<作者>"` |
+| 末章末尾混入索引（`## A ## B` 字母分组）| 拆章时截断，索引提取成 `index_term.md` | 手动清理 `## 字母` 残留标题 |
 
 完整版 + OCR/表格/Mermaid 细节 → `references/cleanup-reference.md`
 
@@ -516,3 +548,6 @@ spot-check 随机抽查 2 章，18 点清单，发现问题直接修。
 | 28 | Part weight 排到章节后面 | Part weight 必须比所属第一章小 1（ch01=10 → part1=9） |
 | 29 | 章节小标题用纯文本 | 必须用 `##`/`###` markdown 标题格式 |
 | 30 | pandoc 表格用 `-----` 分隔符 | 必须转为 `|---|---|` 正确格式 |
+| 31 | `_index.md` 不写 `author` | **必填**——bookshelf.html 用 `.Params.author` 过滤，缺了书架不显示这本书 |
+| 32 | 手动逐个加粗定理/定义 | 用 `format_theorems.py` 批量加粗，再派 agent 转 shortcode（幂等） |
+| 33 | 用 `grep -E '^#'` 匹配标题 | zsh 下 `#` 触发 `conflicting matchers`，改用 `python -c` 或 `grep -n '^#'` 不加 `-E` |
