@@ -36,7 +36,7 @@ BASE_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-v4-flash")
 MAX_TOKENS = 16384
 MAX_LOOPS = 8                   # section 模式需要更多轮（读多个 section + 生成）
-LONG_PAPER_THRESHOLD = 100000  # chars — suggest book workflow above this (综述级别)
+LONG_PAPER_THRESHOLD = 200000  # chars — suggest book workflow above this (综述级别)；论文含大量公式/图会虚高
 SECTION_MODE_THRESHOLD = 15000  # chars — < 全文塞 context；≥ 按 section 切
 
 GLOBAL_INDEX_PATH = os.path.join(PROJECT_ROOT, "static", "pageindex", "global-index.json")

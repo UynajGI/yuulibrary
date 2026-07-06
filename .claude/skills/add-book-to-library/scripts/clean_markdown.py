@@ -288,6 +288,37 @@ def fix_book_misc(text):
     return text, stats
 
 
+def fix_mineru_divs(text):
+    """Convert MinerU <div class="mineru-algorithm">...</div> to fenced code blocks.
+
+    MinerU wraps terminal output / pseudocode in these divs with inline styles.
+    The content is typically Matlab/session output → convert to ```matlab block.
+    Also unescapes HTML entities (&gt; → >, &lt; → <, &amp; → &).
+    """
+    stats = {}
+    pattern = re.compile(
+        r'<div class="mineru-algorithm"[^>]*>(.*?)</div>', re.DOTALL
+    )
+
+    def replace_div(m):
+        content = m.group(1)
+        content = (
+            content.replace("&gt;", ">")
+            .replace("&lt;", "<")
+            .replace("&quot;", '"')
+            .replace("&amp;", "&")
+        )
+        # drop blank lines inside
+        content = "\n".join(l for l in content.split("\n") if l.strip())
+        return "```matlab\n" + content + "\n```"
+
+    new_text, n = pattern.subn(replace_div, text)
+    if n:
+        stats["mineru_div"] = n
+        text = new_text
+    return text, stats
+
+
 # ── Main clean function ──────────────────────────────────────────────────
 def clean(content):
     """Full cleaning pipeline. Returns (cleaned_content, stats_dict)."""
@@ -316,6 +347,9 @@ def clean(content):
     # Stage 1b: book misc (bullets, book footnotes)
     text, book_stats = fix_book_misc(text)
 
+    # Stage 1c: MinerU <div class="mineru-algorithm"> → ```matlab code blocks
+    text, div_stats = fix_mineru_divs(text)
+
     # Stage 2: LaTeX repair (scoped to math regions)
     inline_before = len(re.findall(r"\$[^$\n]+?\$", text))
     display_before = len(re.findall(r"\$\$", text)) // 2
@@ -335,7 +369,7 @@ def clean(content):
     # Stage 6: trailing whitespace
     text = "\n".join(l.rstrip() for l in text.split("\n"))
 
-    stats = {**noise_stats, **book_stats, **heading_stats, **fig_stats}
+    stats = {**noise_stats, **book_stats, **div_stats, **heading_stats, **fig_stats}
     stats["math_regions"] = inline_before + display_before
     if before_blanks:
         stats["blank_collapse"] = before_blanks

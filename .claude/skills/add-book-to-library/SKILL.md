@@ -181,9 +181,10 @@ WebP 转换在 Phase 3 统一处理。
    - **标题层级**：`## N.M`→`### N.M`（MinerU 平铺修复）
    - **图注配对**：`Figure N:`→`{{< caption >}}`
    - **Book 专属**：■ bullet→`-`、脚注上标删除、页眉删除
+   - **MinerU div 清理**：`<div class="mineru-algorithm">` → ```matlab 代码块（自动反转义 HTML 实体）
 2. 逐条检查 MinerU 损坏（13 项清单详见 `references/cleanup-reference.md`）：
    - `$$` 误包正文、孤儿 `$$`、标题平铺、裸代码、缩进丢失、转义残留、
-     `def__init__` 粘连、代码注释被标为标题、`mineru-algorithm` div 等
+     `def__init__` 粘连、代码注释被标为标题
 3. **EPUB pandoc 残留清理**（Phase 1B 生成的文件必查）：
    - `[]{#page_xxx}` / `[]{#pages-xxx}` → 删除
    - `{.small}` / `{.dropcap}` / `{.col}` → 删除
