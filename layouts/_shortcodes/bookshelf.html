@@ -2,7 +2,13 @@
   书架分类卡片 — 全自动生成。读 data/book_categories.json 获分类名，
   category 字段数组多归属，一篇可在多个书架下出现。
   新增书籍只需填好 _index.md 的 category 数组即可，无需改此文件。
+
+  隐藏分类：$hiddenCats 中的分类不在首页展示（内容保留，仅隐去展示）。
+  要恢复展示，从此列表删除对应 key 即可。
 */}}
+
+{{/* ── 隐藏分类（暂时不展示的分类 key）── */}}
+{{ $hiddenCats := slice "quant" }}
 
 {{/* ── 分类展示定义（icon + desc），不参与匹配 ── */}}
 {{ $catDisplay := dict
@@ -13,17 +19,38 @@
   "physics" (dict "icon" "⚛️" "desc" "量子光学、统计物理、理论物理")
 }}
 
-{{/* ── 收集所有书籍 section 页 ── */}}
+{{/* ── 辅助函数：判断分类是否隐藏 ── */}}
+{{ $isHidden := dict }}
+{{ range $hiddenCats }}
+  {{ $isHidden = merge $isHidden (dict . true) }}
+{{ end }}
+
+{{/* ── 收集所有书籍 section 页（排除纯隐藏分类的书） ── */}}
 {{ $allBooks := where .Site.Pages "Section" "books" }}
 {{ $bookSections := slice }}
 {{ range $allBooks }}
   {{ if and .IsSection .Params.author (ne .RelPermalink "/yuulibrary/books/") (ne .RelPermalink "/books/") }}
-    {{ $bookSections = $bookSections | append . }}
+    {{/* 检查这本书的所有 category 是否全部在隐藏列表里 ── */}}
+    {{ $cats := .Params.category | default (slice) }}
+    {{ $catList := slice }}
+    {{ if eq (printf "%T" $cats) "string" }}
+      {{ $catList = slice $cats }}
+    {{ else }}
+      {{ range $cats }}{{ $catList = $catList | append . }}{{ end }}
+    {{ end }}
+    {{ $hasVisibleCat := false }}
+    {{ range $catList }}
+      {{ if not (index $isHidden .) }}{{ $hasVisibleCat = true }}{{ end }}
+    {{ end }}
+    {{/* 无 category 或至少一个非隐藏 category → 收录 ── */}}
+    {{ if or (eq (len $catList) 0) $hasVisibleCat }}
+      {{ $bookSections = $bookSections | append . }}
+    {{ end }}
   {{ end }}
 {{ end }}
 {{ $bookSections = sort $bookSections "Params.weight" "asc" }}
 
-{{/* ── 按 category 归类（兼容 string / 数组，多归属）── */}}
+{{/* ── 按 category 归类（兼容 string / 数组，多归属，跳过隐藏分类）── */}}
 {{ $catBooks := dict }}
 {{ range $bookSections }}
   {{ $book := . }}
@@ -41,8 +68,11 @@
     {{ end }}
     {{ range $catList }}
       {{ $key := . }}
-      {{ $existing := index $catBooks $key | default (slice) }}
-      {{ $catBooks = merge $catBooks (dict $key ($existing | append $book)) }}
+      {{/* 跳过隐藏分类 ── */}}
+      {{ if not (index $isHidden $key) }}
+        {{ $existing := index $catBooks $key | default (slice) }}
+        {{ $catBooks = merge $catBooks (dict $key ($existing | append $book)) }}
+      {{ end }}
     {{ end }}
   {{ end }}
 {{ end }}
