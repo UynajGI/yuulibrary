@@ -1,7 +1,7 @@
 ---
 title: "耗散驱动的 Rabi 模型中的量子相变信号"
 description: "De Filippis 等（2023）证明耗散量子 Rabi 模型在深强耦合区发生 BKT 量子相变，并把序参量与线性响应测量（磁化率、弛豫函数）直接联系起来——这是单一腔模 + 两能级系统中由耗散诱导的非微扰量子相变"
-category: "quantum-optics"
+category: ["quant-ph"]
 date: 2026-06-27
 author: "De Filippis, de Candia, Di Bello, Perroni, Cangemi, Nocera, Sassetti, Fazio, Cataudella"
 year: 2023

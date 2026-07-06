@@ -1,7 +1,7 @@
 ---
 title: "超导量子比特上的路径优化非绝热几何量子计算"
 description: "Ding 等（2022）发现同一几何门可由不同演化路径实现且鲁棒性差异显著，由此提出路径优化方案——选择最优路径使 S/T/H 门保真度达 99.93%-99.95%，双量子比特 CZ 门 99.87%（理论方案，含详细数值模拟）"
-category: "geometric-phase"
+category: ["quant-ph"]
 date: 2026-07-01
 author: "Cheng-Yun Ding, Li-Na Ji, Tao Chen, Zheng-Yuan Xue"
 year: 2022

@@ -1,7 +1,7 @@
 ---
 title: "行进单个微波光子的实验态层析"
 description: "Eichler 等（2011）首次对行进（itinerant）单个微波光子 Fock 态及其与真空的叠加态做完整量子态层析，用线性放大器 + 正交振幅检测测到四阶矩，重建出带负值的 Wigner 函数——证明行进微波场的量子性"
-category: "quantum-optics"
+category: ["quant-ph"]
 date: 2026-06-27
 author: "Eichler, Bozyigit, Lang, Steffen, Fink, Wallraff"
 year: 2011

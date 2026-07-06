@@ -1,7 +1,7 @@
 ---
 title: "边带冷却微机械运动至量子基态"
 description: "Teufel 等（2011）首次用腔电机械边带冷却把宏观（~10¹² 原子）铝膜机械振子冷却到量子基态（nm = 0.34），同时实现强耦合与近量子极限位移测量，是机械振子进入量子区的里程碑"
-category: "mechanical"
+category: ["quant-ph", "cond-mat"]
 date: 2026-06-27
 author: "Teufel, Donner, Li, Harlow, Allman, Cicak, Sirois, Whittaker, Lehnert, Simmonds"
 year: 2011

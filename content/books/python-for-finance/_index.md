@@ -2,7 +2,7 @@
 title: "Python for Finance"
 author: "Yves Hilpisch"
 description: "Yves Hilpisch 著，用Python掌握数据驱动的金融——金融数据科学、算法交易、计算金融。"
-category: "quant"
+category: ["quant"]
 weight: 1
 BookCollapseSection: true
 tags: ['量化金融']

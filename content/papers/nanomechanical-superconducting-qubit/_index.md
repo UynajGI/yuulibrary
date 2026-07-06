@@ -1,7 +1,7 @@
 ---
 title: "超导量子比特的纳米机械测量"
 description: "LaHaye 等（2009）首次实现纳米机械谐振器与超导 Cooper-pair box 量子比特的色散耦合，观测到「单原子折射率效应」的机械 analogue，并用纳米机械频率位移读出量子比特光谱与 Landau-Zener 干涉"
-category: "mechanical"
+category: ["quant-ph", "cond-mat"]
 date: 2026-06-27
 author: "LaHaye, Suh, Echternach, Schwab, Roukes"
 year: 2009

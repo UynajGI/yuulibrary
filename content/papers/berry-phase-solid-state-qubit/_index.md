@@ -1,7 +1,7 @@
 ---
 title: "在固态量子比特中观测到 Berry 相位"
 description: "Leek 等（2007）首次在超导 Cooper pair box 量子比特中观测并可控地积累几何相位（Berry 相），为固态几何量子计算奠定实验基础"
-category: "geometric-phase"
+category: ["quant-ph"]
 date: 2026-06-27
 author: "Leek, Fink, Blais, Bianchetti, Göppl, Gambetta, Schuster, Frunzio, Schoelkopf, Wallraff"
 year: 2007

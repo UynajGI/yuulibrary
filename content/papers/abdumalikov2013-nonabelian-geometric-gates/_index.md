@@ -1,7 +1,7 @@
 ---
 title: "非阿贝尔非绝热几何门的实验实现"
 description: "Abdumalikov 等（2013）首次在超导 transmon 量子比特上实现了非阿贝尔非绝热 holonomic 量子门，实验演示了其非对易特性，门保真度超过 95%"
-category: "geometric-phase"
+category: ["quant-ph"]
 date: 2026-07-01
 author: "A. A. Abdumalikov Jr, J. M. Fink, K. Juliusson, M. Pechal, S. Berger, A. Wallraff, S. Filipp"
 year: 2013

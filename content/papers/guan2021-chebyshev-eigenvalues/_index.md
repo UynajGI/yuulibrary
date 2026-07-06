@@ -4,7 +4,7 @@ description: "Guan 和 Zhang（2021）提出 DACP 方法，两次使用切比雪
 date: "2026-07-04"
 author: "Haoyu Guan, Wenxian Zhang"
 year: 2021
-category: "computational-physics"
+category: ["physics", "quant-ph"]
 weight: 25
 tags: ['数值计算', '切比雪夫多项式', '本征值问题', '量子多体系统']
 ---

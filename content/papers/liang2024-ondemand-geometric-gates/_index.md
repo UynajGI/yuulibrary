@@ -1,7 +1,7 @@
 ---
 title: "按需轨迹非绝热几何量子门"
 description: "Liang 和 Xue（2024）提出了通过调制脉冲形状构造按需轨迹几何量子门的通用协议——演化路径不再受限于特定几何约束，可以对不同类型的噪声实现针对性鲁棒性优化（理论方案）"
-category: "geometric-phase"
+category: ["quant-ph"]
 date: 2026-07-01
 author: "Yan Liang, Zheng-Yuan Xue"
 year: 2024

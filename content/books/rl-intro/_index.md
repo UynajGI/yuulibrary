@@ -2,7 +2,7 @@
 title: "强化学习入门"
 author: "叶强 等"
 description: "从基础概念到 Alpha Zero，动态规划、无模型控制、深度强化学习。"
-category: "ml"
+category: ["ml"]
 weight: 1
 BookCollapseSection: true
 tags: ['机器学习', '强化学习']

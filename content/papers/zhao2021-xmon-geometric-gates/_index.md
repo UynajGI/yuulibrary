@@ -1,7 +1,7 @@
 ---
 title: "超导 Xmon 量子比特非绝热几何门的实验实现"
 description: "Zhao 等（2021）在超导 Xmon 量子比特上仅用两个最低能级实现了非绝热 Abelian 几何门，平均保真度 99.6-99.7%，避免了 transmon 第二激发态短相干时间的限制"
-category: "geometric-phase"
+category: ["quant-ph"]
 date: 2026-07-01
 author: "PeiZi Zhao, ZhangJingZi Dong, ZhenXing Zhang, GuoPing Guo, DianMin Tong, Yi Yin"
 year: 2021

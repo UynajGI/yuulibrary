@@ -1,7 +1,7 @@
 ---
 title: "锥形交叉点动力学中几何相位干涉的直接观测"
 description: "Valahu 等（2023）在可编程离子阱量子模拟器中首次直接观测到了锥形交叉点周围波包动力学中的几何相位干涉效应（Nature Chemistry 实验）"
-category: "geometric-phase"
+category: ["quant-ph"]
 date: 2026-07-01
 author: "C. H. Valahu, V. C. Olaya-Agudelo, R. J. MacDonell, T. Navickas, A. D. Rao, M. J. Millican, J. B. Pérez-Sánchez, J. Yuen-Zhou, M. J. Biercuk, C. Hempel, T. R. Tan, I. Kassal"
 year: 2023

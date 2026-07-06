@@ -1,7 +1,7 @@
 ---
 title: "传播声子耦合到人工原子"
 description: "Gustafsson 等（2014）首次把行进表面声波（SAW）声子耦合到超导 transmon 量子比特，演示声子版的量子光学：非线性反射、单声子饱和、电驱动声子发射，证明声子可作量子信息的传播载体"
-category: "phonon"
+category: ["quant-ph", "cond-mat"]
 date: 2026-06-27
 author: "Gustafsson, Aref, Frisk Kockum, Ekström, Johansson, Delsing"
 year: 2014

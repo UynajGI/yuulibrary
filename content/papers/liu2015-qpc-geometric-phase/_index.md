@@ -1,7 +1,7 @@
 ---
 title: "通过量子点接触直接测量双量子点量子比特的几何相位"
 description: "Liu 等（2015）提出了通过量子点接触（QPC）电流直接读取双量子点几何相位的方案——将抽象的几何相位映射为可观测的输运电流，所有参数在实验中均可调可测（理论方案，含主方程推导）"
-category: "geometric-phase"
+category: ["quant-ph"]
 date: 2026-07-01
 author: "Bao Liu, Feng-Yang Zhang, Jie Song, He-Shan Song"
 year: 2015

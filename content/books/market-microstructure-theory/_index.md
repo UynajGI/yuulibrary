@@ -1,7 +1,7 @@
 ---
 title: "市场微观结构理论"
 description: "市场微观结构理论的统一框架——从存货模型到信息模型，从策略性交易者到市场设计。Maureen O'Hara 经典教材。"
-category: "quant"
+category: ["quant"]
 weight: 1
 BookCollapseSection: true
 tags: ['量化金融', '市场微观结构']

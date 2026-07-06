@@ -1,7 +1,7 @@
 ---
 title: "机械振子在热退相干率处的测量与控制"
 description: "Wilson 等（2015）用近场腔光机械耦合实现对 4.3 MHz 纳米梁振子位移的不精确度低于标准量子极限 40 dB 的测量（海森堡极限因子 5 以内），并以此作误差信号辐射压力反馈冷却到 nm = 5.3（基态概率 16%）—— 测量基量子控制的里程碑"
-category: "mechanical"
+category: ["quant-ph", "cond-mat"]
 date: 2026-06-27
 author: "Wilson, Sudhir, Piro, Schilling, Ghadimi, Kippenberg"
 year: 2015

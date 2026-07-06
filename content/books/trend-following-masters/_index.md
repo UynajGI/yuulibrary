@@ -2,7 +2,7 @@
 title: "投资决策的关键解答"
 author: "Michael Covel"
 description: "顺势交易专家麦可·卡威尔访谈全球 14 位大师，涵盖行为经济学、交易心理、风险决策等核心主题。"
-category: "quant"
+category: ["quant"]
 weight: 1
 BookCollapseSection: true
 tags: ['量化金融', '投资交易']

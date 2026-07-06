@@ -1,7 +1,7 @@
 ---
 title: "超导电路上最优控制非绝热几何量子计算"
 description: "Xu 等（2020）提出了超导电路上结合最优控制的非绝热几何量子计算方案，反演设计脉冲形状，结合 DRAG 抑制泄漏，单/双量子比特门保真度可达 99.87%（理论方案）"
-category: "geometric-phase"
+category: ["quant-ph"]
 date: 2026-07-01
 author: "Jing Xu, Sai Li, Tao Chen, Zheng-Yuan Xue"
 year: 2020

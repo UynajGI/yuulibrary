@@ -2,7 +2,7 @@
 title: "系统之美"
 author: "Donella H. Meadows"
 description: "决策者的系统思考——Donella Meadows 经典之作，系统动力学入门必读。"
-category: "systems"
+category: ["systems"]
 weight: 1
 BookCollapseSection: true
 tags: ['系统思维']

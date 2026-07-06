@@ -1,7 +1,7 @@
 ---
 title: "通过绝热捷径在超导相位量子比特中测量 Berry 相位"
 description: "Zhang 等（2017）在超导相位量子比特上实现了 STA（shortcut to adiabaticity）协议，在远短于绝热条件的时间尺度上精确测量了 Berry 相位，并系统研究了驱动噪声对相位稳定性的影响"
-category: "geometric-phase"
+category: ["quant-ph"]
 date: 2026-07-01
 author: "Zhenxing Zhang, Tenghui Wang, Liang Xiang, Jiadong Yao, Jianlan Wu, Yi Yin"
 year: 2017
