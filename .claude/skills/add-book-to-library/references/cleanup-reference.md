@@ -14,7 +14,7 @@
 10. **`def__init__` 粘连** → `def __init__`
 11. **` ```txt ` 误标** → ` ```python `
 12. **行尾单 `$`** → 删除
-13. **`mineru-algorithm` div** → 删除
+13. **`mineru-algorithm` div** → `clean_markdown.py` 自动转成 ```` ```matlab ```` 代码块（反转义 HTML 实体，保留内容）
 
 ## 常见 OCR 误识别
 
