@@ -8,20 +8,24 @@
 yuulibrary/
 ├── hugo.toml               # Hugo 配置
 ├── content/
-│   ├── _index.md           # 图书馆首页
-│   └── books/<book-slug>/   # 扁平存放，每本书一个子目录
-│           ├── _index.md             # 封面 + 目录（section 列表页）
-│           ├── ch01.md ~ ...         # 章节
-│           ├── index_term.md         # 索引
-│           └── images/               # 图片
+│   ├── _index.md           # 图书馆首页（书架卡片自动生成）
+│   ├── books/<book-slug>/   # 书籍（扁平存放，每本一个子目录）
+│   │   ├── _index.md             # 封面 + 目录
+│   │   ├── ch01.md ~ ...         # 章节
+│   │   └── images/               # 图片（WebP）
+│   ├── papers/<paper-slug>/ # 论文笔记（翻译正文 + 结构化分析）
+│   │   ├── _index.md             # 单篇论文一个 section
+│   │   └── images/               # 图片（WebP）
+│   └── notes/<slug>.md      # 蒸馏笔记
 ├── layouts/                # 短代码 / 模板覆盖
 ├── assets/custom.scss      # 全局样式
+├── static/chat/            # AI 问答 Agent（BYOK 浏览器直连）
 └── .github/workflows/      # CI/CD 自动部署
 ```
 
 ## 书籍
 
-共 23 本，按主题分类（与首页书架一致）。书籍和论文笔记的书架卡片均为自动生成——新增内容只需填好 `_index.md` 的 front matter（`tags`/`author`/`description`），无需手动编辑 shortcode。
+书架卡片自动生成——遍历所有 `_index.md` 的 `category` 数组自动归类。新增内容只需填好 front matter 的 `category`（书籍自定义分类如 `quant`/`ml`/`physics`，论文用 arXiv 一级分类如 `quant-ph`），无需手动编辑 shortcode。
 
 ### 量化金融
 
@@ -40,6 +44,7 @@ yuulibrary/
 | 投资决策的关键解答 | Michael Covel | 15 章 |
 | Stocks on the Move | Andreas F. Clenow | 15 章 |
 | 裸K线交易法 | 许佳聪 | 10 章 |
+| 市场微观结构理论 | Maureen O'Hara | — |
 
 ### 机器学习与强化学习
 
@@ -71,7 +76,7 @@ yuulibrary/
 
 ## 论文笔记
 
-共 25 篇，按主题分类（几何相位与几何量子计算 / 电路 QED / 线性响应理论 / 量子光学与层析 / 机械振子量子化），详见 `/papers/` 页面。
+共 26 篇，按主题分类（几何相位与几何量子计算 / 电路 QED / 线性响应理论 / 量子光学与层析 / 机械振子量子化），详见 `/papers/` 页面。
 书架卡片为 `{{< papershelf >}}` 短代码自动生成，与书籍书架共享样式与动画。
 
 ## 笔记

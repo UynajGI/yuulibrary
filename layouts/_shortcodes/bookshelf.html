@@ -1,49 +1,19 @@
 {{/*
-  书架分类卡片 shortcode — 全自动生成。
-  遍历所有书的 _index.md front matter，根据 tags 归类，自动生成卡片 + 书籍列表。
-  新书只需在 _index.md 中填好 title/author/tags/description 即可，无需手动编辑此文件。
+  书架分类卡片 — 全自动生成。读 data/book_categories.json 获分类名，
+  category 字段数组多归属，一篇可在多个书架下出现。
+  新增书籍只需填好 _index.md 的 category 数组即可，无需改此文件。
 */}}
 
-{{/* ── 分类定义：名称、图标、标题、描述、匹配标签 ── */}}
-{{ $catDefs := slice
-  (dict
-    "key" "quant"
-    "icon" "📈"
-    "title" "量化金融"
-    "desc" "交易策略、衍生品定价、算法交易、投资组合管理"
-    "tags" (slice "量化金融" "金融" "投资" "trading" "technical-analysis" "price-action" "交易系统" "Python" "面试" "交易心理" "行为经济学" "风险管理" "系统化交易" "quant" "microstructure")
-  )
-  (dict
-    "key" "ml"
-    "icon" "🤖"
-    "title" "机器学习与强化学习"
-    "desc" "强化学习理论与实践、数学基础"
-    "tags" (slice "机器学习")
-  )
-  (dict
-    "key" "systems"
-    "icon" "🧠"
-    "title" "系统思维与统计"
-    "desc" "系统动力学、实用统计方法"
-    "tags" (slice "系统思考" "统计学" "决策")
-  )
-  (dict
-    "key" "growth"
-    "icon" "💡"
-    "title" "思维与人生"
-    "desc" "财富哲学、决策智慧、个人成长"
-    "tags" (slice "个人成长" "心理学" "自我提升" "人际沟通")
-  )
-  (dict
-    "key" "physics"
-    "icon" "⚛️"
-    "title" "物理科学"
-    "desc" "量子光学、统计物理、理论物理"
-    "tags" (slice "数学物理" "量子物理" "非交换几何" "quantum" "physics")
-  )
+{{/* ── 分类展示定义（icon + desc），不参与匹配 ── */}}
+{{ $catDisplay := dict
+  "quant"   (dict "icon" "📈" "desc" "交易策略、衍生品定价、算法交易、投资组合管理")
+  "ml"      (dict "icon" "🤖" "desc" "强化学习理论与实践、数学基础")
+  "systems" (dict "icon" "🧠" "desc" "系统动力学、实用统计方法")
+  "growth"  (dict "icon" "💡" "desc" "财富哲学、决策智慧、个人成长")
+  "physics" (dict "icon" "⚛️" "desc" "量子光学、统计物理、理论物理")
 }}
 
-{{/* ── 收集所有书籍 section 页（排除 books 根 _index.md），按 weight 排序 ── */}}
+{{/* ── 收集所有书籍 section 页 ── */}}
 {{ $allBooks := where .Site.Pages "Section" "books" }}
 {{ $bookSections := slice }}
 {{ range $allBooks }}
@@ -53,32 +23,56 @@
 {{ end }}
 {{ $bookSections = sort $bookSections "Params.weight" "asc" }}
 
-{{/* ── category 字段精确归类 ── */}}
+{{/* ── 按 category 归类（兼容 string / 数组，多归属）── */}}
 {{ $catBooks := dict }}
 {{ range $bookSections }}
   {{ $book := . }}
-  {{ $cat := .Params.category | default "" }}
-  {{ if ne $cat "" }}
-    {{ $existing := index $catBooks $cat | default (slice) }}
-    {{ $catBooks = merge $catBooks (dict $cat ($existing | append $book)) }}
+  {{ $cats := .Params.category }}
+  {{ if $cats }}
+    {{ $catList := slice }}
+    {{ if eq (printf "%T" $cats) "string" }}
+      {{ $catList = slice $cats }}
+    {{ else if eq (printf "%T" $cats) "[]string" }}
+      {{ $catList = $cats }}
+    {{ else }}
+      {{ range $cats }}
+        {{ $catList = $catList | append . }}
+      {{ end }}
+    {{ end }}
+    {{ range $catList }}
+      {{ $key := . }}
+      {{ $existing := index $catBooks $key | default (slice) }}
+      {{ $catBooks = merge $catBooks (dict $key ($existing | append $book)) }}
+    {{ end }}
   {{ end }}
 {{ end }}
 
+{{/* ── 收集所有使用中的 category key ── */}}
+{{ $usedCats := slice }}
+{{ range $key, $_ := $catBooks }}
+  {{ $usedCats = $usedCats | append $key }}
+{{ end }}
+{{ $usedCats = sort $usedCats }}
+
 {{/* ── 渲染分类卡片网格 ── */}}
 <div class="category-grid">
-  {{ range $catDefs }}
-    {{ $key := .key }}
-    {{ $books := index $catBooks $key | default (slice) }}
-    {{ if gt (len $books) 0 }}
-    <div class="category-card" data-category="{{ $key }}">
-      <span class="category-card-icon">{{ .icon }}</span>
-      <h3 class="category-card-title">{{ .title }}</h3>
-      <span class="category-card-count">{{ len $books }} 本</span>
-      <p class="category-card-desc">{{ .desc }}</p>
-    </div>
+  {{ range $usedCats }}
+    {{ $key := . }}
+    {{ $display := index $catDisplay $key | default (dict "icon" "📄" "desc" "") }}
+    {{ $catInfo := index $.Site.Data.book_categories.categories $key }}
+    {{ $catName := $key }}
+    {{ if $catInfo }}
+      {{ $catName = $catInfo.name_zh }}
     {{ end }}
+    {{ $books := index $catBooks $key }}
+    <div class="category-card" data-category="{{ $key }}">
+      <span class="category-card-icon">{{ $display.icon }}</span>
+      <h3 class="category-card-title">{{ $catName }}</h3>
+      <span class="category-card-count">{{ len $books }} 本</span>
+      <p class="category-card-desc">{{ $display.desc }}</p>
+    </div>
   {{ end }}
-  {{/* ── 全部图书卡片（始终在末尾） ── */}}
+  {{/* ── 全部图书卡片 ── */}}
   {{ if gt (len $bookSections) 0 }}
   <div class="category-card category-card-all" data-category="all-books">
     <span class="category-card-icon">📚</span>
@@ -90,9 +84,9 @@
 </div>
 
 {{/* ── 渲染每个分类的书籍列表 ── */}}
-{{ range $catDefs }}
-  {{ $key := .key }}
-  {{ $books := index $catBooks $key | default (slice) }}
+{{ range $usedCats }}
+  {{ $key := . }}
+  {{ $books := index $catBooks $key }}
   {{ if gt (len $books) 0 }}
   <div class="bookshelf" data-category="{{ $key }}" style="display:none">
     <button class="back-btn">← 返回书架</button>
@@ -120,7 +114,7 @@
   <button class="back-btn">← 返回书架</button>
   <div class="sort-bar">
     <span class="sort-bar-label">排序：</span>
-    <button class="sort-btn active" data-sort="default" data-dir="desc">入库 ↓</button>
+    <button class="sort-btn" data-sort="default" data-dir="desc">入库 ↓</button>
     <button class="sort-btn" data-sort="title" data-dir="asc">书名</button>
     <button class="sort-btn" data-sort="author" data-dir="asc">作者</button>
   </div>
@@ -135,51 +129,67 @@
 </div>
 {{ end }}
 
-{{/* ── 缩放动画 JS ── */}}
+{{/* ── 分类卡片缩放 + 排序 JS ── */}}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  var grid = document.querySelector('.category-grid');
-  if (!grid) return;
+(function() {
+  function bind() {
+    var grids = document.querySelectorAll('.category-grid:not([data-shelf])');
+    grids.forEach(function(grid) {
+      if (grid.dataset.shelfbound === '1') return;
+      grid.dataset.shelfbound = '1';
 
-  document.querySelectorAll('.category-card').forEach(function(card) {
-    card.addEventListener('click', function() {
-      var cat = card.dataset.category;
-      var shelf = document.querySelector('.bookshelf[data-category="' + cat + '"]');
-      if (!shelf) return;
-      grid.classList.add('zoom-out');
-      setTimeout(function() {
-        grid.style.display = 'none';
-        grid.classList.remove('zoom-out');
-        shelf.style.display = 'block';
-        shelf.classList.add('zoom-in');
-        shelf.querySelectorAll('.book-row').forEach(function(row, i) {
-          row.style.opacity = '0';
-          row.style.animation = 'fadeSlideIn 0.3s ease forwards';
-          row.style.animationDelay = (i * 0.06) + 's';
+      grid.querySelectorAll('.category-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+          var cat = card.dataset.category;
+          var shelf = document.querySelector('.bookshelf[data-category="' + cat + '"]');
+          if (!shelf) return;
+          grid.classList.add('zoom-out');
+          setTimeout(function() {
+            grid.style.display = 'none';
+            grid.classList.remove('zoom-out');
+            shelf.style.display = 'block';
+            shelf.classList.add('zoom-in');
+            shelf.querySelectorAll('.book-row').forEach(function(row, i) {
+              row.style.opacity = '0';
+              row.style.animation = 'fadeSlideIn 0.3s ease forwards';
+              row.style.animationDelay = (i * 0.06) + 's';
+            });
+          }, 200);
         });
-      }, 200);
+      });
     });
-  });
 
-  document.querySelectorAll('.back-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var shelf = btn.closest('.bookshelf');
-      shelf.classList.add('zoom-out');
-      setTimeout(function() {
-        shelf.style.display = 'none';
-        shelf.classList.remove('zoom-out', 'zoom-in');
-        shelf.querySelectorAll('.book-row').forEach(function(row) {
-          row.style.animation = '';
-          row.style.opacity = '';
-        });
-        grid.style.display = '';
-        grid.classList.add('zoom-in');
-        setTimeout(function() { grid.classList.remove('zoom-in'); }, 300);
-      }, 200);
+    document.querySelectorAll('.bookshelf[data-category] .back-btn').forEach(function(btn) {
+      if (btn.dataset.shelfbound === '1') return;
+      btn.dataset.shelfbound = '1';
+      btn.addEventListener('click', function() {
+        var shelf = btn.closest('.bookshelf');
+        var grid = document.querySelector('.category-grid:not([data-shelf])') ||
+                   document.querySelector('.category-grid');
+        shelf.classList.add('zoom-out');
+        setTimeout(function() {
+          shelf.style.display = 'none';
+          shelf.classList.remove('zoom-out', 'zoom-in');
+          shelf.querySelectorAll('.book-row').forEach(function(row) {
+            row.style.animation = '';
+            row.style.opacity = '';
+          });
+          if (grid) {
+            grid.style.display = '';
+            grid.classList.add('zoom-in');
+            setTimeout(function() { grid.classList.remove('zoom-in'); }, 300);
+          }
+        }, 200);
+      });
     });
-  });
+  }
 
-  /* ── 排序功能 ── */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bind);
+  } else {
+    bind();
+  }
+
   function bindSort(shelf) {
     if (shelf.dataset.sortbound === '1') return;
     shelf.dataset.sortbound = '1';
@@ -230,7 +240,6 @@ document.addEventListener('DOMContentLoaded', function() {
         var mode = btn.dataset.sort;
         var currentDir = btn.dataset.dir;
         var newDir;
-
         if (btn.classList.contains('active')) {
           newDir = currentDir === 'asc' ? 'desc' : 'asc';
         } else {
@@ -238,7 +247,6 @@ document.addEventListener('DOMContentLoaded', function() {
           btns.forEach(function(b) { b.classList.remove('active'); });
           btn.classList.add('active');
         }
-
         btn.dataset.dir = newDir;
         updateBtnLabels();
         sortAndRender(mode, newDir);
@@ -247,5 +255,5 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   document.querySelectorAll('.bookshelf[data-category]').forEach(function(s) { bindSort(s); });
-});
+})();
 </script>

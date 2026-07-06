@@ -1,49 +1,37 @@
 {{/*
-  论文分类书架 shortcode — 全自动生成。
-  遍历所有论文的 _index.md front matter，根据 tags 归类，自动生成卡片 + 论文列表。
-  末尾自动追加"全部论文"卡片。
+  论文分类书架 — arXiv 一级分类，数组多归属，全自动生成。
+
+  读取 data/arxiv_categories.json 获取分类名。
+  Paper front matter: category: ["quant-ph", "cond-mat"]
+  一篇论文可以出现在多个分类书架下。
+
+  catDefs 只定义展示用的 icon + desc，不参与论文匹配。
+  匹配完全由 paper 的 category 数组控制。
 */}}
 
-{{/* ── 分类定义 ── */}}
-{{ $catDefs := slice
-  (dict
-    "key" "mechanical"
-    "icon" "🔬"
-    "title" "机械振子量子化"
-    "desc" "纳米机械振子从经典走向量子：色散耦合、边带冷却、反馈控制、低于 SQL 的测量"
-    "tags" (slice "纳米机械" "NEMS" "机械振子" "边带冷却" "光机械" "力测量" "位移测量" "反馈控制" "SQL")
-  )
-  (dict
-    "key" "geometric-phase"
-    "icon" "🌀"
-    "title" "几何相位与几何量子计算"
-    "desc" "Berry 相位——从固态首次观测到非阿贝尔 holonomic 门，覆盖超导/离子阱/量子点三平台"
-    "tags" (slice "几何相位" "几何量子计算")
-  )
-  (dict
-    "key" "quantum-optics"
-    "icon" "⚛️"
-    "title" "电路 QED 量子光学"
-    "desc" "超导电路中的微波光子层析、耗散诱导量子相变"
-    "tags" (slice "电路QED" "光子层析" "量子相变" "微波光子" "超导量子比特" "Rabi模型" "量子基态")
-  )
-  (dict
-    "key" "ion-trap"
-    "icon" "⚡"
-    "title" "离子阱量子技术"
-    "desc" "囚禁离子运动态的特征函数层析、量子态重建与诊断"
-    "tags" (slice "离子阱" "量子层析" "特征函数" "囚禁离子")
-  )
-  (dict
-    "key" "phonon"
-    "icon" "🌊"
-    "title" "声子量子光学"
-    "desc" "表面声波声子作为量子信息的传播载体——声学量子光学"
-    "tags" (slice "声子" "表面声波" "人工原子")
-  )
+{{/* ── 分类展示定义（icon + desc）；不在此列表中的 category 仍会出现在书架 ── */}}
+{{ $catDisplay := dict
+  "quant-ph" (dict "icon" "⚛️" "desc" "量子信息、量子计算、量子光学、量子多体理论与实验")
+  "cond-mat" (dict "icon" "🧊" "desc" "凝聚态体系：超导、拓扑、强关联、纳米机械、自旋系统")
+  "physics"  (dict "icon" "🔭" "desc" "物理学：光学、原子分子物理、经典物理、跨领域方法")
+  "math-ph"  (dict "icon" "📐" "desc" "数学物理：算子代数、谱理论、统计力学数学基础")
+  "cs"       (dict "icon" "💻" "desc" "计算机科学：ML、算法、数值计算、优化理论")
+  "q-fin"    (dict "icon" "📈" "desc" "定量金融：随机过程、衍生品定价、风险管理")
+  "stat"     (dict "icon" "🎲" "desc" "统计学：推断、贝叶斯方法、时间序列分析")
+  "math"     (dict "icon" "📊" "desc" "数学：代数、几何、分析、组合")
+  "hep-th"   (dict "icon" "🌀" "desc" "高能理论：弦论、场论、AdS/CFT、可积系统")
+  "gr-qc"    (dict "icon" "🌌" "desc" "广义相对论与量子引力")
+  "q-bio"    (dict "icon" "🧬" "desc" "定量生物学：生物信息学、计算神经科学")
+  "nlin"     (dict "icon" "🔄" "desc" "非线性科学：混沌、孤子、图案形成")
+  "econ"     (dict "icon" "🏦" "desc" "经济学：计量经济学、博弈论")
+  "eess"     (dict "icon" "🔌" "desc" "电子工程与系统科学")
+  "finance"  (dict "icon" "💰" "desc" "金融学：投资、交易、资产定价、行为金融")
+  "philosophy" (dict "icon" "💭" "desc" "哲学：认识论、伦理学、科学哲学")
+  "personal-dev" (dict "icon" "🌱" "desc" "个人发展：思维方式、决策框架、人生哲学")
+  "history"  (dict "icon" "📜" "desc" "历史：经济史、科学史、文明史")
 }}
 
-{{/* ── 收集所有论文 section 页（排除 papers 根 _index.md）── */}}
+{{/* ── 收集所有论文 section 页 ── */}}
 {{ $allPapers := where .Site.Pages "Section" "papers" }}
 {{ $paperSections := slice }}
 {{ range $allPapers }}
@@ -53,32 +41,58 @@
 {{ end }}
 {{ $paperSections = sort $paperSections "Params.weight" "asc" }}
 
-{{/* ── category 字段精确归类 ── */}}
+{{/* ── 按 category 归类（兼容 string / 数组，多归属）── */}}
 {{ $catPapers := dict }}
 {{ range $paperSections }}
   {{ $paper := . }}
-  {{ $cat := .Params.category | default "" }}
-  {{ if ne $cat "" }}
-    {{ $existing := index $catPapers $cat | default (slice) }}
-    {{ $catPapers = merge $catPapers (dict $cat ($existing | append $paper)) }}
+  {{ $cats := .Params.category }}
+  {{ if $cats }}
+    {{/* normalize: string → single-element slice */}}
+    {{ $catList := slice }}
+    {{ if eq (printf "%T" $cats) "string" }}
+      {{ $catList = slice $cats }}
+    {{ else if eq (printf "%T" $cats) "[]string" }}
+      {{ $catList = $cats }}
+    {{ else }}
+      {{/* []interface{} from Hugo's YAML parser — range works */}}
+      {{ range $cats }}
+        {{ $catList = $catList | append . }}
+      {{ end }}
+    {{ end }}
+    {{ range $catList }}
+      {{ $key := . }}
+      {{ $existing := index $catPapers $key | default (slice) }}
+      {{ $catPapers = merge $catPapers (dict $key ($existing | append $paper)) }}
+    {{ end }}
   {{ end }}
 {{ end }}
 
+{{/* ── 收集所有使用中的 category key，按名称排序 ── */}}
+{{ $usedCats := slice }}
+{{ range $key, $_ := $catPapers }}
+  {{ $usedCats = $usedCats | append $key }}
+{{ end }}
+{{ $usedCats = sort $usedCats }}
+
 {{/* ── 渲染分类卡片网格 ── */}}
 <div class="category-grid" data-shelf="papers">
-  {{ range $catDefs }}
-    {{ $key := .key }}
-    {{ $papers := index $catPapers $key | default (slice) }}
-    {{ if gt (len $papers) 0 }}
-    <div class="category-card" data-category="{{ $key }}">
-      <span class="category-card-icon">{{ .icon }}</span>
-      <h3 class="category-card-title">{{ .title }}</h3>
-      <span class="category-card-count">{{ len $papers }} 篇</span>
-      <p class="category-card-desc">{{ .desc }}</p>
-    </div>
+  {{ range $usedCats }}
+    {{ $key := . }}
+    {{ $display := index $catDisplay $key | default (dict "icon" "📄" "desc" "") }}
+    {{ $catInfo := index $.Site.Data.arxiv_categories.categories $key }}
+    {{ $catName := $key }}
+    {{ if $catInfo }}
+      {{ $catName = $catInfo.name_zh }}
     {{ end }}
+    {{ $papers := index $catPapers $key }}
+    <div class="category-card" data-category="{{ $key }}">
+      <span class="category-card-icon">{{ $display.icon }}</span>
+      <h3 class="category-card-title">{{ $catName }}</h3>
+      <span class="category-card-count">{{ len $papers }} 篇</span>
+      <p class="category-card-desc">{{ $display.desc }}</p>
+    </div>
   {{ end }}
-  {{/* ── 全部论文卡片（始终在末尾） ── */}}
+  {{/* ── 全部论文卡片（始终在末尾）── */}}
   {{ if gt (len $paperSections) 0 }}
   <div class="category-card category-card-all" data-category="all-papers">
     <span class="category-card-icon">📚</span>
@@ -90,9 +104,9 @@
 </div>
 
 {{/* ── 渲染每个分类的论文列表 ── */}}
-{{ range $catDefs }}
-  {{ $key := .key }}
-  {{ $papers := index $catPapers $key | default (slice) }}
+{{ range $usedCats }}
+  {{ $key := . }}
+  {{ $papers := index $catPapers $key }}
   {{ if gt (len $papers) 0 }}
   <div class="bookshelf" data-category="{{ $key }}" style="display:none">
     <button class="back-btn">← 返回论文分类</button>
@@ -135,7 +149,7 @@
 </div>
 {{ end }}
 
-{{/* ── 缩放动画 + 排序 JS ── */}}
+{{/* ── 分类卡片缩放 + 排序 JS（不变）── */}}
 <script>
 (function() {
   function bind() {
@@ -196,7 +210,6 @@
     bind();
   }
 
-  /* ── 排序功能 ── */
   function bindSort(shelf) {
     if (shelf.dataset.sortbound === '1') return;
     shelf.dataset.sortbound = '1';
