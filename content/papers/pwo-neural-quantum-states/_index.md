@@ -117,16 +117,28 @@ $$
 L (\pmb{\theta}) \approx \bar{E}_{\pmb{\theta}}^{\mathrm{loc}} \equiv \frac{1}{M} \sum_{i = 1}^{M} E_{\pmb{\theta}}^{\mathrm{loc}} (\mathbf{s}_{i}).\tag{10}
 $$
 
-```matlab
-算法 1: 近端波函数优化 (PWO)
-输入: 哈密顿量 $\hat{H}$, NQS $\psi_{\theta}$, 批次大小 $M$, 内部轮次 $K$, 幅度裁剪 $\epsilon$, 相位裁剪 $\delta$ 初始化 $\theta$
+{{< algorithm title="算法1：近端波函数优化（PWO）" >}}
+<pre class="pseudocode">
+state 输入: 哈密顿量 $\hat{H}$, NQS $\psi_{\theta}$, 批次大小 $M$, 内部轮次 $K$, 幅度裁剪 $\epsilon$, 相位裁剪 $\delta$
+state 初始化 $\theta$
 while 未收敛 do
-$\theta_{\text{old}} \leftarrow \theta$
-采样 $\{\mathbf{s}_i\}_{i=1}^M \sim \mathcal{P}_{\theta_{\text{old}}}$
-缓存 $\{\mathbf{s}_i\}_{i=1}^M$ 的参考对数概率 $\log \mathcal{P}_{\theta_{\text{old}}}(\mathbf{s}_i)$; 相位 $\arg \psi_{\theta_{\text{old}}}(\mathbf{s}_i)$; 以及归一化的实部和虚部优势 $A_{\theta_{\text{old}}}^{\text{R}}(\mathbf{s}_i)$ 和 $A_{\theta_{\text{old}}}^{\text{I}}(\mathbf{s}_i)$。
-for $k = 1, \ldots, K$ do
-    计算 $\{\mathbf{s}_i\}_{i=1}^M$ 的当前对数概率 $\log \mathcal{P}_{\theta}(\mathbf{s}_i)$ 和相位 $\arg \psi_{\theta}(\mathbf{s}_i)$ $r_i \leftarrow \exp(\log \mathcal{P}_{\theta}(\mathbf{s}_i) - \log \mathcal{P}_{\theta_{\text{old}}}(\mathbf{s}_i))$ $\phi_i \leftarrow 2 \cdot \text{atan}_2 (\sin (\arg \psi_{\theta}(\mathbf{s}_i) - \arg \psi_{\theta_{\text{old}}}(\mathbf{s}_i)), \cos (\arg \psi_{\theta}(\mathbf{s}_i) - \arg \psi_{\theta_{\text{old}}}(\mathbf{s}_i)))$ $\ell_i^R \leftarrow \max(r_i A_{\theta_{\text{old}}}^{\text{R}}(\mathbf{s}_i), \text{clip}(r_i, 1 - \epsilon, 1 + \epsilon) A_{\theta_{\text{old}}}^{\text{R}}(\mathbf{s}_i))$ $\ell_i^I \leftarrow \text{stop\_gradient}(r_i) \cdot \max(\phi_i A_{\theta_{\text{old}}}^{\text{I}}(\mathbf{s}_i), \text{clip}(\phi_i, -\delta, \delta) A_{\theta_{\text{old}}}^{\text{I}}(\mathbf{s}_i))$ $\theta \leftarrow \theta - \eta \nabla_{\theta} \frac{1}{M} \sum_{i=1}^{M} (\ell_i^R + \ell_i^I)$。
-```
+  $\theta_{\text{old}} \leftarrow \theta$
+  采样 $\{\mathbf{s}_i\}_{i=1}^M \sim \mathcal{P}_{\theta_{\text{old}}}$
+  缓存 $\{\mathbf{s}_i\}_{i=1}^M$ 的参考对数概率 $\log \mathcal{P}_{\theta_{\text{old}}}(\mathbf{s}_i)$
+  缓存相位 $\arg \psi_{\theta_{\text{old}}}(\mathbf{s}_i)$
+  缓存归一化优势 $A_{\theta_{\text{old}}}^{\text{R}}(\mathbf{s}_i)$, $A_{\theta_{\text{old}}}^{\text{I}}(\mathbf{s}_i)$
+  for $k = 1, \ldots, K$ do
+    计算 $\{\mathbf{s}_i\}_{i=1}^M$ 的当前 $\log \mathcal{P}_{\theta}(\mathbf{s}_i)$, $\arg \psi_{\theta}(\mathbf{s}_i)$
+    $r_i \leftarrow \exp(\log \mathcal{P}_{\theta}(\mathbf{s}_i) - \log \mathcal{P}_{\theta_{\text{old}}}(\mathbf{s}_i))$
+    $\phi_i \leftarrow 2 \cdot \operatorname{atan2}(\sin\Delta\arg, \cos\Delta\arg)$
+    $\ell_i^R \leftarrow \max(r_i A_{\text{old}}^{\text{R}}, \operatorname{clip}(r_i, 1-\epsilon, 1+\epsilon) A_{\text{old}}^{\text{R}})$
+    $\ell_i^I \leftarrow \operatorname{sg}(r_i) \cdot \max(\phi_i A_{\text{old}}^{\text{I}}, \operatorname{clip}(\phi_i, -\delta, \delta) A_{\text{old}}^{\text{I}})$
+    $\theta \leftarrow \theta - \eta \nabla_{\theta} \frac{1}{M} \sum_{i=1}^{M} (\ell_i^R + \ell_i^I)$
+  endfor
+endwhile
+return $\theta$
+</pre>
+{{< /algorithm >}}
 
 通过对式 (8) 求导（见附录 B.2），可以证明其关于 θ 的梯度可以表示为关于 $\mathcal{P}_{\pmb{\theta}}$ 的期望值，并使用 MCMC 采样或自回归模型的直接采样进行估计：
 
