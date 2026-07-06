@@ -424,7 +424,9 @@
   async function loadDocTree(docId) {
     if (docCache[docId] !== undefined) return;
     const doc = globalIndex?.docs?.find((d) => d.id === docId);
-    const type = doc?.type || "papers";
+    // globalIndex 的 type 是单数（book/paper/note），但 PageIndex 目录是复数（books/papers/notes）
+    const typeRaw = doc?.type || "papers";
+    const type = typeRaw.endsWith("s") ? typeRaw : typeRaw + "s";
     try {
       const resp = await fetch(`${PAGEINDEX}/${type}/${docId}.json`);
       const data = await resp.json();
@@ -1465,12 +1467,10 @@ ${blocks.join("\n\n---\n\n")}
 
       // debug 卡片（如果有 context）
       if (debugOn && allContexts.length) {
-        const debugHits = allContexts
-          .slice(0, 12)
-          .map((c, i) => ({
-            node: { doc_id: c.docTitle, node_id: c.nodeId, breadcrumb: c.breadcrumb },
-            score: "?",
-          }));
+        const debugHits = allContexts.slice(0, 12).map((c, i) => ({
+          node: { doc_id: c.docTitle, node_id: c.nodeId, breadcrumb: c.breadcrumb },
+          score: "?",
+        }));
         contentEl.innerHTML =
           renderThinkingAndText(finalThinking, finalText, toolTrail) +
           renderDebugCard(debugHits, allContexts.slice(0, 8), systemPrompt, "agent");
