@@ -333,7 +333,17 @@ python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/book
 
 ### Phase 4.5：逐章审核
 
-每 4-5 章派一个审核 agent（用 `Agent` tool，`model: haiku`）独立校对。
+每 4-5 章派一个审核 agent 独立校对。调用方式：
+
+```
+Agent(prompt: "审核 content/books/<slug>/ch01.md ~ ch04.md，按以下清单逐章检查并修复：
+1. OCR 数学符号错误  2. 表格图注漏网→{{< caption >}}  3. Mermaid→删<details>留原图
+4. 标题层级（代码注释#误为H1、子节降级）  5. 交叉引用查漏  6. 代码块补围栏
+7. 伪代码用小写裸命令  8. 元素模板漏网（例题/定义/定理/业界事例）
+修复后用 Write 写回文件。")
+```
+
+> **Phase 4.25 已完成的，本阶段不重复**：翻译（translate_chapters.py）、引用/图注/来源的 callout/caption 转换（翻译脚本内置）、交叉引用链接（convert_xrefs.py）。本阶段聚焦脚本无法覆盖的语义检查。
 
 > **Phase 4.25 已完成的，本阶段不重复**：翻译（translate_chapters.py）、引用/图注/来源的 callout/caption 转换（翻译脚本内置）、交叉引用链接（convert_xrefs.py）。本阶段聚焦脚本无法覆盖的语义检查。
 
@@ -396,12 +406,11 @@ tags: ["标签1", "标签2"]
 
 #### 首页卡片
 
-🔴 **更新 `layouts/_shortcodes/bookshelf.html`**（不是 `_index.md`）：
-1. 在对应分类的 `<div class="bookshelf" data-category="xxx">` 中添加 `<a class="book-row">` 条目
-2. 更新对应 `.category-card` 的 `.category-card-count` 数字
-3. 如需新增分类，同时添加 `.category-card` 和 `<div class="bookshelf" data-category="xxx">`
+书架全自动生成——`bookshelf.html` 读取 `.Site.Data.book_categories`，根据每本书的 `category` 数组自动归类。
+**新增书籍无需手动编辑 bookshelf.html**，只需在 `_index.md` 填好 `category` 数组。
 
-分类：`quant`（量化金融）、`ml`（机器学习与强化学习）、`systems`（系统思维与统计）
+分类定义见 `.claude/skills/add-book-to-library/data/book_categories.json`（symlink → `data/book_categories.json`，Hugo 读取用）。
+当前分类：`quant`（量化金融）、`ml`（机器学习）、`systems`（系统思维）、`growth`（个人成长）、`physics`（物理科学）。新增分类只需编辑该 JSON 并在 bookshelf.html 的 `$catDisplay` 加对应 icon/desc。
 
 #### 符号说明 / 算法列表（如需要）
 
@@ -492,11 +501,11 @@ spot-check 随机抽查 2 章，18 点清单，发现问题直接修。
 | 14 | `_index.md` 不打 tags | 打 2-3 个领域标签 |
 | 15 | 例题/业界事例保持标题 | 转 `{{< example >}}` / `{{< callout >}}` |
 | 16 | 代码块不标语言 | ` ```python ` |
-| 17 | 跳过机械 grep 直接 Haiku | 机械 grep 扫描（AI 会漏）→ Haiku 逐章审核 → 机械清洗（空块/compound）→ 验证 |
+| 17 | 跳过机械 grep 直接 AI 审核 | 机械 grep 扫描（AI 会漏）→ 审核 agent 逐章检查 → 机械清洗（空块/compound）→ 验证 |
 | 18 | 不复制 MinerU images 到 book | 合并到 `content/books/<slug>/images/` |
 | 19 | 不留 MinerU 原始 MD | 保留到 `pdfs/books/<book>-out/merged/book.md` |
 | 20 | 拆分只靠 heading 自动匹配 | 手动确认章节边界，合并多余拆分 |
-| 21 | 首页书架忘加新书卡片 | 更新 `layouts/_shortcodes/bookshelf.html` 加 `<a class="book-row">` |
+| 21 | 首页书架手动加卡片 | 书架全自动（`_index.md` 的 `category` 数组驱动），只需填好 category |
 | 22 | 封面手写 `<div style="">` | `<section class="book-cover">` 模板 |
 | 23 | 图片用 JPG/PNG 格式 | WebP only（Phase 3 统一转换），质量 80 有损模式 |
 | 24 | 翻译走 subagent 而非脚本 | 翻译必须用 `translate_chapters.py`（术语表驱动 + 自动验证重试），不召唤 subagent |

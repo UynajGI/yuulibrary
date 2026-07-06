@@ -41,13 +41,21 @@ description: "<一句话概括：作者（年）做了什么、核心结论>"
 date: 2026-06-27            # 🔴 见下方「日期陷阱」
 author: "<作者列表，逗号分隔>"
 year: 2026
-tags: ["领域1", "领域2", "关键词3"]   # 2-4 个中文标签
+category: ["quant-ph"]       # 🔴 arXiv 一级分类数组，查 data/arxiv_categories.json
+tags: ["领域1", "领域2"]      # 1-2 个宽泛标签
 links:
   - name: "DOI (<期刊缩写>)"
     url: "https://doi.org/..."
   - name: "arXiv"
     url: "https://arxiv.org/abs/..."
 weight: 3                   # 比已有 papers/ 最大 weight +1
+```
+
+**🔴 category 规则**：
+- **数组，多归属**——一篇论文可以身兼多类：`["quant-ph", "cond-mat"]`
+- **只用 arXiv 一级分类**（`quant-ph`, `cond-mat`, `physics`, `math-ph`, `cs`, `q-fin`, `hep-th`, `gr-qc`, `stat`, `q-bio`, `nlin` 等），完整列表见 `.claude/skills/add-paper-to-library/data/arxiv_categories.json`（symlink → `data/arxiv_categories.json`，Hugo 读取用）
+- 非 arXiv 领域（金融、哲学等）用自定义 key：`finance`, `philosophy`, `personal-dev`, `history`
+- **查 arXiv 自动填**：有 DOI → 查 arXiv API 拿 primary category → 写进 `meta.json`。人工只在非 arXiv 论文时介入
 ---
 ```
 
@@ -75,6 +83,8 @@ cp /path/to/paper.pdf pdfs/papers/
 ### Phase 1：获取正文 + 图片
 
 **优先复用已有提取**：很多论文在 `archive/papers/` 或其它工作目录里已有 MinerU 提取的 MD + images。**先找，找不到再提取。**
+
+> 后续 Phase 2/3 操作的 MD 文件路径记为 `<提取的.md>`（MinerU 提取或已有），位于 `pdfs/papers/<id>-out/` 下。翻译输出到同目录的 `<提取的>.zh.md`（不碰源文件）。
 
 ```bash
 # 全盘搜已提取的 MD（标题片段）
@@ -148,7 +158,7 @@ python3 .claude/skills/add-paper-to-library/scripts/generate_paper_note.py \
   "date": "2026-07-04",
   "author": "<作者列表>",
   "year": 2026,
-  "category": "<分类>",
+  "category": ["quant-ph"],
   "tags": ["标签1", "标签2"],
   "weight": 25
 }
@@ -228,16 +238,17 @@ grep "^date" content/papers/<slug>/_index.md
 
 ## 失败模式速查
 
-| 症状 | 一线修复 |
-|------|---------|
-| `public/papers/<slug>/index.html` 不生成 | **日期陷阱**——date 改成昨天（见上） |
-| `hugo list all` 有但 build 没产物 | 同上，未来日期被跳过 |
-| 图片不显示 / Build REF_NOT_FOUND | 路径写 `images/x.webp`（相对 _index.md），文件在 `content/papers/<slug>/images/` |
-| 公式不渲染 | 检查 `$...$` / `$$...$$` 没被误改；KaTeX passthrough 在 `layouts/_partials/docs/inject/head.html` |
-| 用了 JPG/PNG | `convert x.jpg x.webp` 重转，只留 WebP |
-| 论文没进 `/papers/` 列表 | 检查 `_index.md`（不是普通 .md）+ front matter `title`/`weight` |
-| 图注/解答块样式丢 | 用 `{{< caption >}}` shortcode，不要 `<div>` |
-| 标签没聚合到 `/tags/` | `_index.md` 的 `tags` 数组写对（中文标签 OK） |
+| 症状 | 一线修复 | 仍失败 |
+|------|---------|--------|
+| `public/papers/<slug>/index.html` 不生成 | **日期陷阱**——date 改成昨天（见上） | 检查 `hugo list all` 是否列出 |
+| 图片不显示 / Build REF_NOT_FOUND | 路径写 `images/x.webp`（相对 _index.md），文件在 `content/papers/<slug>/images/` | 重跑 `convert_to_webp.sh` |
+| 公式不渲染 / `$$` 奇数 | 再跑 `clean_markdown.py <file>.zh.md` 修碎片 | 手动检查 `$` 配对 |
+| 翻译截断（译文远短于原文） | `translate_chapters.py` 自动分段+检测截断；重跑 `--retry 2` | 检查 `.zh.md` 是否只有部分 section |
+| 结构化分析栏目缺失 | 重跑 `generate_paper_note.py`（LLM 输出有随机性） | 检查 section 模式是否读了全部章节 |
+| 综述论文（>10 万字）触发路由 | 按提示走 book 流程翻译拆章，产物放 papers/ | 手动用 `translate_chapters.py <dir>/ --seed-chapters 2` |
+| 参考文献被翻译成中文 | `translate_chapters.py` 有参考文献隔离（`## References` 后原样保留） | 确认源文件参考文献 section 标题是 `## References` |
+| 论文没进 `/papers/` 列表 | 检查 `_index.md`（不是普通 .md）+ front matter `title`/`weight` | 检查 `category` 数组是否合法 |
+| 标签没聚合到 `/tags/` | `_index.md` 的 `tags` 数组写对（中文标签 OK） | — |
 
 ---
 
