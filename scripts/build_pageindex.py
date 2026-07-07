@@ -22,8 +22,9 @@ STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "pageindex"
 FINGERPRINTS_FILE = os.path.join(STATIC_DIR, ".fingerprints.json")
 BASE_URL = ""  # filled by Hugo relURL at runtime; script uses relative paths
 
-# GitHub raw URL 前缀（chat agent 按需 fetch md 原文，doc tree 不存 text）
-GITHUB_RAW_BASE = "https://raw.githubusercontent.com/UynajGI/yuulibrary/main/content"
+# source_md 存相对路径（如 content/notes/xxx.md），chat agent 运行时拼 raw URL 前缀
+# 这样 fork 仓库不用改——前缀从 Hugo BookRepo 配置推导
+RAW_PATH_PREFIX = "content"
 
 # summary 生成阈值（token）：短节点直接用原文，长节点才调 LLM
 SUMMARY_TOKEN_THRESHOLD = 200
@@ -426,7 +427,7 @@ def process_book(slug: str, book_dir: str) -> tuple[dict | None, list[dict]]:
         # Wrap chapter in a chapter-level node（纯容器：text 放 description，不重复正文）
         # 分文件模式下正文全在子节点里，chapter 只做层级容器
         ch_description = ch_meta.get("description", "")
-        ch_source_md = f"{GITHUB_RAW_BASE}/books/{slug}/{fname}"
+        ch_source_md = f"{RAW_PATH_PREFIX}/books/{slug}/{fname}"
         ch_node = {
             "title": ch_title,
             "node_id": "",
@@ -521,7 +522,7 @@ def process_paper(slug: str, paper_dir: str) -> tuple[dict | None, list[dict]]:
     assign_node_ids(tree)
 
     # 所有节点指向同一篇 md（paper 是单文件 _index.md）
-    paper_source_md = f"{GITHUB_RAW_BASE}/papers/{slug}/_index.md"
+    paper_source_md = f"{RAW_PATH_PREFIX}/papers/{slug}/_index.md"
     def propagate_paper_source(nodes):
         for n in nodes:
             n["source_md"] = paper_source_md
@@ -566,7 +567,7 @@ def process_note(slug: str, note_path: str) -> tuple[dict | None, list[dict]]:
     assign_node_ids(tree)
 
     # 所有节点指向同一篇 md（note 是单文件 slug.md）
-    note_source_md = f"{GITHUB_RAW_BASE}/notes/{slug}.md"
+    note_source_md = f"{RAW_PATH_PREFIX}/notes/{slug}.md"
     def propagate_note_source(nodes):
         for n in nodes:
             n["source_md"] = note_source_md

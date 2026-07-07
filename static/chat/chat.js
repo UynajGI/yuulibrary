@@ -656,15 +656,17 @@
   // 从 GitHub raw URL fetch md 原文，剥离 front matter，按行 split 缓存
   async function fetchMdLines(sourceMd) {
     if (!sourceMd) return null;
-    if (mdCache[sourceMd]) return mdCache[sourceMd];
+    // sourceMd 是相对路径（content/notes/xxx.md），用 YUU_CHAT_RAW_BASE 拼完整 URL
+    const fullUrl = (window.YUU_CHAT_RAW_BASE || "") + sourceMd;
+    if (mdCache[fullUrl]) return mdCache[fullUrl];
     try {
-      const resp = await fetch(sourceMd);
+      const resp = await fetch(fullUrl);
       if (!resp.ok) return null;
       const text = await resp.text();
       // 剥离 front matter（--- ... ---），和 build_pageindex 的 line_num 对齐
       const body = text.replace(/^---\n[\s\S]*?\n---\n/, "");
       const lines = body.split("\n");
-      mdCache[sourceMd] = lines;
+      mdCache[fullUrl] = lines;
       return lines;
     } catch (_) {
       return null;
