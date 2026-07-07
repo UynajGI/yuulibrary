@@ -188,6 +188,31 @@
     yield* readSSE(resp);
   }
 
+  // 轻量非流式 LLM 调用（给 rewrite_query / llmRerank 用，不需要流式/thinking/tools）
+  async function callLLMSync(systemPrompt, userPrompt) {
+    const cfg = Settings.resolve();
+    if (!cfg.apiKey) return "";
+    const opts = {
+      provider: cfg.provider,
+      model: cfg.model,
+      baseUrl: cfg.baseUrl,
+      apiKey: cfg.apiKey,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userPrompt }],
+      maxTokens: 1024,
+    };
+    const req = buildRequest(opts);
+    // 非流式：读完整 response body
+    const resp = await fetch(req.url, {
+      method: "POST",
+      headers: { ...req.headers, Accept: "application/json" },
+    });
+    if (!resp.ok) return "";
+    // OpenAI 兼容格式（DeepSeek/OpenAI 等）
+    const data = await resp.json().catch(() => null);
+    return data?.choices?.[0]?.message?.content || data?.content?.[0]?.text || "";
+  }
+
   // ══════════════════════════════════════════════════════════════════════════
   // Settings
   // ══════════════════════════════════════════════════════════════════════════
@@ -330,15 +355,16 @@
     if (bm25Stats || !nodeIndex) return;
     const nodes = nodeIndex.nodes || [];
     const df = new Map(); // document frequency per token
-    const FIELDS = ["title", "breadcrumb", "terms", "excerpt"];
+    // summary 字段（LLM 摘要）权重高于旧 excerpt；兼容旧索引（fallback 到 excerpt）
+    const FIELDS = ["title", "breadcrumb", "terms", "summary"];
     let totalLen = 0;
-    const fieldLen = { title: 0, breadcrumb: 0, terms: 0, excerpt: 0 };
+    const fieldLen = { title: 0, breadcrumb: 0, terms: 0, summary: 0 };
     for (const node of nodes) {
       const fieldText = {
         title: node.title || "",
         breadcrumb: (node.breadcrumb || []).join(" "),
         terms: (node.terms || []).join(" "),
-        excerpt: node.excerpt || "",
+        summary: node.summary || node.excerpt || "", // fallback 旧索引
       };
       for (const f of FIELDS) {
         const toks = tokenize(fieldText[f]);
@@ -346,7 +372,7 @@
         for (const t of new Set(toks)) df.set(t, (df.get(t) || 0) + 1);
       }
       totalLen += tokenize(
-        fieldText.title + fieldText.breadcrumb + fieldText.terms + fieldText.excerpt
+        fieldText.title + fieldText.breadcrumb + fieldText.terms + fieldText.summary
       ).length;
     }
     const N = nodes.length || 1;
@@ -358,25 +384,25 @@
         title: fieldLen.title / N,
         breadcrumb: fieldLen.breadcrumb / N,
         terms: fieldLen.terms / N,
-        excerpt: fieldLen.excerpt / N,
+        summary: fieldLen.summary / N,
       },
     };
   }
 
-  // 字段权重：title 最高，breadcrumb 次之，terms/excerpt 正常
-  const FIELD_BOOST = { title: 6, breadcrumb: 3, terms: 2, excerpt: 1 };
+  // 字段权重：title 最高，breadcrumb 次之，terms/summary 正常
+  const FIELD_BOOST = { title: 6, breadcrumb: 3, terms: 2, summary: 2 };
   const BM25_K = 1.5,
     BM25_B = 0.75;
 
   function bm25Score(queryTokens, node) {
     const stats = bm25Stats;
     let total = 0;
-    const FIELDS = ["title", "breadcrumb", "terms", "excerpt"];
+    const FIELDS = ["title", "breadcrumb", "terms", "summary"];
     const fieldText = {
       title: node.title || "",
       breadcrumb: (node.breadcrumb || []).join(" "),
       terms: (node.terms || []).join(" "),
-      excerpt: node.excerpt || "",
+      summary: node.summary || node.excerpt || "",
     };
     for (const f of FIELDS) {
       const docTokens = tokenize(fieldText[f]);
@@ -414,7 +440,7 @@
           title: tokenize(node.title || ""),
           breadcrumb: tokenize((node.breadcrumb || []).join(" ")),
           terms: tokenize((node.terms || []).join(" ")),
-          excerpt: tokenize(node.excerpt || ""),
+          summary: tokenize(node.summary || node.excerpt || ""),
         };
         for (const qt of tokens) {
           for (const f in fieldTokens) {
@@ -457,7 +483,7 @@
     const termScores = {};
     for (const h of topM) {
       const n = h.node;
-      const text = `${n.title || ""} ${(n.terms || []).join(" ")} ${n.excerpt || ""}`;
+      const text = `${n.title || ""} ${(n.terms || []).join(" ")} ${n.summary || n.excerpt || ""}`;
       const tks = tokenize(text);
       for (const t of tks) termScores[t] = (termScores[t] || 0) + h.score;
     }
@@ -481,7 +507,7 @@
       // (a) proximity：按字段分别算 query tokens 的最小跨度，取最优字段。
       //     跨字段位置不可比（title[0] vs excerpt[50] 无意义），必须同字段内算。
       let bestProx = 0;
-      for (const f of ["title", "breadcrumb", "terms", "excerpt"]) {
+      for (const f of ["title", "breadcrumb", "terms", "summary"]) {
         const positionsInField = [];
         for (const qt of queryTokens) {
           const p = posSet[qt]?.[f];
@@ -764,7 +790,53 @@
     if (topRerank >= 0.6 && sourceCount >= 2) confidence = "high";
     else if (topRerank >= 0.3 || (topRerank >= 0.15 && sourceCount >= 2)) confidence = "medium";
 
-    return { contexts, docCount: sourceCount, thin, confidence, hits: hits.slice(0, 12) };
+    // ── LLM 重排：confidence=low 时触发，批量评分重排 top 候选 ──
+    let finalContexts = contexts;
+    if (confidence === "low" && contexts.length > 2) {
+      finalContexts = await llmRerank(query, contexts);
+    }
+
+    return {
+      contexts: finalContexts,
+      docCount: sourceCount,
+      thin,
+      confidence,
+      hits: hits.slice(0, 12),
+    };
+  }
+
+  // LLM 批量评分重排（confidence=low 时触发，一次调用评所有候选）
+  async function llmRerank(query, contexts) {
+    const cfg = Settings.resolve();
+    if (!cfg.apiKey) return contexts; // BYOK 无 key 跳过
+    const top = contexts.slice(0, 6); // 只重排 top6，省 token
+    const docs = top
+      .map(
+        (c, i) =>
+          `[${i + 1}] 标题：${c.title || c.breadcrumb?.join(" > ") || ""}\n摘要：${(c.text || "").slice(0, 200)}`
+      )
+      .join("\n---\n");
+    const userPrompt = `查询：${query}\n\n候选文档：\n${docs}\n\n为每个文档打 0-10 分（10 最相关），格式"[编号] 分数"，每行一个。只返回评分。`;
+    try {
+      const resp = await callLLMSync(
+        "你是文档相关性评估专家。根据查询评估文档相关性。",
+        userPrompt
+      );
+      if (!resp) return contexts;
+      // 解析 "[1] 8" 或 "1. 8" 格式
+      const scores = new Map();
+      for (const line of resp.split("\n")) {
+        const m = line.match(/\[?(\d+)\]?\s*[:：]?\s*(\d+(?:\.\d+)?)/);
+        if (m) scores.set(parseInt(m[1]) - 1, parseFloat(m[2]));
+      }
+      if (!scores.size) return contexts;
+      // 按分数重排
+      const scored = top.map((c, i) => ({ c, score: scores.get(i) ?? 0 }));
+      scored.sort((a, b) => b.score - a.score);
+      return [...scored.map((s) => s.c), ...contexts.slice(6)];
+    } catch (_) {
+      return contexts; // 失败回退原顺序
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -868,13 +940,53 @@ ${blocks.join("\n\n---\n\n")}
       function: {
         name: "search_library",
         description:
-          "在个人数字图书馆中检索书籍、论文、笔记内容。当需要查找事实、概念、章节内容、文献时使用。可用不同的关键词多次检索以覆盖不同角度。",
+          "在个人数字图书馆中检索书籍、论文、笔记内容。当需要查找事实、概念、章节内容、文献时使用。可用不同的关键词多次检索以覆盖不同角度。返回结果含 source_id（格式 doc_type:doc_id:node_id），供 get_section 深挖。",
         parameters: {
           type: "object",
           properties: {
             query: {
               type: "string",
               description: "检索关键词或问题，用文档中可能出现的原词效果最好",
+            },
+          },
+          required: ["query"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "get_section",
+        description:
+          "取指定文档某章节的完整内容（不截断）。先用 search_library 找到 source_id，解析出 doc_id 和 node_id，再用本工具取全文。用于检索结果被截断、需要完整推导/证明/上下文时。",
+        parameters: {
+          type: "object",
+          properties: {
+            doc_id: {
+              type: "string",
+              description: "文档 ID（source_id 第二段，如 linear-response-theory-foundations）",
+            },
+            node_id: { type: "string", description: "节点 ID（source_id 第三段，如 0003）" },
+          },
+          required: ["doc_id", "node_id"],
+        },
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "rewrite_query",
+        description:
+          "分析用户问题并生成更好的检索查询建议。当直接搜索结果不佳、查询模糊/口语化/含代词时使用。返回改写后的查询词，你选择合适的去调 search_library。",
+        parameters: {
+          type: "object",
+          properties: {
+            query: { type: "string", description: "用户原始问题" },
+            strategy: {
+              type: "string",
+              enum: ["rewrite", "decompose", "step_back"],
+              description:
+                "rewrite=改写更具体；decompose=拆成子问题；step_back=生成更宽泛的背景查询",
             },
           },
           required: ["query"],
@@ -916,18 +1028,102 @@ ${blocks.join("\n\n---\n\n")}
       r.__contexts = r.contexts;
       return r;
     }
+    if (name === "get_section") {
+      const docId = args.doc_id || "";
+      const nodeId = args.node_id || "";
+      await loadDocTree(docId);
+      const doc = docCache[docId];
+      if (!doc) return { text: `文档 ${docId} 未找到或加载失败` };
+      const node = doc.flat.find((n) => n.node_id === nodeId);
+      if (!node)
+        return {
+          text: `节点 ${nodeId} 未找到。可用节点：${doc.flat
+            .slice(0, 5)
+            .map((n) => n.node_id + " " + n.title.slice(0, 20))
+            .join("; ")}...`,
+        };
+      const text = node.text || "";
+      const breadcrumb = (node._crumb || [node.title]).join(" > ");
+      const docTitle = doc.tree.title || docId;
+      return {
+        text: `### ${breadcrumb}\n*来源: ${docTitle}*\n\n${text}`,
+        __contexts: [
+          {
+            sourceId: `${docId}:${nodeId}`,
+            text,
+            docTitle,
+            breadcrumb: node._crumb || [node.title],
+            url: "",
+          },
+        ],
+      };
+    }
+    if (name === "rewrite_query") {
+      const strategy = args.strategy || "rewrite";
+      const promptTemplates = {
+        rewrite:
+          "把以下查询改写得更具体、更适合文档检索。包含文档中可能出现的专业术语和同义词。只返回改写后的查询，不要解释。\n\n原始查询：",
+        decompose:
+          "把以下复合问题分解成 2-3 个可独立检索的子问题，每行一个，不要编号。只返回子问题，不要解释。\n\n原始查询：",
+        step_back:
+          "为以下具体查询生成一个更宽泛的背景查询，用于检索基础概念和上下文。只返回背景查询，不要解释。\n\n原始查询：",
+      };
+      const userPrompt = (promptTemplates[strategy] || promptTemplates.rewrite) + args.query;
+      const rewritten = await callLLMSync(
+        "你是检索查询优化专家。根据策略改写用户查询，使其更适合在专业文档库中检索。",
+        userPrompt
+      );
+      if (!rewritten)
+        return { text: "改写失败（可能未配置 API Key），请直接换关键词调 search_library。" };
+      return {
+        text: `改写建议（${strategy}）：\n${rewritten}\n\n请用以上查询词调 search_library 检索。`,
+      };
+    }
     return { text: `未知工具: ${name}` };
   }
 
-  // agent 模式的 system prompt：不预填 context（模型自己用工具查）
+  // 从 globalIndex 渲染精简目录（注入 system prompt，让 LLM 知道图书馆有什么）
+  function buildLibraryTOC() {
+    if (!globalIndex?.docs?.length) return { text: "(索引未加载)", docCount: 0 };
+    const groups = { book: "书籍", paper: "论文", note: "笔记" };
+    const counts = { book: 0, paper: 0, note: 0 };
+    const lines = { book: [], paper: [], note: [] };
+    for (const doc of globalIndex.docs) {
+      const t = doc.type || "note";
+      if (!(t in counts)) continue; // 只处理 book/paper/note 三类
+      counts[t]++;
+      const author = doc.author ? ` ${doc.author.split(/[,，]/)[0]}` : "";
+      const tags = doc.tags?.length ? ` [${doc.tags.slice(0, 3).join(", ")}]` : "";
+      const desc = (doc.description || "").slice(0, 50);
+      lines[t].push(`- 《${doc.title}》${author} — ${desc}${tags}`);
+    }
+    let text = "";
+    for (const [t, label] of Object.entries(groups)) {
+      if (counts[t]) text += `### ${label}（${counts[t]} 篇）\n${lines[t].join("\n")}\n\n`;
+    }
+    return { text: text.trim(), docCount: globalIndex.docs.length };
+  }
+
+  // agent 模式的 system prompt：注入全局目录 + 查询转换策略引导
   function buildAgentSystemPrompt() {
+    const toc = buildLibraryTOC();
     return `你是 **Yuunagi Library** 的知识助手，基于个人数字图书馆的 RAG 问答系统。
 
+## 图书馆目录（${toc.docCount} 篇文档，检索前先浏览相关领域）
+${toc.text}
+
 ## 工作方式
-- 你有 search_library 工具，可以检索图书馆中的书籍、论文、笔记
+- 你有三个工具：search_library（检索）、get_section（取完整章节）、rewrite_query（改写查询）
 - 回答用户问题前，**必须先调用 search_library 检索**，不要凭记忆回答
-- 如果第一次检索结果不够，可以换关键词再检索，或从不同角度多检索几次
 - 只能基于检索到的内容回答，不要使用外部知识编造
+
+## 检索策略（重要）
+第一次用用户原话检索。如果结果不足，换策略重试：
+- **查询重写**：换成文档里可能出现的专业术语重搜（如"那个相变"→"量子相变 Rabi 模型"）
+- **子查询分解**：复合问题拆成子问题分别检索（如"Berry phase 和线性响应的关系"→分两搜）
+- **步退查询**：太具体搜不到时，先用更宽泛的概念搜背景知识
+- 可调 rewrite_query 工具生成改写建议，也可直接换关键词调 search_library
+- 找到相关章节但内容被截断时，用 get_section 取完整内容（需 doc_id 和 node_id）
 
 ## 回答规则
 - 每个关键论断标注来源编号 [N]，对应检索结果中的 [N]
