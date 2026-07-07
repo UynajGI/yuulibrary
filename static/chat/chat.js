@@ -712,7 +712,9 @@
     const node = flat[idx],
       crumb = node._crumb || [node.title];
     // 正文从 source_md（GitHub raw URL）按 line_num 按需取，不再存 doc tree
-    const text = await fetchMdSection(node.source_md, node.line_num, node.line_end);
+    let text = await fetchMdSection(node.source_md, node.line_num, node.line_end);
+    // fallback：fetch 失败时用 summary（避免检索全空）
+    if (!text) text = node.summary || node.text || "";
     const parent =
       crumb.length > 1
         ? flat.find(
@@ -1073,7 +1075,9 @@ ${blocks.join("\n\n---\n\n")}
             .map((n) => n.node_id + " " + n.title.slice(0, 20))
             .join("; ")}...`,
         };
-      const text = await fetchMdSection(node.source_md, node.line_num, node.line_end);
+      let text = await fetchMdSection(node.source_md, node.line_num, node.line_end);
+      if (!text)
+        text = node.summary || "(正文获取失败，仅显示摘要：" + (node.summary || "无") + ")";
       const breadcrumb = (node._crumb || [node.title]).join(" > ");
       const docTitle = doc.tree.title || docId;
       return {
