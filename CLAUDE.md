@@ -59,7 +59,7 @@ yuulibrary/
 
 1. MinerU VLM 提取 PDF / EPUB 解包转换 → 合并 → 清洗（**EPUB pandoc 残留必须清理**：`::: fn1` / `::: blk1` / `[]{#page}` / `{.class}` / `-----` 表格分隔符）
 2. 在 `content/books/<book-slug>/` 下创建扁平目录（**无分类子目录**）
-3. `_index.md`：`<section class="book-cover">` + `{{< book-toc >}}`，必须加 `description` + `tags`
+3. `_index.md`：`<section class="book-cover">` + `{{< book-toc >}}`，**front matter 必填 `description` + `tags` + `author` + `date` + `category`**。`date` 写添加当天（如 `date: 2026-07-07`），驱动书架"入库"排序
 4. 每章文件 `ch01.md` 起，**front matter 含 `description`**：
    ```yaml
    ---
@@ -73,7 +73,7 @@ yuulibrary/
 7. **🔴 Part 页面必须用 book-part 模板**（参照 systems-beauty），weight 比所属第一章小 1
 8. Phase 4.5 审核脚本未覆盖的语义问题（元素模板/OCR/Mermaid/标题层级/伪代码）→ `validate_book.py` 验证。**数学教材先跑 `format_theorems.py`** 批量加粗段落级定理/定义，再派 agent 转 shortcode
 9. **🔴 质量检查必须用 spot-check agent**：`Agent(subagent_type: "spot-check")`
-10. **🔴 `_index.md` 必填 `author` 字段**——bookshelf.html 用 `.Params.author` 过滤，缺了书架不显示这本书
+10. **🔴 `_index.md` 必填 `author` 和 `date` 字段**——`author` 用于 bookshelf 过滤，`date` 用于"入库"排序（写添加当天的日期，如 `date: 2026-07-07`，**写完立刻验证是否 ≤ 当前 UTC 时间**，防止 Hugo 静默跳过未来页面）
 11. `hugo server` 验证
 
 ## 添加新论文

@@ -4,6 +4,7 @@ author: "赵胜民"
 description: "从投资组合理论到算法交易系统，涵盖配对交易、可转债套利、期指套利等策略，15 章。"
 category: ["quant"]
 weight: 1
+date: 2026-06-24
 BookCollapseSection: true
 tags: ['量化金融', '投资交易']
 ---

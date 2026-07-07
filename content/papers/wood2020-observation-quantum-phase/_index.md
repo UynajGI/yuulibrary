@@ -1,0 +1,221 @@
+---
+title: "单自旋经典旋转中量子相位的实验观测"
+description: "Wood 等人（2020，PRL）将 NV 色心置于 200,000 rpm 旋转的电机上，首次实验观测到纯粹由经典机械旋转引起的单电子自旋相位偏移——无需磁场或辅助自旋中转。"
+date: "2026-07-06"
+author: "A. A. Wood, L. C. L. Hollenberg, R. E. Scholten, A. M. Martin"
+year: 2020
+category: ["quant-ph", "cond-mat"]
+weight: 33
+tags: ['几何相位', '量子计算']
+links:
+  - name: "DOI (Phys. Rev. Lett.)"
+    url: "https://doi.org/10.1103/PhysRevLett.124.020401"
+  - name: "arXiv"
+    url: "https://arxiv.org/abs/1908.08682"
+---
+
+A. A. Wood,<sup>1</sup> L. C. L. Hollenberg,<sup>1,</sup> <sup>2</sup> R. E. Scholten,<sup>1</sup> 和 A. M. Martin<sup>1,</sup> <sup>∗</sup>
+
+<sup>1</sup>School of Physics, University of Melbourne, Victoria 3010, Australia
+
+<sup>2</sup>Center for Quantum Computation and Communication Technology,
+
+University of Melbourne, Victoria 3010, Australia
+
+(日期：2019年8月26日)
+
+角动量理论在基础层面上将物理旋转与量子自旋联系起来。因此，量子系统的物理旋转将影响基本的量子操作，例如投影希尔伯特空间中的自旋旋转，但由于量子相干性的脆弱性，这些效应非常微妙，在实验上难以观测。在此，我们报告了对单个电子自旋相位偏移的直接测量，该偏移直接源于物理旋转，无需通过磁场或辅助自旋进行转导。这种相位偏移通过测量微波驱动场与旋转的二能级电子自旋系统之间的相位差来观测，并且可以在时间上非线性地累积。我们通过自旋回波干涉测量法检测了在每分钟20万转的旋转钻石中单个氮-空位（NV）量子比特的非线性相位。我们的测量结果证明了自旋、物理旋转和量子相位之间的基本联系，并将适用于量子系统的旋转自由度未固定的方案，例如基于自旋的旋转传感器和含有自旋的捕获纳米粒子。
+
+## 引言
+
+物理旋转是经典物理学中最普遍的元素之一。从星系到单个分子，一切都在无数的时间尺度上旋转，对每个系统中的物理过程产生基本影响。量子系统也受到物理旋转的影响，但在大多数情况下，由于在以与系统相干时间相当的速率可控地旋转可寻址量子系统方面存在困难，因此有意义地观测或利用这些效应具有挑战性。固态自旋量子比特，例如钻石中的氮-空位（NV）中心[1, 2]，由于其长达数毫秒的相干时间[4]以及宿主衬底的坚固性质，为研究经典旋转如何影响量子系统[3]提供了有前景的测试平台。由于NV的自然量子化轴由宿主钻石晶体取向决定，旋转晶体即旋转量子比特，并且可以独立检查其他现象（如磁场）的影响[5, 6]。在这项工作中，我们观测到经典旋转钻石中的单个NV量子比特与用于驱动量子旋转的外部微波场之间的相位偏移。根据NV固有轴、微波场和旋转轴之间的角度，这种由旋转引起的相位可以非线性地累积，因此可以在NV电子自旋的自旋回波测量中检测到。
+
+检测由物理旋转引起的相位偏移对量子传感具有重要意义[7, 8]。理论工作[9-11]提出利用倾斜NV量子比特物理旋转产生的贝里相位[12]作为陀螺仪传感器，而其他方案则设想基于检测邻近核自旋拉莫尔进动频率的旋转偏移的陀螺仪[13]。在实验上，NV系统中贝里相位的实现一直局限于静态系统。Yale等人利用光学跃迁沿布洛赫球上的闭合路径驱动NV自旋[14]，而其他工作则使用在旋转框架中沿回路变化的额外非共振微波驱动场[15, 16]，类似于在固态量子比特[17]和核磁共振系统[18]中首次观测到的贝里相位。最近的实验工作使用相移微波脉冲模拟旋转，模拟了微波场的旋转[19]。
+
+检测旋转对NV电子自旋影响的主要挑战——无论是通过贝里相位还是其他机制，即使在快速旋转的原理验证实验中，也在于如何从磁场和温度变化的影响中区分出微小的旋转相移。在我们的工作中，由于微波场在NV量子比特的物理旋转框架中的有效旋转，旋转引起的相移可以非线性地累积。因此，我们能够利用自旋回波序列的去耦特性来延长干涉测量时间，从而使得在噪声环境中直接测量由旋转诱导的电子自旋相移成为可能。
+
+## 实验装置与理论模型
+
+图1展示了我们系统的示意图，而具体的实验配置与先前在参考文献[3]中描述的类似。一块 $99.99\%$ 的 $^{12}\mathrm{C}$ 金刚石通过其(100)面安装在一个绕z轴以 $\omega_{\mathrm{rot}} = 3.33 \mathrm{kHz}$ 旋转的电机上。该金刚石包含可单独分辨的NV色心，其典型相干时间为 $T_{2}^{*} \approx 50 \mu \mathrm{s}$ 和 $T_{2} \approx 1$ ms。单个NV色心通过扫描共聚焦显微镜成像，其照明脉冲与电机的旋转同步。我们考虑一个位于距旋转中心约3 µm处的特定NV色心。N-V轴与z轴的夹角为 $\theta_{\mathrm{NV}} = 54.7^{\circ}$。施加一个平行于旋转轴的磁场（图中未示出）可以解除NV $m_{S} = \pm 1$ 态之间的简并，使我们能够将 $| m_{S} = 0 \rangle$ 和 $| m_{S} = - 1 \rangle$ 态视为一个赝自旋- $1/2$ 系统（详见补充信息）。我们引入旋转算符 $R_{i} ( \theta ) = \exp{( - i S_{i} \theta )}$，其中 $S_{i} = {\textstyle \frac{1} {2}} \sigma_{i}$ 是自旋1/2的泡利矩阵，且 $i \in \{x , y , z \} , \hbar = 1$。在静止的实验室坐标系中，旋转的NV哈密顿量由 $R_{\mathrm{NV}} H_{0} R_{\mathrm{NV}}^{- 1}$ 给出，其中 $R_{\mathrm{NV}} = R_{z} ( \phi ) R_{y} ( \theta_{\mathrm{NV}} )$，$H_{0} = D_{\mathrm{zfs}} S_{z}^{2}$，$D_{\mathrm{zfs}} = 2.870$ GHz 是零场分裂，而 $\phi = \omega_{\mathrm{rot}} t$ 是方位角坐标。线偏振的微波驱动场可表示为一个与z轴倾斜角度为 $\theta_{\mathrm{mw}}$ 的振荡磁场，如图1(c)所示，并由算符 $H_{\mathrm{mw}} ( \theta_{\mathrm{mw}} ) = {R_{y}} ( \theta_{\mathrm{mw}} ) \Omega_{0} S_{z} \cos{( \omega t - \phi_{0} ) {R_{y}}^{- 1}} ( \theta_{\mathrm{mw}} )$ 表示，其中 $\Omega_{0}$ 是拉比频率，$\omega$ 是微波振荡频率，$\phi_{0}$ 是任意初始相位。在旋转NV的坐标系中，相互作用哈密顿量为：
+
+![](images/1375e90cbac78ed502f22b53b2e28819b09e5956bbae1b538dd7141367d165af.webp)
+{{< caption >}}图1：(a) 实验装置，展示了安装于电动机上的(100)金刚石中的NV色心，电动机绕轴z旋转，方位角坐标为$\phi$。使用532 nm激光对NV自旋进行光泵浦，并通过金刚石表面上方20 µm直径的铜线施加与$m_{S} = 0$ ↔ $m_{S} = - 1$跃迁共振的微波。(b) 微波线的位置决定了微波极化矢量与旋转轴之间的夹角$\theta_{\mathrm{mw}}$。沿y轴移动微波线最多100 µm可将$\theta_{\mathrm{mw}}$从$28^{\circ}$变化到$67^{\circ}$。(c) 倾斜角为$\theta_{\mathrm{mw}} = 30^{\circ}$ (紫色)、$54.7^{\circ}$ (绿色)和$90^{\circ}$ (橙色)时，微波矢量在(i)静止实验室坐标系、(ii)NV坐标系（其中$\theta_{\mathrm{NV}} = 54.7^{\circ}$）以及(iii)以微波频率旋转的NV坐标系中的表现。微波矢量的几何路径反映了物理旋转，在旋转波近似下投影到NV布洛赫球的方位角平面上，其中方位角坐标代表微波场的整体有效相位φ<sub>ef</sub>。(d) 对于不同$\theta_{\mathrm{NV}}$，有效相位$\phi_{\mathrm{eff}}$随旋转角$\phi$（等同于时间t）的变化，突出了随旋转角$\phi$的非线性累积。应用于旋转量子比特的自旋回波序列中各脉冲的相位由$\phi_{\mathrm{eff}}$设定，线性相位$\phi$被消除，而由倾斜微波场存在下的旋转引入的相位非线性δφ在自旋回波信号中表现为$\cos^{2} \delta \phi${{< /caption >}}
+
+$$
+H_{I} = R_{\mathrm{NV}}^{- 1} (\theta_{\mathrm{NV}}, \phi) H_{\mathrm{mw}} (\theta_{\mathrm{mw}}) R_{\mathrm{NV}} (\theta_{\mathrm{NV}}, \phi).\tag{1}
+$$
+
+在旋转波近似(RWA)下，$H_{I}$的对角项被忽略，仅保留非对角元素中慢变项$( \ll \omega )$。因此，近共振微波场近似为旋转坐标系中的一个方位角矢量，其分量为$\Omega = ( \Omega \cos \phi_{\mathrm{eff}} , \Omega \sin \phi_{\mathrm{eff}} , 0 )$，其中$\Omega = | H_{I}^{( i , j )} |$且$\phi_{\mathrm{eff}} = \mathrm{Arg} ( H_{I}^{( i , j )} )$，即$H_{I}^{( i , j )} = \left( H_{I}^{( j , i )} \right)^{\dagger}$的非对角分量中复数的模和幅角。
+
+$$
+\begin{array}{r l} {H_{I}^{(i, j)} =} & {\Omega_{0} e^{- i \phi_{0}} \left(\cos \theta_{\mathrm{NV}} \cos \phi \sin \theta_{\mathrm{mw}} \right.} \\ & {\left. - \cos \theta_{\mathrm{mw}} \sin \theta_{\mathrm{NV}} + i \sin \theta_{\mathrm{mw}} \sin \phi\right) / 2.} \end{array}\tag{2}
+$$
+
+在微波频率旋转坐标系下，两能级系统的自旋矢量 $\begin{array} {r} {S_{i} = \frac{1} {2} \langle \sigma_{i} \rangle} \end{array}$ 围绕驱动场 $\Omega$ 进动。在脉冲干涉测量序列中，由式(2)可见，方位旋转角 $\phi$ 决定了有效相位 $\phi_{\mathrm{eff}}$，并确定了每个脉冲旋转自旋矢量所绕的轴。例如，在简单的 $\scriptstyle{\frac{\pi} {2}} - \tau - {\frac{\pi} {2}}$ Ramsey 序列中，序列中第二个脉冲的相对相位由 $\phi_{\mathrm{eff}}$ 设定。
+
+当考虑 $\theta_{\mathrm{mw}} \neq 0$ 时，有效相位变得更加复杂。微波场的倾斜角 $\theta_{\mathrm{mw}}$ 通过平移产生微波磁场的导线位置来改变，如图1(b)所示。图1(c)描绘了实验室、旋转-NV 坐标系和投影希尔伯特空间（RWA 下的布洛赫球）中的倾斜微波场，以及旋转时不同微波倾斜角 $\theta_{\mathrm{mw}}$ 下产生的有效相位 $\phi_{\mathrm{eff}}$。微波场在 NV 坐标系中经过的几何路径（图1(c,ii)）被投影到 RWA 希尔伯特空间的方位平面上（图1(c,iii)），其中 $\phi_{\mathrm{eff}}$ 被识别为 Ω 的方位角。当 $\theta_{\mathrm{mw}} \neq 0$ 时，$\phi_{\mathrm{eff}}$ 表现出非线性行为：对于 $\theta_{\mathrm{mw}} < \theta_{\mathrm{NV}}$，Ω 在一个半球内振荡；而对于 $\theta_{\mathrm{mw}} > \theta_{\mathrm{NV}}$，Ω 则在整个方位平面内旋转。因此，当 $\theta_{\mathrm{mw}} \neq 0$ 时，φ<sub>ef</sub> 随旋转角非线性累积，从而使得通过自旋回波干涉测量法进行测量成为可能。与简单的 Ramsey 序列相比，自旋回波允许更长的询问时间，从而跨越更大的方位角，并且对温度漂移具有更高的灵敏度。
+
+自旋回波序列测量初始和最终 $\pi / 2$ 脉冲之间的重聚焦 π 脉冲两侧相位累积的差值。因此，自旋回波对线性累积的相移不敏感，无论这种相移源自量子系统本身（例如，由静态磁场引起）还是由于线性的 $\phi_{\mathrm{eff}}$ 导致的 Ω 的方位进动。在后一种情况下，由于在自由演化期间微波场被关闭，正是每个微波脉冲采样的瞬时 φ<sub>ef</sub> 赋予了我们要测量的相移；并且，如果 $\phi_{\mathrm{eff}}$ 在整个脉冲序列中线性变化，则该相移将被抵消，这与传统自旋回波测量中直流磁场偏移的抵消类似。在施加 π 重聚焦脉冲时（图1d），任何偏离线性有效相位累积（由于 $\theta_{\mathrm{mw}} \neq 0$ 导致）的行为都将反映在两能级系统的最终布居数上，从而使我们能够将 $\phi_{\mathrm{eff}}$ 的非线性分量定义为
+
+$$
+\delta \phi = \frac{\phi_{\mathrm{eff}} (\tau)}{2} - \phi_{\mathrm{eff}} \left(\frac{\tau}{2}\right),\tag{3}
+$$
+
+假设 $\phi_{\mathrm{eff}} ( \tau ~ = ~ 0 ) ~ = ~ 0 $，那么 $| m_{S} ~ = ~ 0 \rangle$ 态的布居数按照 $\cos^{2} \left( \delta \phi \right)$ 变化。实际上，我们通过观察自旋回波干涉条纹的相位（该相位作为外加磁场的函数而扫描得到）来测量旋转引起的 $\delta\varphi$。在旋转NV自旋回波测量中，任何不平行于旋转轴的直流磁场都会在旋转坐标系中有效地上变频为振荡场[6]。由于有效微波相位 $\phi_{\mathrm{eff}}$ 可以通过改变微波倾斜角 $\theta_{\mathrm{mw}}$ 来控制，因此在旋转NV自旋回波测量中，旋转引起的相移表现为依赖于倾斜角的条纹相移。
+
+如图1(d)所示，并且根据公式(3)，在持续时间为τ的自旋回波测量中采样的$\phi_{\mathrm{eff}}$的具体行为，对于特定的微波倾斜角选择可能是近似线性的，这种情况下 $\delta \phi$ 会很小；或者有效相位可能非常非线性，导致较大的 $\delta \phi$。为了估计我们系统中预期的 $\phi_{\mathrm{eff}}$ 行为，我们测量了微波耦合强度 $\Omega ( \theta_{\mathrm{mw}} , \phi )$ 的角度依赖性，这揭示了微波场的矢量行为，然后我们重建了预期的相位行为。我们通过在不同静态"驻停"角度 $\phi$ 和不同微波线位置 $( \theta_{\mathrm{mw}} )$ 处采集的时域拉比振荡进行离散傅里叶变换，测量了微波拉比频率。使用一个简单的近似，即从导线发出的微波场为 $\hat{B}_{\mathrm{mw}} = \hat{\varphi}$，其中 $\varphi$ 是导线圆柱坐标系 $( \hat{\pmb r^{\prime}} , \hat{\varphi} , \hat{\pmb x} )$ 中的方位角坐标，足以精确地重现所测拉比频率 $\Omega$ 的角度依赖性。图2所示模型中唯一的自由参数是NV轴的绝对方位角方向与任意电机驻停角度之间的校准。这些测量还确定了执行旋转自旋回波序列中使用的 $\pi / 2 \AA$ 和 $\pi$ 脉冲所需的微波脉冲持续时间，对于某些 $\theta_{\mathrm{mw}}$，这些脉冲的持续时间在同一个序列中可能存在显著差异。单个自旋回波序列中拉比频率的最大变化范围在1到6 MHz之间。图2显示了所测微波拉比频率和重建的有效相位随电机驻停角度的变化。
+
+对于我们在旋转过程中进行的 $\phi_{\mathrm{eff}}$ 测量，我们选择了 $\tau = 100 \mu \mathrm{s}$（在3.33 kHz下对应 $120^{\circ}$）以及两种初始配置：一种测量中 $\phi_{\mathrm{eff}}$ 近似线性变化（$\delta_{\phi} \approx 0$），另一种配置则采样 $\phi = 250^{\circ}$ 附近的高度非线性行为，以观察最大的 $\delta \phi$。实验序列与金刚石的旋转同步，利用电机触发与实验序列开始之间的延迟时间来改变自旋回波实验的起始角度。实验序列包括测量作为外加直流磁场 $\mathbf{B} = ( B_{x} , 0 , 0 )$ 函数的自旋回波条纹，该测量针对不同的微波倾斜角 $\theta_{\mathrm{mw}}$ 进行。在每个旋转周期执行一次制备-查询-读出循环，并在大约两到三分钟的时间内重复超过 $10^{5}$ 次。
+
+图 $\mathrm{3 ( a , b )}$ 展示了在 $\phi_{\mathrm{eff}}$ 线性积累区域和非线性积累区域中，针对几种不同微波倾斜角度的自旋回波条纹。我们通过将 $\overline{{\cos^{2} ( 2 \pi f_{0} - \delta \phi )}}$ 形式的函数拟合到条纹数据来提取相移，结果绘制在图 3(c) 中，其中 $f_{0}$ 是整个数据集的平均条纹频率。装置温度的漂移会进而导致背景磁场环境的漂移，这一问题尤为棘手，因为横向磁场的漂移会导致自旋回波信号相位发生虚假的偏移。因此，我们在 $B_{x}$ 的一个狭窄范围（一个周期）内并尽可能快速地对自旋回波信号进行采样。关于漂移及其他误差来源的更详细分析见补充材料。这些结果与基于图 2 中静态数据建立的模型吻合得非常好，并首次展示了一个由经典旋转决定量子相位的单室温自旋系统。
+
+![](images/d938bcbd9f11b9aae7484a3b18b30f89ed9ba178190803284e944acebd1b9cba.webp)
+{{< caption >}}图2：根据静态拉比频率重建有效相位积累。上图：测量的归一化拉比频率与电机静态旋转角度在不同微波倾斜角度下的关系，线条表示由公式 (2) 推导出的模型，误差棒表示通过对时域拉比振荡进行傅里叶变换计算出的拉比频率的不确定性。下图：使用相同模型重建的有效相位。垂直线表示施加微波脉冲时采样的拉比频率和有效相位 —— 对应于 $\phi_{\mathrm{eff}}$ 最小非线性（蓝色）和最大非线性（橙色）的情况。{{< /caption >}}
+
+## 结果与讨论
+
+通过测量旋转诱导的相位，我们利用 NV 中心的自旋实现了对实际物理旋转的探测。$\phi_{\mathrm{eff}}$ 的非线性方面是我们的测量在嘈杂环境中能够工作的关键，这是一个某种程度上被忽视的效应，可能为精密旋转传感或为量子系统提供额外的控制手段带来新的可能性。尽管实用化的金刚石基旋转传感器在技术上面临巨大挑战，但我们的结果将适用于其他在量子时间尺度上物理旋转起重要作用的系统。在比本文所报告工作慢得多的时间尺度上，对流体环境中纳米金刚石的布朗运动和旋转扩散的研究 [20–22] 提供了一个量子系统中多轴物理旋转的有趣例子，而我们的工作则提供了将此类测量向前推进一步、在量子相关时间尺度上探测快速旋转和运动的前景。从更广泛的意义上说，我们的结果进一步凸显了简单的物理旋转可以赋予复杂系统显著的物理效应。未来的工作可以考虑在不同系统中于更快时间尺度上对旋转进行量子测量，例如光阱和电阱中的纳米金刚石 [23–26]，它们在实现灵敏扭矩探测器和探索基础量子力学方面具有有趣的前景 [27–29]。
+
+![](images/6eb709728bc95c84a9e5d3045bb5b8837d77d9ef5f6501d87f1ab0aa630a1342.webp)
+
+![](images/547da485d66f5099e59a46d8f65a704be60dd52bab365fd4014ee0d86b09d534.webp)
+
+![](images/c12c9714042e0ef51f97092a6a3e3874d1ea3c94d8015cac985ff1b574b0a2cd.webp)
+{{< caption >}}图3：由物理旋转引起的电子自旋相移的探测。上图：对于不同的微波倾斜角度，在 $\tau = 100$ µs $( \Delta \phi = 120^{\circ} )$ 条件下，作为外加 x 场函数的自旋回波条纹，分别对应线性测量 $( \phi_{0} ~ = ~ 357^{\circ}$ ，左图) 和对 φ<sub>ef</sub> 非线性部分最灵敏的测量 $( \phi_{0} ~ = ~ 160^{\circ}$ ，右图)。自旋回波信号误差棒表示测量自旋态的不确定性，该不确定性主要源于光子计数统计。下图：对于线性（蓝色）和非线性（橙色）区域，拟合得到的条纹相移与微波倾斜角度的关系。误差棒表示拟合相位的不确定性。{{< /caption >}}
+
+### 致谢
+
+我们感谢 L. P. McGuinness 提供金刚石样品，以及 L. D. Turner 和 R. P. Anderson 进行富有成效的讨论。本工作得到了澳大利亚研究理事会发现计划（DP150101704, DP190100949）的支持。
+
+
+[1] M. W. Doherty, N. B. Manson, P. Delaney, F. Jelezko, J. Wrachtrup, and L. C. L. Hollenberg, Physics Reports The nitrogen-vacancy colour centre in diamond, 528, 1 (2013).
+
+[2] R. Schirhagl, K. Chang, M. Loretz, and C. L. Degen, Annual Review of Physical Chemistry 65, 83 (2014).
+
+[3] A. A. Wood, E. Lilette, Y. Y. Fein, N. Tomek, L. P. McGuinness, L. C. L. Hollenberg, R. E. Scholten, and A. M. Martin, Science Advances 4, eaar7691 (2018).
+
+[4] G. Balasubramanian, P. Neumann, D. Twitchen, M. Markham, R. Kolesov, N. Mizuochi, J. Isoya, J. Achard, J. Beck, J. Tissler, V. Jacques, P. R. Hemmer, F. Jelezko, and J. Wrachtrup, Nat Mater 8, 383 (2009).
+
+[5] A. A. Wood, E. Lilette, Y. Y. Fein, V. S. Perunicic, L. C. L. Hollenberg, R. E. Scholten, and A. M. Martin, Nature Physics 13, nphys4221 (2017).
+
+[6] A. A. Wood, A. G. Aeppli, E. Lilette, Y. Y. Fein, A. Stacey, L. C. L. Hollenberg, R. E. Scholten, and A. M. Martin, Phys. Rev. B 98, 174114 (2018).
+
+[7] C. Zhang, H. Yuan, Z. Tang, W. Quan, and J. C. Fang, Applied Physics Reviews 3, 041305 (2016).
+
+[8] C. Degen, F. Reinhard, and P. Cappellaro, Rev. Mod. Phys. 89, 035002 (2017).
+
+[9] D. Maclaurin, M. W. Doherty, L. C. L. Hollenberg, and A. M. Martin, Phys. Rev. Lett. 108, 240403 (2012).
+
+[10] M. P. Ledbetter, K. Jensen, R. Fischer, A. Jarmola, and D. Budker, Phys. Rev. A 86, 052116 (2012).
+
+[11] X. Song, L. Wang, F. Feng, L. Lou, W. Diao, and C. Duan, Journal of Applied Physics 123, 114301 (2018).
+
+[12] M. V. Berry, Proceedings of the Royal Society of London A: Mathematical, Physical and Engineering Sciences 392, 45 (1984).
+
+[13] A. Ajoy and P. Cappellaro, Phys. Rev. A 86, 062104 (2012).
+
+[14] C. G. Yale, F. J. Heremans, B. B. Zhou, A. Auer, G. Burkard, and D. D. Awschalom, Nature Photonics 10, 184 (2016).
+
+[15] K. Zhang, N. M. Nusran, B. R. Slezak, and M. V. G. Dutt, New J. Phys. 18, 053029 (2016).
+
+[16] K. Arai, J. Lee, C. Belthangady, D. R. Glenn, H. Zhang, and R. L. Walsworth, Nature Communications 9, 4996 (2018).
+
+[17] P. J. Leek, J. M. Fink, A. Blais, R. Bianchetti, M. Gppl, J. M. Gambetta, D. I. Schuster, L. Frunzio, R. J. Schoelkopf, and A. Wallraf, Science 318, 1889 (2007).
+
+[18] D. Suter, G. C. Chingas, R. A. Harris, and A. Pines, Molecular Physics 61, 1327 (1987).
+
+[19] J.-C. Jaskula, K. Saha, A. Ajoy, D. Twitchen, M. Markham, and P. Cappellaro, Phys. Rev. Applied 11, 054010 (2019).
+
+[20] L. P. McGuinness, Y. Yan, A. Stacey, D. A. Simpson, L. T. Hall, D. Maclaurin, S. Prawer, P. Mulvaney, J. Wrachtrup, F. Caruso, R. E. Scholten, and L. C. L. Hollenberg, Nat Nano 6, 358 (2011).
+
+[21] D. Maclaurin, L. T. Hall, A. M. Martin, and L. C. L. Hollenberg, New J. Phys. 15, 013041 (2013).
+
+[22] Y. Yoshinari, Z. Kalay, and Y. Harada, Phys. Rev. B 88, 235206 (2013).
+
+[23] V. R. Horowitz, B. J. Alemn, D. J. Christle, A. N. Cleland, and D. D. Awschalom, PNAS 109, 13493 (2012).
+
+[24] T. M. Hoang, Y. Ma, J. Ahn, J. Bang, F. Robicheaux, Z.- Q. Yin, and T. Li, Phys. Rev. Lett. 117, 123604 (2016).
+
+[25] T. Delord, L. Nicolas, L. Schwab, and G. H´etet, New J. Phys. 19, 033031 (2017).
+
+[26] T. Delord, P. Huillery, L. Schwab, L. Nicolas, L. Lecordier, and G. H´etet, Phys. Rev. Lett. 121, 053602 (2018).
+
+[27] T. Delord, L. Nicolas, Y. Chassagneux, and G. H´etet, Phys. Rev. A 96, 063810 (2017).
+
+[28] B. A. Stickler, B. Papendell, S. Kuhn, B. Schrinski, J. Millen, M. Arndt, and K. Hornberger, New J. Phys. 20, 122001 (2018).
+
+[29] T. Delord, P. Huillery, L. Nicolas, and G. H´etet, arXiv:1905.11509 [cond-mat, physics:quant-ph] (2019), arXiv: 1905.11509.
+
+
+## 阅读笔记
+
+### 一句话概括
+本文利用旋转钻石中单个**氮-空位（NV）中心**的电子自旋，通过**自旋回波干涉测量法**直接观测了由经典物理旋转（$\omega_{\mathrm{rot}}=3.33$ kHz）诱导的量子相位偏移。核心结论是：当微波驱动场与旋转轴夹角 $\theta_{\mathrm{mw}}$ 不等于NV轴夹角 $\theta_{\mathrm{NV}}=54.7^\circ$ 时，旋转会导致有效微波相位 $\phi_{\mathrm{eff}}$ 随时间非线性累积；该非线性分量 $\delta\phi$ 可通过自旋回波条纹的相移被精确提取，首次在单个室温固态自旋系统中验证了自旋、物理旋转与量子相位之间的直接联系。
+
+### 核心论证链
+1. **将旋转坐标变换引入NV系统**：物理旋转改变了NV坐标系的取向，因此需要将哈密顿量旋转到NV的静止坐标系中（式1）。这一步是将经典的物理旋转映射为量子系统内部动力学变量的基础。
+2. **在旋转波近似下提取有效相位**：通过对相互作用哈密顿量做RWA（忽略快速振荡项），非对角元（式2）的幅角被识别为有效相位 $\phi_{\mathrm{eff}}$。这一步的关键是发现 $\phi_{\mathrm{eff}}$ 依赖于物理旋转角 $\phi$ 和微波倾斜角 $\theta_{\mathrm{mw}}$，从而将旋转运动编码到微波脉冲的旋转轴上。
+3. **证明$\phi_{\mathrm{eff}}$的非线性是测量的前提**：当 $\theta_{\mathrm{mw}} \neq 0$ 且 $\theta_{\mathrm{mw}} \neq \theta_{\mathrm{NV}}$ 时，式(2)的分母（包含 $\cos\phi$ 项）会过零，导致 $\phi_{\mathrm{eff}}$ 发生$\pi$跳跃，产生非线性累积。只有这种非线性部分 $\delta\phi$ 才能在自旋回波中幸存（抵消线性部分），使得测量成为可能。
+4. **设计自旋回波方案分离信号**：自旋回波序列（$\pi/2 - \tau - \pi - \tau - \pi/2$）天然抵消线性相移（如静态磁场、均匀旋转引起的线性$\phi_{\mathrm{eff}}$）。保留的$\delta\phi$（式3）直接调制末态布居数 $\propto \cos^2(\delta\phi)$，使信噪比提升了约 $(\tau/T_2^*)\approx 20$ 倍。
+5. **通过静态测量校准模型**：在不同驻停角度 $\phi$ 下测量拉比频率 $\Omega$，利用式(2)模型重建完整的 $\phi_{\mathrm{eff}}(\phi)$ 曲线（图2）。这验证了模型的准确性，并为筛选高非线性区域（最佳测量起始角）提供了依据。
+6. **对比实验验证旋转引起的相移**：选择线性区和非线性区进行自旋回波实验，观察到非线性区条纹相移随 $\theta_{\mathrm{mw}}$ 的系统性变化，与模型预测完全吻合（图3）。对比实验排除了磁场、温度漂移等系统误差的影响，确认观测到的相移确实由旋转引起。
+
+### 实验参数详解
+| 参数 | 数值 | 含义 |
+| :--- | :--- | :--- |
+| $\omega_{\mathrm{rot}}$ | 3.33 kHz | 钻石物理旋转角频率 (200,000 rpm) |
+| $\tau$ | 100 $\mu$s | 自旋回波自由演化时间，对应 $\Delta\phi = 120^\circ$ |
+| $\theta_{\mathrm{NV}}$ | 54.7° | NV轴与旋转轴(z轴)的固定夹角 |
+| $\theta_{\mathrm{mw}}$ | 28° - 67° | 微波磁场矢量与z轴夹角，通过移动微波线0-100 $\mu$m调节 |
+| 拉比频率变化范围 | 1-6 MHz | 旋转一周内 $\Omega$ 的最大变化，决定脉冲长度需自适应调整 |
+| $T_2$ / $T_2^*$ | 1 ms / 50 $\mu$s | 均匀/非均匀相干时间，决定自旋回波增益约20倍 |
+| NV距旋转中心 | ~3 $\mu$m | 影响离心力引起的相位偏差（本文忽略） |
+| 钻石同位素纯度 | 99.99% $^{12}\mathrm{C}$ | 减少$^{13}\mathrm{C}$核自旋噪声，保证长$T_2$ |
+| 测量总时间 | 2-3分钟 ($>10^5$个周期) | 单次扫描的自旋回波条纹信号积累时间 |
+
+### 批判性思考
+1. **RWA适用性阈值未讨论**：当旋转频率 $\omega_{\mathrm{rot}}$ 接近或超过拉比频率 $\Omega$ 时（例如 $\Omega \sim \omega_{\mathrm{rot}}$ 即kHz量级），式(2)中忽略的快速振荡项（$e^{\pm i 2(\omega-\omega_{\mathrm{rot}})t}$等）不再可忽略，此时有效相位 $\phi_{\mathrm{eff}}$ 的定义需要更高阶近似修正。本文实验的$\Omega$(MHz)远大于$\omega_{\mathrm{rot}}$(kHz)，因此安全，但未给出失效边界。
+2. **相位提取对条纹拟合的敏感性**：图3的相移提取依赖于将自旋回波信号拟合为 $\cos^2(2\pi f_0 B_x - \delta\phi)$。但$B_x$的扫描范围仅覆盖一个周期，对于非线性区域（条纹频率可能因 $\phi_{\mathrm{eff}}$ 的非线性而偏离 $f_0$），单周期拟合会引入与模型假设相关的系统误差。作者未讨论此偏差对 $\delta\phi$ 测量准确性的影响。
+3. **背景磁场补偿的完备性**：论文使用 $B_x$ 扫描来获得条纹，但假设 $B_y=B_z=0$。实际上，机械旋转产生的涡电流或局部磁化不均会引入旋转相关的 $B_z(t)$，这会通过改变NV能级分裂影响共振条件，从而间接调制 $\Omega$ 和 $\phi_{\mathrm{eff}}$。这种耦合在 $B_z$ 不为零时会使式(2)失效，但论文未定量评估其大小。
+4. **模型与实验的偏差分析欠缺**：图2中，当 $\theta_{\mathrm{mw}} = 67^\circ$ 且 $\phi=150^\circ$ 附近时，实验测量的 $\Omega$ 与模型预测存在约10%的偏差。作者归因于校准误差，但未检验这是否源于微波场分布的方位角分量假设 ($\hat{B}_{\mathrm{mw}} \propto \hat{\varphi}$) 在强倾斜角下的失效。
+
+### 局限性
+- **旋转速度上限**：$\omega_{\mathrm{rot}} = 3.33$ kHz仅为微波频率($\sim 2.87$ GHz)的$\sim 1.16\times 10^{-6}$倍。当 $\omega_{\mathrm{rot}}$ 达到MHz量级时（如捕获纳米粒子系统中常见的高速旋转），RWA失效，式(2)的推导不再成立，需使用更复杂的含时哈密顿量数值求解，计算复杂度随速度线性增加。
+- **单点测量限制**：仅对单个NV色心（距旋转中心$\sim 3 \mu$m）进行测量，无法同时对多个NV进行空间分辨。对于陀螺仪应用，需要大面积阵列或系综测量来提高灵敏度，但旋转会在不同位置NV间引入不同的$\phi_{\mathrm{eff}}$（依赖于局域 $\theta_{\mathrm{NV}}$ 和微波场分布），解调困难。
+- **环境稳定性要求**：2-3分钟的测量时间对温度稳定性要求极高（磁场漂移约1 mG/°C）。论文未给出实际温度监控数据，仅声称通过快速采样（单周期扫描）部分缓解，但未定量评估残余温度噪声的功率谱密度及其对 $\delta\phi$ 测量灵敏度的限制。
+- **角度分辨率**：该方案测量的是自旋回波累积的$\delta\phi$，而非瞬时的角速度。因此其角度分辨能力受限于一个旋转周期内 $\phi_{\mathrm{eff}}$ 的采样点（本文仅$\tau=100\mu$s对应$120^\circ$）。若要实现$<1^\circ$的角度分辨率，需要将 $\tau$ 延长至ms量级，但此时 $T_2$ 限制导致的退相干和旋转频率漂移会引入额外噪声。
+
+### 关键公式速查
+- $R_i(\theta)=\exp(-iS_i\theta)$ — 旋转算符，$S_i=\frac12\sigma_i$，基础定义
+- $H_I = R_{\mathrm{NV}}^{-1}(\theta_{\mathrm{NV}},\phi) H_{\mathrm{mw}}(\theta_{\mathrm{mw}}) R_{\mathrm{NV}}(\theta_{\mathrm{NV}},\phi)$ — 旋转NV坐标系中的相互作用哈密顿量，式(1)
+- $H_I^{(i,j)} = \Omega_0 e^{-i\phi_0} (\cos\theta_{\mathrm{NV}}\cos\phi\sin\theta_{\mathrm{mw}} - \cos\theta_{\mathrm{mw}}\sin\theta_{\mathrm{NV}} + i\sin\theta_{\mathrm{mw}}\sin\phi)/2$ — RWA下哈密顿量非对角元，式(2)
+- $\Omega = |H_I^{(i,j)}|, \quad \phi_{\mathrm{eff}} = \mathrm{Arg}(H_I^{(i,j)})$ — 有效拉比频率和有效相位定义，式(2)下方
+- $\delta\phi = \frac{\phi_{\mathrm{eff}}(\tau)}{2} - \phi_{\mathrm{eff}}(\frac{\tau}{2})$ — 自旋回波非线性相位分量，式(3)
+- $\langle P_{m_S=0} \rangle \propto \cos^2(\delta\phi)$ — 末态布居数与非线性相位关系
+
+### 术语对照
+| 中文 | 英文 | 含义 |
+| :--- | :--- | :--- |
+| 氮-空位中心 | Nitrogen-Vacancy (NV) center | 钻石中氮原子和空位形成的发光色心，电子自旋可作量子比特 |
+| 自旋回波 | Spin echo | 用 $\pi/2-\tau-\pi-\tau-\pi/2$ 脉冲序列消除静态退相 |
+| 旋转波近似 | Rotating Wave Approximation (RWA) | 忽略近共振频率2倍项，保留慢变项的近似 |
+| 有效相位 | Effective phase ($\phi_{\mathrm{eff}}$) | RWA下微波场在NV布洛赫球上的方位角，决定脉冲旋转轴 |
+| 零场分裂 | Zero-field splitting ($D_{\mathrm{zfs}}$) | $m_S=0$ 与 $\pm1$ 态在零磁场下的能差，2.870 GHz |
+| 拉比频率 | Rabi frequency ($\Omega$) | 微波驱动自旋在布洛赫球上的进动角频率 |
+| 赝自旋-1/2 | Pseudo spin-1/2 | 取NV $m_S=0$ 和 $m_S=-1$ 两个能级视作二能级系统 |
+| 微波倾斜角 | Microwave tilt angle ($\theta_{\mathrm{mw}}$) | 微波磁场矢量与旋转轴的夹角 |
+| 布洛赫球 | Bloch sphere | 表示二能级纯态的几何球面，北极对应 $|0\rangle$ |
+
+### 深入：非线性 $\phi_{\mathrm{eff}}$ 的几何起源
+
+式(2)定义了复数值 $H_I^{(i,j)}$，其实部和虚部分别为：
+$$\mathrm{Re} = \cos\theta_{\mathrm{NV}}\cos\phi\sin\theta_{\mathrm{mw}} - \cos\theta_{\mathrm{mw}}\sin\theta_{\mathrm{NV}}$$
+$$\mathrm{Im} = \sin\theta_{\mathrm{mw}}\sin\phi$$
+
+当 $\theta_{\mathrm{NV}}=\theta_{\mathrm{mw}}$ 时（本文情况之一），$\mathrm{Re}$ 简化为 $\sin^2\theta_{\mathrm{NV}}(\cos\phi-1)$。当 $\phi$ 从0到$2\pi$变化时，$\mathrm{Re}$ 始终为负或零，而 $\mathrm{Im}$ 周期变号。此时 $\phi_{\mathrm{eff}} = \arctan(\mathrm{Im}/\mathrm{Re})$ 在 $\phi=\pi$ 处发生 $\pi$ 跳跃（因为 $\mathrm{Re}$ 过零且变号），这是非线性累积的几何根源。该机制类似于Berry相位在参数空间回路中产生的拓扑效应，但本文中的 $\phi_{\mathrm{eff}}$ 直接控制了微波脉冲的旋转轴，而非通过绝热演化，因此是一种非绝热的几何相位。
+
+### 延伸阅读
+- A. A. Wood et al., *Science Advances* **4**, eaar7691 (2018) — 本文的先行实验，展示了旋转对NV自旋动力学的影响（磁场效应为主）。
+- D. Maclaurin et al., *Phys. Rev. Lett.* **108**, 240403 (2012) — 理论提出利用NV旋转的Berry相位实现陀螺仪传感。
+- Y. Yoshinari et al., *Phys. Rev. B* **88**, 235206 (2013) — 理论分析旋转NV的含时动力学。
+

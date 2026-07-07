@@ -4,6 +4,7 @@ author: "[美] 戴尔·卡耐基"
 description: "卡耐基经典之作——85%的成功来自人际关系，仅15%取决于专业技术。30条实用法则，改变你与人相处的方式。"
 category: ["growth"]
 weight: 1
+date: 2026-07-01
 BookCollapseSection: true
 tags: ['个人成长', '心理学']
 ---

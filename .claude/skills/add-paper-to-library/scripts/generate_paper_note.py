@@ -192,20 +192,19 @@ def execute_read_section(sections, section_name):
 
 
 # ── ReAct loop ───────────────────────────────────────────────────────────
-REFLECTION_PROMPT = """## 自我审查
+REFLECTION_PROMPT = """## 自我审查并输出最终版
 
-请仔细审视你刚才生成的分析，逐条检查以下问题：
+审查第一次分析的质量，然后**直接输出完整的最终版分析**（从 ## 阅读笔记 到 ### 延伸阅读 全文）：
 
-1. **一句话概括** 是否包含了具体方法名和核心数值结果？
-2. **核心论证链** 每一步是否说明了"为什么"而不仅是"做了什么"？
-3. **实验参数详解** 表格是否至少有 4 行具体数值/参数？
-4. **批判性思考** 每条是否包含具体的技术细节（不是"有一定局限"这种废话）？
-5. **局限性** 是否列出了具体的、技术性的限制（而非笼统描述）？
-6. **关键公式速查** 是否列出了 4-6 个带有编号和解释的核心公式？
-7. **术语对照** 是否包含 5-10 个关键术语？
+- 一句话概括如果缺方法名或数值 → 补上
+- 核心论证链如果只列步骤没解释"为什么" → 补充因果逻辑
+- 实验参数详解如果少于4行 → 补充具体数值
+- 批判性思考如果笼统说"有一定局限" → 换成具体技术缺陷
+- 局限性如果没有具体参数范围 → 补上
+- 关键公式速查如果不够4个 → 补到4-6个
+- 术语对照如果不够5个 → 补到5-10个
 
-请逐一指出你第一次分析中**具体哪些栏目有缺陷**，然后输出完整修正版。如果某栏目已经够好就直接保留。
-**输出修正版全文即可，不要加解释。**"""
+**注意：你的消息必须直接以"## 阅读笔记"开头，以"### 延伸阅读"结尾。不要输出审查过程、不要写"合格/不合格"、不要加任何前置说明。**"""
 
 
 async def generate_analysis(client, sections, is_full):
@@ -286,6 +285,16 @@ async def generate_analysis(client, sections, is_full):
         extra_body={"thinking": {"type": "disabled"}},
     )
     improved = resp.choices[0].message.content or draft
+
+    # Safety net: if the "improved" output is a self-review summary instead of
+    # actual content (e.g. "1. xxx — 合格 2. yyy — 合格"), fall back to draft.
+    # Heuristic: a real analysis is >= 2000 chars; a review summary is shorter.
+    if improved and len(improved) < 800 and len(draft) > len(improved) * 2:
+        return draft
+    if improved and re.search(r'[所有各]栏目均[合未达].*直接输出修正', improved):
+        # Contains self-review conclusion, likely missing the actual content
+        return draft
+
     return improved
 
 
@@ -503,10 +512,21 @@ async def run(args):
 
     # Assemble
     output = assemble_index_md(fm, body, analysis, cross_link)
+    # Auto-convert .jpg/.png → .webp in image references
+    # (convert_to_webp.sh runs in Phase 2 before _index.md exists,
+    #  so refs inherited from .zh.md are still .jpg/.png)
+    n_before = len(re.findall(r'!\[\]\(images/[^)]+\.(?:jpg|png)\)', output))
+    output = re.sub(r'\.jpg\)', '.webp)', output)
+    output = re.sub(r'\.png\)', '.webp)', output)
+    n_after = len(re.findall(r'!\[\]\(images/[^)]+\.(?:jpg|png)\)', output))
+    converted = n_before - n_after
+
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(output)
 
     print(f"\n✅ 已生成：{output_path}")
+    if converted:
+        print(f"   🔄 转换 {converted} 处图片引用 .jpg/.png → .webp")
     print(f"   正文 {len(body)} 字符 + 分析 {len(analysis)} 字符")
     return 0
 

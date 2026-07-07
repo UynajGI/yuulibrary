@@ -4,6 +4,7 @@ author: "Birger Stjernholm Madsen"
 description: "为非统计学背景的从业者编写的实用统计入门指南，涵盖数据收集、描述统计、正态分布、统计检验等核心概念。"
 category: ["systems"]
 weight: 1
+date: 2026-06-25
 BookCollapseSection: true
 tags: ['统计学']
 ---

@@ -4,6 +4,7 @@ author: "Xinfeng Zhou"
 description: "概率论、随机过程、衍生品定价、算法，200+ 道真实面试题。"
 category: ["quant"]
 weight: 1
+date: 2026-06-23
 BookCollapseSection: true
 tags: ['量化金融', '面试']
 ---

@@ -4,6 +4,7 @@ author: "Van K. Tharp"
 description: "交易系统开发的完整框架——从目标设定、期望值分析到仓位管理。"
 category: ["quant"]
 weight: 1
+date: 2026-06-26
 BookCollapseSection: true
 tags: ['量化金融', '投资交易']
 ---

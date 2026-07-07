@@ -4,6 +4,7 @@ author: "Michael Robbins"
 description: "Michael Robbins 著，因子投资与机器学习在机构投资中的系统性实践指南"
 category: ["quant"]
 weight: 1
+date: 2026-06-28
 BookCollapseSection: true
 tags: ['量化金融', '机器学习']
 ---

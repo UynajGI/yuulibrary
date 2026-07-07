@@ -4,6 +4,7 @@ author: "Marcos M. López de Prado"
 description: "Marcos M. López de Prado 著，机器学习在金融领域的系统性实践指南"
 category: ["quant"]
 weight: 1
+date: 2026-06-28
 BookCollapseSection: true
 tags: ['量化金融', '机器学习']
 ---

@@ -4,6 +4,7 @@ author: "Giuseppe De Nittis & Max Lein"
 description: "Linear Response Theory — 基于 von Neumann 代数与非交换 Lᵖ 空间的统一框架，从离散到连续、从周期到随机系统。"
 category: ["physics"]
 weight: 1
+date: 2026-07-01
 BookCollapseSection: true
 tags: ['物理']
 ---

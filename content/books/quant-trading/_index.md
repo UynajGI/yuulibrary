@@ -4,6 +4,7 @@ author: "Ernest P. Chan"
 description: "从策略研发到实盘部署的完整量化交易入门指南。"
 category: ["quant"]
 weight: 1
+date: 2026-06-26
 BookCollapseSection: true
 tags: ['量化金融', '投资交易']
 ---

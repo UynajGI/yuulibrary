@@ -4,6 +4,7 @@ author: "John C. Hull"
 description: "金融工程经典教材，期货、期权、互换、信用衍生品、利率模型，36 章。"
 category: ["quant"]
 weight: 1
+date: 2026-06-23
 BookCollapseSection: true
 tags: ['量化金融', '投资交易']
 ---
