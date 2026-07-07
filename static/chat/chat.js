@@ -330,15 +330,16 @@
     if (bm25Stats || !nodeIndex) return;
     const nodes = nodeIndex.nodes || [];
     const df = new Map(); // document frequency per token
-    const FIELDS = ["title", "breadcrumb", "terms", "excerpt"];
+    // summary 字段（LLM 摘要）权重高于旧 excerpt；兼容旧索引（fallback 到 excerpt）
+    const FIELDS = ["title", "breadcrumb", "terms", "summary"];
     let totalLen = 0;
-    const fieldLen = { title: 0, breadcrumb: 0, terms: 0, excerpt: 0 };
+    const fieldLen = { title: 0, breadcrumb: 0, terms: 0, summary: 0 };
     for (const node of nodes) {
       const fieldText = {
         title: node.title || "",
         breadcrumb: (node.breadcrumb || []).join(" "),
         terms: (node.terms || []).join(" "),
-        excerpt: node.excerpt || "",
+        summary: node.summary || node.excerpt || "", // fallback 旧索引
       };
       for (const f of FIELDS) {
         const toks = tokenize(fieldText[f]);
@@ -346,7 +347,7 @@
         for (const t of new Set(toks)) df.set(t, (df.get(t) || 0) + 1);
       }
       totalLen += tokenize(
-        fieldText.title + fieldText.breadcrumb + fieldText.terms + fieldText.excerpt
+        fieldText.title + fieldText.breadcrumb + fieldText.terms + fieldText.summary
       ).length;
     }
     const N = nodes.length || 1;
@@ -358,25 +359,25 @@
         title: fieldLen.title / N,
         breadcrumb: fieldLen.breadcrumb / N,
         terms: fieldLen.terms / N,
-        excerpt: fieldLen.excerpt / N,
+        summary: fieldLen.summary / N,
       },
     };
   }
 
-  // 字段权重：title 最高，breadcrumb 次之，terms/excerpt 正常
-  const FIELD_BOOST = { title: 6, breadcrumb: 3, terms: 2, excerpt: 1 };
+  // 字段权重：title 最高，breadcrumb 次之，terms/summary 正常
+  const FIELD_BOOST = { title: 6, breadcrumb: 3, terms: 2, summary: 2 };
   const BM25_K = 1.5,
     BM25_B = 0.75;
 
   function bm25Score(queryTokens, node) {
     const stats = bm25Stats;
     let total = 0;
-    const FIELDS = ["title", "breadcrumb", "terms", "excerpt"];
+    const FIELDS = ["title", "breadcrumb", "terms", "summary"];
     const fieldText = {
       title: node.title || "",
       breadcrumb: (node.breadcrumb || []).join(" "),
       terms: (node.terms || []).join(" "),
-      excerpt: node.excerpt || "",
+      summary: node.summary || node.excerpt || "",
     };
     for (const f of FIELDS) {
       const docTokens = tokenize(fieldText[f]);
@@ -414,7 +415,7 @@
           title: tokenize(node.title || ""),
           breadcrumb: tokenize((node.breadcrumb || []).join(" ")),
           terms: tokenize((node.terms || []).join(" ")),
-          excerpt: tokenize(node.excerpt || ""),
+          summary: tokenize(node.summary || node.excerpt || ""),
         };
         for (const qt of tokens) {
           for (const f in fieldTokens) {
@@ -457,7 +458,7 @@
     const termScores = {};
     for (const h of topM) {
       const n = h.node;
-      const text = `${n.title || ""} ${(n.terms || []).join(" ")} ${n.excerpt || ""}`;
+      const text = `${n.title || ""} ${(n.terms || []).join(" ")} ${n.summary || n.excerpt || ""}`;
       const tks = tokenize(text);
       for (const t of tks) termScores[t] = (termScores[t] || 0) + h.score;
     }
@@ -481,7 +482,7 @@
       // (a) proximity：按字段分别算 query tokens 的最小跨度，取最优字段。
       //     跨字段位置不可比（title[0] vs excerpt[50] 无意义），必须同字段内算。
       let bestProx = 0;
-      for (const f of ["title", "breadcrumb", "terms", "excerpt"]) {
+      for (const f of ["title", "breadcrumb", "terms", "summary"]) {
         const positionsInField = [];
         for (const qt of queryTokens) {
           const p = posSet[qt]?.[f];
