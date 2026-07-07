@@ -39,7 +39,7 @@ yuulibrary/
 ├── static/
 │   ├── katex/ + pseudocode/ + rough.min.js  # 本地化数学/算法/手绘渲染
 │   ├── chat/chat.js + chat.css              # AI 问答 Agent（BYOK 浏览器直连）
-│   └── pageindex/                           # PageIndex 树索引 JSON（进 git，含 summary + line_num）
+│   └── pageindex/                           # PageIndex 树索引 JSON（进 git，含 summary + source_md + line_num，无 text）
 ├── data/                       # Hugo data（symlink → .claude/skills/*/data/）
 ├── scripts/build_pageindex.py               # PageIndex 索引构建脚本
 ├── .claude/skills/add-book-to-library/   # 加书 skill（clean_markdown.py / translate_chapters.py / format_theorems.py / convert_xrefs.py / validate_book.py）
@@ -111,12 +111,15 @@ yuulibrary/
 站点内置了一个 BYOK（用户自带 Key）浏览器直连的 AI 问答 Agent。右下角浮动按钮打开聊天面板。
 
 - **检索管线**（5 阶段）：BM25 召回 top50 → RM3 伪相关反馈扩展 query → 词法精排（proximity + phrase + coverage）→ MMR 去冗余（4-gram shingle Jaccard）→ token budget packing（感知对话历史）。BM25 匹配 summary 字段（对齐标准 PageIndex 格式）
-- **ReAct agent loop**：模型自主调用 `search_library` 工具检索，多轮推理（最多 4 轮工具调用），不靠单次 RAG
+- **3 个工具**：`search_library`（BM25+精排+MMR 检索）、`get_section`（按 doc_id+node_id 取完整章节，从 GitHub raw fetch md 按行号切）、`rewrite_query`（LLM 改写/分解/步退查询）。system prompt 注入全局目录（55 篇文档 TOC）+ 查询转换策略引导
+- **LLM 重排**：confidence=low 时批量评分重排 top6（一次 API 调用，无 key 跳过）
+- **ReAct agent loop**：模型自主调用工具检索，多轮推理（最多 4 轮工具调用），不靠单次 RAG
 - **思考模式**：DeepSeek 思考模式可开关（设置面板 checkbox），思考内容折叠展示
 - **LLM**：浏览器直连 Anthropic / DeepSeek / OpenAI / 硅基流动 / OpenRouter / 智谱 / 通义千问 / Ollama / Gemini
 - **Key 安全**：默认 sessionStorage（关页面清除），勾选"记住"才 localStorage
-- **PageIndex 索引**：`build_pageindex.py` 生成树索引（title/node_id/text/summary/line_num）。summary = LLM 摘要（≥200 token 节点，litellm 多 provider 路由）或原文（短节点）。本地 lefthook `--incremental` 秒级增量，CI deploy.yml 同步更新
-- **复用**：`static/chat/` 可直接复制到其他 Hugo 项目，注入 `window.YUU_CHAT_BASE` 即可
+- **PageIndex 索引**：`build_pageindex.py` 生成树索引。doc tree 节点字段：`title/node_id/summary/line_num/line_end/source_md`（**不含 text**——正文按需从 GitHub raw fetch md 按行号切）。summary = LLM 摘要（≥200 token 节点，litellm 多 provider 路由）或原文（短节点）。本地 lefthook `--incremental` 秒级增量，CI deploy.yml 同步更新
+- **fork 友好**：`source_md` 存相对路径（`content/notes/xxx.md`），`head.html` 从 `BookRepo` 配置推导 raw URL 前缀注入 `window.YUU_CHAT_RAW_BASE`。fork 后改 `hugo.toml` 的 `BookRepo` 即自动适配
+- **复用**：`static/chat/` + `scripts/build_pageindex.py` 可复制到其他 Hugo 项目。需配 `hugo.toml` 的 `BookRepo` + CI secrets `LLM_MODEL`（litellm 格式，如 `deepseek/deepseek-chat`）+ 对应 `*_API_KEY`
 
 ## 质量验证
 

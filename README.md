@@ -91,7 +91,17 @@ yuulibrary/
 
 ## AI 问答
 
-右下角浮动按钮打开聊天面板，支持从全部书/论文/笔记中检索并回答问题。基于 PageIndex 树索引 + BM25 精排 + ReAct 多轮推理。用户自带 API Key（BYOK），浏览器直连模型 API。详见 `CLAUDE.md`。
+右下角浮动按钮打开聊天面板，支持从全部书/论文/笔记中检索并回答问题。基于 PageIndex 树索引 + BM25 精排 + ReAct 多轮推理（查询转换 / 精排 / MMR 去冗余 / LLM 重排）。用户自带 API Key（BYOK），浏览器直连模型 API。
+
+### Fork 部署
+
+fork 本仓库后，AI 问答功能自动适配：
+
+1. 改 `hugo.toml` 的 `BookRepo` 为你的仓库地址（chat agent 据此推导 GitHub raw URL 取正文）
+2. （可选）配 GitHub Actions secrets 生成 LLM 摘要：`LLM_MODEL`（litellm 格式，如 `deepseek/deepseek-chat`）+ 对应的 `*_API_KEY`
+3. `static/chat/` + `scripts/build_pageindex.py` 可独立复用到其他 Hugo 项目
+
+详见 `CLAUDE.md`。
 
 ## 本地开发
 
