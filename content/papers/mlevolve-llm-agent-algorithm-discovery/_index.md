@@ -4,7 +4,7 @@ description: "Du 等（2026）提出 MLEvolve，一个基于 LLM 的自进化多
 date: "2026-07-06"
 author: "Shangheng Du, Xiangchao Yan, Jinxin Shi, Zongsheng Cao, Shiyang Feng, Zichen Liang, Boyuan Sun, Tianshuo Peng, Yifan Zhou, Xin Li, Jie Zhou, Liang He, Bo Zhang, Lei Bai"
 year: 2026
-category: ["cs.AI", "cs.CL"]
+category: ["cs"]
 weight: 34
 tags: ['AI Agent', 'AutoML']
 links:

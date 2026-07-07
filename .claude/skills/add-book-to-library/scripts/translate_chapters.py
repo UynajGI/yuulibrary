@@ -213,22 +213,33 @@ def is_chinese_text(body: str) -> bool:
 
 # ── Reference section isolation ──────────────────────────────────────────
 REF_HEADING_RE = re.compile(r"^##\s+(References|参考文献|Bibliography|文献)", re.MULTILINE | re.IGNORECASE)
+NEXT_H2_RE = re.compile(r"^##\s+", re.MULTILINE)
 
 
 def isolate_references(body: str):
-    """Split body into (main_text, ref_text).
+    """Split body into (before_refs, ref_section, after_refs).
 
-    References section (## References / ## 参考文献 / ## Bibliography) and
-    everything after it is kept as-is (not translated). Authors, journal names,
-    and titles must stay in original language.
+    Only the References section itself (## References / ## 参考文献 / ## Bibliography)
+    is kept as-is — from its heading up to the next ## heading (or end of body).
+    Authors, journal names, and titles stay in the original language.
 
-    Returns (main_body, ref_section_or_empty).
+    Any section after References (e.g. ## Appendix, ## Acknowledgements) is
+    returned in after_refs so it gets translated normally.
+
+    Returns (before_refs, ref_section_or_empty, after_refs_or_empty).
     """
     m = REF_HEADING_RE.search(body)
     if not m:
-        return body, ""
-    split_pos = m.start()
-    return body[:split_pos], body[split_pos:]
+        return body, "", ""
+    ref_start = m.start()
+    # Find the next ## heading after the References heading (not ### or deeper)
+    next_h2 = NEXT_H2_RE.search(body, m.end())
+    ref_end = next_h2.start() if next_h2 else len(body)
+
+    before = body[:ref_start]
+    ref_section = body[ref_start:ref_end]
+    after = body[ref_end:]
+    return before, ref_section, after
 
 
 # ── Image restoration (deterministic safeguard against LLM dropping images) ─
@@ -286,56 +297,69 @@ def restore_images(source: str, translated: str) -> tuple[str, int]:
 
 
 # ── LLM call ─────────────────────────────────────────────────────────────
-async def translate_text(client, body: str, glossary: dict, is_seed: bool, feedback: str = "") -> str:
-    """Call LLM to translate body text. Returns translated text (may include glossary markers).
+async def _translate_part(client, body: str, glossary: dict, is_seed: bool, feedback: str = "") -> str:
+    """Translate one contiguous block, handling chunking + per-chunk truncation retry.
 
     For long texts (> CHUNK_THRESHOLD chars), splits into chunks at $$ boundaries
     and translates sequentially, concatenating results. This prevents truncation
     when max_tokens is exhausted mid-translation.
+    """
+    if len(body) <= CHUNK_THRESHOLD:
+        return await _translate_once(client, body, glossary, is_seed, feedback)
 
-    References section is isolated and kept as-is (not translated).
+    chunks = split_into_chunks(body, CHUNK_THRESHOLD)
+    results = []
+    prev_context = ""
+    for i, chunk in enumerate(chunks):
+        chunk_feedback = feedback if i == 0 else ""
+        context_note = ""
+        if prev_context:
+            context_note = f"上文已翻译内容结尾：...{prev_context}。请保持术语和指代一致。"
+        chunk_translated = await _translate_once(client, chunk, glossary, is_seed, chunk_feedback, context_note)
+
+        # Per-chunk truncation detection: if output is suspiciously short,
+        # re-split into smaller pieces and translate individually.
+        ratio = len(chunk_translated) / max(len(chunk), 1)
+        if ratio < 0.3 and len(chunk) > 2000:
+            # Likely truncated — split into halves and retry
+            sub_chunks = split_into_chunks(chunk, max(len(chunk) // 2, 1500))
+            sub_results = []
+            for sc in sub_chunks:
+                sub_translated = await _translate_once(client, sc, glossary, is_seed, "")
+                sub_results.append(sub_translated)
+            chunk_translated = "\n\n".join(sub_results)
+
+        results.append(chunk_translated)
+        prev_context = chunk_translated[-200:] if len(chunk_translated) > 200 else chunk_translated
+    return "\n\n".join(results)
+
+
+async def translate_text(client, body: str, glossary: dict, is_seed: bool, feedback: str = "") -> str:
+    """Call LLM to translate body text. Returns translated text (may include glossary markers).
+
+    References section (## References / ## 参考文献 / ## Bibliography) is isolated
+    and kept as-is — bibliographic entries stay in the original language. Any
+    section after References (typically ## Appendix, ## Acknowledgements) is
+    translated normally.
     """
     # Isolate references — never translate bibliographic entries
-    body, ref_section = isolate_references(body)
+    before, ref_section, after = isolate_references(body)
 
-    if len(body) <= CHUNK_THRESHOLD:
-        translated = await _translate_once(client, body, glossary, is_seed, feedback)
-    else:
-        chunks = split_into_chunks(body, CHUNK_THRESHOLD)
-        results = []
-        prev_context = ""
-        for i, chunk in enumerate(chunks):
-            chunk_feedback = feedback if i == 0 else ""
-            context_note = ""
-            if prev_context:
-                context_note = f"上文已翻译内容结尾：...{prev_context}。请保持术语和指代一致。"
-            chunk_translated = await _translate_once(client, chunk, glossary, is_seed, chunk_feedback, context_note)
+    translated = await _translate_part(client, before, glossary, is_seed, feedback)
+    if after:
+        translated = translated.rstrip() + "\n\n" + await _translate_part(client, after, glossary, is_seed, "")
 
-            # Per-chunk truncation detection: if output is suspiciously short,
-            # re-split into smaller pieces and translate individually.
-            ratio = len(chunk_translated) / max(len(chunk), 1)
-            if ratio < 0.3 and len(chunk) > 2000:
-                # Likely truncated — split into halves and retry
-                sub_chunks = split_into_chunks(chunk, max(len(chunk) // 2, 1500))
-                sub_results = []
-                for sc in sub_chunks:
-                    sub_translated = await _translate_once(client, sc, glossary, is_seed, "")
-                    sub_results.append(sub_translated)
-                chunk_translated = "\n\n".join(sub_results)
-
-            results.append(chunk_translated)
-            prev_context = chunk_translated[-200:] if len(chunk_translated) > 200 else chunk_translated
-        translated = "\n\n".join(results)
-
-    # Append references as-is (heading translated, entries kept original)
+    # Splice references back in (heading translated, entries kept original)
     if ref_section:
         translated = translated.rstrip() + "\n\n" + translate_ref_heading(ref_section)
 
-    # Deterministic safeguard: restore any image refs the LLM dropped
-    src_imgs = IMG_RE.findall(body)
+    # Deterministic safeguard: restore any image refs the LLM dropped.
+    # Compare against before+after (references section typically has no figures).
+    combined_src = before + after
+    src_imgs = IMG_RE.findall(combined_src)
     dst_imgs = IMG_RE.findall(translated)
     if len(src_imgs) > len(dst_imgs):
-        translated, n = restore_images(body, translated)
+        translated, n = restore_images(combined_src, translated)
         if n > 0:
             print(f"    🔧 恢复 {n} 张丢失的图片引用（源文 {len(src_imgs)} 张，译文原仅 {len(dst_imgs)} 张）")
 

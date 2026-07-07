@@ -1,17 +1,19 @@
 # GitHub Actions workflow: deploy Hugo site to GitHub Pages
 name: Deploy Book Site
+# 只在打 tag（YYYY.MM.DD.NN 日期序列，如 2026.07.07.01）时部署；
+# 平时 push 到 main 不触发 CI，随便 push 不撞车。手动跑用 workflow_dispatch
 on:
   push:
-    branches: [main]
+    tags: ['20??.??.??.*']
   workflow_dispatch:
 
 permissions:
   contents: write
 
-# 防并发：连续 push 只跑最后一个，避免 commit 回 main 冲突
+# 多个 tag 连发时排队执行（不取消进行中的部署，避免 gh-pages 半推）
 concurrency:
   group: deploy
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -32,6 +34,9 @@ jobs:
         run: |
           python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/books/
           python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/papers/
+
+      - name: Translate-chapters regression tests
+        run: python3 .claude/skills/add-book-to-library/scripts/test_translate.py
 
       - name: Build PageIndex (incremental)
         env:

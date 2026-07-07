@@ -1,0 +1,73 @@
+{{/*
+  馆藏统计仪表盘 — 全自动。
+  统计 books / papers / notes 数量 + 最近添加 + 标签云。
+  无参数；加 {{< stats >}} 即可。
+
+  依赖 front matter：
+  - books/papers：每篇 section _index.md 有 date（用于"最近添加"排序）
+  - tags：每篇的 tags 数组（taxonomy "tag"）
+*/}}
+{{ $bookSections := where .Site.Pages "Section" "books" }}
+{{ $bookSections = where $bookSections "IsSection" true }}
+{{ $bookSections = where $bookSections "Params.author" "ne" nil }}
+
+{{ $paperSections := where .Site.Pages "Section" "papers" }}
+{{ $paperSections = where $paperSections "IsSection" true }}
+
+{{ $notes := where .Site.RegularPages "Section" "eq" "notes" }}
+
+{{/* 全部"可入库条目"按 date 倒序，用于"最近添加"和入库总数 */}}
+{{ $allEntries := slice }}
+{{ range $bookSections }}{{ $allEntries = $allEntries | append . }}{{ end }}
+{{ range $paperSections }}{{ $allEntries = $allEntries | append . }}{{ end }}
+{{ range $notes }}{{ $allEntries = $allEntries | append . }}{{ end }}
+{{ $allEntries = sort $allEntries "Date" "desc" }}
+
+{{/* ── 数字卡片 ── */}}
+<section class="stats-grid">
+  <a class="stats-card" href="{{ relref . "/books/_index.md" }}">
+    <span class="stats-card-num">{{ len $bookSections }}</span>
+    <span class="stats-card-label">本书</span>
+  </a>
+  <a class="stats-card" href="{{ relref . "/papers/_index.md" }}">
+    <span class="stats-card-num">{{ len $paperSections }}</span>
+    <span class="stats-card-label">篇论文</span>
+  </a>
+  <a class="stats-card" href="{{ relref . "/notes/_index.md" }}">
+    <span class="stats-card-num">{{ len $notes }}</span>
+    <span class="stats-card-label">篇笔记</span>
+  </a>
+  <div class="stats-card stats-card-static">
+    <span class="stats-card-num">{{ len $allEntries }}</span>
+    <span class="stats-card-label">馆藏总计</span>
+  </div>
+</section>
+
+{{/* ── 最近添加（前 6 条）── */}}
+{{ $recent := first 6 $allEntries }}
+{{ if gt (len $recent) 0 }}
+<h3 class="stats-subhead">最近添加</h3>
+<div class="stats-recent">
+  {{ range $recent }}
+    <a class="stats-recent-item" href="{{ .RelPermalink }}">
+      <span class="stats-recent-section">{{ .Section }}</span>
+      <span class="stats-recent-title">{{ .Title }}</span>
+      <time class="stats-recent-date">{{ .Date.Format "01-02" }}</time>
+    </a>
+  {{ end }}
+</div>
+{{ end }}
+
+{{/* ── 标签云：统计 taxonomy "tag" 出现频次，按频次排序，最多 30 个 ──
+      Hugo 0.164+ 的 .Site.Taxonomies 在 plural key（"tags"）下，按 ByCount 排序 */}}
+{{ $tagEntries := index .Site.Taxonomies "tags" }}
+{{ if $tagEntries }}
+<h3 class="stats-subhead">标签云</h3>
+<div class="stats-tagcloud">
+  {{ range first 30 $tagEntries.ByCount }}
+    <a class="stats-tag" href="{{ .Page.RelPermalink }}">
+      {{ .Page.Title }}<span class="stats-tag-count">{{ .Count }}</span>
+    </a>
+  {{ end }}
+</div>
+{{ end }}

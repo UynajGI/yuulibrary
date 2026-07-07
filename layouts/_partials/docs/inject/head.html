@@ -1,3 +1,21 @@
+{{- /* 主题切换：无闪烁初始化。必须在任何 CSS 渲染前同步执行，
+       从 localStorage 读偏好，auto 模式实时解析系统偏好，
+       把 effective (light/dark) 写到 <html data-effective-theme>。
+       不 defer、不 async，head 第一行。 */ -}}
+<script>
+  (function () {
+    var saved = localStorage.getItem('book-theme') || 'auto';
+    saved = (saved === 'light' || saved === 'dark') ? saved : 'auto';
+    document.documentElement.setAttribute('data-theme', saved);
+    var effective = saved;
+    if (saved === 'auto') {
+      effective = window.matchMedia &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-effective-theme', effective);
+  })();
+</script>
+
 {{- /* 字体：Noto Sans SC（思源黑体）+ Inter（拉丁/数字） */ -}}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

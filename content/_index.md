@@ -8,6 +8,10 @@ weight: 1
   <p class="hero-subtitle">个人的数字图书馆</p>
 </section>
 
+## 馆藏
+
+{{< stats >}}
+
 ## 书架
 
 {{< bookshelf >}}

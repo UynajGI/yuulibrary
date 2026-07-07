@@ -35,14 +35,27 @@
 }
 
 // === 主题色：teal（对齐原 mkdocs primary: teal） ===
+// 注意：BookTheme='light'（见 hugo.toml），主题只编译 light 版；
+// 深色完全由 <html data-effective-theme="dark"> 运行时切换，不走 @media。
 @mixin theme-light {
   --color-link: #00897b;
   --color-visited-link: #00897b;
 }
 @mixin theme-dark {
+  // teal dark + 主题基础深色变量（接管 Hugo Book _defaults.scss 的 theme-dark）
+  --body-background: #2e3440;
+  --body-background-tint: none;
+  --body-font-color: #eceff4;
   --color-link: #4db6ac;
   --color-visited-link: #4db6ac;
+  --icon-filter: brightness(0) invert(1);
+  --gray-100: #3b4252;
+  --gray-200: #434c5e;
+  --gray-500: #d8dee9;
 }
+
+:root { @include theme-light; }
+:root[data-effective-theme="dark"] { @include theme-dark; }
 
 // === 字体 ===
 :root {
@@ -136,10 +149,6 @@ body {
   padding: 0.8rem 1.2rem;
   margin: 1rem 0;
   border-radius: 0 6px 6px 0;
-  @media (prefers-color-scheme: dark) {
-    border-left-color: #66bb6a;
-    background: rgba(46, 125, 50, 0.15);
-  }
 }
 
 // === 证明框（方框——推导与证明块） ===
@@ -149,9 +158,22 @@ body {
   padding: 0.8rem 1.2rem;
   margin: 1rem 0;
   border-radius: 0 6px 6px 0;
-  @media (prefers-color-scheme: dark) {
+}
+
+// === 深色模式覆盖层（运行时切换：日/夜/自动三态）===
+// JS 把 effective 状态（light/dark）写到 <html data-effective-theme>
+// 三态映射：light→light, dark→dark, auto→(系统决定，JS 实时算)
+:root[data-effective-theme="dark"] {
+  .markdown .solution {
+    border-left-color: #66bb6a;
+    background: rgba(46, 125, 50, 0.15);
+  }
+  .markdown .proof {
     border-left-color: #7986cb;
     background: rgba(92, 107, 192, 0.15);
+  }
+  .category-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   }
 }
 
@@ -203,14 +225,18 @@ body {
   --text-secondary: #6e6e73;             // Apple 次要灰
   --surface: #f5f5f7;                    // Apple 浅灰背景块
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --hairline: rgba(255, 255, 255, 0.14);
-    --hairline-strong: rgba(255, 255, 255, 0.24);
-    --text-primary: #f5f5f7;
-    --text-secondary: #a1a1a6;
-    --surface: rgba(255, 255, 255, 0.06);
-  }
+
+// dark 变量块抽出来
+@mixin dark-vars {
+  --hairline: rgba(255, 255, 255, 0.14);
+  --hairline-strong: rgba(255, 255, 255, 0.24);
+  --text-primary: #f5f5f7;
+  --text-secondary: #a1a1a6;
+  --surface: rgba(255, 255, 255, 0.06);
+}
+
+:root[data-effective-theme="dark"] {
+  @include dark-vars;
 }
 
 // === Hero（首页顶部）：超大标题、大量留白 ===
@@ -387,11 +413,8 @@ body {
 .zoom-in { animation: zoomIn 0.3s ease-out forwards; }
 .zoom-out { animation: zoomOut 0.2s ease-in forwards; }
 
-@media (prefers-color-scheme: dark) {
-  .category-card:hover {
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-  }
-}
+// 注：category-card 的深色 hover shadow 已合并到文件顶部
+// :root[data-theme="dark"] 和 :root[data-theme="auto"] dark 媒体查询块中
 
 // === 通用卡片网格（notes/papers/term 列表页）：浅灰背景块 ===
 .card-grid {
@@ -796,6 +819,44 @@ body {
   }
 }
 
+// === 主题切换器（日/夜/自动三态，菜单底部）===
+.menu-theme {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.75rem 0 0;
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--hairline);
+}
+.theme-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0;
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-family: var(--body-font);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  &:hover {
+    color: var(--color-link);
+    border-color: var(--color-link);
+  }
+  &.active {
+    color: var(--color-link);
+    border-color: var(--color-link);
+    background: var(--surface);
+  }
+  .theme-btn-icon {
+    font-size: 0.95rem;
+    line-height: 1;
+  }
+}
+
 // === 书内 Part 分隔页 ===
 .book-part {
   text-align: center;
@@ -942,5 +1003,139 @@ body {
     background: var(--color-link);
     border-color: var(--color-link);
     color: #fff;
+  }
+}
+
+// === 馆藏统计仪表盘（首页 {{< stats >}}）===
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.9rem;
+  margin: 1.2rem 0 1.8rem;
+}
+.stats-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.4rem 0.8rem;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    border-color: var(--color-link);
+  }
+}
+.stats-card-static {
+  cursor: default;
+  &:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--hairline);
+  }
+}
+.stats-card-num {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.stats-card-label {
+  margin-top: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.stats-subhead {
+  margin: 1.8rem 0 0.6rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+// 最近添加列表
+.stats-recent {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.stats-recent-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: border-color 0.2s, transform 0.2s;
+  &:hover {
+    border-color: var(--color-link);
+    transform: translateX(2px);
+  }
+}
+.stats-recent-section {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  // 不同 section 用前缀色区分
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-link);
+    margin-right: 0.35rem;
+    vertical-align: middle;
+  }
+}
+.stats-recent-title {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stats-recent-date {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+// 标签云
+.stats-tagcloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.stats-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  &:hover {
+    background: var(--color-link);
+    border-color: var(--color-link);
+    color: #fff;
+  }
+}
+.stats-tag-count {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  .stats-tag:hover & {
+    color: rgba(255,255,255,0.85);
   }
 }
