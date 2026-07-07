@@ -169,18 +169,26 @@ async def add_summaries_to_tree(nodes: list[dict], model: str, doc_label: str = 
 # ── fingerprint incremental update ──────────────────────────────────────────
 
 def file_fingerprint(path: str) -> str:
-    """MD5 hash of file contents."""
-    with open(path, "rb") as f:
+    """MD5 hash of file contents. path is relative to content/."""
+    abs_path = os.path.join(CONTENT_DIR, path) if not os.path.isabs(path) else path
+    with open(abs_path, "rb") as f:
         return hashlib.md5(f.read()).hexdigest()
 
 
 def collect_content_files() -> list[str]:
-    """Return all .md files under content/ that should be indexed."""
+    """Return all .md files under content/ as paths relative to content/.
+
+    Relative paths make fingerprints portable across local and CI environments
+    (absolute paths differ: /home/user/... vs /home/runner/work/...).
+    Example: 'books/slug/ch01.md', 'notes/draft.md'
+    """
     files = []
     for root, _, fnames in os.walk(CONTENT_DIR):
         for fn in fnames:
             if fn.endswith(".md"):
-                files.append(os.path.join(root, fn))
+                abs_path = os.path.join(root, fn)
+                rel_path = os.path.relpath(abs_path, CONTENT_DIR)
+                files.append(rel_path)
     return sorted(files)
 
 
@@ -718,11 +726,12 @@ def main():
 
 
 def changed_docs(file_paths: list[str]) -> set[tuple[str, str]]:
-    """Map changed file paths to affected (type, slug) pairs."""
+    """Map changed file paths to affected (type, slug) pairs.
+    file_paths are relative to content/ (e.g. 'books/slug/ch01.md').
+    """
     docs = set()
     for path in file_paths:
-        rel = os.path.relpath(path, CONTENT_DIR)
-        parts = rel.split(os.sep)
+        parts = path.replace("\\", "/").split("/")
         if parts[0] == "books" and len(parts) >= 2:
             docs.add(("book", parts[1]))
         elif parts[0] == "papers" and len(parts) >= 2:
