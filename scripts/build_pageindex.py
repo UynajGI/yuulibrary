@@ -22,6 +22,9 @@ STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "pageindex"
 FINGERPRINTS_FILE = os.path.join(STATIC_DIR, ".fingerprints.json")
 BASE_URL = ""  # filled by Hugo relURL at runtime; script uses relative paths
 
+# GitHub raw URL 前缀（chat agent 按需 fetch md 原文，doc tree 不存 text）
+GITHUB_RAW_BASE = "https://raw.githubusercontent.com/UynajGI/yuulibrary/main/content"
+
 # summary 生成阈值（token）：短节点直接用原文，长节点才调 LLM
 SUMMARY_TOKEN_THRESHOLD = 200
 # LLM model（litellm 格式，如 deepseek/deepseek-chat）；空表示不调 LLM（本地模式）
@@ -264,11 +267,12 @@ def extract_headings(body: str, line_offset: int = 0) -> list[dict]:
 
 
 def attach_text(nodes: list[dict], body_lines: list[str], total_lines: int) -> None:
-    """Attach full text (heading line → next heading) to each node in-place."""
+    """Attach full text + line_end (heading line → next heading) to each node in-place."""
     for i, node in enumerate(nodes):
         start = node["line_num"]
         end = nodes[i + 1]["line_num"] if i + 1 < len(nodes) else total_lines
         node["text"] = "\n".join(body_lines[start:end]).strip()
+        node["line_end"] = end
 
 
 # ── tree building ───────────────────────────────────────────────────────────
@@ -287,6 +291,7 @@ def build_tree(flat_nodes: list[dict]) -> list[dict]:
             "node_id": "",  # filled later
             "text": node.get("text", ""),
             "line_num": node.get("line_num", 0),
+            "line_end": node.get("line_end", 0),
             "nodes": [],
         }
         level = node["level"]
@@ -316,15 +321,16 @@ def assign_node_ids(tree: list[dict], counter: list[int] | None = None) -> None:
 
 
 def clean_tree(tree: list[dict]) -> list[dict]:
-    """Remove empty nodes list and keep only needed fields."""
+    """Remove text (chat agent fetches from source_md), keep source_md + line range."""
     result = []
     for node in tree:
         cleaned = {
             "title": node["title"],
             "node_id": node["node_id"],
-            "text": node["text"],
             "summary": node.get("summary", ""),
             "line_num": node.get("line_num", 0),
+            "line_end": node.get("line_end", 0),
+            "source_md": node.get("source_md", ""),
         }
         if node.get("nodes"):
             cleaned["nodes"] = clean_tree(node["nodes"])
@@ -420,13 +426,23 @@ def process_book(slug: str, book_dir: str) -> tuple[dict | None, list[dict]]:
         # Wrap chapter in a chapter-level node（纯容器：text 放 description，不重复正文）
         # 分文件模式下正文全在子节点里，chapter 只做层级容器
         ch_description = ch_meta.get("description", "")
+        ch_source_md = f"{GITHUB_RAW_BASE}/books/{slug}/{fname}"
         ch_node = {
             "title": ch_title,
             "node_id": "",
-            "text": ch_description,  # front matter description，非正文
+            "text": ch_description,  # front matter description，非正文（summary 生成用）
             "line_num": headings[0].get("line_num", 0) if headings else 0,
+            "line_end": headings[-1].get("line_end", 0) if headings else 0,
+            "source_md": ch_source_md,
             "nodes": ch_tree,
         }
+        # 子节点继承 chapter 的 source_md（在同一文件里）
+        def propagate_source(nodes, src):
+            for n in nodes:
+                n["source_md"] = src
+                if n.get("nodes"):
+                    propagate_source(n["nodes"], src)
+        propagate_source(ch_tree, ch_source_md)
         book_root["nodes"].append(ch_node)
 
     # Assign IDs
@@ -504,6 +520,15 @@ def process_paper(slug: str, paper_dir: str) -> tuple[dict | None, list[dict]]:
     tree = build_tree(headings)
     assign_node_ids(tree)
 
+    # 所有节点指向同一篇 md（paper 是单文件 _index.md）
+    paper_source_md = f"{GITHUB_RAW_BASE}/papers/{slug}/_index.md"
+    def propagate_paper_source(nodes):
+        for n in nodes:
+            n["source_md"] = paper_source_md
+            if n.get("nodes"):
+                propagate_paper_source(n["nodes"])
+    propagate_paper_source(tree)
+
     doc_url = f"/papers/{slug}/index.html"
 
     # Generate summaries (LLM if LLM_MODEL set, else truncated fallback)
@@ -539,6 +564,15 @@ def process_note(slug: str, note_path: str) -> tuple[dict | None, list[dict]]:
     attach_text(headings, body_lines, len(body_lines))
     tree = build_tree(headings)
     assign_node_ids(tree)
+
+    # 所有节点指向同一篇 md（note 是单文件 slug.md）
+    note_source_md = f"{GITHUB_RAW_BASE}/notes/{slug}.md"
+    def propagate_note_source(nodes):
+        for n in nodes:
+            n["source_md"] = note_source_md
+            if n.get("nodes"):
+                propagate_note_source(n["nodes"])
+    propagate_note_source(tree)
 
     doc_url = f"/notes/{slug}.html"
 
