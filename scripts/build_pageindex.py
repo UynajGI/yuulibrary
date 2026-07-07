@@ -49,37 +49,67 @@ async def generate_summary(text: str, model: str = "") -> str:
     无 model 或 text 不足阈值时退化（不调 LLM）：
     - < threshold: 返回原文
     - 无 model:    返回前 200 字截断（兼容旧 excerpt 行为）
+
+    model 支持逗号分隔的优先级列表，依次尝试直到成功：
+    LLM_MODEL="deepseek/deepseek-chat,mimo/mimo-v2-pro"
+    会先试 DeepSeek，失败/无 key 则 fallback 到 MiMo。
     """
     text = text or ""
     if count_tokens_approx(text) < SUMMARY_TOKEN_THRESHOLD:
         return text
     if not model:
         return text[:200].replace("\n", " ").strip()
-    try:
-        import litellm
-        litellm.drop_params = True
-        # 重试 3 次（防 429 限流 / 网络抖动）
-        for attempt in range(3):
-            try:
-                resp = await litellm.acompletion(
-                    model=model,
-                    messages=[{"role": "user", "content": (
-                        "你正在为一篇文档构建结构化索引。请概括以下节点内容的要点，"
-                        "用一两句话描述这个节点讲了什么（便于检索时判断相关性）。"
-                        "直接返回描述，不要加任何前缀或解释。\n\n"
-                        f"{text[:3000]}"
-                    )}],
-                    temperature=0,
-                )
-                return resp.choices[0].message.content.strip()
-            except Exception:
-                if attempt < 2:
-                    await asyncio.sleep(2 ** attempt)  # 指数退避：1s, 2s
-                else:
-                    raise
-    except Exception as e:
-        print(f"    ⚠ summary LLM 调用失败，退化为截断: {e}", file=sys.stderr)
+
+    models = [m.strip() for m in model.split(",") if m.strip()]
+    if not models:
         return text[:200].replace("\n", " ").strip()
+
+    import litellm
+    litellm.drop_params = True
+
+    last_error = ""
+    for model_candidate in models:
+        resolved, extra_kwargs = _resolve_model(model_candidate)
+        try:
+            resp = await litellm.acompletion(
+                model=resolved,
+                messages=[{"role": "user", "content": (
+                    "你正在为一篇文档构建结构化索引。请概括以下节点内容的要点，"
+                    "用一两句话描述这个节点讲了什么（便于检索时判断相关性）。"
+                    "直接返回描述，不要加任何前缀或解释。\n\n"
+                    f"{text[:3000]}"
+                )}],
+                temperature=0,
+                **extra_kwargs,
+            )
+            return resp.choices[0].message.content.strip()
+        except Exception as e:
+            last_error = str(e)[:100]
+            continue  # fallback to next model
+
+    print(f"    ⚠ summary LLM 全部失败 ({len(models)} models)，退化为截断: {last_error}", file=sys.stderr)
+    return text[:200].replace("\n", " ").strip()
+
+
+def _resolve_model(model: str) -> tuple[str, dict]:
+    """Resolve model shorthand to (litellm_model, extra_kwargs).
+
+    Standard litellm models (deepseek/, anthropic/, openai/, etc.) pass through
+    as-is — litellm auto-detects provider from env vars with matching API key.
+
+    Custom providers that need api_base + separate API key are resolved here.
+    """
+    # MiMo (Xiaomi): OpenAI-compatible, needs custom base URL + separate API key
+    if model.startswith("mimo/"):
+        key = os.environ.get("MIMO_API_KEY", "")
+        if not key:
+            raise ValueError("MIMO_API_KEY not set — add to GitHub Secrets")
+        return ("openai/" + model[5:], {
+            "api_base": "https://token-plan-sgp.xiaomimimo.com/v1",
+            "api_key": key,
+        })
+
+    return model, {}
 
 
 async def add_summaries_to_tree(nodes: list[dict], model: str) -> None:
