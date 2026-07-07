@@ -47,7 +47,7 @@ RESIDUAL_EN_RE = re.compile(r"[A-Z][a-z]{10,}")  # long English words = missed t
 # ── System prompt (fixed rules, no cross-refs) ───────────────────────────
 SYSTEM_PROMPT = """你是专业翻译。将英文 markdown 正文翻译为中文，严格遵守：
 
-1. LaTeX 公式 $...$ 和 $$...$$ 和 \\tag{} 100% 原样不动
+1. LaTeX 公式 $...$、$$...$$、\\(...\\)、\\[...\\] 和 \\tag{} 100% 原样不动
 2. 人名保留英文：Haoyu Guan, Wenxian Zhang（不要翻译人名）
 3. 机构名保留英文原文：Key Laboratory of Artificial Micro- and Nano-structures...（不要翻译机构名）
 4. 书名译后附英文：《漫步华尔街》（A Random Walk Down Wall Street）

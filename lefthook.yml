@@ -218,11 +218,12 @@ pre-commit:
             if not os.path.exists(path): continue
             lines = open(path).read().split('\n')
 
-            # Check 1: | inside $...$ in table rows (Markdown misinterprets as column sep)
+            # Check 1: | inside inline math in table rows ($...$ or \(...\))
             for i, line in enumerate(lines, 1):
                 if not line.strip().startswith('|'): continue
-                for m in re.finditer(r'\$([^$]+)\$', line):
-                    latex = m.group(1)
+                # 匹配 $...$ 和 \(...\) 两种 inline math
+                for m in re.finditer(r'\$([^$]+)\$|\\\(([^)]+)\\\)', line):
+                    latex = m.group(1) or m.group(2) or ''
                     # Allow \vert, \lvert, \rvert, \mid — flag raw |
                     bad = re.findall(r'(?<!\\vert)(?<!\\lvert)(?<!\\rvert)(?<!\\mid)\|(?!vert\b)', latex)
                     if bad:
