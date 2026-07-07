@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """Build PageIndex JSON trees from Hugo content for static-site chat agent.
 
-Zero LLM calls — pure heading-based tree construction.
+Two modes:
+  --no-summary (default): pure structural, no LLM. summary = text 前 200 字截断。
+  --with-summary:         LLM 生成 summary（< 200 token 用原文，≥ 200 调 litellm）。
+                          litellm 按 model 前缀路由到任一 provider（多 API key 支持）。
+
 Output: static/pageindex/{global-index,node-index,books/*,papers/*,notes/*}.json
 """
 
+import asyncio
 import hashlib
 import json
 import os
@@ -16,6 +21,92 @@ CONTENT_DIR = os.path.join(os.path.dirname(__file__), "..", "content")
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "pageindex")
 FINGERPRINTS_FILE = os.path.join(STATIC_DIR, ".fingerprints.json")
 BASE_URL = ""  # filled by Hugo relURL at runtime; script uses relative paths
+
+# summary 生成阈值（token）：短节点直接用原文，长节点才调 LLM
+SUMMARY_TOKEN_THRESHOLD = 200
+# LLM model（litellm 格式，如 deepseek/deepseek-chat）；空表示不调 LLM（本地模式）
+LLM_MODEL = os.environ.get("LLM_MODEL", "")
+
+
+def inject_summaries(nodes: list[dict]) -> None:
+    """同步包装：遍历树注入 summary。无 LLM_MODEL 时只做截断退化。"""
+    asyncio.run(add_summaries_to_tree(nodes, LLM_MODEL))
+
+
+# ── summary 生成（对齐 PageIndex get_node_summary 逻辑）─────────────────────
+
+def count_tokens_approx(text: str) -> int:
+    """近似 token 数：中文 chars/1.5 + 英文 chars/4。用于判断是否调 LLM。"""
+    if not text:
+        return 0
+    cjk = len(re.findall(r"[一-鿿]", text))
+    return int(cjk / 1.5 + (len(text) - cjk) / 4)
+
+
+async def generate_summary(text: str, model: str = "") -> str:
+    """短节点用原文，长节点调 LLM 生成要点摘要。
+
+    无 model 或 text 不足阈值时退化（不调 LLM）：
+    - < threshold: 返回原文
+    - 无 model:    返回前 200 字截断（兼容旧 excerpt 行为）
+    """
+    text = text or ""
+    if count_tokens_approx(text) < SUMMARY_TOKEN_THRESHOLD:
+        return text
+    if not model:
+        return text[:200].replace("\n", " ").strip()
+    try:
+        import litellm
+        litellm.drop_params = True
+        resp = await litellm.acompletion(
+            model=model,
+            messages=[{"role": "user", "content": (
+                "你正在为一篇文档构建结构化索引。请概括以下节点内容的要点，"
+                "用一两句话描述这个节点讲了什么（便于检索时判断相关性）。"
+                "直接返回描述，不要加任何前缀或解释。\n\n"
+                f"{text[:3000]}"
+            )}],
+            temperature=0,
+        )
+        return resp.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"    ⚠ summary LLM 调用失败，退化为截断: {e}", file=sys.stderr)
+        return text[:200].replace("\n", " ").strip()
+
+
+async def add_summaries_to_tree(nodes: list[dict], model: str) -> None:
+    """递归遍历树，为每个节点生成 summary（并发）。"""
+    if not nodes:
+        return
+    # 收集所有需要生成 summary 的（text 超阈值的）叶子节点
+    tasks = []
+    task_nodes = []
+
+    def collect(ns):
+        for n in ns:
+            child_nodes = n.get("nodes", [])
+            if child_nodes:
+                collect(child_nodes)
+            else:
+                # 叶子节点：text 超阈值才调 LLM
+                if count_tokens_approx(n.get("text", "")) >= SUMMARY_TOKEN_THRESHOLD and model:
+                    tasks.append(generate_summary(n["text"], model))
+                    task_nodes.append(n)
+
+    collect(nodes)
+    if tasks:
+        summaries = await asyncio.gather(*tasks)
+        for n, s in zip(task_nodes, summaries):
+            n["summary"] = s
+    # 非叶子节点 + 未调 LLM 的叶子节点：summary = text 截断或原文
+    def fill(ns):
+        for n in ns:
+            if "summary" not in n:
+                t = n.get("text", "")
+                n["summary"] = t if count_tokens_approx(t) < SUMMARY_TOKEN_THRESHOLD else t[:200].replace("\n", " ").strip()
+            if n.get("nodes"):
+                fill(n["nodes"])
+    fill(nodes)
 
 
 # ── fingerprint incremental update ──────────────────────────────────────────
@@ -142,6 +233,7 @@ def build_tree(flat_nodes: list[dict]) -> list[dict]:
             "title": node["title"],
             "node_id": "",  # filled later
             "text": node.get("text", ""),
+            "line_num": node.get("line_num", 0),
             "nodes": [],
         }
         level = node["level"]
@@ -178,6 +270,8 @@ def clean_tree(tree: list[dict]) -> list[dict]:
             "title": node["title"],
             "node_id": node["node_id"],
             "text": node["text"],
+            "summary": node.get("summary", ""),
+            "line_num": node.get("line_num", 0),
         }
         if node.get("nodes"):
             cleaned["nodes"] = clean_tree(node["nodes"])
@@ -189,13 +283,13 @@ def clean_tree(tree: list[dict]) -> list[dict]:
 
 def flatten_tree(tree: list[dict], doc_id: str, breadcrumb: list[str],
                  doc_url_prefix: str) -> list[dict]:
-    """Flatten tree into list of {doc_id, node_id, title, breadcrumb, url, excerpt}."""
+    """Flatten tree into list of {doc_id, node_id, title, breadcrumb, url, summary, line_num}."""
     result = []
     for node in tree:
         crumb = breadcrumb + [node["title"]]
         text = node.get("text", "")
-        excerpt = text[:200].replace("\n", " ").strip()
-        # generate searchable terms from title
+        # summary：优先用已生成的 LLM 摘要，否则退化截断
+        summary = node.get("summary") or text[:200].replace("\n", " ").strip()
         terms = extract_terms(node["title"])
         result.append({
             "doc_id": doc_id,
@@ -204,7 +298,8 @@ def flatten_tree(tree: list[dict], doc_id: str, breadcrumb: list[str],
             "breadcrumb": crumb,
             "url": f"{doc_url_prefix}#pi-node-{node['node_id']}",
             "terms": terms,
-            "excerpt": excerpt,
+            "summary": summary,
+            "line_num": node.get("line_num", 0),
         })
         if node.get("nodes"):
             result.extend(flatten_tree(node["nodes"], doc_id, crumb, doc_url_prefix))
@@ -269,11 +364,14 @@ def process_book(slug: str, book_dir: str) -> tuple[dict | None, list[dict]]:
         attach_text(headings, body_lines, len(body_lines))
         ch_tree = build_tree(headings)
 
-        # Wrap chapter in a chapter-level node
+        # Wrap chapter in a chapter-level node（纯容器：text 放 description，不重复正文）
+        # 分文件模式下正文全在子节点里，chapter 只做层级容器
+        ch_description = ch_meta.get("description", "")
         ch_node = {
             "title": ch_title,
             "node_id": "",
-            "text": headings[0].get("text", "") if headings else "",
+            "text": ch_description,  # front matter description，非正文
+            "line_num": headings[0].get("line_num", 0) if headings else 0,
             "nodes": ch_tree,
         }
         book_root["nodes"].append(ch_node)
@@ -287,8 +385,12 @@ def process_book(slug: str, book_dir: str) -> tuple[dict | None, list[dict]]:
 
     # Flatten for node-index
     book_url_prefix = f"/books/{slug}/"
+    # Generate summaries (LLM if LLM_MODEL set, else truncated fallback)
+    # Must run BEFORE flatten (chapter nodes need summary filled) and clean_tree
+    inject_summaries(book_root["nodes"])
+
+    # Flatten for node-index (after summaries are injected)
     # The URL for chapter content needs the chapter filename
-    # Build a mapping: for nodes under a chapter, use chXX.html#pi-node-NNNN
     flat_nodes = []
     chapter_files = [c[4] for c in chapters]  # fnames in order
     ch_idx = 0
@@ -296,6 +398,7 @@ def process_book(slug: str, book_dir: str) -> tuple[dict | None, list[dict]]:
         ch_fname = os.path.splitext(chapter_files[ch_idx])[0] + ".html"
         ch_url = f"{book_url_prefix}{ch_fname}"
         # Add chapter node itself
+        ch_text = ch_node.get("text", "")
         flat_nodes.append({
             "doc_id": slug,
             "node_id": ch_node["node_id"],
@@ -303,7 +406,8 @@ def process_book(slug: str, book_dir: str) -> tuple[dict | None, list[dict]]:
             "breadcrumb": [book_title, ch_node["title"]],
             "url": f"{ch_url}#pi-node-{ch_node['node_id']}",
             "terms": extract_terms(ch_node["title"]),
-            "excerpt": ch_node.get("text", "")[:200].replace("\n", " ").strip(),
+            "summary": ch_node.get("summary") or ch_text[:200].replace("\n", " ").strip(),
+            "line_num": ch_node.get("line_num", 0),
         })
         # Flatten children
         child_flat = flatten_tree(ch_node.get("nodes", []), slug,
@@ -348,6 +452,11 @@ def process_paper(slug: str, paper_dir: str) -> tuple[dict | None, list[dict]]:
     assign_node_ids(tree)
 
     doc_url = f"/papers/{slug}/index.html"
+
+    # Generate summaries (LLM if LLM_MODEL set, else truncated fallback)
+    # Must run BEFORE flatten and clean_tree (both read node.summary)
+    inject_summaries(tree)
+
     flat = flatten_tree(tree, slug, [doc_title], doc_url)
 
     doc_tree = {
@@ -379,6 +488,11 @@ def process_note(slug: str, note_path: str) -> tuple[dict | None, list[dict]]:
     assign_node_ids(tree)
 
     doc_url = f"/notes/{slug}.html"
+
+    # Generate summaries (LLM if LLM_MODEL set, else truncated fallback)
+    # Must run BEFORE flatten and clean_tree (both read node.summary)
+    inject_summaries(tree)
+
     flat = flatten_tree(tree, slug, [doc_title], doc_url)
 
     doc_tree = {
