@@ -8,6 +8,11 @@ on:
 permissions:
   contents: write
 
+# 防并发：连续 push 只跑最后一个，避免 commit 回 main 冲突
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -58,7 +63,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add static/pageindex/
-          git diff --staged --quiet || (git commit -m "[bot] pageindex: 增量更新" && git push)
+          if git diff --staged --quiet; then
+            echo "No index changes."
+          else
+            git commit -m "[bot] pageindex: 增量更新"
+            # pull --rebase 防并发 push 冲突（多个 deploy 同时 commit）
+            git pull --rebase origin main || true
+            git push || echo "push failed (likely concurrent deploy), index will update next run"
+          fi
 
       - name: Build
         run: hugo --gc --minify
