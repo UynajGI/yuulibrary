@@ -58,20 +58,6 @@ jobs:
           # 只处理 fingerprints 变了的文档，其余 JSON 保持不动
           python3 scripts/build_pageindex.py --incremental
 
-      - name: Commit updated index
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add static/pageindex/
-          if git diff --staged --quiet; then
-            echo "No index changes."
-          else
-            git commit -m "[bot] pageindex: 增量更新"
-            # pull --rebase 防并发 push 冲突（多个 deploy 同时 commit）
-            git pull --rebase origin main || true
-            git push || echo "push failed (likely concurrent deploy), index will update next run"
-          fi
-
       - name: Build
         run: hugo --gc --minify
 
