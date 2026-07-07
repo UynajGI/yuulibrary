@@ -29,8 +29,25 @@ jobs:
           python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/papers/
 
       - name: Build PageIndex
+        env:
+          # litellm 多 provider 路由：配任一 key + LLM_MODEL 即可生成 LLM summary
+          # 未配置时 summary 退化为 text 前 200 字截断（仍可用，只是不是真摘要）
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
+          ZHIPUAI_API_KEY: ${{ secrets.ZHIPUAI_API_KEY }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
         run: |
           pip install pyyaml
+          if [ -n "$LLM_MODEL" ]; then
+            pip install litellm
+            echo "Building PageIndex with LLM summary (model: $LLM_MODEL)..."
+          else
+            echo "Building PageIndex (no LLM, summary=truncated fallback)..."
+          fi
           python3 scripts/build_pageindex.py
 
       - name: Build
