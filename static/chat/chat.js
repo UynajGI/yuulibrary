@@ -397,7 +397,7 @@
     return total;
   }
 
-  function search(query, topK = 10) {
+  function search(query, topK = 50) {
     if (!nodeIndex) return [];
     buildBM25Stats();
     let tokens = tokenize(query);
@@ -406,19 +406,224 @@
     const scored = [];
     for (const node of nodeIndex.nodes) {
       const s = bm25Score(tokens, node);
-      if (s > 0) scored.push({ node, score: Math.round(s * 100) / 100 });
+      if (s > 0) {
+        const score = Math.round(s * 100) / 100;
+        // 附加 query token 在各字段的位置（供 lexicalRerank 算 proximity）
+        const positions = {};
+        const fieldTokens = {
+          title: tokenize(node.title || ""),
+          breadcrumb: tokenize((node.breadcrumb || []).join(" ")),
+          terms: tokenize((node.terms || []).join(" ")),
+          excerpt: tokenize(node.excerpt || ""),
+        };
+        for (const qt of tokens) {
+          for (const f in fieldTokens) {
+            const idx = fieldTokens[f].indexOf(qt);
+            if (idx >= 0) {
+              if (!positions[qt]) positions[qt] = {};
+              positions[qt][f] = idx;
+            }
+          }
+        }
+        scored.push({ node, score, tokens, positions });
+      }
     }
     scored.sort((a, b) => b.score - a.score);
-    const seen = new Set(),
+    const docCount = new Map(), // per-doc 命中计数（修复：原 Set 去重导致限制失效）
       results = [];
     for (const item of scored) {
-      if ([...seen].filter((id) => id === item.node.doc_id).length < 3) {
+      const c = docCount.get(item.node.doc_id) || 0;
+      if (c < 3) {
         results.push(item);
-        seen.add(item.node.doc_id);
+        docCount.set(item.node.doc_id, c + 1);
       }
       if (results.length >= topK * 2) break;
     }
     return results.slice(0, topK);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // RM3 伪相关反馈 + 词法精排 + MMR 去冗余 + token budget
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── RM3 伪相关反馈：用 BM25 top-M 当反馈集扩展 query term ──────────────────
+  // 对短 query / 词面不匹配的场景提升召回质量。返回扩展后的 token 数组。
+  function rm3Expand(queryTokens, hits) {
+    const M = 10, // 反馈文档数
+      topExpansions = 15; // 扩展 term 上限
+    const topM = hits.slice(0, M);
+    if (!topM.length) return queryTokens;
+    // 统计 topM 里每个 term 的加权频次（用 BM25 score 加权）
+    const termScores = {};
+    for (const h of topM) {
+      const n = h.node;
+      const text = `${n.title || ""} ${(n.terms || []).join(" ")} ${n.excerpt || ""}`;
+      const tks = tokenize(text);
+      for (const t of tks) termScores[t] = (termScores[t] || 0) + h.score;
+    }
+    const expanded = Object.entries(termScores)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, topExpansions)
+      .map((x) => x[0]);
+    // 原始 tokens 优先（RM3 插值，原始权重 α=0.4，但合并时保持原始在前）
+    return [...new Set([...queryTokens, ...expanded])];
+  }
+
+  // ── 词法精排：proximity + phrase + coverage 三信号 + BM25 归一化加权 ────────
+  // 各子分 min-max 归一化到 [0,1]，加权求和。权重：bm25 0.5, prox 0.2, phrase 0.2, cov 0.1
+  const RERANK_WEIGHTS = { bm25: 0.5, prox: 0.2, phrase: 0.2, cov: 0.1 };
+
+  function lexicalRerank(queryTokens, rawQuery, hits) {
+    if (!hits.length) return hits;
+    // 计算各子分
+    const sub = hits.map((h) => {
+      const posSet = h.positions || {};
+      // (a) proximity：按字段分别算 query tokens 的最小跨度，取最优字段。
+      //     跨字段位置不可比（title[0] vs excerpt[50] 无意义），必须同字段内算。
+      let bestProx = 0;
+      for (const f of ["title", "breadcrumb", "terms", "excerpt"]) {
+        const positionsInField = [];
+        for (const qt of queryTokens) {
+          const p = posSet[qt]?.[f];
+          if (p !== undefined) positionsInField.push(p);
+        }
+        if (positionsInField.length >= 2) {
+          const span = Math.max(...positionsInField) - Math.min(...positionsInField);
+          const score = 1 / (span + 1);
+          if (score > bestProx) bestProx = score;
+        }
+      }
+      if (bestProx === 0) {
+        // 只命中单个 token，给基础分
+        const anyHit = Object.values(posSet).some((fp) => Object.keys(fp).length > 0);
+        bestProx = anyHit ? 0.2 : 0;
+      }
+      // (b) phrase：检查 query 的连续片段是否在 title/breadcrumb 精确出现。
+      //     中文：用 2 字滑窗子串（"线性响应"→"线性/性响/响应/应理/理论"），
+      //     因为 2-gram token 拼接 "线性 性响" 无法匹配原文，必须用原文子串。
+      //     英文：用 token bigram（"berry phase"）匹配。
+      const titleText = (
+        (h.node.title || "") +
+        " " +
+        (h.node.breadcrumb || []).join(" ")
+      ).toLowerCase();
+      let phraseHits = 0,
+        phraseTotal = 0;
+      // 中文 2 字滑窗
+      const cjkPart = (rawQuery.match(/[一-鿿]+/g) || []).join("");
+      for (let i = 0; i <= cjkPart.length - 2; i++) {
+        phraseTotal++;
+        if (titleText.includes(cjkPart.slice(i, i + 2).toLowerCase())) phraseHits++;
+      }
+      // 英文 token bigram
+      const enTokens = rawQuery.toLowerCase().match(/[a-z][a-z0-9]{1,}/g) || [];
+      for (let i = 0; i < enTokens.length - 1; i++) {
+        phraseTotal++;
+        if (titleText.includes(enTokens[i] + " " + enTokens[i + 1])) phraseHits++;
+      }
+      const phraseScore = phraseTotal ? Math.min(phraseHits / phraseTotal, 1) : 0;
+      // (c) coverage：命中 query token 数 / 总 query token 数
+      const hitTk = new Set();
+      for (const qt of queryTokens) if (posSet[qt]) hitTk.add(qt);
+      const covScore = queryTokens.length ? hitTk.size / queryTokens.length : 0;
+      return { h, bm25: h.score, prox: bestProx, phrase: phraseScore, cov: covScore };
+    });
+    // min-max 归一化各子分
+    const norm = (key) => {
+      const vals = sub.map((s) => s[key]);
+      const mn = Math.min(...vals),
+        mx = Math.max(...vals);
+      const range = mx - mn || 1;
+      for (const s of sub) s["_" + key] = (s[key] - mn) / range;
+    };
+    norm("bm25");
+    norm("prox");
+    norm("phrase");
+    // coverage 已经是 [0,1]，无需归一化
+    // 加权求和 → rerankScore
+    for (const s of sub) {
+      s.h.rerankScore =
+        RERANK_WEIGHTS.bm25 * s._bm25 +
+        RERANK_WEIGHTS.prox * s._prox +
+        RERANK_WEIGHTS.phrase * s._phrase +
+        RERANK_WEIGHTS.cov * s.cov;
+    }
+    return sub.map((s) => s.h).sort((a, b) => b.rerankScore - a.rerankScore);
+  }
+
+  // ── MMR 去冗余：4-gram shingle Jaccard，贪心选 top-N ──────────────────────
+  // λ=0.6 偏相关但保留多样性。contexts 须已按 rerankScore 降序，且含 .text
+  function shingle(text, k = 4) {
+    const tokens = tokenize(text);
+    if (tokens.length < k) return new Set(tokens);
+    const shingles = new Set();
+    for (let i = 0; i <= tokens.length - k; i++) shingles.add(tokens.slice(i, i + k).join(" "));
+    return shingles;
+  }
+
+  function jaccard(setA, setB) {
+    if (!setA.size || !setB.size) return 0;
+    let inter = 0;
+    for (const s of setA) if (setB.has(s)) inter++;
+    return inter / (setA.size + setB.size - inter);
+  }
+
+  function mmrSelect(contexts, lambda = 0.6, maxChunks = 8) {
+    if (contexts.length <= 1) return contexts;
+    // 预计算 shingle
+    for (const c of contexts) c._shingle = shingle(c.text || "");
+    const selected = [contexts[0]], // 第一个（最高分）直接选
+      remaining = contexts.slice(1);
+    while (selected.length < maxChunks && remaining.length) {
+      let bestIdx = 0,
+        bestScore = -Infinity;
+      for (let i = 0; i < remaining.length; i++) {
+        const cand = remaining[i];
+        let maxSim = 0;
+        for (const s of selected) {
+          const sim = jaccard(cand._shingle, s._shingle);
+          if (sim > maxSim) maxSim = sim;
+        }
+        const mmr = lambda * (cand.rerankScore || 0) - (1 - lambda) * maxSim;
+        if (mmr > bestScore) {
+          bestScore = mmr;
+          bestIdx = i;
+        }
+      }
+      selected.push(remaining.splice(bestIdx, 1)[0]);
+    }
+    return selected;
+  }
+
+  // ── Token 估算 + 感知历史的 budget packing ────────────────────────────────
+  // 近似：中文 chars/1.5，英文 chars/4
+  function estimateTokens(text) {
+    if (!text) return 0;
+    const cjk = (text.match(/[一-鿿]/g) || []).length;
+    const other = text.length - cjk;
+    return Math.ceil(cjk / 1.5 + other / 4);
+  }
+
+  // budget = (MODEL_WINDOW - OUTPUT_RESERVE - history - system) * 0.5
+  function packWithContextBudget(contexts, historyTokens, systemTokens) {
+    const MODEL_WINDOW = 64000,
+      OUTPUT_RESERVE = 4096;
+    const retrievalBudget = Math.floor(
+      (MODEL_WINDOW - OUTPUT_RESERVE - historyTokens - systemTokens) * 0.5
+    );
+    if (retrievalBudget <= 0) return contexts.slice(0, 2); // 兜底：至少给 2 块
+    let used = 0;
+    const packed = [];
+    for (const c of contexts) {
+      // 单块也限长（避免一篇长文吃光预算）
+      const text =
+        c.text.length > MAX_SECTION_CHARS * 2 ? c.text.slice(0, MAX_SECTION_CHARS * 2) : c.text;
+      const n = estimateTokens(text);
+      if (used + n > retrievalBudget) continue;
+      packed.push({ ...c, text });
+      used += n;
+    }
+    return packed.length ? packed : contexts.slice(0, 2); // 兜底
   }
 
   async function loadDocTree(docId) {
@@ -490,13 +695,31 @@
   }
 
   async function retrieveContext(query) {
-    const hits = search(query);
+    let hits = search(query);
     if (!hits.length) return { contexts: [], docCount: 0, thin: true };
+
+    // ── 第 2 步：RM3 伪相关反馈——用 top-10 扩展 query term，重打分 ──
+    const origTokens = tokenize(query);
+    const expandedTokens = rm3Expand(origTokens, hits);
+    if (expandedTokens.length > origTokens.length) {
+      // 用扩展 tokens 重新打分（只对已召回的 hits，不重新遍历全库）
+      for (const h of hits) {
+        h.score = Math.round(bm25Score(expandedTokens, h.node) * 100) / 100;
+      }
+      hits = hits.filter((h) => h.score > 0).sort((a, b) => b.score - a.score);
+    }
+
+    // ── 第 3 步：词法精排（proximity + phrase + coverage）──
+    hits = lexicalRerank(origTokens, query, hits);
+
+    // 加载文档树（top-6 文档）
     const uniqueDocs = [...new Set(hits.map((h) => h.node.doc_id))].slice(0, 6);
     await Promise.all(uniqueDocs.map(loadDocTree));
-    const contexts = [],
+
+    // 组装 context（用精排后的顺序，取 top-12 候选供 MMR 选）
+    const candidates = [],
       seenNodes = new Set();
-    for (const hit of hits.slice(0, 8)) {
+    for (const hit of hits.slice(0, 12)) {
       const doc = docCache[hit.node.doc_id];
       if (!doc) continue;
       if (seenNodes.has(hit.node.doc_id + ":" + hit.node.node_id)) continue;
@@ -504,10 +727,13 @@
       const ctx = buildContextChunk(doc, hit.node.node_id, doc.tree);
       if (ctx && ctx.text) {
         ctx.url = hit.node.url || "";
-        contexts.push(ctx);
+        ctx.rerankScore = hit.rerankScore || 0;
+        candidates.push(ctx);
       }
     }
-    let thin = contexts.length < 2;
+
+    // thin 兜底：候选不足时用单 token 二次召回补
+    let thin = candidates.length < 2;
     if (thin && query.length > 4) {
       for (const term of tokenize(query).slice(0, 3)) {
         for (const hit of search(term, 4)) {
@@ -518,22 +744,26 @@
           const ctx = buildContextChunk(d, hit.node.node_id, d.tree);
           if (ctx && ctx.text) {
             ctx.url = hit.node.url || "";
-            contexts.push(ctx);
+            ctx.rerankScore = hit.rerankScore || 0.1;
+            candidates.push(ctx);
           }
-          if (contexts.length >= 6) break;
+          if (candidates.length >= 8) break;
         }
-        if (contexts.length >= 6) break;
+        if (candidates.length >= 8) break;
       }
-      thin = contexts.length < 2;
+      thin = candidates.length < 2;
     }
-    // 检索置信度分级：基于 top score 与 source 分布。驱动 system prompt 的"边界感"。
-    // 阈值经真实索引(5690节点)校准：强命中>80，中等30-80，弱<30。
-    const topScore = hits[0]?.score || 0;
-    const secondScore = hits[1]?.score || 0;
+
+    // ── 第 4 步：MMR 去冗余（4-gram shingle Jaccard，λ=0.6）──
+    const contexts = mmrSelect(candidates, 0.6, 8);
+
+    // ── 置信度分级（基于精排后的 rerankScore，尺度已归一化到 [0,1]）──
+    const topRerank = hits[0]?.rerankScore || 0;
     const sourceCount = uniqueDocs.length;
     let confidence = "low";
-    if (topScore >= 80 && sourceCount >= 2 && secondScore / topScore > 0.2) confidence = "high";
-    else if (topScore >= 30 || (topScore >= 15 && sourceCount >= 2)) confidence = "medium";
+    if (topRerank >= 0.6 && sourceCount >= 2) confidence = "high";
+    else if (topRerank >= 0.3 || (topRerank >= 0.15 && sourceCount >= 2)) confidence = "medium";
+
     return { contexts, docCount: sourceCount, thin, confidence, hits: hits.slice(0, 12) };
   }
 
@@ -654,10 +884,19 @@ ${blocks.join("\n\n---\n\n")}
   ];
 
   // retrieveContext 返回结构化 contexts，这里转成给模型的纯文本（agent 模式）
-  async function retrieveContextAsText(query) {
+  // budgetCtx: 可选 {historyTokens, systemTokens}，提供时启用 token budget packing
+  async function retrieveContextAsText(query, budgetCtx) {
     const result = await retrieveContext(query);
-    const { contexts, confidence } = result;
+    let { contexts, confidence } = result;
     if (!contexts.length) return { text: "未找到相关内容。", contexts: [], confidence };
+    // token budget packing（感知对话历史）
+    if (budgetCtx) {
+      contexts = packWithContextBudget(
+        contexts,
+        budgetCtx.historyTokens || 0,
+        budgetCtx.systemTokens || 0
+      );
+    }
     const blocks = contexts.map(
       (c, i) =>
         `### [${i + 1}] ${c.breadcrumb.join(" > ")}\n*来源: ${c.docTitle} | source_id: ${c.sourceId}*\n\n${truncateAtBoundary(
@@ -669,10 +908,10 @@ ${blocks.join("\n\n---\n\n")}
     return { text, contexts, confidence };
   }
 
-  // 执行工具调用，返回字符串结果
-  async function executeTool(name, args) {
+  // 执行工具调用，返回字符串结果。budgetCtx 透传给 retrieveContextAsText
+  async function executeTool(name, args, budgetCtx) {
     if (name === "search_library") {
-      const r = await retrieveContextAsText(args.query);
+      const r = await retrieveContextAsText(args.query, budgetCtx);
       // 把 contexts 挂到返回值上，供 agent loop 累积引用
       r.__contexts = r.contexts;
       return r;
@@ -1362,9 +1601,16 @@ ${blocks.join("\n\n---\n\n")}
     const messages = [...chatHistory.slice(-6)];
     const MAX_LOOPS = 4; // 最多 4 轮工具调用，防死循环
 
+    // 感知历史的 token budget：预先算 history + system 占用，传给检索层
+    const budgetCtx = {
+      historyTokens: messages.reduce((s, m) => s + estimateTokens(m.content || ""), 0),
+      systemTokens: estimateTokens(systemPrompt),
+    };
+
     let finalText = "";
     let finalThinking = "";
     const allContexts = []; // 累积所有轮检索到的 context，供最终引用注入
+    const seenSourceIds = new Set(); // 跨轮去重（按 sourceId）
     const toolTrail = []; // UI 工具调用轨迹 HTML 片段
 
     try {
@@ -1429,9 +1675,16 @@ ${blocks.join("\n\n---\n\n")}
           );
           contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
 
-          const toolResult = await executeTool(tc.name, args);
-          // 累积 context 供最终引用注入
-          if (toolResult.__contexts) allContexts.push(...toolResult.__contexts);
+          const toolResult = await executeTool(tc.name, args, budgetCtx);
+          // 累积 context 供最终引用注入（跨轮按 sourceId 去重）
+          if (toolResult.__contexts) {
+            for (const c of toolResult.__contexts) {
+              if (!seenSourceIds.has(c.sourceId)) {
+                allContexts.push(c);
+                seenSourceIds.add(c.sourceId);
+              }
+            }
+          }
 
           messages.push({
             role: "tool",
