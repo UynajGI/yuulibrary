@@ -724,6 +724,9 @@ def main():
             total_kb += os.path.getsize(os.path.join(root, fname))
     print(f"  total size:   {total_kb / 1024:.1f} KB")
 
+    # 全量重建后也写 fingerprints，否则下次 --incremental 会再次全量
+    update_fingerprints()
+
 
 def changed_docs(file_paths: list[str]) -> set[tuple[str, str]]:
     """Map changed file paths to affected (type, slug) pairs.
