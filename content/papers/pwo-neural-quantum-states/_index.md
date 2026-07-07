@@ -1331,4 +1331,3 @@ $J_{1} {-} J_{2}$ 海森堡模型
 | 包裹相位差 | Wrapped phase difference | 经atan2处理、取值$[-\pi,\pi]$的相位增量 |
 | Fubini-Study度量 | Fubini-Study metric | 量子态空间的Riemannian度量（$\propto$不保真度） |
 | 阻挫 $J_1-J_2$ 模型 | Frustrated $J_1{-}J_2$ model | 含最近邻和次近邻耦合的海森堡模型，$J_2/J_1=0.5$为Majumdar-Ghosh点 |
-
