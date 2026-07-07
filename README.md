@@ -91,7 +91,7 @@ yuulibrary/
 
 ## AI 问答
 
-右下角浮动按钮打开聊天面板，支持从全部书/论文/笔记中检索并回答问题。用户自带 API Key（BYOK），浏览器直连模型 API。详见 `CLAUDE.md`。
+右下角浮动按钮打开聊天面板，支持从全部书/论文/笔记中检索并回答问题。基于 PageIndex 树索引 + BM25 精排 + ReAct 多轮推理。用户自带 API Key（BYOK），浏览器直连模型 API。详见 `CLAUDE.md`。
 
 ## 本地开发
 
