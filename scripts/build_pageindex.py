@@ -58,24 +58,32 @@ async def generate_summary(text: str, model: str = "") -> str:
     try:
         import litellm
         litellm.drop_params = True
-        resp = await litellm.acompletion(
-            model=model,
-            messages=[{"role": "user", "content": (
-                "你正在为一篇文档构建结构化索引。请概括以下节点内容的要点，"
-                "用一两句话描述这个节点讲了什么（便于检索时判断相关性）。"
-                "直接返回描述，不要加任何前缀或解释。\n\n"
-                f"{text[:3000]}"
-            )}],
-            temperature=0,
-        )
-        return resp.choices[0].message.content.strip()
+        # 重试 3 次（防 429 限流 / 网络抖动）
+        for attempt in range(3):
+            try:
+                resp = await litellm.acompletion(
+                    model=model,
+                    messages=[{"role": "user", "content": (
+                        "你正在为一篇文档构建结构化索引。请概括以下节点内容的要点，"
+                        "用一两句话描述这个节点讲了什么（便于检索时判断相关性）。"
+                        "直接返回描述，不要加任何前缀或解释。\n\n"
+                        f"{text[:3000]}"
+                    )}],
+                    temperature=0,
+                )
+                return resp.choices[0].message.content.strip()
+            except Exception:
+                if attempt < 2:
+                    await asyncio.sleep(2 ** attempt)  # 指数退避：1s, 2s
+                else:
+                    raise
     except Exception as e:
         print(f"    ⚠ summary LLM 调用失败，退化为截断: {e}", file=sys.stderr)
         return text[:200].replace("\n", " ").strip()
 
 
 async def add_summaries_to_tree(nodes: list[dict], model: str) -> None:
-    """递归遍历树，为每个节点生成 summary（并发）。"""
+    """递归遍历树，为每个节点生成 summary（并发，限流 10 并发防 429）。"""
     if not nodes:
         return
     # 收集所有需要生成 summary 的（text 超阈值的）叶子节点
@@ -95,7 +103,14 @@ async def add_summaries_to_tree(nodes: list[dict], model: str) -> None:
 
     collect(nodes)
     if tasks:
-        summaries = await asyncio.gather(*tasks)
+        # 限流：Semaphore 控制并发数，防止一次发几千请求被 provider 429
+        sem = asyncio.Semaphore(10)
+
+        async def limited(task):
+            async with sem:
+                return await task
+
+        summaries = await asyncio.gather(*[limited(t) for t in tasks])
         for n, s in zip(task_nodes, summaries):
             n["summary"] = s
     # 非叶子节点 + 未调 LLM 的叶子节点：summary = text 截断或原文
