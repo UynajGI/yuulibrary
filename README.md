@@ -1,134 +1,117 @@
 # Yuunagi Library
 
-个人的数字图书馆，基于 [Hugo](https://gohugo.io) + [Hugo Book](https://github.com/alex-shpak/hugo-book) 主题构建，部署于 GitHub Pages。
+个人的数字图书馆——基于 [Hugo](https://gohugo.io) + [Hugo Book](https://github.com/alex-shpak/hugo-book) 主题构建的多书站点,部署于 GitHub Pages。
 
-## 结构
+书 / 论文 / 笔记统一整理成结构化中文笔记,支持全文 AI 问答、三态主题切换、自动化质量校验。
+
+## 特性
+
+- **📚 多书站点** — 书籍(多章拆分)、论文(翻译+结构化分析)、笔记(思维框架蒸馏)三类内容
+- **🎨 三态主题切换** — 日间 / 夜间 / 自动跟随系统,左侧菜单切换,localStorage 持久化,无首屏闪烁
+- **📊 馆藏统计仪表盘** — 首页自动统计 books/papers/notes 数量 + 最近添加 + 标签云
+- **🤖 AI 问答(BYOK)** — 浏览器直连 LLM,PageIndex 树索引 + BM25 精排 + ReAct 多轮推理,用户自带 API Key
+- **🔍 自动化质量校验** — lefthook 36 项机械验证( shortcode 闭合 / `$` 配对 / 图片引用 / LaTeX 渲染坑)+ 翻译脚本回归测试
+- **🏷 tag 触发 CI** — 打 tag 才部署,平时 push 不跑 CI,不撞车
+
+## 快速开始
+
+### 环境要求
+
+| 依赖 | 版本 | 用途 | 必需? |
+|------|------|------|--------|
+| [Hugo extended](https://gohugo.io/installation/) | 0.163.3+ | 站点构建(SCSS 支持) | ✅ |
+| Python | 3.10+ | PageIndex 索引构建、翻译脚本 | ✅ |
+| Node.js | 18+ | lefthook 的 prettier/eslint/markdownlint | ✅ |
+| [pandoc](https://pandoc.org/) | 任意 | EPUB→Markdown(加书才需要) | ➖ |
+| [lefthook](https://github.com/evilmartians/lefthook) | 2.x | Git hooks | ➖(强烈推荐) |
+
+### 本地预览
+
+```bash
+# 克隆(含主题子模块)
+git clone --recurse-submodules <repo-url>
+cd yuulibrary
+
+# 安装 git hooks(可选,但推荐)
+lefthook install
+
+# 本地预览(http://localhost:1313/yuulibrary/)
+hugo server
+```
+
+> ⚠️ 子模块必须拉取:`themes/hugo-book`(主题)+ `lib/PageIndex`(AI 问答索引库)。漏了任一站点会构建失败。若已 clone 未带子模块,跑 `git submodule update --init --recursive`。
+
+### Fork 部署(5 步)
+
+1. **Fork 并 clone**(带子模块):
+   ```bash
+   git clone --recurse-submodules https://github.com/<你的用户名>/yuulibrary.git
+   ```
+
+2. **改 `hugo.toml`** 必改字段(见下方「必改配置清单」)
+
+3. **(可选)配置 CI secrets** 启用 LLM 摘要:在 GitHub repo Settings → Secrets 添加任一 LLM API key + `LLM_MODEL` variable(litellm 格式,如 `deepseek/deepseek-chat`)。不配也能用,PageIndex summary 退化为原文截断
+
+4. **GitHub Pages 设置**:repo Settings → Pages → Source 选 `gh-pages` 分支(首次打 tag 后自动创建)
+
+5. **打 tag 触发首次部署**:
+   ```bash
+   bash scripts/release.sh                    # 算下一个 tag(只读)
+   git tag <tag> && git push origin <tag>     # 确认后推送,CI 自动部署
+   ```
+
+### 必改配置清单
+
+fork 后必须修改的硬编码字段:
+
+| 文件 | 字段 | 当前值 | 改成 |
+|------|------|--------|------|
+| `hugo.toml` | `baseURL` | `https://uynajgi.github.io/yuulibrary/` | `https://<你的用户名>.github.io/<你的仓库名>/` |
+| `hugo.toml` | `params.BookRepo` | `https://github.com/uynajgi/yuulibrary` | `https://github.com/<你的用户名>/<你的仓库名>` |
+| `layouts/_partials/docs/inject/head.html` | `YUU_CHAT_RAW_BASE` 推导里的 `main` | 写死 `main` | 若你的默认分支不是 `main`,改这里 |
+
+> **user/organization site 提示**:若你部署到 `https://<用户名>.github.io/`(根域名,非子路径),还需把 `hugo.toml` 的 `relativeurls` 和 `uglyurls` 重新评估——当前配置是针对 GitHub Pages project site(子路径)优化的。
+
+## 项目结构
 
 ```
 yuulibrary/
-├── hugo.toml               # Hugo 配置
+├── hugo.toml                        # Hugo 配置(baseURL / BookRepo fork 后必改)
 ├── content/
-│   ├── _index.md           # 图书馆首页（书架卡片自动生成）
-│   ├── books/<book-slug>/   # 书籍（扁平存放，每本一个子目录）
-│   │   ├── _index.md             # 封面 + 目录
-│   │   ├── ch01.md ~ ...         # 章节
-│   │   └── images/               # 图片（WebP）
-│   ├── papers/<paper-slug>/ # 论文笔记（翻译正文 + 结构化分析）
-│   │   ├── _index.md             # 单篇论文一个 section
-│   │   └── images/               # 图片（WebP）
-│   └── notes/<slug>.md      # 蒸馏笔记
-├── layouts/                # 短代码 / 模板覆盖
-├── assets/custom.scss      # 全局样式
-├── static/chat/            # AI 问答 Agent（BYOK 浏览器直连）
-└── .github/workflows/      # CI/CD 自动部署
+│   ├── books/<slug>/                # 书籍(多章,_index.md + ch01.md ~ chNN.md + images/)
+│   ├── papers/<slug>/               # 论文笔记(_index.md + images/)
+│   └── notes/<slug>.md              # 蒸馏笔记
+├── layouts/
+│   ├── _shortcodes/                 # 自定义 shortcode(bookshelf/stats/callout/theorem...)
+│   └── _partials/docs/inject/       # head.html(主题切换+KaTeX)/ menu-after.html(菜单)
+├── assets/_custom.scss              # 全局样式 + 主题切换变量
+├── static/
+│   ├── js/theme-toggle.js           # 三态主题切换逻辑
+│   ├── chat/                        # AI 问答 Agent(BYOK 浏览器直连)
+│   └── pageindex/                   # PageIndex 索引 JSON(进 git)
+├── scripts/                         # 构建脚本(build_pageindex / release / check_latex_render)
+├── lib/PageIndex/                   # 子模块:树索引库
+├── themes/hugo-book/                # 子模块:Hugo Book 主题
+├── .github/workflows/deploy.yml     # CI:打 tag → 部署
+└── lefthook.yml                     # Git hooks 配置
 ```
 
-## 书籍
+详细架构见 [docs/architecture.md](docs/architecture.md)。
 
-书架卡片自动生成——遍历所有 `_index.md` 的 `category` 数组自动归类。新增内容只需填好 front matter 的 `category`（书籍自定义分类如 `quant`/`ml`/`physics`，论文用 arXiv 一级分类如 `quant-ph`），无需手动编辑 shortcode。
+## 文档
 
-### 量化金融
-
-| 书名 | 作者 | 章节 |
+| 文档 | 内容 | 读者 |
 |------|------|------|
-| 量化金融面试实用指南 | Xinfeng Zhou | 7 章 |
-| 期权、期货及其他衍生产品 | John C. Hull | 36 章 |
-| 算法交易与套利交易 | 赵胜民 | 15 章 |
-| 漫步华尔街 | Burton G. Malkiel | 15 章 |
-| 量化交易 | Ernest P. Chan | 7 章 |
-| 通向财务自由之路 | Van K. Tharp | 8 章 |
-| 统计套利 | Andrew Pole | 11 章 |
-| 量化资产管理 | Michael Robbins | 4 部分 19 章 |
-| 金融机器学习的进展 | Marcos M. López de Prado | 5 部分 22 章 |
-| Python for Finance | Yves Hilpisch | 5 部分 21 章 |
-| 投资决策的关键解答 | Michael Covel | 15 章 |
-| Stocks on the Move | Andreas F. Clenow | 15 章 |
-| 裸K线交易法 | 许佳聪 | 10 章 |
-| 市场微观结构理论 | Maureen O'Hara | — |
+| [docs/architecture.md](docs/architecture.md) | 站点架构 + AI 问答 + PageIndex + 质量校验 | 想理解项目怎么工作的人 |
+| [docs/deployment.md](docs/deployment.md) | 部署详解 + CI + 环境变量 + 故障排查 | 要部署自己版本的人 |
+| [docs/content-workflow.md](docs/content-workflow.md) | 加书 / 论文 / 笔记的流程 | 想加自己内容的人 |
+| [CLAUDE.md](CLAUDE.md) | AI 协作约定(SOP 红线 / shortcode 写法) | AI agent / 协作者 |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | 贡献指南 | 想贡献的人 |
 
-### 机器学习与强化学习
+## 贡献
 
-| 书名 | 作者 | 章节 |
-|------|------|------|
-| 强化学习入门 | 叶强 等 | 10 章 |
-| 强化学习的数学原理 | 赵世钰 | 10 章 |
-
-### 系统思维与统计
-
-| 书名 | 作者 | 章节 |
-|------|------|------|
-| 系统之美 | Donella H. Meadows | 6 章 |
-| 非统计学家的统计学 | Birger Stjernholm Madsen | 9 章 |
-
-### 思维与人生
-
-| 书名 | 作者 | 章节 |
-|------|------|------|
-| 纳瓦尔宝典 | Eric Jorgenson | 2 部分 |
-| 人性的弱点 | [美] 戴尔·卡耐基 | 30 章 |
-
-### 物理科学
-
-| 书名 | 作者 | 章节 |
-|------|------|------|
-| 量子光学与量子涨落导论 | Peter W. Milonni | 7 章 |
-| 线性响应理论：现代分析-代数方法 | Giuseppe De Nittis & Max Lein | 7 章 |
-
-### 数学
-
-| 书名 | 作者 | 章节 |
-|------|------|------|
-| 数值计算 | 同济大学计算数学教研室 | 9 章 |
-
-## 论文笔记
-
-共 35 篇，按主题分类（几何相位与几何量子计算 / 电路 QED / 线性响应理论 / 量子光学与层析 / 机械振子量子化 / 量子自旋系统的计算方法），详见 `/papers/` 页面。
-书架卡片为 `{{< papershelf >}}` 短代码自动生成，与书籍书架共享样式与动画。
-
-## 笔记
-
-4 篇综合笔记（量子光学实验综述 / 线性响应理论基础笔记等），扁平存放于 `content/notes/`，按日期自动排序。
-
-## AI 问答
-
-右下角浮动按钮打开聊天面板，支持从全部书/论文/笔记中检索并回答问题。基于 PageIndex 树索引 + BM25 精排 + ReAct 多轮推理（查询转换 / 精排 / MMR 去冗余 / LLM 重排）。用户自带 API Key（BYOK），浏览器直连模型 API。
-
-### Fork 部署
-
-fork 本仓库后，AI 问答功能自动适配：
-
-1. 改 `hugo.toml` 的 `BookRepo` 为你的仓库地址（chat agent 据此推导 GitHub raw URL 取正文）
-2. （可选）配 GitHub Actions secrets 生成 LLM 摘要：`LLM_MODEL`（litellm 格式，如 `deepseek/deepseek-chat`）+ 对应的 `*_API_KEY`
-3. `static/chat/` + `scripts/build_pageindex.py` 可独立复用到其他 Hugo 项目
-
-详见 `CLAUDE.md`。
-
-## 本地开发
-
-需安装 [Hugo extended](https://gohugo.io/installation/)（SCSS 支持）。
-
-```bash
-# 克隆（含主题子模块）
-git clone --recurse-submodules <repo>
-
-# 本地预览
-hugo server
-
-# 生产构建（输出到 public/）
-hugo --gc --minify
-```
-
-## 发布
-
-CI 只在打 tag 时部署到 GitHub Pages，平时 push 到 main 不触发。
-
-```bash
-# 算下一个发布 tag（格式 YYYY.MM.DD.NN，同一天递增）
-bash scripts/release.sh
-# → 打印：下一个发布 tag：2026.07.07.01
-# 确认后执行该命令推送 tag，CI 自动部署
-```
+欢迎 issue 和 PR。详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 许可证
 
-MIT
+[MIT](LICENSE)

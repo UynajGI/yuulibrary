@@ -1,0 +1,173 @@
+# 架构
+
+> 面向想理解项目怎么工作、或要深度定制的 fork 者/贡献者。
+>
+> 部署相关见 [deployment.md](deployment.md),加内容流程见 [content-workflow.md](content-workflow.md)。
+
+## 站点架构
+
+Hugo 静态站点 + Hugo Book 主题。三个 content section 各司其职:
+
+| Section | 内容 | 单位 | 列表页 |
+|---------|------|------|--------|
+| `books/` | 书籍 | 每本一个子目录(`_index.md` + `ch01.md` ~ `chNN.md` + `images/`) | `_index.md`(section 列表页) |
+| `papers/` | 论文笔记 | 每篇一个子目录(`_index.md` + `images/`) | `_index.md` |
+| `notes/` | 蒸馏笔记 | 每篇一个 `.md`(扁平存放) | `_index.md` |
+
+**关键 Hugo 配置**(`hugo.toml`):
+- `uglyurls = true` — URL 是 `ch01.html` 而非 `ch01/`(与旧 mkdocs 兼容,旧链接不失效)
+- `relativeurls = false` — GitHub Pages project site 子路径需要绝对路径
+- `enableGitInfo = true` — 用 git commit 时间做 `lastmod`
+- `theme = 'hugo-book'` — 主题是子模块,不是 npm 包
+
+### Shortcode 体系
+
+`layouts/_shortcodes/` 下自定义 shortcode(注意下划线前缀,Hugo 0.146+ 增强目录结构):
+
+| Shortcode | 用途 |
+|-----------|------|
+| `{{< bookshelf >}}` | 首页书架分类卡片(遍历 books 的 `category` 数组自动归类) |
+| `{{< papershelf >}}` | 论文书架(同上,遍历 papers) |
+| `{{< stats >}}` | 馆藏统计仪表盘(books/papers/notes 计数 + 最近添加 + 标签云) |
+| `{{< recent-notes >}}` | 首页最近笔记列表 |
+| `{{< caption >}}` | 图注/表注 |
+| `{{< callout >}}` / `{{< definition >}}` / `{{< theorem >}}` ... | 元素模板(详见 `content/_reference/elements.md`) |
+| `{{< solution >}}` | 解答块(绿色左边框) |
+| `{{< algorithm >}}` | pseudocode.js 算法块 |
+| `{{< rough-canvas >}}` | rough.js 手绘风格 Canvas |
+
+**书架机制**:`category`(书籍自定义如 `quant`/`ml`/`physics`,论文用 arXiv 一级如 `quant-ph`)管书架路由;`tags` 管 `/tags/` 浏览。两者完全解耦。新增内容只需填好 front matter,无需手动编辑 shortcode。
+
+### 主题切换(三态)
+
+日 / 夜 / 自动跟随系统,左侧菜单底部按钮切换。架构:
+
+```
+data-theme            用户偏好:"light" | "dark" | "auto"(存 localStorage)
+data-effective-theme  实际生效:"light" | "dark"(CSS 只看这个)
+```
+
+**关键设计**:`hugo.toml` 的 `BookTheme = 'light'`——主题只编译浅色,深色完全由运行时接管。所有 dark 样式用 `:root[data-effective-theme="dark"]` 选择器(不再用 `@media prefers-color-scheme`)。
+
+| 文件 | 职责 |
+|------|------|
+| `layouts/_partials/docs/inject/head.html` 顶部 | 同步无闪烁脚本:读 localStorage → 解析 auto → 设 `data-effective-theme`,在任何 CSS 渲染前执行 |
+| `static/js/theme-toggle.js` | 切换逻辑:按钮点击 + localStorage 持久化 + auto 模式监听系统变化 |
+| `assets/_custom.scss` | `@mixin theme-dark` 定义深色变量,由 `[data-effective-theme="dark"]` 触发 |
+| `assets/syntax.css` | 代码高亮深色,同选择器机制 |
+
+> ⚠️ 不能把 `BookTheme` 改回 `auto`——主题级 `@media` 会和 `data-effective-theme` 冲突(用户切 light 时主题 body 仍黑)。
+
+---
+
+## AI 问答架构
+
+站点内置 BYOK(Bring Your Own Key)浏览器直连 AI 问答 Agent。右下角浮动按钮打开聊天面板。
+
+### 检索管线(5 阶段)
+
+```
+用户 query
+  → BM25 召回 top50(匹配 summary 字段)
+  → RM3 伪相关反馈扩展 query
+  → 词法精排(proximity + phrase + coverage)
+  → MMR 去冗余(4-gram shingle Jaccard)
+  → token budget packing(感知对话历史)
+  → LLM API(BYOK)
+```
+
+**核心设计决策**:
+1. **无 embedding / 无向量库** — PageIndex 树结构(标题 → 嵌套 JSON),关键词 + BM25/TF-IDF 检索,非语义搜索。索引零 LLM 成本
+2. **无 npm / 无 build-step** — Vanilla JS(~33KB),无 bundler,无 CDN imports。Provider SDK 是迷你版(~50 行)处理 Anthropic + OpenAI SSE 格式
+3. **BYOK 浏览器直连** — 用户 API key 存 sessionStorage(默认,关页清除)或 localStorage(勾选"记住")。无服务端代理,站点 owner 不接触 key
+
+### 3 个工具(ReAct agent)
+
+| 工具 | 用途 |
+|------|------|
+| `search_library` | BM25 + 精排 + MMR 检索全部书/论文/笔记 |
+| `get_section` | 按 doc_id + node_id 取完整章节(从 GitHub raw fetch md,按行号切) |
+| `rewrite_query` | LLM 改写/分解/步退查询 |
+
+system prompt 注入全局目录(所有文档 TOC)+ 查询转换策略引导。模型自主调用工具检索,多轮推理(最多 4 轮工具调用),不靠单次 RAG。
+
+**LLM 重排**:confidence=low 时批量评分重排 top6(一次 API 调用,无 key 跳过)。
+
+### Provider
+
+浏览器直连:Anthropic / DeepSeek / OpenAI / 硅基流动 / OpenRouter / 智谱 / 通义千问 / Ollama / Gemini / 自定义 OpenAI-compatible。
+
+**思考模式**:DeepSeek 思考模式可开关(设置面板 checkbox),思考内容折叠展示。
+
+---
+
+## PageIndex 索引
+
+`scripts/build_pageindex.py` 构建 AI 问答用的树索引。
+
+### 架构
+
+```
+Build time:  content/**/*.md  →  build_pageindex.py  →  static/pageindex/*.json
+Runtime:     node-index.json 首次加载(~5MB) → 匹配后按需 fetch 各 doc JSON
+```
+
+**节点字段**:`title` / `node_id` / `summary` / `line_num` / `line_end` / `source_md`(**不含 text**——正文按需从 GitHub raw fetch md 按行号切)。
+
+**summary** = LLM 摘要(≥200 token 节点,litellm 多 provider 路由)或原文(短节点)。
+
+### 增量构建
+
+靠 `static/pageindex/.fingerprints.json`(进 git,相对路径,本地+CI 路径无关)。本地 lefthook `--incremental` 秒级增量,CI deploy.yml `--incremental` 只处理改动文档(不全量烧 token)。
+
+### Fork 友好
+
+- `source_md` 存相对路径(如 `content/notes/xxx.md`)
+- `head.html` 从 `BookRepo` 配置推导 raw URL 前缀注入 `window.YUU_CHAT_RAW_BASE`
+- fork 后改 `hugo.toml` 的 `BookRepo` 即自动适配
+- ⚠️ raw URL 推导写死 `main` 分支(见 `head.html`),若 fork 的默认分支不是 `main` 需改这里
+
+---
+
+## 质量校验体系
+
+### lefthook hook 链
+
+```
+pre-commit (sequential):
+  trailing-whitespace → prettier → eslint → css-check → hugo-build-check
+  → pageindex-build → markdownlint → image-refs → front-matter
+  → book-validate → paper-validate → latex-render
+
+pre-push:
+  hugo-build → html-check(页面存在=error, broken link=warning)
+```
+
+安装:`lefthook install`。手动跑:`lefthook run pre-commit`。
+
+### validate_book.py(36 项机械验证)
+
+| 级别 | 数量 | 内容 |
+|------|------|------|
+| `[E]` Error | 12 | shortcode 闭合、`$` 配对、裸代码、double `\tag` 等(阻断 commit) |
+| `[W]` Warning | 19 | 交叉引用、标题层级、断行等(应修复) |
+| `[R]` Review | 5 | 元素模板候选(需人工确认) |
+
+误报标记:行末加 `<!-- validate-skip -->` 跳过。
+
+### latex-render(scripts/check_latex_render.py)
+
+抓两种 Markdown/KaTeX 渲染坑:
+- 表格 LaTeX 里的裸 `|`(被当列分隔,用 `\lvert`/`\rvert`/`\vert`)
+- `$$` 块内行首 `+`/`-`(被当列表项,用 `\;+\;` 或单行)
+
+### 翻译脚本回归测试
+
+`test_translate.py`(34 用例,零依赖不装 pytest):测 `translate_chapters.py` 纯函数(`isolate_references`/`split_into_chunks`/`restore_images`/`find_untranslated_blocks`)。
+
+CI 步骤 `Translate-chapters regression tests` 自动跑。拦"改函数忘改调用方"类 bug(如返回值元组数量变化但调用处没同步)。
+
+```bash
+python3 .claude/skills/add-book-to-library/scripts/test_translate.py    # 全跑
+python3 .claude/skills/add-book-to-library/scripts/test_translate.py isolate  # 单模块
+```
