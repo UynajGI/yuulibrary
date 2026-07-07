@@ -253,25 +253,30 @@ def fix_heading_hierarchy(text):
         if typ != "none":
             heading_indices.append((i, typ, level))
 
-    # Build level map: for each heading, determine target level
-    # Roman numerals at current base → keep; letters → +1; numbers → +2
+    # Build level map — only if there's clear multi-level evidence.
+    # "numbered_sub" (N.M, N.M.K) is handled by separate rules below.
+    # Only consider roman/letter/number for the gating check.
     target_levels = {}
     if heading_indices:
-        # Find the "base" level (most common heading level among roman numerals)
-        roman_levels = [lv for _, typ, lv in heading_indices if typ == "roman"]
-        base_level = max(set(roman_levels), key=roman_levels.count) if roman_levels else 2
-        # If there are no roman numerals, use the most common heading level
-        if not roman_levels:
-            all_levels = [lv for _, _, lv in heading_indices]
-            base_level = max(set(all_levels), key=all_levels.count) if all_levels else 2
+        hierarchy_types = {"roman", "letter", "number"}
+        types_present = set(typ for _, typ, _ in heading_indices if typ in hierarchy_types)
+        has_multi_level = len(types_present) >= 2
 
-        for idx, typ, lv in heading_indices:
-            if typ == "roman":
-                target_levels[idx] = base_level
-            elif typ == "letter":
-                target_levels[idx] = base_level + 1
-            elif typ == "number":
-                target_levels[idx] = base_level + 2
+        if has_multi_level:
+            # Determine base: Roman → keep at detected level, Letter/Number → +1/+2
+            roman_levels = [lv for _, typ, lv in heading_indices if typ == "roman"]
+            base_level = max(set(roman_levels), key=roman_levels.count) if roman_levels else 2
+            if not roman_levels:
+                all_levels = [lv for _, _, lv in heading_indices]
+                base_level = max(set(all_levels), key=all_levels.count)
+
+            for idx, typ, lv in heading_indices:
+                if typ == "roman":
+                    target_levels[idx] = base_level
+                elif typ == "letter":
+                    target_levels[idx] = base_level + 1
+                elif typ == "number":
+                    target_levels[idx] = base_level + 2
 
     # ── Pass 2: apply level changes ──────────────────────────────────
     result = []
