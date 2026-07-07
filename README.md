@@ -6,6 +6,9 @@
 
 Hugo + Hugo Book 主题多书站点 · 部署于 GitHub Pages
 
+> 📋 这是 **template 分支**（默认）。含 3 个示例内容（1 本书 / 1 篇论文 / 1 篇笔记），给别人 fork。
+> 完整内容示例见 [personal 分支](https://github.com/UynajGI/yuulibrary/tree/personal) 或 [线上站](https://uynajgi.github.io/yuulibrary/)。
+
 [![Hugo](https://img.shields.io/badge/Hugo-0.163.3-FF4088?logo=hugo&logoColor=white)](https://gohugo.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Deploy: GitHub Pages](https://img.shields.io/badge/Deploy-GitHub%20Pages-181717?logo=github&logoColor=white)](https://uynajgi.github.io/yuulibrary/)
@@ -89,7 +92,7 @@ fork 后必须修改的硬编码字段：
 |------|------|--------|------|
 | `hugo.toml` | `baseURL` | `https://uynajgi.github.io/yuulibrary/` | `https://<你的用户名>.github.io/<你的仓库名>/` |
 | `hugo.toml` | `params.BookRepo` | `https://github.com/uynajgi/yuulibrary` | `https://github.com/<你的用户名>/<你的仓库名>` |
-| `layouts/_partials/docs/inject/head.html` | `YUU_CHAT_RAW_BASE` 推导里的 `main` | 写死 `main` | 若你的默认分支不是 `main`，改这里 |
+| `hugo.toml` | `params.BookContentBranch` | `main` | chat agent 从此分支 fetch 正文。默认 `main`；若内容放别的分支则改（如 `personal`） |
 
 > 💡 **user/organization site 提示**：若你部署到 `https://<用户名>.github.io/`（根域名，非子路径），还需重新评估 `relativeurls` 和 `uglyurls`——当前配置针对 GitHub Pages project site（子路径）优化。
 
