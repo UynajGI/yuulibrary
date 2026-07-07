@@ -28,7 +28,7 @@ jobs:
           python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/books/
           python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/papers/
 
-      - name: Build PageIndex
+      - name: Build PageIndex (incremental)
         env:
           # litellm 多 provider 路由：配任一 key + LLM_MODEL 即可生成 LLM summary
           # 未配置时 summary 退化为 text 前 200 字截断（仍可用，只是不是真摘要）
@@ -48,7 +48,16 @@ jobs:
           else
             echo "Building PageIndex (no LLM, summary=truncated fallback)..."
           fi
-          python3 scripts/build_pageindex.py
+          # 增量：pageindex JSON + fingerprints 都在 git 里，CI checkout 就有
+          # 只处理 fingerprints 变了的文档，其余 JSON 保持不动
+          python3 scripts/build_pageindex.py --incremental
+
+      - name: Commit updated index
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add static/pageindex/
+          git diff --staged --quiet || (git commit -m "[bot] pageindex: 增量更新" && git push)
 
       - name: Build
         run: hugo --gc --minify
