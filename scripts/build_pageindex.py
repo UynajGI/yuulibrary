@@ -100,14 +100,16 @@ def _resolve_model(model: str) -> tuple[str, dict]:
     Custom providers that need api_base + separate API key are resolved here.
     """
     # MiMo (Xiaomi): OpenAI-compatible, needs custom base URL + separate API key
+    # Defaults to CN endpoint (fastest from mainland); override with MIMO_BASE_URL
     if model.startswith("mimo/"):
         key = os.environ.get("MIMO_API_KEY", "")
         if not key:
             raise ValueError("MIMO_API_KEY not set — add to GitHub Secrets")
-        return ("openai/" + model[5:], {
-            "api_base": "https://token-plan-sgp.xiaomimimo.com/v1",
-            "api_key": key,
-        })
+        base = os.environ.get(
+            "MIMO_BASE_URL",
+            "https://token-plan-cn.xiaomimimo.com/v1",
+        )
+        return ("openai/" + model[5:], {"api_base": base, "api_key": key})
 
     return model, {}
 
