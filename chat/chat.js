@@ -14,6 +14,7 @@
     nodeIndex = null,
     indexReady = false;
   const docCache = {};
+  const mdCache = {}; // source_md URL → 按行 split 的数组（fetch md 原文缓存）
   const CHAT_SESSION_KEY = "yuu_chat_session";
   const SESSIONS_ARCHIVE_KEY = "yuu_chat_sessions_archive";
   const MAX_ARCHIVED = 20;
@@ -652,6 +653,35 @@
     return packed.length ? packed : contexts.slice(0, 2); // 兜底
   }
 
+  // 从 GitHub raw URL fetch md 原文，剥离 front matter，按行 split 缓存
+  async function fetchMdLines(sourceMd) {
+    if (!sourceMd) return null;
+    // sourceMd 是相对路径（content/notes/xxx.md），用 YUU_CHAT_RAW_BASE 拼完整 URL
+    const fullUrl = (window.YUU_CHAT_RAW_BASE || "") + sourceMd;
+    if (mdCache[fullUrl]) return mdCache[fullUrl];
+    try {
+      const resp = await fetch(fullUrl);
+      if (!resp.ok) return null;
+      const text = await resp.text();
+      // 剥离 front matter（--- ... ---），和 build_pageindex 的 line_num 对齐
+      const body = text.replace(/^---\n[\s\S]*?\n---\n/, "");
+      const lines = body.split("\n");
+      mdCache[fullUrl] = lines;
+      return lines;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // 按行号区间取正文（line_num 到 line_end）
+  async function fetchMdSection(sourceMd, lineNum, lineEnd) {
+    const lines = await fetchMdLines(sourceMd);
+    if (!lines) return "";
+    const start = lineNum || 0;
+    const end = lineEnd || lines.length;
+    return lines.slice(start, end).join("\n").trim();
+  }
+
   async function loadDocTree(docId) {
     if (docCache[docId] !== undefined) return;
     const doc = globalIndex?.docs?.find((d) => d.id === docId);
@@ -675,13 +705,14 @@
     }
   }
 
-  function buildContextChunk(doc, nodeId, docMeta) {
+  async function buildContextChunk(doc, nodeId, docMeta) {
     const flat = doc.flat;
     const idx = flat.findIndex((n) => n.node_id === nodeId);
     if (idx < 0) return null;
     const node = flat[idx],
-      crumb = node._crumb || [node.title],
-      text = node.text || "";
+      crumb = node._crumb || [node.title];
+    // 正文从 source_md（GitHub raw URL）按 line_num 按需取，不再存 doc tree
+    const text = await fetchMdSection(node.source_md, node.line_num, node.line_end);
     const parent =
       crumb.length > 1
         ? flat.find(
@@ -750,7 +781,7 @@
       if (!doc) continue;
       if (seenNodes.has(hit.node.doc_id + ":" + hit.node.node_id)) continue;
       seenNodes.add(hit.node.doc_id + ":" + hit.node.node_id);
-      const ctx = buildContextChunk(doc, hit.node.node_id, doc.tree);
+      const ctx = await buildContextChunk(doc, hit.node.node_id, doc.tree);
       if (ctx && ctx.text) {
         ctx.url = hit.node.url || "";
         ctx.rerankScore = hit.rerankScore || 0;
@@ -767,7 +798,7 @@
           const d = docCache[hit.node.doc_id];
           if (!d || seenNodes.has(hit.node.doc_id + ":" + hit.node.node_id)) continue;
           seenNodes.add(hit.node.doc_id + ":" + hit.node.node_id);
-          const ctx = buildContextChunk(d, hit.node.node_id, d.tree);
+          const ctx = await buildContextChunk(d, hit.node.node_id, d.tree);
           if (ctx && ctx.text) {
             ctx.url = hit.node.url || "";
             ctx.rerankScore = hit.rerankScore || 0.1;
@@ -1042,7 +1073,7 @@ ${blocks.join("\n\n---\n\n")}
             .map((n) => n.node_id + " " + n.title.slice(0, 20))
             .join("; ")}...`,
         };
-      const text = node.text || "";
+      const text = await fetchMdSection(node.source_md, node.line_num, node.line_end);
       const breadcrumb = (node._crumb || [node.title]).join(" > ");
       const docTitle = doc.tree.title || docId;
       return {
