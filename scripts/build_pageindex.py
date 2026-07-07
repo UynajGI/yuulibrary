@@ -28,9 +28,9 @@ SUMMARY_TOKEN_THRESHOLD = 200
 LLM_MODEL = os.environ.get("LLM_MODEL", "")
 
 
-def inject_summaries(nodes: list[dict]) -> None:
+def inject_summaries(nodes: list[dict], doc_label: str = "") -> None:
     """同步包装：遍历树注入 summary。无 LLM_MODEL 时只做截断退化。"""
-    asyncio.run(add_summaries_to_tree(nodes, LLM_MODEL))
+    asyncio.run(add_summaries_to_tree(nodes, LLM_MODEL, doc_label))
 
 
 # ── summary 生成（对齐 PageIndex get_node_summary 逻辑）─────────────────────
@@ -114,7 +114,7 @@ def _resolve_model(model: str) -> tuple[str, dict]:
     return model, {}
 
 
-async def add_summaries_to_tree(nodes: list[dict], model: str) -> None:
+async def add_summaries_to_tree(nodes: list[dict], model: str, doc_label: str = "") -> None:
     """递归遍历树，为每个节点生成 summary（并发，限流 10 并发防 429）。"""
     if not nodes:
         return
@@ -135,14 +135,20 @@ async def add_summaries_to_tree(nodes: list[dict], model: str) -> None:
 
     collect(nodes)
     if tasks:
-        # 限流：Semaphore 控制并发数，防止一次发几千请求被 provider 429
-        sem = asyncio.Semaphore(10)
+        total = len(tasks)
+        done_count = [0]  # mutable counter for closure
+        label = f"{doc_label} " if doc_label else ""
 
-        async def limited(task):
-            async with sem:
-                return await task
+        async def limited(idx, task):
+            async with asyncio.Semaphore(10):
+                result = await task
+                done_count[0] += 1
+                if done_count[0] % 5 == 0 or done_count[0] == total:
+                    print(f"    {label}summary {done_count[0]}/{total}", file=sys.stderr)
+                return result
 
-        summaries = await asyncio.gather(*[limited(t) for t in tasks])
+        print(f"    {label}generating {total} summaries (concurrency=10)...", file=sys.stderr)
+        summaries = await asyncio.gather(*[limited(i, t) for i, t in enumerate(tasks)])
         for n, s in zip(task_nodes, summaries):
             n["summary"] = s
     # 非叶子节点 + 未调 LLM 的叶子节点：summary = text 截断或原文
@@ -434,7 +440,7 @@ def process_book(slug: str, book_dir: str) -> tuple[dict | None, list[dict]]:
     book_url_prefix = f"/books/{slug}/"
     # Generate summaries (LLM if LLM_MODEL set, else truncated fallback)
     # Must run BEFORE flatten (chapter nodes need summary filled) and clean_tree
-    inject_summaries(book_root["nodes"])
+    inject_summaries(book_root["nodes"], f"book/{slug}")
 
     # Flatten for node-index (after summaries are injected)
     # The URL for chapter content needs the chapter filename
@@ -502,7 +508,7 @@ def process_paper(slug: str, paper_dir: str) -> tuple[dict | None, list[dict]]:
 
     # Generate summaries (LLM if LLM_MODEL set, else truncated fallback)
     # Must run BEFORE flatten and clean_tree (both read node.summary)
-    inject_summaries(tree)
+    inject_summaries(tree, f"paper/{slug}")
 
     flat = flatten_tree(tree, slug, [doc_title], doc_url)
 
@@ -538,7 +544,7 @@ def process_note(slug: str, note_path: str) -> tuple[dict | None, list[dict]]:
 
     # Generate summaries (LLM if LLM_MODEL set, else truncated fallback)
     # Must run BEFORE flatten and clean_tree (both read node.summary)
-    inject_summaries(tree)
+    inject_summaries(tree, f"note/{slug}")
 
     flat = flatten_tree(tree, slug, [doc_title], doc_url)
 
