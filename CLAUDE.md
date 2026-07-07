@@ -117,8 +117,9 @@ yuulibrary/
 - **思考模式**：DeepSeek 思考模式可开关（设置面板 checkbox），思考内容折叠展示
 - **LLM**：浏览器直连 Anthropic / DeepSeek / OpenAI / 硅基流动 / OpenRouter / 智谱 / 通义千问 / Ollama / Gemini
 - **Key 安全**：默认 sessionStorage（关页面清除），勾选"记住"才 localStorage
-- **PageIndex 索引**：`build_pageindex.py` 生成树索引。doc tree 节点字段：`title/node_id/summary/line_num/line_end/source_md`（**不含 text**——正文按需从 GitHub raw fetch md 按行号切）。summary = LLM 摘要（≥200 token 节点，litellm 多 provider 路由）或原文（短节点）。本地 lefthook `--incremental` 秒级增量，CI deploy.yml 同步更新
+- **PageIndex 索引**：`build_pageindex.py` 生成树索引。doc tree 节点字段：`title/node_id/summary/line_num/line_end/source_md`（**不含 text**——正文按需从 GitHub raw fetch md 按行号切）。summary = LLM 摘要（≥200 token 节点，litellm 多 provider 路由）或原文（短节点）。增量靠 `.fingerprints.json`（进 git，相对路径，本地+CI 路径无关）。本地 lefthook `--incremental` 秒级增量，CI deploy.yml `--incremental` 只处理改动文档（不全量烧 token）
 - **fork 友好**：`source_md` 存相对路径（`content/notes/xxx.md`），`head.html` 从 `BookRepo` 配置推导 raw URL 前缀注入 `window.YUU_CHAT_RAW_BASE`。fork 后改 `hugo.toml` 的 `BookRepo` 即自动适配
+- **CI 部署**：deploy.yml `concurrency` 防并发冲突，pageindex 在 deploy 时增量重建（不 commit 回 main，只部署到 gh-pages）
 - **复用**：`static/chat/` + `scripts/build_pageindex.py` 可复制到其他 Hugo 项目。需配 `hugo.toml` 的 `BookRepo` + CI secrets `LLM_MODEL`（litellm 格式，如 `deepseek/deepseek-chat`）+ 对应 `*_API_KEY`
 
 ## 质量验证
