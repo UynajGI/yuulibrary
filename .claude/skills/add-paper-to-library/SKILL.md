@@ -289,7 +289,7 @@ grep "^date" content/papers/<slug>/_index.md
 |---|------|---------|
 | 1 | 用普通 `.md`（如 `my-paper.md`） | 用 `_index.md`（section 列表页，URL 干净） |
 | 2 | `date` 写「今天」导致未来日期 | 写昨天的日期（`2026-06-27` 风格） |
-| 3 | 翻译时动 LaTeX 公式 | 公式 100% 原样，`\tag{N}` 保留 |
+| 3 | 翻译时动 LaTeX 公式 | 公式 100% 原样（`$...$`/`$$...$$`/`\(...\)`/`\[...\]`），`\tag{N}` 保留 |
 | 4 | 图片留 JPG/PNG | 全部 WebP（`convert -quality 80`） |
 | 5 | 精选图片只留 5-8 张 | 全部带上，图片是正文一部分 |
 | 6 | 手动 convert 单张图片 | 用 `convert_to_webp.sh` 批量转 |
