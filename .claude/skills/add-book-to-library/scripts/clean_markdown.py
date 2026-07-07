@@ -199,12 +199,95 @@ def fix_math_simple(m, delim):
 
 
 # ── Stage 3: Heading hierarchy ───────────────────────────────────────────
+# Patterns for paper-style heading prefixes (MinerU puts all at same level)
+_RE_ROMAN = re.compile(r"^#+\s+(?:第)?(I{1,3}|IV|VI{0,3}|IX|XI{0,3})[\.\s章]")
+_RE_LETTER = re.compile(r"^#+\s+([A-HJ-NP-Z])\.\s")   # single letter . (skip I/V/X)
+_RE_NUMBER = re.compile(r"^#+\s+(\d+)\.\s")
+
+
+def _heading_prefix_type(line: str) -> tuple[str, int]:
+    """Return (type, current_level) for a heading line.
+
+    type: 'roman' | 'letter' | 'number' | 'numbered_sub' | None
+    """
+    m = re.match(r"^(#+)\s", line)
+    if not m:
+        return ("none", 0)
+    level = len(m.group(1))
+    stripped = line[level:].strip()
+
+    # Roman numerals: I., II., ... or 第I章
+    if re.match(r"^(?:第)?(I{1,3}|IV|VI{0,3}|IX|XI{0,3})[\.\s章]", stripped):
+        return ("roman", level)
+    # Letter: A., B., ... (but not I, V, X which are Roman numerals)
+    if re.match(r"^([A-HJ-NP-Z])\.\s", stripped):
+        return ("letter", level)
+    # Numbered: 1., 2., ...
+    if re.match(r"^(\d+)\.\s", stripped):
+        return ("number", level)
+    # Numbered subsection: N.M or N.M.K
+    if re.match(r"^\d+\.\d+", stripped):
+        return ("numbered_sub", level)
+
+    return ("none", level)
+
+
 def fix_heading_hierarchy(text):
-    """## N.M → ###, ## N.M.K → ####. Keep ## N (chapter) and ## A (appendix)."""
-    stats = {"headings_demoted": 0}
+    """Fix heading levels for book chapters AND paper sections.
+
+    Book: ## N.M → ###, ## N.M.K → #### (numbered subsections under chapter)
+
+    Paper: MinerU puts all sections at ## regardless of actual hierarchy.
+    Detect I./II./A./B./1./2. prefixes and build proper levels:
+      Roman numeral (I., II.) → top-level (keep)
+      Letter (A., B.)         → sub-section (demote 1)
+      Number (1., 2.)         → sub-sub-section (demote 2)
+    """
     lines = text.split("\n")
+    stats = {"headings_demoted": 0}
+
+    # ── Pass 1: detect paper-style hierarchy ─────────────────────────
+    heading_indices = []
+    for i, line in enumerate(lines):
+        typ, level = _heading_prefix_type(line)
+        if typ != "none":
+            heading_indices.append((i, typ, level))
+
+    # Build level map: for each heading, determine target level
+    # Roman numerals at current base → keep; letters → +1; numbers → +2
+    target_levels = {}
+    if heading_indices:
+        # Find the "base" level (most common heading level among roman numerals)
+        roman_levels = [lv for _, typ, lv in heading_indices if typ == "roman"]
+        base_level = max(set(roman_levels), key=roman_levels.count) if roman_levels else 2
+        # If there are no roman numerals, use the most common heading level
+        if not roman_levels:
+            all_levels = [lv for _, _, lv in heading_indices]
+            base_level = max(set(all_levels), key=all_levels.count) if all_levels else 2
+
+        for idx, typ, lv in heading_indices:
+            if typ == "roman":
+                target_levels[idx] = base_level
+            elif typ == "letter":
+                target_levels[idx] = base_level + 1
+            elif typ == "number":
+                target_levels[idx] = base_level + 2
+
+    # ── Pass 2: apply level changes ──────────────────────────────────
     result = []
-    for line in lines:
+    for i, line in enumerate(lines):
+        if i in target_levels:
+            current = len(re.match(r"^#+", line).group(0))
+            target = target_levels[i]
+            if target > current:
+                line = "#" * target + line[current:]
+                stats["headings_demoted"] += 1
+            elif target < current:
+                line = "#" * target + line[current:]
+            result.append(line)
+            continue
+
+        # Existing numbered-subsection rules (## N.M → ###, ## N.M.K → ####)
         m = re.match(r"^(##)\s+(\d+\.\d+\.\d+)\s", line)
         if m:
             line = "####" + line[2:]
@@ -218,6 +301,7 @@ def fix_heading_hierarchy(text):
             result.append(line)
             continue
         result.append(line)
+
     return "\n".join(result), stats
 
 
