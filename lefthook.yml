@@ -228,17 +228,24 @@ pre-commit:
                     if bad:
                         errors.append(f'{path}:{i}: raw | in table LaTeX — use \\lvert/\\rvert/\\vert')
 
-            # Check 2: + or - at line start inside $$...$$ blocks
+            # Check 2: + or - at line start inside display math blocks ($$...$$ or \[...\])
             in_display = False
             for i, line in enumerate(lines, 1):
                 stripped = line.strip()
+                # 切换 in_display：\$\$ 单独成行 或 \\\[ / \\\] 行首
                 if stripped.startswith('\$\$'):
                     in_display = not in_display
+                    continue
+                if stripped.startswith('\\\['):
+                    in_display = True
+                    continue
+                if stripped.startswith('\\\]'):
+                    in_display = False
                     continue
                 if in_display and (stripped.startswith('+ ') or stripped.startswith('- ')):
                     # Allow += -= as assignment, flag lone + or - followed by space then LaTeX
                     if not stripped.startswith('+=') and not stripped.startswith('-='):
-                        errors.append(f'{path}:{i}: + or - at line start inside \$\$ block — put on one line or use \\;+\\;')
+                        errors.append(f'{path}:{i}: + or - at line start inside display math — put on one line or use \\;+\\;')
         if errors:
             print('LATEX RENDER ERRORS:')
             for e in errors: print(f'  {e}')
