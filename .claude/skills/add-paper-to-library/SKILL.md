@@ -63,9 +63,21 @@ weight: 3                   # 比已有 papers/ 最大 weight +1
 
 ## 工作流
 
-### Phase 0：去重 + 归档 PDF
+### Phase 0：提取元数据 + 去重 + 归档 PDF
 
-**🛑 第一步：去重检查（强制）**
+**第一步：提取元数据**
+
+```bash
+# pdf2doi 一步提取 DOI/arXiv ID + 标题 + 作者（比 pdftotext + curl arXiv API 快）
+pdf2doi /path/to/paper.pdf
+```
+
+有 arXiv ID → 用 arXiv API 拿分类和摘要：
+```bash
+curl -s "https://export.arxiv.org/api/query?id_list=<arxiv_id>" 2>/dev/null
+```
+
+**🛑 第二步：去重检查（强制）**
 
 ```bash
 # 对比已有论文目录的 title/作者，避免重复加
