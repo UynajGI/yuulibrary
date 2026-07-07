@@ -91,7 +91,7 @@ $$
 
 ## 实验结果
 
-### 1. 位移压缩真空态
+##### 1. 位移压缩真空态
 
 ![](images/fig2a-squeezed-vacuum-real.webp)
 
@@ -116,7 +116,7 @@ $$
 
 {{< callout type="note" title="拟合 vs 校准" >}}拟合揭示了独立校准测量中不可见的小偏差，展示了特征函数层析作为**诊断工具**的价值——不仅重建态，还能发现控制参数的漂移。{{< /callout >}}
 
-### 2. 压缩薛定谔猫态
+##### 2. 压缩薛定谔猫态
 
 $$
 |\psi_{\mathrm{os}}\rangle \propto \hat{\mathcal{D}}(\delta)[\hat{\mathcal{D}}(-\alpha/2) + \hat{\mathcal{D}}(\alpha/2)] |r e^{i\vartheta}\rangle .\tag{6}
@@ -145,7 +145,7 @@ $$
 
 {{< callout type="important" title="特征函数的独特优势" >}}对于猫态，确认相位相干只需在 $\mathrm{Re}[\beta] = \pm \alpha$ 处的**单次特征函数读出**，而宇称测量需要积分整个相空间。{{< /callout >}}
 
-### 3. 三态叠加（近似 GKP 码字）
+##### 3. 三态叠加（近似 GKP 码字）
 
 $$
 |\psi_{\mathrm{os}}\rangle \propto \hat{\mathcal{D}}(\delta)[\hat{\mathcal{D}}(-l) + 2 \cdot \mathbb{1} + \hat{\mathcal{D}}(l)] |r e^{i\vartheta}\rangle
