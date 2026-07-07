@@ -18,21 +18,8 @@ else
   next="${today}.$(printf '%02d' "$next_num")"
 fi
 
-# 分支检查：main 是 template 分支，日常发布应在 personal
-branch=$(git branch --show-current 2>/dev/null)
 cat <<EOF
 下一个发布 tag：$next
-EOF
-if [ "$branch" = "main" ]; then
-  cat <<EOF
-
-⚠️  当前在 main（template）分支。
-   日常发布应在 personal 分支：git checkout personal
-   若确需在 main 打 tag（更新 template），请再次确认后执行下方命令。
-EOF
-fi
-
-cat <<EOF
 
 确认无误后执行：
   git tag $next && git push origin $next

@@ -4,29 +4,6 @@
 >
 > 架构见 [architecture.md](architecture.md),加内容流程见 [content-workflow.md](content-workflow.md)。
 
-## 分支模型
-
-本仓库用双分支模型隔离 template 和个人内容：
-
-| 分支 | 角色 | 谁用 |
-|------|------|------|
-| `main`（默认） | **template** — 框架 + 3 个示例（1 书/1 论文/1 笔记） | fork 者拿到这个 |
-| `personal` | 完整个人内容（所有书/论文/笔记） | 仓库 owner 日常开发 |
-| `gh-pages` | 部署产物 | CI 自动推，不要手动改 |
-
-**机制**：
-- tag 触发 CI 时，GitHub 用**默认分支（main）的 deploy.yml**，但 checkout 的是 tag 指向的 commit
-- 在 `personal` 打 tag → CI 构建 personal 的内容 → 推 gh-pages → 线上站是完整内容
-- fork 者 fork 后拿到 main（template），他们打 tag 部署自己的 gh-pages，与原仓库互不干扰
-- **chat agent** 从 `hugo.toml` 的 `BookContentBranch` 参数决定 fetch 哪个分支的正文（main 默认 `'main'`，personal 设 `'personal'`）
-
-**日常发布流程**（仓库 owner）：
-```bash
-git checkout personal         # 确保在 personal 分支
-bash scripts/release.sh       # 算下一个 tag（在 main 会提醒切换）
-git tag <tag> && git push origin <tag>
-```
-
 ## 环境搭建
 
 ### 必需依赖

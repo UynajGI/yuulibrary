@@ -1,8 +1,5 @@
 # Yuunagi Library — AI 协作约定
 
-> ⚠️ **分支模型**：`main` 是 template 分支（默认，3 个示例）。日常开发 + 完整内容在 `personal` 分支。
-> 打 tag 发布在 `personal` 分支做。`scripts/release.sh` 在 main 上会提醒切到 personal。
->
 > 本文档是给 AI agent（Claude Code / Codex 等）看的项目约定与执行 SOP。
 >
 > 通用项目文档(fork 者 / 贡献者)见:
