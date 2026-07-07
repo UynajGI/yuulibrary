@@ -1173,6 +1173,12 @@ ${toc.text}
 
   function renderMarkdown(text) {
     let html = text;
+    // 保护 $$...$$ display math（多行），避免后续 \n→<br> 破坏 KaTeX 解析
+    const mathBlocks = [];
+    html = html.replace(/\$\$([\s\S]*?)\$\$/g, (_, m) => {
+      mathBlocks.push(m);
+      return `\uF8FFMATH${mathBlocks.length - 1}\uF8FF`;
+    });
     html = html.replace(
       /```(\w*)\n([\s\S]*?)```/g,
       (_, lang, code) => `<pre><code>${escHtml(code.trim())}</code></pre>`
@@ -1187,6 +1193,8 @@ ${toc.text}
       .replace(/^# (.+)$/gm, "<h2>$1</h2>");
     html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
     html = html.replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br>");
+    // 恢复 display math（\n→<br> 之后再放回去，保持 $$...$$ 完整）
+    html = html.replace(/\uF8FFMATH(\d+)\uF8FF/g, (_, i) => `$$${mathBlocks[parseInt(i)]}$$`);
     return `<p>${html}</p>`;
   }
   function escHtml(s) {
