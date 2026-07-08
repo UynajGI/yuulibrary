@@ -70,6 +70,16 @@ jobs:
       - name: Build
         run: hugo --gc --minify
 
+      - name: Encrypt with Staticrypt
+        env:
+          STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
+        run: |
+          if [ -n "$STATICRYPT_PASSWORD" ]; then
+            npx -y staticrypt public/ -r -p "$STATICRYPT_PASSWORD" --remember 365 -o public/
+          else
+            echo "STATICRYPT_PASSWORD not set, skipping encryption"
+          fi
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
