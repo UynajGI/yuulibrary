@@ -6,7 +6,7 @@
 
 Hugo + Hugo Book 主题多书站点 · 部署于 GitHub Pages
 
-[![Hugo](https://img.shields.io/badge/Hugo-0.163.3-FF4088?logo=hugo&logoColor=white)](https://gohugo.io)
+[![Hugo](https://img.shields.io/badge/Hugo-0.164.0-FF4088?logo=hugo&logoColor=white)](https://gohugo.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Deploy: GitHub Pages](https://img.shields.io/badge/Deploy-GitHub%20Pages-181717?logo=github&logoColor=white)](https://uynajgi.github.io/yuulibrary/)
 [![Theme: Hugo Book](https://img.shields.io/badge/Theme-Hugo%20Book-40C4FF)](https://github.com/alex-shpak/hugo-book)
@@ -36,7 +36,7 @@ Hugo + Hugo Book 主题多书站点 · 部署于 GitHub Pages
 
 | 依赖 | 版本 | 用途 | 必需? |
 |------|------|------|:---:|
-| [Hugo extended](https://gohugo.io/installation/) | 0.163.3+ | 站点构建（SCSS 支持） | ✅ |
+| [Hugo extended](https://gohugo.io/installation/) | 0.164.0+ | 站点构建（SCSS 支持） | ✅ |
 | Python | 3.10+ | PageIndex 索引构建、翻译脚本 | ✅ |
 | Node.js | 18+ | lefthook 的 prettier/eslint/markdownlint | ✅ |
 | [pandoc](https://pandoc.org/) | 任意 | EPUB→Markdown（加书才需要） | ➖ |

@@ -8,7 +8,7 @@
 
 ### 必需依赖
 
-#### Hugo extended(0.163.3+)
+#### Hugo extended(0.164.0+)
 
 必须用 **extended** 版(SCSS 编译支持)。标准版会构建失败。
 
