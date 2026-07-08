@@ -22,7 +22,7 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
 
 完整流程见 `.claude/skills/add-book-to-library/SKILL.md`。**🔴 红线**:
 
-1. MinerU VLM 提取 PDF / EPUB → 合并 → 清洗(**EPUB pandoc 残留必须清理**:`::: fn1` / `::: blk1` / `[]{#page}` / `{.class}` / `-----` 表格分隔符)
+1. MinerU pipeline 提取 PDF / EPUB → 合并 → 清洗(**EPUB pandoc 残留必须清理**:`::: fn1` / `::: blk1` / `[]{#page}` / `{.class}` / `-----` 表格分隔符)
 2. `content/books/<book-slug>/` 下扁平目录(**无分类子目录**)
 3. `_index.md`:`<section class="book-cover">` + `{{< book-toc >}}`,**front matter 必填 `description` + `tags` + `author` + `date` + `category`**。`date` 写添加当天,驱动书架"入库"排序
 4. 每章 `ch01.md` 起,**front matter 含 `description`**
@@ -87,7 +87,7 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
 - **手绘图形**:`{{< rough-canvas >}}` 创建 rough.js 手绘风格 Canvas
 - **解答块**:`{{< solution >}}` ... `{{< /solution >}}`(绿色左边框)
 - **图注/表注**:`{{< caption >}}` 图8.1 描述 `{{< /caption >}}`
-- **数学公式**:行内 `$...$`,行间 `$$...$$` / `\[...\]` / `\(...\)`(Goldmark passthrough 原样透传 KaTeX)
+- **数学公式**:行内 `$...$`,行间 `$$...$$`(Goldmark passthrough 原样透传 KaTeX)。**不要用 `\[...\]` / `\(...\)`**——KaTeX 不渲染。
 - **算法块**:`{{< algorithm title="名称" >}}<pre class="pseudocode">...</pre>{{< /algorithm >}}`
 - **伪代码语法**:小写裸命令 `state`/`for{}`/`if{}`/`repeat`/`until{}`/`endfor`/`return{}`,不是 `\STATE`/`\FOR`
 - **跨页面链接**:章节间用 markdown 链接到 `ch0N.md`(如「第5章」→ `ch05.md`),BookPortableLinks 自动转 permalink
@@ -105,7 +105,7 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
 
 ## 技术要点
 
-- KaTeX(非 MathJax)渲染数学,处理 `$...$` / `\(...\)` / `$$...$$` / `\[...\]` 分隔符
+- KaTeX(非 MathJax)渲染数学,处理 `$...$` 和 `$$...$$` 分隔符
 - `uglyurls = true`:URL 为 `ch01.html`(与旧 mkdocs `use_directory_urls:false` 一致,旧链接不失效)
 - 书籍目录用 `_index.md`(section 列表页),章节用普通 `.md`
 - 图片全部 WebP 格式,与 `.md` 同级,用相对路径 `images/`
