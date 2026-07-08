@@ -106,11 +106,11 @@ cp /path/to/book.pdf pdfs/books/
 
 ### Phase 1A：PDF → Markdown（默认）
 
-调用 `/mineru-document-extractor`。大书（>200页）分批：
+调用 `/mineru-document-extractor`。**书籍用 `pipeline` 模型**（零幻觉，公式/表格保真度高），大书（>200页）分批：
 
 ```bash
-mineru-open-api extract book.pdf --pages 1-110 -o out/part1/ --model vlm --language ch --timeout 2400
-mineru-open-api extract book.pdf --pages 111-220 -o out/part2/ --model vlm --language ch --timeout 2400
+mineru-open-api extract book.pdf --pages 1-110 -o out/part1/ --model pipeline --language ch --timeout 2400
+mineru-open-api extract book.pdf --pages 111-220 -o out/part2/ --model pipeline --language ch --timeout 2400
 # ... 依此类推
 
 # 合并

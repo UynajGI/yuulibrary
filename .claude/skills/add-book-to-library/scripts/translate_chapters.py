@@ -489,9 +489,9 @@ async def translate_chapter(client, path: str, glossary: dict, is_seed: bool, ma
 
         # 中文文件跳过翻译，只跑格式化（交叉引用 regex 转换）
         if is_chinese_text(body):
-            # 中文文件复制到 .zh.md 再跑格式化（不碰源文件）
-            import shutil
-            shutil.copy2(path, out_path)
+            if out_path != path:
+                import shutil
+                shutil.copy2(path, out_path)
             stats = convert_xrefs_file(out_path)
             n = stats.get("total", 0)
             return ("skipped", 0, f"已是中文，跳过翻译，转换 {n} 处交叉引用", {})
