@@ -122,6 +122,8 @@ $$
 
 在这种情况下，量子比特的偶极耦合是均匀的。即使情况并非如此，也很容易观察到存在一个$\mathbb{Z}_{2}$对称性，其生成元为$\Pi =$ exp $\left\{i \pi \left[ \sum_{\nu} a_{\nu}^{\dagger} a_{\nu} + ( 1 / 2 ) \bar{\sum_{i}} \left( 1 + \sigma_{iz} \right) \right] \right\}$。此外，如果偶极耦合矢量为零，系统处于正常相。按照先前分析的步骤，我们识别出一组序参量 $\omega_{\nu} \langle a_{\nu}^{\dagger} a_{\nu} \rangle / N \Delta .$，其中$\Delta$是自旋频率$\Delta_{i} = \Delta \delta_{i}$的某种平均值。类似地，我们得到一个关于$M$个变量$\{u_{\nu} \}_{\nu = 1}^{M}$的朗道函数，其全局最小值决定了相。实际上，这些变量在朗道函数中仅通过组合$\vec{u}^{2}$和${\vec{\gamma}} \cdot{\vec{u}}$出现（这里我们使用向量符号表示相应的$M$维对象），其形式为$\phi ( \vec{u} ) = \vec{u}^{2} - s \left. \left( \bar{\gamma} \cdot \vec{u} \right)^{2} \right.$，其中$s$是某个函数。因此，除原点外，朗道函数的临界点平行于矢量${\vec{\gamma}}$。与上述分析类似，我们看到对于除原点外的临界点，$\vec{\gamma} \cdot \nabla_{\gamma} \phi = - 2 \vec{u}^{2}$为负，因此耦合空间中的径向流指向超辐射相。耦合线由$\begin{array} {r} {1 / \vec{\gamma}_{c}^{2} = 2 \sum_{i} \operatorname{\hat{tanh}} ( \beta \Delta_{i} ) / N | \delta_{i} |} \end{array}$确定。相变是连续的，序参量以平均场指数径向变化。由于临界性由有效耦合矢量${\vec{\gamma}}$的长度控制，因此可以通过协作方式实现超辐射。我们将这种现象称为辅助SPT。
 
+### References
+
 [1] R. H. Dicke, Phys. Rev. 93, 99 (1954).
 
 [2] K. Hepp and E. H. Lieb, Ann. Phys. 76, 360 (1973).
@@ -447,7 +449,6 @@ $$
 
 我们在图S2中展示了这些表达式，以及通过直接对角化得到的结果。
 
-![Figure S2](images/85369412a4ddbc121f098da427f18294c700a158785d069dcb5308200407bdfc.webp)
 ![](images/85369412a4ddbc121f098da427f18294c700a158785d069dcb5308200407bdfc.webp)
 {{< caption >}}图S2. 拉比模型基态光子分布。参数（任意单位）：$\Delta = 16 , \omega = 1 / 16 , g = 1$，对应 $\gamma = 1 , \gamma_{c} = 1 / \sqrt{2} , C = \Delta / \omega = 256 , \langle a^{\dag} a \rangle = C u_{\mathrm{min}}^{2} = C | \alpha_{\mathrm{min}} | ^{2} = 192$。红点由式(S33)得到，蓝点由哈密顿量数值对角化得到。黄点表示两者之差。{{< /caption >}}
 
@@ -507,9 +508,7 @@ $$
 \begin{array} {r l r} {{\frac{\partial \phi ( u , v )} {\partial u} = 2 u - \operatorname{tanh} [ \beta \Delta \sqrt{1 + [ 2 \gamma u + 2 \gamma^{\prime} ( u^{2} - v^{2} ) ]^{2}} ] \frac{( 2 \gamma + 4 \gamma^{\prime} u ) [ 2 \gamma u + 2 \gamma^{\prime} ( u^{2} - v^{2} ) ]} {\sqrt{1 + [ 2 \gamma u + 2 \gamma^{\prime} ( u^{2} - v^{2} ) ]^{2}}} ,}} \\ & {} & {\frac{\partial \phi ( u , v )} {\partial v} = 2 v + \operatorname{tanh} [ \beta \Delta \sqrt{1 + [ 2 \gamma u + 2 \gamma^{\prime} ( u^{2} - v^{2} ) ]^{2}} ] \frac{4 \gamma^{\prime} v [ 2 \gamma u + 2 \gamma^{\prime} ( u^{2} - v^{2} ) ]} {\sqrt{1 + [ 2 \gamma u + 2 \gamma^{\prime} ( u^{2} - v^{2} ) ]^{2}}} .} \end{array}\tag{S41}
 $$
 
-(S42)
-
-从式(S42)可以立即看出 $\partial_{v} \phi ( u , 0 )$ 恒为零。另一种方式是在 $( u , v )$ 平面上得到一条线。计算该线上第一个方程时，得到 $u$ 的线性方程。将该结果代回该线以确定临界点时，可以看出只要满足稳定性条件，$v$ 就没有实数解。由此可知，所有极值都位于 $v = 0$ 线上。因此，我们必须分析
+从式(S41)可以立即看出 $\partial_{v} \phi ( u , 0 )$ 恒为零。另一种方式是在 $( u , v )$ 平面上得到一条线。计算该线上第一个方程时，得到 $u$ 的线性方程。将该结果代回该线以确定临界点时，可以看出只要满足稳定性条件，$v$ 就没有实数解。由此可知，所有极值都位于 $v = 0$ 线上。因此，我们必须分析
 
 $$
 \tilde{\phi} ( u ) = u^{2} - \frac{1} {\beta \Delta} \ln \left[ 2 \cosh \left( \beta \Delta \sqrt{1 + \left[ 2 \gamma u + 2 \gamma^{\prime} u^{2} \right]^{2}} \right) \right] .\tag{S43}
@@ -788,8 +787,5 @@ $$
 - **K. Hepp and E. H. Lieb (1973)** — Dicke 模型超辐射相变的严格解和平均场精确性的原始证明，奠定了本文所依赖的 Hepp-Lieb 不等式框架的数学基础。
 - **M.-J. Hwang, R. Puebla, and M. B. Plenio (2015)** — 单量子比特 Rabi 模型经典振子极限中超辐射相变的发现，本文将其与 Dicke SPT 统一处理的重要参考（式S7节参考文献[15]）。
 - **Z.-J. Ying, L. Cong, X.-M. Sun (2018)** — 含双光子项的 Rabi 模型中的一级量子相变，与本文S5节中单/双光子混合模型的一级 SPT 直接相关（参考文献[33]）。
-- **J. Larson and E. K. Irish (2017)** — 对光-物质模型中“量子相变”的批判性讨论，特别是零温相变与有限温度量子相变概念边界的问题（参考文献[19]）。
-
-### 延伸阅读
-
-- **[耗散驱动的 Rabi 模型中的量子相变信号](/papers/dissipation-driven-rabi-qpt/)** — De Filippis 等（2023）证明耗散量子 Rabi 模型在深强耦合区发生 BKT 量子相变，并把序参量与线性响应测量（磁化率、弛豫函数）直接联系起来—
+- **J. Larson and E. K. Irish (2017)** — 对光-物质模型中”量子相变”的批判性讨论，特别是零温相变与有限温度量子相变概念边界的问题（参考文献[19]）。
+- **[耗散驱动的 Rabi 模型中的量子相变信号](/papers/dissipation-driven-rabi-qpt/)** — De Filippis 等（2023）证明耗散量子 Rabi 模型在深强耦合区发生 BKT 量子相变，并把序参量与线性响应测量（磁化率、弛豫函数）直接联系起来。
