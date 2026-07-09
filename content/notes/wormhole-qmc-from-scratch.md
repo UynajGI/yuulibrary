@@ -79,9 +79,9 @@ $$
 
 | Model | $\hat{H}_{\mathrm{sb}}$ | $\hat{\varrho}_{\mu}$ |
 |-------|------|-----|
-| Rabi / original spin-boson | $g_{\mu}\,\hat{\sigma}_z(\hat{a}_{\mu}^{\dagger}+\hat{a}_{\mu})$ | $g_{\mu}\,\hat{S}_z$ |
-| JC-like | $g_{\mu}\,(\hat{a}_{\mu}^{\dagger}\hat{S}_- + \hat{S}_+\hat{a}_{\mu})$ | $g_{\mu}\,\hat{S}_-$ |
-| XXZ spin-boson | $g_{\mu\ell}\,(\hat{a}_{\mu\ell}^{\dagger}+\hat{a}_{\mu\ell})\,\hat{S}_\ell$ | $g_{\mu\ell}\,\hat{S}_\ell$ |
+| Rabi / original spin-boson | $\gamma_{\mu}\,\hat{S}_z(\hat{a}_{\mu}^{\dagger}+\hat{a}_{\mu})$ | $\gamma_{\mu}\,\hat{S}_z$ |
+| JC-like | $\gamma_{\mu}\,(\hat{a}_{\mu}^{\dagger}\hat{S}_- + \hat{S}_+\hat{a}_{\mu})$ | $\gamma_{\mu}\,\hat{S}_-$ |
+| XXZ spin-boson | $\gamma_{\mu\ell}\,(\hat{a}_{\mu\ell}^{\dagger}+\hat{a}_{\mu\ell})\,\hat{S}_\ell$ | $\gamma_{\mu\ell}\,\hat{S}_\ell$ |
 
 关键区分：Rabi 模型中 $\hat{\varrho}_{\mu} = \hat{\varrho}_{\mu}^{\dagger}$（厄米耦合算符），导致推迟相互作用自然对称化为 $D_{+}$ 传播子。JC 模型中 $\hat{\varrho}_{\mu} \neq \hat{\varrho}_{\mu}^{\dagger}$，推迟相互作用保留非对称结构，顶点类型也因此不同。
 
@@ -630,23 +630,73 @@ $$
 
 ## 8. Directed-Loop / Wormhole 更新
 
-Directed-loop 更新通过扩展配置空间来连接两个需要大量局部更改的正则 MC 配置。全局细致平衡条件因 $W(\mathcal{C}) \propto \prod_{p} \mathcal{W}_{\nu_p}$ 因子化而退化为每个顶点的局部条件。
+### 8.0 先不写公式：有向环到底在干什么
 
-在扩展配置空间中，每个顶点被赋予一个入口腿 $l_1$ 和出口腿 $l_2$，相应权重记为 $W_{v}(l_1, l_2)$。
+在世界线 QMC 中，一个构型是自旋沿虚时间方向的历史。以 $S_z$ 基底为例，在每个虚时刻 $\tau$，自旋态为
 
-### 8.1 局部细致平衡
+$$
+|\alpha(\tau)\rangle \in \{|\uparrow\rangle, |\downarrow\rangle\}.
+$$
 
-正向过程（顶点 $v$，入口 $l_1$，出口 $l_2$）和反向过程（顶点 $\bar{v}$，入口 $l_2$，出口 $l_1$）的权重相等：
+如果某个虚时间区间没有自旋翻转算符，世界线保持原方向；遇到 $\hat{S}_+$ 或 $\hat{S}_-$，世界线就在该点翻转。因此，世界线是由"段"（固定 $S_z$ 的区间）和"翻转点"（算符位置）交替组成的一维图。
+
+**为什么需要全局更新。** 普通局域更新一次只增删一个顶点，改动太小。在低温或临界区，世界线的长程结构强关联——局部微扰很难遍历构型空间，导致极长的自相关时间。
+
+**有向环的基本图像。** Directed-loop 不逐个改顶点，而是构造一条**闭合路径**（loop），沿路径翻转全部世界线段：
+
+1. **插入 head / tail**：在随机虚时间 $\tau_0$ 插入一对自旋翻转算符——一个叫 tail（固定），一个叫 head（可移动）。head 是世界线中的一个临时不连续点。
+
+2. **head 沿世界线传播**：head 沿虚时间方向前进，直到遇到一个相互作用顶点。
+
+3. **选择出口腿**：每个顶点有四条腿——两个虚时间点 $\tau$ 和 $\tau'$，每个时间点有算符作用前、后的自旋态（图 1）。head 进入某条腿后，根据局部概率选择一条出口腿离开。可能的出口包括：
+   - **直行**：从同一时间点的另一条腿出去（不改变顶点类型，只改变自旋段归属）
+   - **转弯**：从不同时间点的腿出去，同时改变顶点内部连接
+   - **反弹（bounce）**：原路返回——head 回到刚来的方向，更新几乎没有改变构型，效率低
+   - **虫洞跳跃（wormhole）**：从 $\tau$ 处的腿直接跳到 $\tau'$ 处的腿——这正是推迟相互作用的非局域出口
+
+4. **闭合 loop**：head 继续传播，重复步骤 2--3，直到回到最初的 tail 位置。此时 loop 闭合，构成一条合法路径。
+
+5. **翻转世界线段**：loop 闭合后，把它经过的所有世界线段整体翻转（$\uparrow \leftrightarrow \downarrow$）。旧构型变成新构型，且新构型自动满足自旋翻转算符的匹配条件——因为 head 走过的路径本身就定义了哪些段需要翻转。
+
+**一次 loop 更新同时改变大量世界线段，从而突破局域更新的瓶颈。**
+
+**bounce 为什么是效率杀手。** 如果 head 进入顶点后直接原路返回，loop 闭合得很快但几乎没有改变构型——等价于什么都没做。bounce 概率越高，loop 的有效长度越短，更新效率越低。因此 directed-loop 方程的核心目标之一是最小化 bounce 权重。
+
+### 8.1 局部细致平衡：为什么全局退化为局部
+
+Directed-loop 更新通过扩展配置空间来连接两个需要大量局部更改的正则 MC 配置。在扩展配置空间中，每个顶点被赋予一个入口腿 $l_1$ 和出口腿 $l_2$，相应权重记为 $W_{v}(l_1, l_2)$。
+
+一条完整 loop 的概率是它经过的每个顶点局部转移概率的乘积，而配置权重也是每个顶点权重的乘积。因此全局细致平衡可以退化为每个顶点的局部条件。具体论证：
+
+设一条 loop 经过顶点 $\{v_p\}$，正向过程的总权重为
+
+$$
+\begin{aligned}
+W(\mathcal{C}) P(\mathcal{C} \to \mathcal{C}')
+&= \prod_{p \in \mathrm{loop}} W_{v_p}(l_p^{\mathrm{in}}, l_p^{\mathrm{out}}).
+\end{aligned}
+$$
+
+反向过程（loop 沿相反方向走，顶点翻转为 $\bar{v}_p$）的总权重为
+
+$$
+\begin{aligned}
+W(\mathcal{C}') P(\mathcal{C}' \to \mathcal{C})
+&= \prod_{p \in \mathrm{loop}} W_{\bar{v}_p}(l_p^{\mathrm{out}}, l_p^{\mathrm{in}}).
+\end{aligned}
+$$
+
+因此，如果每个顶点都满足
 
 $$
 \boxed{
 \begin{aligned}
-W_{v}(l_1, l_2) &= W_{\bar{v}}(l_2, l_1).
+W_{v}(l_1, l_2) &= W_{\bar{v}}(l_2, l_1),
 \end{aligned}
 }
 $$
 
-其中 $\bar{v}$ 是沿 loop 段翻转自旋后得到的顶点类型。
+那么整条 loop 的正反权重自动相等——全局细致平衡退化为局部方程。其中 $\bar{v}$ 是沿 loop 段翻转自旋后得到的顶点类型（例如 $v = 1$（$\uparrow\uparrow\uparrow\uparrow$）的翻转版本可能是 $v = 5$（spin-flip 顶点））。
 
 ### 8.2 概率守恒
 
