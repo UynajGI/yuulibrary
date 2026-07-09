@@ -1,7 +1,7 @@
 ---
 title: "自旋-玻色子模型的量子蒙特卡罗模拟：虫洞更新方法"
 description: "Weber (2022) 提出了一种精确的量子蒙特卡罗方法，利用非局域虫洞更新（wormhole updates）模拟耗散玻色子浴耦合的自旋系统，精确确定了 U(1) 对称双浴自旋-玻色子模型中临界相与局域相之间的临界耦合强度。"
-date: "2026-07-08"
+date: "2026-07-09"
 author: "Manuel Weber"
 year: 2022
 category: ["cond-mat"]

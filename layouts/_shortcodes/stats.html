@@ -16,12 +16,24 @@
 
 {{ $notes := where .Site.RegularPages "Section" "eq" "notes" }}
 
-{{/* 全部"可入库条目"按 date 倒序，用于"最近添加"和入库总数 */}}
+{{/* 全部"可入库条目"按有效日期倒序，用于"最近添加"和入库总数。
+     优先用 front matter date，未设时回退到 git AuthorDate（enbleGitInfo=true）*/}}
 {{ $allEntries := slice }}
 {{ range $bookSections }}{{ $allEntries = $allEntries | append . }}{{ end }}
 {{ range $paperSections }}{{ $allEntries = $allEntries | append . }}{{ end }}
 {{ range $notes }}{{ $allEntries = $allEntries | append . }}{{ end }}
-{{ $allEntries = sort $allEntries "Date" "desc" }}
+
+{{ $dated := slice }}
+{{ range $allEntries }}
+  {{ $d := .Date }}
+  {{ if $d.IsZero }}
+    {{ with .GitInfo }}{{ $d = .AuthorDate }}{{ end }}
+  {{ end }}
+  {{ if not $d.IsZero }}
+    {{ $dated = $dated | append (dict "entry" . "effDate" $d) }}
+  {{ end }}
+{{ end }}
+{{ $dated = sort $dated "effDate" "desc" }}
 
 {{/* ── 数字卡片 ── */}}
 <section class="stats-grid">
@@ -38,21 +50,21 @@
     <span class="stats-card-label">篇笔记</span>
   </a>
   <div class="stats-card stats-card-static">
-    <span class="stats-card-num">{{ len $allEntries }}</span>
+    <span class="stats-card-num">{{ len $dated }}</span>
     <span class="stats-card-label">馆藏总计</span>
   </div>
 </section>
 
-{{/* ── 最近添加（前 6 条）── */}}
-{{ $recent := first 6 $allEntries }}
+{{/* ── 最近添加（前 6 条，按 git commit 时间降序）── */}}
+{{ $recent := first 6 $dated }}
 {{ if gt (len $recent) 0 }}
 <h3 class="stats-subhead">最近添加</h3>
 <div class="stats-recent">
   {{ range $recent }}
-    <a class="stats-recent-item" href="{{ .RelPermalink }}">
-      <span class="stats-recent-section">{{ .Section }}</span>
-      <span class="stats-recent-title">{{ .Title }}</span>
-      <time class="stats-recent-date">{{ .Date.Format "01-02" }}</time>
+    <a class="stats-recent-item" href="{{ .entry.RelPermalink }}">
+      <span class="stats-recent-section">{{ .entry.Section }}</span>
+      <span class="stats-recent-title">{{ .entry.Title }}</span>
+      <time class="stats-recent-date">{{ .effDate.Format "01-02" }}</time>
     </a>
   {{ end }}
 </div>

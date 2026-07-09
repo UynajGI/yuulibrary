@@ -1,7 +1,7 @@
 ---
 title: "虫洞更新：从延迟相互作用到非局域蒙特卡罗"
 description: "Weber (2022) 提出的虫洞更新方法——利用积分掉玻色子浴产生的延迟相互作用中的远距离顶点对作为有向环的源和汇，将非局域更新映射为等效最近邻问题"
-date: 2026-07-08
+date: 2026-07-09
 author: "Manuel Weber"
 source_type: "paper"
 source_title: "Quantum Monte Carlo simulation of spin-boson models using wormhole updates"
