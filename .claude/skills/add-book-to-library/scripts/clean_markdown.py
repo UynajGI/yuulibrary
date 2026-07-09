@@ -294,6 +294,17 @@ _RE_ROMAN = re.compile(r"^#+\s+(?:第)?(I{1,3}|IV|VI{0,3}|IX|XI{0,3})[\.\s章]")
 _RE_LETTER = re.compile(r"^#+\s+([A-HJ-NP-Z])\.\s")   # single letter . (skip I/V/X)
 _RE_NUMBER = re.compile(r"^#+\s+(\d+)\.\s")
 
+# Translation can produce inconsistent Roman numeral prefixes:
+#   第I章 / II. / 第III节 / 第IV章 → normalize to bare "N. Title"
+# Groups: 1=hashes, 2=Roman numeral, 3=rest of title
+_RE_NORMALIZE_ROMAN = re.compile(
+    r"^(#{1,6}\s+)"
+    r"(?:第\s*)?"
+    r"(I{1,3}|IV|VI{0,3}|IX|XI{0,3})"
+    r"(?:[章节](?:\s+)?|\.\s+)"
+    r"(.+)$"
+)
+
 
 def _heading_prefix_type(line: str) -> tuple[str, int]:
     """Return (type, current_level) for a heading line.
@@ -332,9 +343,18 @@ def fix_heading_hierarchy(text):
       Roman numeral (I., II.) → top-level (keep)
       Letter (A., B.)         → sub-section (demote 1)
       Number (1., 2.)         → sub-sub-section (demote 2)
+
+    Also normalizes inconsistent Roman numeral heading text:
+      第I章 → I. / 第III节 → III. / 第IV章 → IV.
     """
     lines = text.split("\n")
     stats = {"headings_demoted": 0}
+
+    # ── Pass 0: normalize Roman numeral heading text ──────────────────
+    for i, line in enumerate(lines):
+        m = _RE_NORMALIZE_ROMAN.match(line)
+        if m:
+            lines[i] = f"{m.group(1)}{m.group(2)}. {m.group(3)}"
 
     # ── Pass 1: detect paper-style hierarchy ─────────────────────────
     heading_indices = []

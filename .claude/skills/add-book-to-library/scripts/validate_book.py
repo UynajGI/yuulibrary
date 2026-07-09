@@ -133,9 +133,22 @@ def validate_file(path, all_files=None):
         else:
             issues.append(issue(ERR, "front matter block (---) missing"))
 
+    # 9. Broken chapter cross-references ([第N章](chNN.md) → missing file)
+    book_dir = os.path.dirname(path)
+    ch_links = re.findall(r"\[([^\]]*)\]\((ch\d{2}\.md)\)", content)
+    broken = []
+    for link_text, target in ch_links:
+        if not os.path.exists(os.path.join(book_dir, target)):
+            broken.append((link_text, target))
+    if broken:
+        details = "; ".join(f"[{t}]({f})" for t, f in broken[:5])
+        if len(broken) > 5:
+            details += f" ... and {len(broken)-5} more"
+        issues.append(issue(ERR, f"{len(broken)} broken xref: {details}"))
+
     # ==================== WARNINGS ====================
 
-    # 9. Image inside $ math (likely MinerU error)
+    # 10. Image inside $ math (likely MinerU error)
     # Note: $ markers may carry <!-- validate-skip --> (e.g. stat-arb uses
     # $ ... $ as centered image containers). A $ line with the skip tag
     # must still participate in pairing so the block isn't mis-detected as math.
@@ -158,24 +171,24 @@ def validate_file(path, all_files=None):
         elif in_math and s.startswith("!["):
             issues.append(issue(WARN, f"L{i}: image inside $ math block"))
 
-    # 10. Empty $ blocks (ignore $ ... $ containers marked <!-- validate-skip -->)
+    # 11. Empty $ blocks (ignore $ ... $ containers marked <!-- validate-skip -->)
     body_ns = re.sub(r"\$\$ <!-- validate-skip -->.*?\$\$", "", content, flags=re.DOTALL)
     empty_ds = len(re.findall(r"^\$\$[ \t]*\n[ \t]*\$\$", body_ns, re.MULTILINE))
     if empty_ds:
         issues.append(issue(WARN, f"{empty_ds} empty $ blocks"))
 
-    # 11. Compound $ blocks (blank line inside; ignore skip-tagged containers)
+    # 12. Compound $ blocks (blank line inside; ignore skip-tagged containers)
     compound = sum(1 for m in re.finditer(r"^\$\$[ \t]*\n(.*?)\n[ \t]*\$\$", body_ns, re.DOTALL | re.MULTILINE)
                    if "\n\n" in m.group(1))
     if compound:
         issues.append(issue(WARN, f"{compound} compound $ blocks"))
 
-    # 12. .html links in source (should be .md for Hugo rewriting)
+    # 13. .html links in source (should be .md for Hugo rewriting)
     html_links = re.findall(r"\]\(\./[^)]*\.html\)", content)
     if html_links:
         issues.append(issue(WARN, f"{len(html_links)} .html links (use .md)"))
 
-    # 13. Naked captions
+    # 14. Naked captions
     # Exclude lines that are part of a sentence (e.g. "表4.1总结了...", "图5.2展示了...").
     naked_cap = [m for m in re.finditer(r"^(图\d+\.\d+|表\d+\.\d+)[^\n]{0,30}$", content, re.MULTILINE)
                  if not re.search(r"[。！？，；：]|\s*(总结|展示|说明|列出|给出|显示|提到|参见|见)[了]?", m.group(0))]
@@ -183,12 +196,12 @@ def validate_file(path, all_files=None):
     if naked_cap:
         issues.append(issue(WARN, f"{len(naked_cap)} naked captions (wrap in {{{{< caption >}}}})"))
 
-    # 14. JPG/PNG image references (should be WebP)
+    # 15. JPG/PNG image references (should be WebP)
     jpg_png_refs = re.findall(r"\]\(\.?/images/[^)]+\.(?:jpg|png)\)", content)
     if jpg_png_refs:
         issues.append(issue(ERR, f"{len(jpg_png_refs)} .jpg/.png image refs (must convert to .webp)"))
 
-    # 15. Backslash pseudocode commands
+    # 16. Backslash pseudocode commands
     bad_cmds = re.findall(
         r"\\(?:state|for|if|while|repeat|until|return|endfor|endif|endwhile|endprocedure|endfunction|procedure|function|label)\\b",
         content,
@@ -196,7 +209,7 @@ def validate_file(path, all_files=None):
     if bad_cmds:
         issues.append(issue(WARN, f"{len(bad_cmds)} backslash pseudocode commands"))
 
-    # 16. H1 format issues (spaces, colons)
+    # 17. H1 format issues (spaces, colons)
     for h1 in h1_texts:
         if re.match(r"^(前言|符号|算法|索引|致谢|目录|附录|献词|引言)", h1):
             continue
@@ -205,7 +218,7 @@ def validate_file(path, all_files=None):
         elif "：" in h1 or (":" in h1.split("章")[-1] if "章" in h1 else False):
             issues.append(issue(WARN, f'H1 has colon: "{h1}"'))
 
-    # 17. Heading level skip (H1→H3, H2→H4)
+    # 18. Heading level skip (H1→H3, H2→H4)
     for i in range(1, len(levels)):
         jump = levels[i] - levels[i - 1]
         if jump > 1:
@@ -214,7 +227,7 @@ def validate_file(path, all_files=None):
                 f'("{texts[i-1][:20]}" → "{texts[i][:20]}")'
             ))
 
-    # 18. Code-comment-like headings
+    # 19. Code-comment-like headings
     _comment_kw = r"^(设置|获取|计算|导入|定义|创建|初始化|返回|更新|显示|删除|保存|加载|生成|转换|验证|检查|调用)"
     _term_suffix = r"(条件|规则|总结|方法|原则|标准|要求|步骤|流程|参数|选项|模式)"
     comment_h = sum(1 for m in re.finditer(r"^(#{1,2})\s+(\S.*?)\s*$", codeless, re.MULTILINE)
@@ -224,18 +237,18 @@ def validate_file(path, all_files=None):
     if comment_h:
         issues.append(issue(WARN, f"{comment_h} #/## look like code comments"))
 
-    # 19. Non-standard list markers
+    # 20. Non-standard list markers
     ns_list = re.findall(r"^(●|◆|①|②|③|④|⑤|⑥|⑦|⑧|⑨|（\d+）|\(\d+\)|\d+）)\s", content, re.MULTILINE)
     if ns_list:
         unique = sorted(set(ns_list))
         issues.append(issue(WARN, f"{len(ns_list)} non-standard list markers: {unique} (use - or 1.)"))
 
-    # 20. ### heading inside callout (should be **bold**)
+    # 21. ### heading inside callout (should be **bold**)
     callout_h = re.findall(r"\{\{< callout[^}]*>\}\}\n###\s", content)
     if callout_h:
         issues.append(issue(WARN, f"{len(callout_h)} ### inside callout (use **bold**)"))
 
-    # 21. Naked 第N章 cross-references (should be linked)
+    # 22. Naked 第N章 cross-references (should be linked)
     # Strip front matter to avoid matching title/description fields
     body = re.sub(r"^---\n.*?\n---\n", "", content, flags=re.DOTALL)
     body = strip_fences(body)
@@ -252,22 +265,22 @@ def validate_file(path, all_files=None):
     if xrefs:
         issues.append(issue(WARN, f"{len(xrefs)} unlinked 第N章 references (use [第N章](ch0N.md))"))
 
-    # 22. Copyright residue
+    # 23. Copyright residue
     cr = re.findall(r"^(ISBN|客服热|客服信箱|版权所有|侵权必究|CIP 数据|图书在版)", content, re.MULTILINE)
     if cr:
         issues.append(issue(WARN, f"{len(cr)} copyright/residue lines"))
 
-    # 23. HTML table garbage
+    # 24. HTML table garbage
     html_tbl = len(re.findall(r"<table>.*?venv.*?</table>", content, re.DOTALL))
     if html_tbl:
         issues.append(issue(WARN, f"{html_tbl} garbage HTML tables (venv paths)"))
 
-    # 24. mineru-algorithm div (should be {{< algorithm >}})
+    # 25. mineru-algorithm div (should be {{< algorithm >}})
     mineru_div = content.count("mineru-algorithm")
     if mineru_div:
         issues.append(issue(WARN, f"{mineru_div} mineru-algorithm divs (use {{{{< algorithm >}}}})"))
 
-    # 25. Hand-written TOC in preface (redundant with book-toc)
+    # 26. Hand-written TOC in preface (redundant with book-toc)
     if fname == "preface.md" and re.search(r"^##\s+目录\s*$", content, re.MULTILINE):
         found_toc = False
         for line in lines:
@@ -278,12 +291,12 @@ def validate_file(path, all_files=None):
                 issues.append(issue(WARN, "hand-written TOC in preface (delete, book-toc auto-generates)"))
                 break
 
-    # 26. ### inside callout quote blocks
+    # 27. ### inside callout quote blocks
     callout_heading = re.findall(r"\{\{< callout type=.quote. >\}\}\n###\s", content)
     if callout_heading:
         issues.append(issue(WARN, f"{len(callout_heading)} ### in quote callout (use **bold**)"))
 
-    # 27. Mid-sentence breaks (MinerU artifact: Chinese line → blank line → short continuation)
+    # 28. Mid-sentence breaks (MinerU artifact: Chinese line → blank line → short continuation)
     mid_breaks = 0
     if re.match(r'^(appendix|notation)', fname):
         pass  # skip code/model listings and symbol tables
