@@ -125,9 +125,19 @@ Z &= \sum_{m=0}^{\infty} (-1)^{m} \int_{0}^{\beta} d\tau_{1} \int_{0}^{\tau_{1}}
 \end{aligned}
 $$
 
-其中 $\hat{V}(\tau) = e^{\tau \hat{H}_0} \hat{V} e^{-\tau \hat{H}_0}$，且 $\beta \ge \tau_1 \ge \tau_2 \ge \cdots \ge \tau_m \ge 0$。
+其中 $\hat{V}(\tau) = e^{\tau \hat{H}_0} \hat{V} e^{-\tau \hat{H}_0}$，且 $\beta \ge \tau_1 \ge \tau_2 \ge \cdots \ge \tau_m \ge 0$。此式**无** $1/m!$ 因子：积分限已强制时间有序，$m$ 个算符的每种排列恰好出现一次。
 
-引入虚时间编序算符 $\hat{\mathcal{T}}_{\tau}$，将有序积分改写为对称形式：
+引入虚时间编序算符 $\hat{\mathcal{T}}_{\tau}$，将有序积分改写为各 $\tau_i$ 独立从 $0$ 积到 $\beta$ 的对称形式。这一步引入了因子 $1/m!$：
+
+$$
+\begin{aligned}
+\int_{0}^{\beta} d\tau_{1} \int_{0}^{\tau_{1}} d\tau_{2} \cdots \int_{0}^{\tau_{m-1}} d\tau_{m}
+\;=\;
+\frac{1}{m!} \int_{0}^{\beta} d\tau_{1} \int_{0}^{\beta} d\tau_{2} \cdots \int_{0}^{\beta} d\tau_{m} \;\times\; \hat{\mathcal{T}}_{\tau}.
+\end{aligned}
+$$
+
+**为什么有 $1/m!$。** 无序积分对 $m$ 个时间变量的所有 $m!$ 种排列求和。$\hat{\mathcal{T}}_{\tau}$ 把每一种排列都排成相同的时间序——因此每个物理上不同的有序构型被重复计数了 $m!$ 次。除以 $m!$ 恢复正确权重。得到
 
 $$
 \begin{aligned}
