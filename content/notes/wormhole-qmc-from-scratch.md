@@ -189,7 +189,58 @@ $$
 
 ### 3.3 Wick 收缩
 
-将 $n$ 个湮灭算符排在左边、$n$ 个产生算符排在右边，应用 Wick 定理：
+#### 3.3.1 Wick 定理的陈述
+
+$\hat{H}_{\mathrm{b}}$ 是自由玻色子的二次型，因此热平均 $\langle \bullet \rangle_{\mathrm{b}}$ 是 Gaussian 型的。对 Gaussian 理论，Wick 定理断言：任意 $2n$ 点关联函数等于所有**完全收缩**（两两配对）之和。
+
+#### 3.3.2 哪些收缩非零？
+
+考虑一个收缩对 $\langle \hat{\mathcal{T}}_{\tau} \hat{a}^{c_i}(\tau_i) \hat{a}^{c_j}(\tau_j) \rangle_{\mathrm{b}}$：
+
+- $\langle \hat{a} \hat{a} \rangle_{\mathrm{b}} = 0$（两个湮灭算符不守恒粒子数）
+- $\langle \hat{a}^{\dagger} \hat{a}^{\dagger} \rangle_{\mathrm{b}} = 0$（两个产生算符同理）
+- $\langle \hat{a} \hat{a}^{\dagger} \rangle_{\mathrm{b}}$ —— 非零，就是传播子 $D$
+
+因此**非零收缩只发生在 $\hat{a}$ 与 $\hat{a}^{\dagger}$ 之间**。每个湮灭算符必须与一个产生算符配对。
+
+此外，不同浴模式的玻色子相互独立——$\hat{a}_{\mu}$ 和 $\hat{a}_{\nu}^{\dagger}$ 的收缩贡献 $\delta_{\mu\nu}$。只有**同一模式**的算符对才有非零收缩。
+
+#### 3.3.3 具体例子：$n = 1$
+
+当 $n = 1$——即 1 个湮灭算符 $\hat{a}_{\mu_1}(\tau_1)$ 和 1 个产生算符 $\hat{a}_{\mu_2}^{\dagger}(\tau_2)$：
+
+$$
+\begin{aligned}
+\langle \hat{\mathcal{T}}_{\tau} \hat{a}_{\mu_1}(\tau_1) \hat{a}_{\mu_2}^{\dagger}(\tau_2) \rangle_{\mathrm{b}}
+&= D(\omega_{\mu_1}, \tau_1 - \tau_2) \, \delta_{\mu_1, \mu_2}.
+\end{aligned}
+$$
+
+只有一种配对方式（$S_1$ 只有一个元素——恒等排列），一个传播子 $D$，一个 Kronecker $\delta$。
+
+#### 3.3.4 具体例子：$n = 2$
+
+当 $n = 2$——2 个湮灭算符 $\hat{a}_{\mu_1}(\tau_1), \hat{a}_{\mu_2}(\tau_2)$ 和 2 个产生算符 $\hat{a}_{\mu_3}^{\dagger}(\tau_3), \hat{a}_{\mu_4}^{\dagger}(\tau_4)$。
+
+每种完全收缩对应一个排列 $\pi \in S_2 = \{\mathrm{id}, (12)\}$：
+
+- $\pi = \mathrm{id}$：$\hat{a}_{\mu_1}$ 与 $\hat{a}_{\mu_3}^{\dagger}$ 配对，$\hat{a}_{\mu_2}$ 与 $\hat{a}_{\mu_4}^{\dagger}$ 配对
+- $\pi = (12)$：$\hat{a}_{\mu_1}$ 与 $\hat{a}_{\mu_4}^{\dagger}$ 配对，$\hat{a}_{\mu_2}$ 与 $\hat{a}_{\mu_3}^{\dagger}$ 配对
+
+$$
+\begin{aligned}
+\langle \hat{\mathcal{T}}_{\tau} \hat{a}_{\mu_1}(\tau_1) \hat{a}_{\mu_2}(\tau_2)
+   \hat{a}_{\mu_3}^{\dagger}(\tau_3) \hat{a}_{\mu_4}^{\dagger}(\tau_4) \rangle_{\mathrm{b}}
+&= D(\omega_{\mu_1}, \tau_1 - \tau_3) \delta_{\mu_1,\mu_3} \; D(\omega_{\mu_2}, \tau_2 - \tau_4) \delta_{\mu_2,\mu_4} \\
+&\quad + D(\omega_{\mu_1}, \tau_1 - \tau_4) \delta_{\mu_1,\mu_4} \; D(\omega_{\mu_2}, \tau_2 - \tau_3) \delta_{\mu_2,\mu_3}.
+\end{aligned}
+$$
+
+两个排列 → 两项 → 每项 $n=2$ 个 $D$ 因子和 $n=2$ 个 $\delta$ 因子。
+
+#### 3.3.5 一般公式
+
+推广到任意 $n$：将 $n$ 个湮灭算符排在左边，$n$ 个产生算符排在右边，
 
 $$
 \begin{aligned}
@@ -201,11 +252,14 @@ $$
 \end{aligned}
 $$
 
-其中 $S_{n}$ 是 $n$ 阶对称群，$\pi \in S_{n}$ 是 $n$ 个对象的排列。自由玻色传播子定义为
+其中：
 
-$$
-D(\omega_{\mu}, \tau - \tau') = \langle \hat{\mathcal{T}}_{\tau} \hat{a}_{\mu}(\tau) \hat{a}_{\mu}^{\dagger}(\tau') \rangle_{\mathrm{b}}.
-$$
+- $S_{n}$：$n$ 个对象的对称群，有 $n!$ 个元素
+- $\pi[k]$：排列 $\pi$ 把第 $k$ 个湮灭算符分配给第 $\pi[k]$ 个产生算符
+- $D(\omega_{\mu}, \tau)$：自由玻色传播子（下一节）
+- $\delta_{\mu, \nu}$：确保 bath 模式匹配
+
+Wick 收缩后，所有玻色算符消失，只剩下传播子 $D$ 和自旋算符 $\hat{\varrho}$。物理上，玻色浴的作用被压缩为连接两个虚时间点的"记忆核" $D(\omega, \tau - \tau')$。
 
 ### 3.4 组合因子
 
