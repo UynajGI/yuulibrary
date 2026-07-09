@@ -34,7 +34,7 @@ PDF/EPUB/DOCX/FB2/TXT 源
 - **标题层级**:`#` 章 → `##` 节 → `###` 子节(小标题必须用 markdown,不能纯文本)
 - **英文书必须翻译成中文**:用 `translate_chapters.py` workflow 脚本
 - **图片全 WebP**:用 `convert_to_webp.sh` 批量转,放 `images/` 子目录,相对路径引用
-- **🔴 日期陷阱**:`date` 写昨天,别写今天——Hugo 不构建未来日期的页面且**不报错**。详见 [deployment.md#故障排查](deployment.md#故障排查)
+- **🔴 日期**:`date` 写当天带时区（如 `2026-07-09T08:00:00+08:00`），或 `date: 2026-07-09`（仅当 UTC 已过当日）。stats.html 优先用 git commit 时间回退。详见 [deployment.md#故障排查](deployment.md#故障排查)
 
 ### 分类
 
@@ -67,7 +67,7 @@ PDF/EPUB/DOCX/FB2/TXT 源
 - **`category` 是 arXiv 一级分类数组**(如 `["quant-ph"]`、`["quant-ph", "cond-mat"]`),查 `data/arxiv_categories.json`。多归属
 - **全部图片带上**:论文全文翻译了,图片是正文一部分
 - **LaTeX 公式 100% 原样**:翻译时不动 `$...$` / `$$...$$` / `\tag{N}`。**不要用 `\[...\]` / `\(...\)`**——KaTeX 不渲染
-- **🔴 日期陷阱**:同书,`date` 写昨天
+- **🔴 日期**:同书,`date` 写当天带时区
 
 ### 结构化分析 7 栏目
 
@@ -99,7 +99,7 @@ PDF/EPUB/DOCX/FB2/TXT 源
 ### 关键约定
 
 - **扁平存放**:每篇一个 `.md`,不用子目录
-- **front matter 必须**:`title` / `description` / `date`(昨天)/ `author` / `source_type` / `source_title` / `tags` / `weight`
+- **front matter 必须**:`title` / `description` / `date`(当天带时区)/ `author` / `source_type` / `source_title` / `tags` / `weight`
 - **内容结构**:一句话概括 / 核心思维框架 / 决策启发式 / 表达 DNA / 批判性思考 / 关键引用
 - **善用已有 JS**:rough.js 手绘图(`{{< rough-canvas >}}`)、pseudocode.js 算法(`{{< algorithm >}}`)、KaTeX 数学、mermaid 流程图
 - **不手动分类**:笔记按 `date` 自动时间排序,无需按主题分组

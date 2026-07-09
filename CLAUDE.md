@@ -47,7 +47,7 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
    - `translate_chapters.py <file.md>` — 翻译(输出 `.zh.md`,不碰源文件;**翻译后 `restore_images()` 自动补回丢失图片**)
    - `generate_paper_note.py <file.zh.md> --slug <slug> --meta <meta.json>` — ReAct 结构化分析(7 栏目)+ cross-link + 组装 `_index.md`
 6. **🔴 LaTeX 公式 100% 原样**;图注用 `{{< caption >}}`,强调用 `{{< callout >}}`
-7. **🔴 日期陷阱**:`date` 写昨天(如 `2026-07-07`),别写「今天」——Hugo 不构建未来日期的页面且**不报错**。详见 skill
+7. **🔴 日期**:`date` 写当天带时区（如 `2026-07-09T08:00:00+08:00`），或用 `date: 2026-07-09`（仅当 UTC 已过该日）。stats.html 优先用 `.GitInfo.AuthorDate`（git commit 时间），`date` front matter 可选。详见 skill
 8. `hugo --gc` → **验证 `public/papers/<slug>/index.html` 真的生成了**
 9. 参照 `content/papers/berry-phase-solid-state-qubit/` 和 `content/papers/dissipation-driven-rabi-qpt/` 的结构
 
@@ -57,8 +57,8 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
 
 1. **输入**:已入库的书/论文 → 直接读取;外部 PDF → 先入库再做笔记
 2. **直接分析蒸馏**:LLM 通读原文后提炼核心思维框架、决策启发式、表达 DNA
-3. 笔记放 `content/notes/<slug>.md`(**扁平存放**)
-4. front matter 必须:`title`/`description`/`date`(昨天)/`author`/`source_type`/`source_title`/`tags`/`weight`
+3. 笔记放 `content/notes/<slug>.md`（无图扁平；有图用子目录 `content/notes/<slug>/_index.md` + `images/`）
+4. front matter 必须:`title`/`description`/`date`(当天带时区)/`author`/`source_type`/`source_title`/`tags`/`weight`
 5. 笔记内容:一句话概括 / 核心思维框架 / 决策启发式 / 表达 DNA / 批判性思考 / 关键引用
 6. **善用已有 JS**:rough.js 手绘图、pseudocode.js 算法、KaTeX 数学、mermaid 流程图
 7. **不手动分类**:笔记按 `date` 自动时间排序

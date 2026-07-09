@@ -228,9 +228,10 @@ git commit -m "chore: update submodules"
 
 根因:front matter `date: 2026-07-08`(无时间)→ Hugo 解析成 `2026-07-08T00:00:00Z`(UTC 午夜)。若本地时区是 UTC+8,本地 7/8 凌晨对应 UTC 7/7 晚上 → 该 date 还在未来 ~7 小时 → 跳过。
 
-修复(任选):
-1. 写昨天的日期(最简单):`date: 2026-07-07`
-2. 带时区且是过去:`date: 2026-07-07T23:00:00+08:00`
+修复(推荐方案 1):
+1. 带时区写当天（推荐）:`date: 2026-07-09T08:00:00+08:00`——Hugo 按 UTC 解析后必然是过去
+2. 写当天日期:`date: 2026-07-09`（仅当 UTC 已过该日）
+3. 不写 date（依赖 git commit 时间，stats.html 已支持 `.GitInfo.AuthorDate` 回退）
 
 自检:
 
