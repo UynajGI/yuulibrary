@@ -125,8 +125,11 @@ pre-commit:
     - name: pageindex-build
       glob:
         - "content/**/*.md"
-      run: python3 scripts/build_pageindex.py --incremental
-      stage_fixed: true
+      run: |
+        python3 scripts/build_pageindex.py --incremental
+        # Always stage pageindex changes — stage_fixed is unreliable when
+        # fingerprints were already updated by a prior hook run (e.g. pre-push).
+        git add static/pageindex/
 
     - name: markdownlint
       glob:
