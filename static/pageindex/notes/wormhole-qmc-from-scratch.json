@@ -359,45 +359,77 @@
       ]
     },
     {
-      "title": "9. 可观测量",
+      "title": "9. 可观测量与实现细节",
       "node_id": "0042",
-      "summary": "## 9. 可观测量\n\n与标准世界线 QMC 方法一致。",
+      "summary": "## 9. 可观测量与实现细节",
       "line_num": 1085,
-      "line_end": 1089,
+      "line_end": 1087,
       "source_md": "content/notes/wormhole-qmc-from-scratch.md",
       "nodes": [
         {
-          "title": "9.1 自旋关联函数",
+          "title": "9.1 对角可观测量（$z$ 分量）",
           "node_id": "0043",
-          "summary": "### 9.1 自旋关联函数\n\n$$\n\\boxed{\n\\begin{aligned}\nC_{\\ell}(\\tau - \\tau') &= \\langle \\hat{S}_{\\ell}(\\tau) \\hat{S}_{\\ell}(\\tau') \\rangle.\n\\end{aligned}\n}\n$$",
-          "line_num": 1089,
-          "line_end": 1099,
+          "summary": "### 9.1 对角可观测量（$z$ 分量）\n\n对角可观测量（$\\hat{S}_{z}$、对角关联函数）不改变世界线构型，直接从传播态 $|\\alpha_{p}\\rangle$ 读出——无需额外采样。静态磁化率定义为\n\n$$\n\\chi_{\\ell} = \\frac{1}{\\beta} \\iint_{0}^{\\beta} d\\tau d\\tau' \\, C_{\\ell}(\\tau - \\tau'), \\qquad\nC_{\\ell}(\\tau - \\tau') = \\langle \\hat{S}_{\\ell}(\\tau) \\hat{S}_{\\ell}(\\tau') \\rangle.\n$$",
+          "line_num": 1087,
+          "line_end": 1096,
           "source_md": "content/notes/wormhole-qmc-from-scratch.md"
         },
         {
-          "title": "9.2 磁化率",
+          "title": "9.2 非对角可观测量（$x, y$ 分量）",
           "node_id": "0044",
-          "summary": "### 9.2 磁化率\n\n$$\n\\boxed{\n\\begin{aligned}\n\\chi_{\\ell}(\\mathrm{i}\\Omega_{m}) &=\n   \\frac{1}{\\beta} \\iint_{0}^{\\beta} d\\tau d\\tau' \\, e^{\\mathrm{i}\\Omega_{m}(\\tau - \\tau')} C_{\\ell}(\\tau - \\tau'),\n\\end{aligned}\n}\n$$\n\n其中 $\\Omega_{m} = 2\\pi m / \\beta$（$m \\in \\mathbb{Z}$）为玻色 Matsubara 频率。静态磁化率 $\\chi_{\\ell} = \\chi_{\\ell}(\\mathrm{i}\\Omega_{0})$。\n\n$z$ 分量（对角可观测量）直接从传播态 $|\\alpha_{p}\\rangle$ 读出；$x, y$ 分量（非对角可观测量）通过追踪 directed-loop 更新中 loop head/tail 的传播来测量。",
-          "line_num": 1099,
-          "line_end": 1114,
+          "summary": "### 9.2 非对角可观测量（$x, y$ 分量）\n\n非对角可观测量通过追踪 directed-loop 更新中 loop head/tail 的传播来测量。loop head 和 tail 被识别为自旋翻转算符——根据模型选择 $\\hat{\\sigma}_{x}$ 或 $\\hat{S}_{+}, \\hat{S}_{-}$。与普通 SSE 表示不同，这里可以直接访问每个顶点的虚时间值，简化了时移可观测量的计算。",
+          "line_num": 1096,
+          "line_end": 1100,
           "source_md": "content/notes/wormhole-qmc-from-scratch.md"
         },
         {
-          "title": "9.3 平均展开阶数",
+          "title": "9.3 玻色可观测量与生成泛函",
           "node_id": "0045",
-          "summary": "### 9.3 平均展开阶数\n\n平均展开阶数与自旋子系统能量相关：\n\n$$\n\\langle n \\rangle = -\\beta \\langle \\hat{H}_{\\mathrm{s}} + \\hat{H}_{\\mathrm{sb}} \\rangle.\n$$\n\n玻色可观测量（bath 能量、传播子、比热）可从高阶自旋-自旋关联函数通过生成泛函恢复。\n\n---",
-          "line_num": 1114,
-          "line_end": 1126,
+          "summary": "### 9.3 玻色可观测量与生成泛函\n\n玻色子已被积分掉，不能直接从世界线构型中获取浴的性质。但可通过高阶自旋-自旋关联函数的生成泛函间接恢复：\n\n$$\n\\langle n \\rangle = -\\beta \\langle \\hat{H}_{\\mathrm{s}} + \\hat{H}_{\\mathrm{sb}} \\rangle\n$$\n\n将平均展开阶数与自旋子系统能量关联。玻色能量、传播子、比热等估计量已在针对单个 bath 频率的文献 [15,55] 中推导。推广到连续浴时，需要定义从离散频率到连续谱的附加映射 [56,57]，浴的性质因此保留一定的不确定性。",
+          "line_num": 1100,
+          "line_end": 1110,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "9.4 预热与 $\\beta$-倍增策略",
+          "node_id": "0046",
+          "summary": "### 9.4 预热与 $\\beta$-倍增策略\n\nMC 预热（warmup）从随机初态 $|\\alpha\\rangle$ 和空顶点列表开始。对角更新的提议次数和有向环更新的构造环数在预热期间动态调整——使每个顶点平均被每类更新至少触及一次——之后固定不变。\n\n为加速预热，使用 **$\\beta$-倍增方案**：从较小的逆温度开始仿真，逐步倍增 $\\beta$，每一步将前一步的平衡构型作为新 $\\beta$ 的初始构型。这比直接在目标 $\\beta$ 上从零开始预热收敛快得多，尤其对低温（$\\beta \\gg 1$）仿真至关重要。",
+          "line_num": 1110,
+          "line_end": 1116,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "9.5 顶点列表的数据结构",
+          "node_id": "0047",
+          "summary": "### 9.5 顶点列表的数据结构\n\n与 SSE 表示中将顶点保存在定长算符串中不同，这里顶点保存在**无序列表**中，每个元素包含 $\\nu = \\{t_{\\mathrm{int}}, v, \\omega, \\tau, \\tau'\\}$。开始对角更新前遍历列表，提取所有非对角算符的时间变量并排序以获取世界线构型。排序操作虽然需要 $\\mathcal{O}(\\beta \\ln \\beta)$ 运算，但在所有可及温度下，环的构建仍是最昂贵的任务——排序开销始终小于有向环更新。\n\n对角顶点增删使用交换-计数技巧：添加时插入到位置 $n+1$；删除时随机选取对角顶点，与位置 $n$ 交换后减 $n$。顶点列表使用定长数组，仅前 $n$ 个元素有效。",
+          "line_num": 1116,
+          "line_end": 1122,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "5.5 XYZ 自旋-玻色子（8 顶点）与原始自旋-玻色子",
+          "node_id": "0048",
+          "summary": "### 5.5 XYZ 自旋-玻色子（8 顶点）与原始自旋-玻色子  **XYZ 推广。** 若三个自旋分量耦合到独立浴且耦合常数 $\\lambda_x, \\lambda_y, \\lambda_z$ 各不相同，非对角顶点推广为（Eq. 47）：  $$ \\begin{aligned} \\hat{h}_{1}(\\tau, \\tau') &= \\frac{\\lambda_{x} + \\lambda_{",
+          "line_num": 1122,
+          "line_end": 1148,
           "source_md": "content/notes/wormhole-qmc-from-scratch.md"
         }
       ]
     },
     {
-      "title": "10. 适用性条件与无符号问题的边界",
-      "node_id": "0046",
-      "summary": "## 10. 适用性条件与无符号问题的边界  该算法的适用范围由以下条件限定：  1. **玻色浴是二次型**：$\\hat{H}_{\\mathrm{b}} = \\sum_{\\mu} \\omega_{\\mu} \\hat{a}_{\\mu}^{\\dagger} \\hat{a}_{\\mu}$（或可对角化为此形式）。若非二次型，Wick 定理不适用，无法解析积掉玻色子。  2. **自旋-玻色耦合对 $\\h",
-      "line_num": 1126,
-      "line_end": 1141,
+      "title": "10. 晶格模型推广",
+      "node_id": "0049",
+      "summary": "## 10. 晶格模型推广  虫洞更新可平凡扩展到空间晶格上的自旋-玻色子模型。最简单情形：每个格点耦合到独立浴，顶点变量仅增加一个格点指标 $i$：  $$ \\nu = \\{t_{\\mathrm{int}}, v, \\omega, \\tau, \\tau', i\\}. $$  对角更新提议新增顶点时额外随机抽取格点 $i \\in [1, L]$，接受比中引入因子 $1/L$。算法其余细节不变。",
+      "line_num": 1148,
+      "line_end": 1166,
+      "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+    },
+    {
+      "title": "11. 适用性条件与无符号问题的边界",
+      "node_id": "0050",
+      "summary": "## 11. 适用性条件与无符号问题的边界  该算法的适用范围由以下条件限定：  1. **玻色浴是二次型**：$\\hat{H}_{\\mathrm{b}} = \\sum_{\\mu} \\omega_{\\mu} \\hat{a}_{\\mu}^{\\dagger} \\hat{a}_{\\mu}$（或可对角化为此形式）。若非二次型，Wick 定理不适用，无法解析积掉玻色子。  2. **自旋-玻色耦合对 $\\h",
+      "line_num": 1166,
+      "line_end": 1181,
       "source_md": "content/notes/wormhole-qmc-from-scratch.md"
     }
   ]
