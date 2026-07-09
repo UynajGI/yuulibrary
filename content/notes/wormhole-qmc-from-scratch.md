@@ -667,28 +667,7 @@ $$
 }
 $$
 
-其中 $\lambda_{\ell} = 2 \alpha_{\ell} \omega_{c} / s$ 包含了谱函数的归一化因子。六种顶点权重为
-
-$$
-\boxed{
-\begin{aligned}
-W_{1} &= C + \frac{\lambda_{z}}{4} - \frac{h_{z}}{2},  &
-W_{2} &= W_{3} = C - \frac{\lambda_{z}}{4}, \\[4pt]
-W_{4} &= C + \frac{\lambda_{z}}{4} + \frac{h_{z}}{2},  &
-W_{5} &= W_{6} = \frac{\lambda_{xy}}{2}.
-\end{aligned}
-}
-$$
-
-无符号条件（所有权重 $\ge 0$）：
-
-$$
-\boxed{
-C \ge \max\!\left[ \frac{\lambda_{z}}{4}, \; \frac{|h_{z}|}{2} - \frac{\lambda_{z}}{4} \right].
-}
-$$
-
-上述顶点权重与铁磁 XXZ 最近邻自旋模型的权重等价。
+其中 $\lambda_{\ell} = 2 \alpha_{\ell} \omega_{c} / s$ 包含了谱函数的归一化因子。将 $\hat{h}_{1}, \hat{h}_{2}$ 放到 $S_{z}$ 基底下算矩阵元，即得六种顶点权重 $W_{1} \sim W_{6}$——详见 §6。
 
 ---
 
@@ -751,6 +730,31 @@ $$
 | 6 | $\hat{S}_{+}(\tau) \hat{S}_{-}(\tau')$ | 成对 spin flip：$\tau$ 处翻上，$\tau'$ 处翻下 |
 
 对角顶点（类型 1--4）在传播时不改变世界线的自旋态。非对角顶点（类型 5, 6）通过一对时间和方向相反的 spin flip 改变世界线——这正是 wormhole 更新中 loop 传播的物理来源。
+
+**顶点权重 $W_v$ 的用途。** $W_v$ 是 $\hat{h}_v$ 在 $S_z$ 基底下的矩阵元 $\langle \alpha' | \hat{h}_v | \alpha \rangle$——即上面六种顶点在对应自旋初末态下的数值。它是 MC 算法实际使用的离散权重：对角更新接受比直接用 $W_v$ 计算（§7）；有向环方程中的概率只依赖 $W_v$ 的相对值（§8.3），连续因子 $\mathcal{I} P$ 已被 proposal 吸收。$W_v$ 也是判断 sign problem 的最终对象——只要所有 $W_v \ge 0$（通过选择适当的 $C$ 和自旋基底），算法就无符号问题。
+
+以 XXZ 模型为例（§5.4），将 $\hat{h}_1, \hat{h}_2$ 在 $S_z$ 基下求矩阵元，六种顶点权重为
+
+$$
+\boxed{
+\begin{aligned}
+W_{1} &= C + \frac{\lambda_{z}}{4} - \frac{h_{z}}{2},  &
+W_{2} &= W_{3} = C - \frac{\lambda_{z}}{4}, \\[4pt]
+W_{4} &= C + \frac{\lambda_{z}}{4} + \frac{h_{z}}{2},  &
+W_{5} &= W_{6} = \frac{\lambda_{xy}}{2}.
+\end{aligned}
+}
+$$
+
+常数 $C$ 不改变物理——它等价于给 $\hat{H}_{\mathrm{ret}}$ 加一个常数项 $C \hat{\mathbb{1}}(\tau) \hat{\mathbb{1}}(\tau')$，只平移所有权重。调节 $C$ 使全部 $W_v \ge 0$ 即可消除 sign problem：
+
+$$
+\boxed{
+C \ge \max\!\left[ \frac{\lambda_{z}}{4}, \; \frac{|h_{z}|}{2} - \frac{\lambda_{z}}{4} \right].
+}
+$$
+
+这些权重与铁磁 XXZ 最近邻自旋模型的顶点权重完全一致——这也是有向环方程可以照搬的根本原因。
 
 ---
 
