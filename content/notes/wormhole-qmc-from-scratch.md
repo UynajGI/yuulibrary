@@ -43,6 +43,16 @@ $$
 \end{aligned}
 $$
 
+自旋哈密顿量 $\hat{H}_{\mathrm{s}}$ 可包含 Zeeman 场、交换作用等纯自旋项，一般形式为
+
+$$
+\begin{aligned}
+\hat{H}_{\mathrm{s}} &= -\sum_{\ell} h_{\ell} \hat{S}_{\ell} + \hat{H}_{\mathrm{ex}},
+\end{aligned}
+$$
+
+其中 $h_{\ell}$ 为外磁场分量，$\hat{H}_{\mathrm{ex}}$ 为自旋间交换相互作用（如 Heisenberg、XXZ 等）。这些项仅作用于自旋空间，不涉及玻色子。以下推导中暂设 $\hat{H}_{\mathrm{s}} = 0$ 以简化记号——这不是算法限制，实际计算时可将 $\hat{H}_{\mathrm{s}}$ 作为额外顶点加入（见第 10 节）。
+
 玻色浴是自由简谐振子之和：
 
 $$
@@ -84,6 +94,8 @@ $$
 | XXZ spin-boson | $\gamma_{\mu\ell}\,(\hat{a}_{\mu\ell}^{\dagger}+\hat{a}_{\mu\ell})\,\hat{S}_\ell$ | $\gamma_{\mu\ell}\,\hat{S}_\ell$ |
 
 关键区分：Rabi 模型中 $\hat{\varrho}_{\mu} = \hat{\varrho}_{\mu}^{\dagger}$（厄米耦合算符），导致推迟相互作用自然对称化为 $D_{+}$ 传播子。JC 模型中 $\hat{\varrho}_{\mu} \neq \hat{\varrho}_{\mu}^{\dagger}$，推迟相互作用保留非对称结构，顶点类型也因此不同。
+
+对于 XXZ spin-boson，指标 $\ell \in \{x, y, z\}$ 标记自旋分量，每个分量耦合到独立的浴（复合指标 $\mu\ell$）。XY 各向同性（$J_x = J_y \equiv \lambda_{xy}$，$J_z \equiv \lambda_z$）时退化为常规 XXZ 结构，$S_x S_x + S_y S_y$ 可写成升降算符的对称组合 $\frac{1}{2}(S_+ S_- + S_- S_+)$。
 
 ---
 
