@@ -11,13 +11,20 @@
 ### 流程
 
 ```
-PDF/EPUB 源
-  → MinerU 提取(.md + images/)
-  → clean_markdown.py 清洗(删噪声 + 修 LaTeX 碎片 + 图注配对)
-  → translate_chapters.py 翻译(英文→中文,种子章建术语表 + 并发)
+PDF/EPUB/DOCX/FB2/TXT 源
+  → extract.py 统一提取(按格式路由: PDF/DOCX→MinerU, EPUB→pandoc, FB2→XML, TXT→编码检测+切分)
+  → clean_markdown.py 清洗(删噪声 + 修 LaTeX 碎片 + 图注配对 + pandoc/FB2 残留)
+  → translate_chapters.py 翻译(英文→中文,种子章建术语表 + 并发 + 断点续跑 + 一致性 QA)
   → validate_book.py 验证(36 项)
   → content/books/<slug>/(_index.md + ch01.md ~ chNN.md + images/)
 ```
+
+支持的输入格式:
+- **PDF** — MinerU VLM 提取(公式/表格保真度高),大书分批 `--pages`
+- **DOCX** — MinerU VLM 提取(原生支持,同 PDF 路径)
+- **EPUB** — unzip + pandoc(无需 VLM,瞬时 + 免费)
+- **FB2** — XML 解析(俄语小说常见格式,结构化好解析)
+- **TXT** — 编码检测(UTF-8/GBK/Big5/Shift-JIS) + 章节启发式切分
 
 ### 关键约定
 

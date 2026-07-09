@@ -178,11 +178,11 @@ concurrency:
 | `OPENAI_API_KEY` | — | OpenAI key(备用 provider) |
 | `GLM_API_KEY` | — | 智谱 GLM key(备用 provider) |
 
-### 本地(config.yaml,gitignore) — 模型与流水线配置
+### 本地(config.yaml) — 模型与流水线配置
 
-复制 `config.example.yaml` 为 `config.yaml` 并编辑。配置分层模型档位(strong/cheap/fast)
-和流水线开关(review/consistency_qa/backtranslate)。**无 config.yaml 时自动回退到
-`.env` 的 `DEEPSEEK_MODEL` 单模型行为**,老用户零感知。
+项目自带 `config.yaml`(随仓库上传,不含密钥)。配置分层模型档位(strong/cheap/fast)
+和流水线开关(review/consistency_qa/backtranslate)。需要改模型/开关时直接编辑即可;
+**无 config.yaml 时自动回退到 `.env` 的 `DEEPSEEK_MODEL` 单模型行为**。
 
 | 配置段 | 字段 | 默认 | 用途 |
 |--------|------|------|------|
@@ -191,8 +191,6 @@ concurrency:
 | `llm.tiers.fast` | model/base_url/max_tokens | 同 strong | 预扫、术语抽取(机械任务) |
 | `pipeline` | review/consistency_qa/backtranslate/autofix_severe | true/true/false/true | 流水线开关 |
 | `segment` | max_chars_per_batch/max_chars_per_segment | 4500/2000 | 分块阈值 |
-
-详见 `config.example.yaml`。
 
 ### CI(GitHub Secrets)
 

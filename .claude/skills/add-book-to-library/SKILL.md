@@ -49,9 +49,21 @@ sha256sum pdfs/books/*.{pdf,epub} 2>/dev/null | grep <hash 前 8 位>
 
 若 hash 匹配 → **🛑 立即终止**，告知「这本书已在图书馆中」。
 
-**自动路由**：
+**自动路由**（统一用 `extract.py`，按扩展名分发）：
 - `.pdf` → Phase 1A（MinerU VLM）
+- `.docx` → Phase 1A（MinerU VLM，MinerU 原生支持 DOCX）
 - `.epub` → Phase 1B（unzip + pandoc）
+- `.fb2` → Phase 1C（XML 解析，无需 VLM）
+- `.txt` → Phase 1D（编码检测 + 章节启发式切分）
+
+```bash
+# 统一提取入口（所有格式）
+python3 .claude/skills/add-book-to-library/scripts/extract.py <input> --out pdfs/books/<book-id>-out/
+# PDF 大书可分批
+python3 .claude/skills/add-book-to-library/scripts/extract.py book.pdf --out pdfs/books/<book-id>-out/ --pages 1-110
+```
+
+输出统一到 `pdfs/books/<book-id>-out/merged/book.md` + `images/` + `meta.json`（含 title/author/source_format）。
 
 然后检查 `pdfs/books/<book-id>.state.json`：
 - 存在 → 读 `current_phase`，从中断点恢复
@@ -178,6 +190,8 @@ WebP 转换在 Phase 3 统一处理。
 1. 跑 `scripts/clean_markdown.py`（统一清洗，自动完成）：
    - **噪声删除**：出版元数据（cc/Copyright/Received/DOI）、平面目录、脚注标记、email、引用碎片（`<sub>[</sub>`→`[`）、页眉
    - **LaTeX 碎片修复**（scoped 到 `$...$` 内）：数字间距（`0 . 1`→`0.1`）、命令空格（`\mathrm {`→`\mathrm{`）、花括号字母空格（`{m a x}`→`{max}`）、下标空格
+   - **`$$` 定界符修复**：检测 `$$` 块内是否有中文正文（误包），有则降级为行内 `$`；修复孤立 `$$`（奇数计数）
+   - **pandoc 残留清理**：`::: fn1` / `[]{#page}` / `{.class}` / `-----` 表格分隔符 → 自动删除/转换
    - **标题层级**：`## N.M`→`### N.M`（MinerU 平铺修复）
    - **图注配对**：`Figure N:`→`{{< caption >}}`
    - **Book 专属**：■ bullet→`-`、脚注上标删除、页眉删除
@@ -299,40 +313,82 @@ description: "系统动力学基础：要素、连接、目标，存量和流量
 
 **🔴 英文书籍必须翻译成中文**。翻译用确定性 workflow 脚本，**不召唤 subagent**。
 
-脚本自动完成：种子章串行建术语表 → 其余章并行翻译 → validate 检查 + 失败重试 → 术语冲突报告。
+脚本自动完成：种子章串行建术语表 → 其余章并行翻译 → chunk 级 checkpoint → validate 检查 + 失败重试 → 跨章一致性 QA → 术语冲突报告。
+
+翻译模型/pipeline 开关在 `config.yaml`（见 `docs/deployment.md`）。默认 strong 档翻译 + cheap 档 QA。
+
+#### CLI 参数
 
 ```bash
-# 步骤1：翻译（种子章串行建术语表 + 其余 asyncio 并发 + validate 验证 + 自动重试）
+# 标准翻译（自动续跑：跳过已完成章节）
 python3 .claude/skills/add-book-to-library/scripts/translate_chapters.py content/books/<slug>/
 
-# 步骤2：交叉引用转换（纯 regex，第N章→[第N章](ch0N.md)，补零可靠不依赖 LLM）
-python3 .claude/skills/add-book-to-library/scripts/convert_xrefs.py content/books/<slug>/
-
-# review 术语表（可选，检查是否有冲突需人工裁决）
-cat content/books/<slug>/glossary.json
+# 常用参数
+  --seed-chapters 2    # 种子章数（串行建术语表）。大书用 0 全并行
+  --concurrency 4      # 并发章数
+  --retry 2            # 每章最大重试次数
+  --fresh              # 忽略 state，全量重翻
+  --status             # 只看进度，不翻译
+  --no-qa              # 跳过跨章一致性 QA
 ```
 
-**翻译规则（已固化进脚本，无需手动传 prompt）**：
+#### 断点续跑（自动）
+
+翻译状态存在 `content/books/<slug>/.translate_state/progress.json`，每章翻完立即写入。重跑时自动跳过 `status=ok` 且源文件未变的章节。
+
+**chunk 级 checkpoint**：大章节每翻完一个 chunk 就写盘（`<!-- translate-partial: N/M chunks -->` 标记）。中断后重跑会：
+1. 检测到 partial 标记（N < M）→ 跳过已完成的 N 个 chunk，只翻译剩余 M-N 个
+2. `is_chinese_text` 不会误跳过 partial 翻译（检测到标记后绕过中文检查）
+
+**大书策略**（>50 chunks 的章节，如 300+ 页教材）：
+- 用 `--seed-chapters 0` 全并行，避免种子串行阻塞（种子章 83 chunks × 10s/chunk = 14 分钟串行）
+- 大章节翻译可能超过 10 分钟，靠 chunk 级 checkpoint 保证中断不丢工作
+
+#### 翻译规则（已固化进脚本）
+
 - 正文、标题、图注翻译为中文；LaTeX 公式 `$...$`/`$$...$$`/`\(...\)`/`\[...\]` 原样不动
-- 种子章（前2章）首次出现的术语附英文 → 收集进 glossary.json
+- **🔴 种子章（前2章）首次出现的术语故意附英文**（如 `操作概率理论（Operational Probabilistic Theories, OPT）`）→ 收集进 glossary.json。**这是正确行为，不是翻译失败**——Phase 4.5 审核时不要标记为遗漏英文
 - 其余章用 glossary 里的指定译名（不重复附英文），新术语才附英文
 - 元素模板转换（callout/caption）在翻译时同步完成
-- 交叉引用转换由步骤2的 regex 脚本完成（不靠 LLM 补零）
+- 交叉引用转换由 `convert_xrefs.py` 完成（纯 regex，不靠 LLM）
 
-**翻译完成后检查脚本输出报告**：
+#### 翻译完成后
+
+```bash
+# 交叉引用转换
+python3 .claude/skills/add-book-to-library/scripts/convert_xrefs.py content/books/<slug>/
+
+# 查看术语表
+cat content/books/<slug>/glossary.json
+
+# 查看翻译进度
+python3 .claude/skills/add-book-to-library/scripts/translate_chapters.py content/books/<slug>/ --status
+```
+
+检查报告：
 - `✓` 通过 / `⚠` 需人工 / `✗` 错误
 - 术语冲突（同一英文术语在不同章有不同中文译法）→ 需手动裁决
+- **跨章一致性报告**：`.translate_state/consistency_report.md`（自动生成）— 检查术语漂移（如"原理 vs 公设"）、人称混用、节编号不一致。**agent 必须读取并处理**
 
 对标记"⚠ 需人工"的章节，用 Read 检查问题，手动修复后重跑 validate：
 ```bash
 python3 .claude/skills/add-book-to-library/scripts/validate_book.py content/books/<slug>/
 ```
 
-🔴 **CHECKPOINT**：确认翻译报告（通过率、术语表、需人工章节），用户确认后进 Phase 4.5。
+🔴 **CHECKPOINT**：确认翻译报告（通过率、术语表、需人工章节、consistency 报告），用户确认后进 Phase 4.5。
 
 ---
 
 ### Phase 4.5：逐章审核
+
+**🔴 处理 partial 翻译**（翻译中断后可能有未完成章节）：
+```bash
+# 检查是否有 partial 标记
+grep -l 'translate-partial' content/books/<slug>/*.md
+```
+- 有标记且 N < M：重跑翻译（`translate_chapters.py`，续跑会跳过已完成 chunks 只翻译剩余部分），**不要手动编辑 partial 文件**
+- 有标记且 N = M：翻译已完成但标记未清除，删除标记行即可
+- 无标记：翻译完整，正常审核
 
 **🔴 处理顺序（机械化优先，AI 兜底）**：
 1. `format_theorems.py` 批量加粗段落级定理/定义（数学教材必备，MinerU 不标标题）
@@ -496,12 +552,13 @@ spot-check 随机抽查 2 章，18 点清单，发现问题直接修。
 
 ---
 
-## 失败模式速查（关键 8 条）
+## 失败模式速查（关键 12 条）
 
 | 症状 | 一线修复 | 仍失败 |
 |------|---------|--------|
 | 公式不渲染 / `\boldsymbol` 失败 | 检查 KaTeX passthrough + full extension | 核对 `hugo.toml` 和 `static/katex/` |
-| 正文拆字 / display math 吞正文 | `$$` 误包 → 去 `$$`；孤儿 `$$` → 补全 | Phase 2 重扫 |
+| 正文拆字 / display math 吞正文 | `$$` 误包 → `clean_markdown.py` 的 `fix_math_delimiters` 自动修复 | Phase 2 重扫 |
+| `$$` 块内有中文正文（validate `[E]`） | LLM 输出 `$_{1}$$(...)` 相邻 `$` 误判为 `$$` → `fix_math_delimiters` 自动降级为 `$` | 手动把误包的 `$$` 改为 `$` |
 | 标题全同级（无层次）| `## N.M.K` → `###` | Phase 4 检查 H2/H3 比例 |
 | 图片不显示 / Build REF_NOT_FOUND | 路径 ``images/x.webp`` + `.md` 链接 | 检查相对路径和 relref |
 | 书不在菜单 | 检查 `_index.md` 的 `title`/`weight` | 菜单从 content/books/ 自动生成 |
@@ -510,6 +567,9 @@ spot-check 随机抽查 2 章，18 点清单，发现问题直接修。
 | shortcode 内 markdown 不解析 | 模板用 `.Inner \| .Page.RenderString` | 检查 shortcode 定义 |
 | 书架不显示新书 | `_index.md` 缺 `author` 字段（bookshelf.html 隐式依赖） | 加 `author: "<作者>"` |
 | 末章末尾混入索引（`## A ## B` 字母分组）| 拆章时截断，索引提取成 `index_term.md` | 手动清理 `## 字母` 残留标题 |
+| **大章节翻译超时，重跑跳过不翻** | 检测 `<!-- translate-partial: N/M -->` 标记，重跑会续译剩余 chunks（自动） | `--fresh` 全量重翻 |
+| **种子章 validate 报"遗漏英文长词"** | 🔴 **正常行为**——种子章故意保留英文术语建术语表，不要重试 | 无需修复 |
+| **consistency_qa 报术语漂移** | 读 `.translate_state/consistency_report.md`，全局 sed 替换统一译法 | 人工裁决冲突译法 |
 
 完整版 + OCR/表格/Mermaid 细节 → `references/cleanup-reference.md`
 
@@ -552,3 +612,6 @@ spot-check 随机抽查 2 章，18 点清单，发现问题直接修。
 | 31 | `_index.md` 不写 `author` | **必填**——bookshelf.html 用 `.Params.author` 过滤，缺了书架不显示这本书 |
 | 32 | 手动逐个加粗定理/定义 | 用 `format_theorems.py` 批量加粗，再派 agent 转 shortcode（幂等） |
 | 33 | 用 `grep -E '^#'` 匹配标题 | zsh 下 `#` 触发 `conflicting matchers`，改用 `python -c` 或 `grep -n '^#'` 不加 `-E` |
+| 34 | 删除 `.translate_state/` 目录 | 会丢失断点续跑状态，大书重翻代价巨大 |
+| 35 | 手动编辑带 `<!-- translate-partial -->` 标记的文件 | 续跑会覆盖——先让脚本完成翻译再编辑 |
+| 36 | 对种子章英文术语做"翻译补全" | 种子章故意保留英文建术语表，是正确行为 |

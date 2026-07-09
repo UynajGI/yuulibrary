@@ -13,6 +13,7 @@ Usage:
     python3 generate_paper_note.py <translated.md> --slug <slug> --papers-dir content/papers
 
 Requires .env with DEEPSEEK_API_KEY (same as translate_chapters.py).
+Model/base_url come from config.yaml (optional; falls back to env vars).
 """
 import argparse
 import asyncio
@@ -24,16 +25,12 @@ import sys
 # ── Config ───────────────────────────────────────────────────────────────
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.join(SCRIPT_DIR, "..", "..", "..", "..")
+sys.path.insert(0, os.path.join(PROJECT_ROOT, ".claude", "skills", "add-book-to-library", "scripts"))
+from llm_config import get_tier  # noqa: E402
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
-except ImportError:
-    pass
-
-API_KEY = os.environ.get("DEEPSEEK_API_KEY") or os.environ.get("OPENAI_API_KEY", "")
-BASE_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-v4-flash")
+# Paper analysis uses the 'strong' tier but needs more output tokens (long
+# structured analysis) than translation — override max_tokens upward.
+API_KEY, BASE_URL, MODEL, _ = get_tier("strong")
 MAX_TOKENS = 16384
 MAX_LOOPS = 8                   # section 模式需要更多轮（读多个 section + 生成）
 LONG_PAPER_THRESHOLD = 200000  # chars — suggest book workflow above this (综述级别)；论文含大量公式/图会虚高

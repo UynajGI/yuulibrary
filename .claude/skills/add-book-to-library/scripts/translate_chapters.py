@@ -12,7 +12,9 @@ Usage:
     python3 translate_chapters.py <book_dir> [--concurrency 4] [--seed-chapters 2] [--retry 2]
     python3 translate_chapters.py <file.md>   # single file, no glossary
 
-Requires .env with DEEPSEEK_API_KEY (or OPENAI_API_KEY). Reads from script's parent's parent's .env.
+Requires .env with DEEPSEEK_API_KEY (or OPENAI_API_KEY) for the API key.
+Model/base_url/pipeline toggles come from config.yaml (optional; falls back
+to DEEPSEEK_MODEL / DEEPSEEK_BASE_URL env vars when absent).
 """
 import argparse
 import asyncio
@@ -27,18 +29,20 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, SCRIPT_DIR)
 from validate_book import validate_file, ERR  # noqa: E402
 from convert_xrefs import convert_file as convert_xrefs_file  # noqa: E402
+from llm_config import get_tier, get_pipeline_config, get_segment_config, has_config  # noqa: E402
 
 # ── Config ───────────────────────────────────────────────────────────────
-try:
-    from dotenv import load_dotenv
-    load_dotenv(os.path.join(SCRIPT_DIR, "..", "..", "..", "..", ".env"))
-except ImportError:
-    pass  # dotenv not installed, rely on env vars being set
+# Tiered model config from config.yaml (+ .env for keys). Falls back to legacy
+# single-model behavior when config.yaml is absent.
+_STRONG_KEY, _STRONG_URL, _STRONG_MODEL, _STRONG_MAX = get_tier("strong")
+_PIPELINE = get_pipeline_config()
+_SEGMENT = get_segment_config()
 
-API_KEY = os.environ.get("DEEPSEEK_API_KEY") or os.environ.get("OPENAI_API_KEY", "")
-BASE_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-v4-flash")
-MAX_TOKENS = 8192
+# Legacy module-level names (used by _translate_once and callers).
+API_KEY = _STRONG_KEY
+BASE_URL = _STRONG_URL
+MODEL = _STRONG_MODEL
+MAX_TOKENS = _STRONG_MAX
 
 GLOSSARY_MARKER = re.compile(r"<!--\s*glossary:\s*(.+?)\s*=\s*(.+?)\s*-->")
 RESIDUAL_EN_RE = re.compile(r"[A-Z][a-z]{10,}")  # long English words = missed translation
@@ -107,8 +111,13 @@ def extract_glossary(text: str):
     return cleaned, terms
 
 
-def check_quality(path: str, source_body: str = ""):
-    """Run validate_file + residual English + untranslated block + truncation check."""
+def check_quality(path: str, source_body: str = "", is_seed: bool = False):
+    """Run validate_file + residual English + untranslated block + truncation check.
+
+    When is_seed=True, skip the residual-English-word check — seed chapters
+    intentionally keep English terms in parentheses (e.g. 操作概率理论（Operational
+    Probabilistic Theories, OPT）), which would otherwise trigger false retries.
+    """
     issues = validate_file(path)
     errors = [msg for level, msg in issues if level == ERR]
 
@@ -120,7 +129,10 @@ def check_quality(path: str, source_body: str = ""):
     problems = []
     if errors:
         problems.extend(f"[E] {e}" for e in errors)
-    if residual > 8:
+    # Seed chapters intentionally retain English terms — don't flag them.
+    # Non-seed chapters should have terms translated; >8 long English words
+    # suggests a missed paragraph.
+    if not is_seed and residual > 8:
         problems.append(f"遗漏英文长词 {residual} 处（>8，可能未翻译完整段落）")
 
     # Untranslated block detection: 3+ consecutive non-empty, non-heading,
@@ -140,7 +152,42 @@ def check_quality(path: str, source_body: str = ""):
         elif ratio < 0.4:
             problems.append(f"译文长度仅为源文的 {ratio:.0%}，可能部分截断")
 
+        # Paragraph-count alignment: more precise than char ratio for
+        # formula-heavy chapters (LaTeX inflates source length but paragraphs
+        # should map 1:1). A translation with <80% of source paragraphs
+        # likely dropped content.
+        src_paras = _count_content_paragraphs(source_body)
+        dst_paras = _count_content_paragraphs(body)
+        if src_paras >= 5 and dst_paras < src_paras * 0.8:
+            problems.append(f"段落数不对齐（源 {src_paras} 段，译 {dst_paras} 段）")
+
     return len(problems) == 0, "; ".join(problems) if problems else "ok"
+
+
+def _count_content_paragraphs(body: str) -> int:
+    """Count substantive paragraphs (excludes pure-math and heading-only lines).
+
+    A paragraph is a non-empty block separated by blank lines. We exclude
+    blocks that are purely display math ($$...$$), pure headings, or pure
+    image references — these survive translation verbatim and shouldn't
+    inflate the count.
+    """
+    count = 0
+    for block in re.split(r"\n\s*\n", body):
+        block = block.strip()
+        if not block:
+            continue
+        # Skip pure headings
+        if re.match(r"^#{1,6}\s+", block) and "\n" not in block.strip():
+            continue
+        # Skip pure display math blocks
+        if re.match(r"^\$\$.*\$\$$", block, re.DOTALL) and "$$" not in block[2:-2]:
+            continue
+        # Skip pure image references
+        if re.match(r"^!\[.*\]\(.*\)$", block):
+            continue
+        count += 1
+    return count
 
 
 def find_untranslated_blocks(body: str):
@@ -297,20 +344,48 @@ def restore_images(source: str, translated: str) -> tuple[str, int]:
 
 
 # ── LLM call ─────────────────────────────────────────────────────────────
-async def _translate_part(client, body: str, glossary: dict, is_seed: bool, feedback: str = "") -> str:
+async def _translate_part(client, body: str, glossary: dict, is_seed: bool, feedback: str = "",
+                          on_chunk=None, skip_chunks=None, prev_results=None) -> str:
     """Translate one contiguous block, handling chunking + per-chunk truncation retry.
 
     For long texts (> CHUNK_THRESHOLD chars), splits into chunks at $$ boundaries
     and translates sequentially, concatenating results. This prevents truncation
     when max_tokens is exhausted mid-translation.
+
+    If on_chunk is provided, it's called as on_chunk(index, total, translated_so_far)
+    after each chunk completes — allowing the caller to checkpoint progress to disk
+    so a crash/interruption doesn't lose all work.
+
+    If skip_chunks is provided (a set of chunk indices), those chunks are skipped
+    (assumed already translated) and their text is taken from prev_results instead.
+    This enables resuming a partial translation without retranslating completed chunks.
     """
+    skip_chunks = skip_chunks or set()
+    prev_results = prev_results or []
+
     if len(body) <= CHUNK_THRESHOLD:
-        return await _translate_once(client, body, glossary, is_seed, feedback)
+        if 0 in skip_chunks and prev_results:
+            result = prev_results[0]
+        else:
+            result = await _translate_once(client, body, glossary, is_seed, feedback)
+        if on_chunk:
+            on_chunk(0, 1, result)
+        return result
 
     chunks = split_into_chunks(body, CHUNK_THRESHOLD)
     results = []
     prev_context = ""
     for i, chunk in enumerate(chunks):
+        # Resume: skip already-translated chunks (take from prev_results)
+        if i in skip_chunks and i < len(prev_results):
+            chunk_translated = prev_results[i]
+            # Restore rolling context from the skipped chunk
+            prev_context = chunk_translated[-200:] if len(chunk_translated) > 200 else chunk_translated
+            results.append(chunk_translated)
+            if on_chunk:
+                on_chunk(i + 1, len(chunks), "\n\n".join(results))
+            continue
+
         chunk_feedback = feedback if i == 0 else ""
         context_note = ""
         if prev_context:
@@ -331,21 +406,34 @@ async def _translate_part(client, body: str, glossary: dict, is_seed: bool, feed
 
         results.append(chunk_translated)
         prev_context = chunk_translated[-200:] if len(chunk_translated) > 200 else chunk_translated
+
+        # Checkpoint: write partial progress after each chunk
+        if on_chunk:
+            on_chunk(i + 1, len(chunks), "\n\n".join(results))
+
     return "\n\n".join(results)
 
 
-async def translate_text(client, body: str, glossary: dict, is_seed: bool, feedback: str = "") -> str:
+async def translate_text(client, body: str, glossary: dict, is_seed: bool, feedback: str = "",
+                         on_chunk=None, skip_chunks=None, prev_results=None) -> str:
     """Call LLM to translate body text. Returns translated text (may include glossary markers).
 
     References section (## References / ## 参考文献 / ## Bibliography) is isolated
     and kept as-is — bibliographic entries stay in the original language. Any
     section after References (typically ## Appendix, ## Acknowledgements) is
     translated normally.
+
+    If on_chunk is provided, it's called after each chunk is translated, allowing
+    incremental writes to disk for crash recovery.
+
+    If skip_chunks/prev_results are provided, those chunks are taken from
+    prev_results instead of calling the LLM — enabling partial-translation resume.
     """
     # Isolate references — never translate bibliographic entries
     before, ref_section, after = isolate_references(body)
 
-    translated = await _translate_part(client, before, glossary, is_seed, feedback)
+    translated = await _translate_part(client, before, glossary, is_seed, feedback, on_chunk,
+                                       skip_chunks, prev_results)
     if after:
         translated = translated.rstrip() + "\n\n" + await _translate_part(client, after, glossary, is_seed, "")
 
@@ -377,7 +465,7 @@ def translate_ref_heading(ref_section: str) -> str:
     return ref_section
 
 
-CHUNK_THRESHOLD = 4500  # chars — split above this. 4500 chars input → ~3500 chars output (Chinese
+CHUNK_THRESHOLD = _SEGMENT["max_chars_per_batch"]  # chars — split above this. 4500 chars input → ~3500 chars output (Chinese
                          # is 30% shorter, but LaTeX stays verbatim) → ~6000 total tokens including
                          # system prompt (~500) + glossary (~200). Well within MAX_TOKENS=8192 margin.
 
@@ -435,9 +523,21 @@ def split_into_chunks(text: str, max_size: int) -> list:
                     split_pos = pos + len(punct)
                     break
 
-        # Hard fallback: cut at max_size
+        # Hard fallback: cut at max_size.
+        # NOTE: if a single $$...$$ block exceeds max_size, this will cut mid-block,
+        # producing unbalanced delimiters in the chunk sent to the LLM. This is a
+        # known limitation — oversized math blocks are rare (most are <500 chars).
+        # The system prompt tells the LLM to preserve math verbatim, so content
+        # survives on rejoin, but the chunk itself may render incorrectly.
         if split_pos < 0:
-            split_pos = max_size
+            # If we're inside an unclosed $$ block, extend to its close if possible
+            unclosed = remaining[:max_size].count("$$") % 2
+            if unclosed:
+                close_pos = remaining.find("$$", max_size)
+                if close_pos != -1 and close_pos < max_size * 2:
+                    split_pos = close_pos + 2
+            if split_pos < 0:
+                split_pos = max_size
 
         chunks.append(remaining[:split_pos])
         remaining = remaining[split_pos:].lstrip()
@@ -477,9 +577,31 @@ def translated_path(path, in_place=False):
     return base + ".zh" + ext
 
 
+PARTIAL_RE = re.compile(r"<!--\s*translate-partial:\s*(\d+)/(\d+)\s*chunks\s*-->")
+
+
+def detect_partial(content: str):
+    """Check if a file contains a partial-translation marker.
+
+    Returns (chunks_done, chunks_total) if marker found and incomplete, else None.
+    A complete marker (done == total) means translation finished but the marker
+    wasn't cleaned up — caller should strip it.
+    """
+    m = PARTIAL_RE.search(content)
+    if not m:
+        return None
+    done, total = int(m.group(1)), int(m.group(2))
+    return (done, total)
+
+
 # ── Per-chapter translation with retry ───────────────────────────────────
 async def translate_chapter(client, path: str, glossary: dict, is_seed: bool, max_retry: int, sem: asyncio.Semaphore, in_place: bool = True):
-    """Translate one chapter with validation + retry. Returns (status, retries, issues, glossary)."""
+    """Translate one chapter with validation + retry. Returns (status, retries, issues, glossary).
+
+    Supports partial-translation resume: if the output file has a
+    <!-- translate-partial: N/M --> marker with N < M, the already-translated
+    N chunks are reused and only the remaining M-N chunks are translated.
+    """
     async with sem:
         fname = os.path.basename(path)
         out_path = translated_path(path, in_place)
@@ -487,8 +609,35 @@ async def translate_chapter(client, path: str, glossary: dict, is_seed: bool, ma
             content = f.read()
         fm, body = split_front_matter(content)
 
+        # Check for partial translation in the OUTPUT file (from a prior interrupted run)
+        skip_chunks = set()
+        prev_results = []
+        partial_info = None
+        if os.path.exists(out_path):
+            with open(out_path, encoding="utf-8") as f:
+                out_content = f.read()
+            partial_info = detect_partial(out_content)
+            if partial_info:
+                done, total = partial_info
+                if done >= total:
+                    # Marker stale (done == total) — translation actually completed,
+                    # just strip the marker and re-validate
+                    cleaned = PARTIAL_RE.sub("", out_content).rstrip() + "\n"
+                    with open(out_path, "w", encoding="utf-8") as f:
+                        f.write(cleaned)
+                    # Fall through to is_chinese_text check below
+                else:
+                    # Partial translation — extract prev_results and compute skip_chunks
+                    # Remove the partial marker and front matter to get translated body
+                    out_fm, out_body = split_front_matter(out_content)
+                    out_body = PARTIAL_RE.sub("", out_body).rstrip()
+                    prev_results = out_body.split("\n\n")
+                    skip_chunks = set(range(done))
+                    print(f"    [{fname}] 续跑：跳过 {done}/{total} chunks")
+
         # 中文文件跳过翻译，只跑格式化（交叉引用 regex 转换）
-        if is_chinese_text(body):
+        # BUT: if we have skip_chunks (partial resume), don't skip even if text is Chinese
+        if not skip_chunks and is_chinese_text(body):
             if out_path != path:
                 import shutil
                 shutil.copy2(path, out_path)
@@ -500,24 +649,50 @@ async def translate_chapter(client, path: str, glossary: dict, is_seed: bool, ma
         feedback = ""
         for attempt in range(max_retry + 1):
             try:
-                translated = await translate_text(client, body, glossary, is_seed, feedback)
+                # on_chunk: write partial translation to disk after each chunk,
+                # so a crash/interruption doesn't lose all work on long chapters.
+                def on_chunk(done, total, text):
+                    with open(out_path, "w", encoding="utf-8") as f:
+                        f.write(fm + text + f"\n<!-- translate-partial: {done}/{total} chunks -->\n")
+                    print(f"\r    [{fname}] {done}/{total} chunks", end="", flush=True)
+
+                # On retry (attempt > 0), don't skip chunks — retranslate everything
+                # to give the LLM a chance to fix issues flagged by check_quality.
+                attempt_skip = skip_chunks if attempt == 0 else set()
+                attempt_prev = prev_results if attempt == 0 else []
+
+                translated = await translate_text(client, body, glossary, is_seed, feedback,
+                                                  on_chunk=on_chunk,
+                                                  skip_chunks=attempt_skip,
+                                                  prev_results=attempt_prev)
             except Exception as e:
                 return ("error", attempt, f"API error: {e}")
 
             # Strip glossary markers, collect terms
             translated, new_terms = extract_glossary(translated)
 
+            # Post-translation cleanup: fix $$ delimiter corruption from LLM output
+            # (e.g. $_{1}$$(...) adjacent $ creates false $$ wrapping Chinese prose)
+            try:
+                from clean_markdown import fix_math_delimiters
+                translated, _ = fix_math_delimiters(translated)
+            except ImportError:
+                pass  # clean_markdown not available — skip
+
             # Write to output file (never touch source)
             with open(out_path, "w", encoding="utf-8") as f:
                 f.write(fm + translated)
 
             # Validate the output file (pass source body for truncation check)
-            passed, issues = check_quality(out_path, body)
+            passed, issues = check_quality(out_path, body, is_seed=is_seed)
             if passed:
                 return ("ok", attempt, issues, new_terms)
 
             feedback = issues
             retries = attempt + 1
+            # After first attempt fails, don't reuse partial results — retranslate all
+            skip_chunks = set()
+            prev_results = []
 
         return ("manual", retries, feedback, {})
 
@@ -532,8 +707,127 @@ def merge_glossary(existing: dict, new_terms: dict, source: str, conflicts: list
             existing[en] = zh
 
 
+# ── Progress tracking (checkpoint/resume) ────────────────────────────────
+def _sha256_file(path: str) -> str:
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+class ProgressTracker:
+    """Per-book translation progress for checkpoint/resume.
+
+    State lives at <book_dir>/.translate_state/progress.json. Each chapter
+    records its status, source hash, attempt count, and harvested glossary
+    terms. On re-run, chapters with status='ok' and unchanged source are
+    skipped; failed chapters are retried.
+
+    A corrupted state file degrades gracefully to a full re-translate.
+    """
+
+    def __init__(self, book_dir: str, fresh: bool = False):
+        self.state_dir = os.path.join(book_dir, ".translate_state")
+        self.progress_path = os.path.join(self.state_dir, "progress.json")
+        self.glossary_path = os.path.join(book_dir, "glossary.json")
+        self._lock = asyncio.Lock()
+        self._data = {}  # {fname: {status, source_hash, attempts, glossary_terms}}
+        self._glossary = {}
+        self._loaded = False
+
+        if fresh:
+            return  # caller will treat as empty
+
+        self._load()
+
+    def _load(self):
+        """Load progress.json and glossary.json. Degrade to empty on corruption."""
+        try:
+            if os.path.exists(self.progress_path):
+                with open(self.progress_path, encoding="utf-8") as f:
+                    self._data = json.load(f)
+                self._loaded = True
+        except (json.JSONDecodeError, OSError):
+            self._data = {}  # corrupt — start fresh
+            self._loaded = False
+
+        # Load existing glossary so resume can re-inject terms into the live dict
+        try:
+            if os.path.exists(self.glossary_path):
+                with open(self.glossary_path, encoding="utf-8") as f:
+                    self._glossary = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            self._glossary = {}
+
+        # Rebuild glossary from per-chapter records if glossary.json was missing
+        if not self._glossary and self._data:
+            for rec in self._data.values():
+                self._glossary.update(rec.get("glossary_terms", {}))
+
+    @property
+    def glossary(self) -> dict:
+        return dict(self._glossary)
+
+    def should_skip(self, path: str) -> bool:
+        """True if chapter was translated ok and source is unchanged."""
+        fname = os.path.basename(path)
+        rec = self._data.get(fname)
+        if not rec or rec.get("status") != "ok":
+            return False
+        try:
+            return rec.get("source_hash") == _sha256_file(path)
+        except OSError:
+            return False
+
+    def status_of(self, path: str) -> str:
+        return self._data.get(os.path.basename(path), {}).get("status", "pending")
+
+    async def record(self, path: str, status: str, attempts: int, glossary_terms: dict):
+        """Record a chapter's result and persist immediately."""
+        fname = os.path.basename(path)
+        async with self._lock:
+            try:
+                source_hash = _sha256_file(path)
+            except OSError:
+                source_hash = ""
+            self._data[fname] = {
+                "status": status,
+                "source_hash": source_hash,
+                "attempts": attempts,
+                "glossary_terms": glossary_terms,
+            }
+            # Merge terms into the live glossary
+            self._glossary.update(glossary_terms)
+            self._persist()
+
+    def _persist(self):
+        """Write progress.json + glossary.json atomically (caller holds lock)."""
+        os.makedirs(self.state_dir, exist_ok=True)
+        tmp = self.progress_path + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(self._data, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, self.progress_path)
+
+        with open(self.glossary_path, "w", encoding="utf-8") as f:
+            json.dump(self._glossary, f, ensure_ascii=False, indent=2)
+
+    def summary(self) -> dict:
+        """Return {ok, skipped_seed, manual, error, pending} counts."""
+        counts = {"ok": 0, "manual": 0, "error": 0, "pending": 0, "skipped_chinese": 0}
+        for rec in self._data.values():
+            s = rec.get("status", "pending")
+            if s in counts:
+                counts[s] += 1
+            elif s == "skipped":
+                counts["skipped_chinese"] += 1
+        return counts
+
+
 # ── Main workflow ────────────────────────────────────────────────────────
-async def translate_book(book_dir: str, concurrency: int, seed_count: int, max_retry: int):
+async def translate_book(book_dir: str, concurrency: int, seed_count: int, max_retry: int,
+                         fresh: bool = False, run_qa: bool = True):
     from openai import AsyncOpenAI
 
     if not API_KEY:
@@ -542,8 +836,12 @@ async def translate_book(book_dir: str, concurrency: int, seed_count: int, max_r
 
     client = AsyncOpenAI(api_key=API_KEY, base_url=BASE_URL)
 
-    # Collect chapter files
+    # Collect chapter files: ch*.md + preface.md (if exists), excluding _index.md
     files = sorted(glob.glob(os.path.join(book_dir, "ch*.md")))
+    # Also include preface.md if it exists and isn't already in the list
+    preface = os.path.join(book_dir, "preface.md")
+    if os.path.exists(preface) and preface not in files:
+        files.insert(0, preface)
     if not files:
         # fallback: any .md except _index.md
         files = sorted(f for f in glob.glob(os.path.join(book_dir, "*.md")) if not f.endswith("_index.md"))
@@ -554,71 +852,95 @@ async def translate_book(book_dir: str, concurrency: int, seed_count: int, max_r
     total = len(files)
     seeds = files[:seed_count]
     rest = files[seed_count:]
-    glossary = {}
+    tracker = ProgressTracker(book_dir, fresh=fresh)
+    glossary = tracker.glossary  # resume: pick up terms from prior run
     conflicts = []
     results = []
 
-    print(f"翻译 {total} 章 | 种子 {len(seeds)} 章串行 + {len(rest)} 章并行(并发={concurrency})")
-    print(f"Provider: {BASE_URL} | Model: {MODEL}\n")
+    # Partition: skip already-ok chapters, translate the rest
+    skipped_files = [f for f in files if tracker.should_skip(f)]
+    todo_files = [f for f in files if not tracker.should_skip(f)]
+    if skipped_files:
+        print(f"断点续跑：跳过 {len(skipped_files)} 章已完成（共 {total} 章）")
+        for f in skipped_files:
+            fname = os.path.basename(f)
+            results.append((fname, tracker.status_of(f) or "ok", 0, "已缓存"))
+    if not todo_files:
+        print("所有章节已翻译完成，无需重跑。")
+        glossary = tracker.glossary
+    else:
+        # Re-partition todo into seeds/rest for the active run
+        active_seeds = [f for f in todo_files if f in seeds][:seed_count]
+        active_rest = [f for f in todo_files if f not in active_seeds]
+        # If all seeds were skipped, promote earliest todo chapters as seeds.
+        # Promoted chapters are NOT true seeds — the glossary already exists from
+        # the prior run, so is_seed must be False (seed=True skips glossary context).
+        promoted = False
+        if not active_seeds and active_rest:
+            active_seeds = active_rest[:min(seed_count, len(active_rest))]
+            active_rest = active_rest[len(active_seeds):]
+            promoted = True
 
-    # ── Phase 1: seed chapters (serial) ──────────────────────────────────
-    for i, f in enumerate(seeds):
-        fname = os.path.basename(f)
-        print(f"[{i+1}/{total}] {fname} 翻译中...", end="", flush=True)
-        status, retries, issues, new_terms = await translate_chapter(
-            client, f, glossary, is_seed=True, max_retry=max_retry,
-            sem=asyncio.Semaphore(1)
-        )
-        merge_glossary(glossary, new_terms, fname, conflicts)
-        tag = "✓" if status == "ok" else ("⏭" if status == "skipped" else ("⚠" if status == "manual" else "✗"))
-        retry_info = f" (重试{retries}次)" if retries else ""
-        print(f"\r{tag} [{i+1}/{total}] {fname}{retry_info} — {issues}")
-        results.append((fname, status, retries, issues))
+        print(f"翻译 {len(todo_files)} 章 | 种子 {len(active_seeds)} 串行 + {len(active_rest)} 并行(并发={concurrency})")
+        if promoted:
+            print(f"  (种子已在上次完成，提升 {len(active_seeds)} 章串行补译，复用已有术语表)")
+        print(f"Provider: {BASE_URL} | Model: {MODEL}\n")
 
-    # Save initial glossary
-    glossary_path = os.path.join(book_dir, "glossary.json")
-    with open(glossary_path, "w", encoding="utf-8") as f:
-        json.dump(glossary, f, ensure_ascii=False, indent=2)
-
-    # ── Phase 2: remaining chapters (parallel) ───────────────────────────
-    if rest:
-        sem = asyncio.Semaphore(concurrency)
-        offset = len(seeds)
-
-        async def run_one(idx, fpath):
-            fname = os.path.basename(fpath)
-            # snapshot glossary at task creation time (seed terms)
-            gl = dict(glossary)
+        # ── Phase 1: seed chapters (serial) ──────────────────────────────
+        # is_seed only when there's no glossary yet (true first run).
+        # Promoted chapters on resume use the existing glossary → is_seed=False.
+        seed_is_seed = not bool(glossary)
+        for i, f in enumerate(active_seeds):
+            fname = os.path.basename(f)
+            print(f"[{i+1}/{len(todo_files)}] {fname} 翻译中...", end="", flush=True)
             status, retries, issues, new_terms = await translate_chapter(
-                client, fpath, gl, is_seed=False, max_retry=max_retry, sem=sem
+                client, f, glossary, is_seed=seed_is_seed, max_retry=max_retry,
+                sem=asyncio.Semaphore(1)
             )
             merge_glossary(glossary, new_terms, fname, conflicts)
+            await tracker.record(f, status, retries, new_terms)
             tag = "✓" if status == "ok" else ("⏭" if status == "skipped" else ("⚠" if status == "manual" else "✗"))
             retry_info = f" (重试{retries}次)" if retries else ""
-            print(f"{tag} [{offset+idx+1}/{total}] {fname}{retry_info} — {issues}")
-            return (fname, status, retries, issues)
+            print(f"\r{tag} [{i+1}/{len(todo_files)}] {fname}{retry_info} — {issues}")
+            results.append((fname, status, retries, issues))
 
-        tasks = [run_one(i, f) for i, f in enumerate(rest)]
-        parallel_results = await asyncio.gather(*tasks, return_exceptions=True)
-        for r in parallel_results:
-            if isinstance(r, Exception):
-                results.append(("unknown", "error", 0, str(r)))
-            else:
-                results.append(r)
+        # ── Phase 2: remaining chapters (parallel) ───────────────────────
+        if active_rest:
+            sem = asyncio.Semaphore(concurrency)
+            offset = len(active_seeds) + len(skipped_files)
 
-    # Save final glossary
-    with open(glossary_path, "w", encoding="utf-8") as f:
-        json.dump(glossary, f, ensure_ascii=False, indent=2)
+            async def run_one(idx, fpath):
+                fname = os.path.basename(fpath)
+                # snapshot glossary at task creation time (seed terms)
+                gl = dict(glossary)
+                status, retries, issues, new_terms = await translate_chapter(
+                    client, fpath, gl, is_seed=False, max_retry=max_retry, sem=sem
+                )
+                merge_glossary(glossary, new_terms, fname, conflicts)
+                await tracker.record(fpath, status, retries, new_terms)
+                tag = "✓" if status == "ok" else ("⏭" if status == "skipped" else ("⚠" if status == "manual" else "✗"))
+                retry_info = f" (重试{retries}次)" if retries else ""
+                print(f"{tag} [{offset+idx+1}/{total}] {fname}{retry_info} — {issues}")
+                return (fname, status, retries, issues)
+
+            tasks = [run_one(i, f) for i, f in enumerate(active_rest)]
+            parallel_results = await asyncio.gather(*tasks, return_exceptions=True)
+            for r in parallel_results:
+                if isinstance(r, Exception):
+                    results.append(("unknown", "error", 0, str(r)))
+                else:
+                    results.append(r)
 
     # ── Report ───────────────────────────────────────────────────────────
+    cached = len(skipped_files)
     ok = sum(1 for _, s, _, _ in results if s == "ok")
     skipped = sum(1 for _, s, _, _ in results if s == "skipped")
     manual = sum(1 for _, s, _, _ in results if s == "manual")
     errors = sum(1 for _, s, _, _ in results if s == "error")
 
     print(f"\n{'='*60}")
-    print(f"翻译完成：{ok} 通过 / {skipped} 跳过(中文) / {manual} 需人工 / {errors} 错误（共 {total} 章）")
-    print(f"术语表：{len(glossary)} 条 → {glossary_path}")
+    print(f"翻译完成：{ok} 通过(含 {cached} 缓存) / {skipped} 跳过(中文) / {manual} 需人工 / {errors} 错误（共 {total} 章）")
+    print(f"术语表：{len(glossary)} 条 → {tracker.glossary_path}")
     if conflicts:
         print(f"\n⚠ 术语冲突 {len(conflicts)} 处：")
         for c in conflicts:
@@ -629,6 +951,25 @@ async def translate_book(book_dir: str, concurrency: int, seed_count: int, max_r
         for fname, status, _, issues in results:
             if status == "manual":
                 print(f"  {fname}: {issues}")
+
+    # ── Consistency QA (optional, after translation) ─────────────────────
+    if run_qa and _PIPELINE.get("consistency_qa") and not errors:
+        try:
+            from consistency_qa import run_consistency_qa
+            print("\n跨章一致性扫描...")
+            qa_issues = await run_consistency_qa(book_dir, glossary)
+            if qa_issues:
+                report_path = os.path.join(book_dir, ".translate_state", "consistency_report.md")
+                os.makedirs(os.path.dirname(report_path), exist_ok=True)
+                with open(report_path, "w", encoding="utf-8") as f:
+                    f.write(qa_issues)
+                print(f"  发现 {qa_issues.count('###')} 类问题 → {report_path}")
+            else:
+                print("  ✓ 无一致性问题")
+        except ImportError:
+            pass  # consistency_qa.py not available — skip silently
+        except Exception as e:
+            print(f"  ⚠ 一致性扫描失败: {e}", file=sys.stderr)
 
     return 1 if errors else 0
 
@@ -654,18 +995,56 @@ async def translate_single(path: str, max_retry: int):
     return 1 if status == "error" else 0
 
 
+def _show_status(book_dir: str):
+    """Print translation progress without translating."""
+    tracker = ProgressTracker(book_dir)
+    if not tracker._loaded:
+        print("无翻译状态文件（.translate_state/progress.json）。")
+        return 0
+    files = sorted(glob.glob(os.path.join(book_dir, "ch*.md")))
+    if not files:
+        files = sorted(f for f in glob.glob(os.path.join(book_dir, "*.md")) if not f.endswith("_index.md"))
+    counts = {"ok": 0, "skipped": 0, "manual": 0, "error": 0, "pending": 0}
+    print(f"{'章节':<30} {'状态':<10} {'重试':<6} 说明")
+    print("-" * 70)
+    for f in files:
+        fname = os.path.basename(f)
+        if tracker.should_skip(f):
+            status, retries, issues = "ok", 0, "已缓存(源未变)"
+        else:
+            rec = tracker._data.get(fname, {})
+            status = rec.get("status", "pending")
+            retries = rec.get("attempts", 0)
+            issues = "" if status == "pending" else "需重跑"
+        counts[status] = counts.get(status, 0) + 1
+        print(f"{fname:<30} {status:<10} {retries:<6} {issues}")
+    print("-" * 70)
+    print(f"总计：{counts.get('ok',0)} 通过 / {counts.get('skipped',0)} 中文跳过 / "
+          f"{counts.get('manual',0)} 需人工 / {counts.get('error',0)} 错误 / "
+          f"{counts.get('pending',0)} 待翻译（共 {len(files)} 章）")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description="Translate markdown chapters to Chinese.")
     ap.add_argument("target", help="book directory or single .md file")
     ap.add_argument("--concurrency", type=int, default=4, help="parallel chapters (default 4)")
     ap.add_argument("--seed-chapters", type=int, default=2, help="serial seed chapters (default 2)")
     ap.add_argument("--retry", type=int, default=2, help="max retries per chapter (default 2)")
+    ap.add_argument("--fresh", action="store_true", help="ignore state, re-translate all chapters")
+    ap.add_argument("--status", action="store_true", help="show progress without translating")
+    ap.add_argument("--no-qa", action="store_true", help="skip cross-chapter consistency QA")
     args = ap.parse_args()
 
     if os.path.isfile(args.target):
         return asyncio.run(translate_single(args.target, args.retry))
     elif os.path.isdir(args.target):
-        return asyncio.run(translate_book(args.target, args.concurrency, args.seed_chapters, args.retry))
+        if args.status:
+            return _show_status(args.target)
+        return asyncio.run(translate_book(
+            args.target, args.concurrency, args.seed_chapters, args.retry,
+            fresh=args.fresh, run_qa=not args.no_qa,
+        ))
     else:
         print(f"Error: {args.target} not found", file=sys.stderr)
         return 1

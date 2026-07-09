@@ -68,7 +68,7 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
 | 工具 | 类型 | 用途 |
 |-------|------|------|
 | **spot-check** | Agent | 随机抽查 2 章,18 点清单(先机械 grep → AI 逐章审核),发现问题直接修 |
-| **translate_chapters.py** | 脚本 | 翻译英文 MD → 中文(种子章建术语表 + 并发 + validate 验证重试 + **图片引用丢失自动补回**)。book 原地写,paper 输出 `.zh.md` |
+| **translate_chapters.py** | 脚本 | 翻译英文 MD → 中文(种子章建术语表 + 并发 + validate 验证重试 + **图片引用丢失自动补回** + **断点续跑**)。book 原地写,paper 输出 `.zh.md` |
 | **convert_xrefs.py** | 脚本 | 纯 regex 交叉引用转换(「第N章」→ markdown 链接 `ch0N.md`,补零可靠) |
 | **clean_markdown.py** | 脚本 | 统一清洗(book+paper):噪声删除 + LaTeX 碎片修复 + 图注配对 + 标题层级 |
 | **format_theorems.py** | 脚本 | 数学教材段落级定理/定义加粗(MinerU 不标标题,幂等,Phase 4.5 前置) |
