@@ -1,0 +1,191 @@
+{
+  "doc_name": "qmc-wormhole-updates",
+  "type": "note",
+  "title": "虫洞更新：从延迟相互作用到非局域蒙特卡罗",
+  "author": "Manuel Weber",
+  "date": "2026-07-08",
+  "description": "Weber (2022) 提出的虫洞更新方法——利用积分掉玻色子浴产生的延迟相互作用中的远距离顶点对作为有向环的源和汇，将非局域更新映射为等效最近邻问题",
+  "tags": [
+    "量子蒙特卡罗",
+    "虫洞更新",
+    "自旋-玻色子模型"
+  ],
+  "source_type": "paper",
+  "source_title": "Quantum Monte Carlo simulation of spin-boson models using wormhole updates",
+  "structure": [
+    {
+      "title": "一句话概括",
+      "node_id": "0001",
+      "summary": "## 一句话概括\n\n将自旋-玻色子模型中的玻色子浴精确积分掉，产生虚时中的非局域延迟自旋-自旋相互作用；然后利用相互作用顶点的两个时空分离的算符天然构成有向环的\"虫洞\"——环头从顶点的入口腿进入，瞬移至远距离的出口腿退出——使非局域更新等价于最近邻晶格模型的有向环更新，从而以线性标度实现遍历采样，无需直接模拟玻色子自由度。",
+      "line_num": 0,
+      "line_end": 4,
+      "source_md": "content/notes/qmc-wormhole-updates.md"
+    },
+    {
+      "title": "核心思维框架",
+      "node_id": "0002",
+      "summary": "## 核心思维框架",
+      "line_num": 4,
+      "line_end": 6,
+      "source_md": "content/notes/qmc-wormhole-updates.md",
+      "nodes": [
+        {
+          "title": "框架一：相互作用表象中的路径积分——\"先积分，后展开\"",
+          "node_id": "0003",
+          "summary": "### 框架一：相互作用表象中的路径积分——\"先积分，后展开\"\n\n传统思路是直接在玻色子+自旋的联合构型空间中采样，但非粒子数守恒的玻色子模式导致极长的自相关时间。Weber 的策略是**颠倒顺序**：\n\n1. 先将玻色子自由度精确积分掉（因为 $\\hat{H}_{\\mathrm{b}}$ 是二次型）→ 得到仅含自旋自由度的有效作用量 $\\hat{\\mathcal{H}}_{\\mathrm{ret}}$\n2. 再对仅含自旋的有效理论做微扰展开（SSE风格）→ 采样自旋世界线构型\n\n关键洞察：积分掉玻色子浴等价于在自旋之间引入由自由玻色子传播子 $D(\\omega,\\tau)$ 介导的延迟相互作用。这个过程没有近似，是精确的。",
+          "line_num": 6,
+          "line_end": 15,
+          "source_md": "content/notes/qmc-wormhole-updates.md"
+        },
+        {
+          "title": "框架二：虫洞更新——非局域相互作用的\"透视\"性质",
+          "node_id": "0004",
+          "summary": "### 框架二：虫洞更新——非局域相互作用的\"透视\"性质  延迟相互作用的每个顶点 $\\hat{\\varrho}^\\dagger(\\tau) \\hat{\\varrho}(\\tau')$ 包含两个在虚时上可能相距很远的算符。Weber 的核心发现是：**在有向环方程中，这个非局域性完全透明**。  原因：有向环方程的推导只依赖于顶点权重 $W_v$ 的值和顶点的腿结构（四个腿：$\\tau$ 处的入口",
+          "line_num": 15,
+          "line_end": 26,
+          "source_md": "content/notes/qmc-wormhole-updates.md"
+        },
+        {
+          "title": "框架三：对角更新承载全部时间依赖性",
+          "node_id": "0005",
+          "summary": "### 框架三：对角更新承载全部时间依赖性\n\n这是实现上的关键分工：\n\n- **对角更新**：负责添加/移除对角顶点，采样 $\\omega$ 和 $\\tau-\\tau'$（通过逆变换采样从 $\\mathcal{I}(\\omega)$ 和 $P(\\omega,\\tau-\\tau')$ 中抽取），改变展开阶数 $n$\n- **有向环更新**：负责将对角顶点与非对角顶点相互转换，构造闭合环翻转世界线段。完全不涉及连续时间变量\n\n这种分工使时间依赖性的采样完全与全局更新解耦，$O(n)$ 的对角更新 + $O(\\chi_{xy})$ 的有向环更新共同构成遍历算法。",
+          "line_num": 26,
+          "line_end": 35,
+          "source_md": "content/notes/qmc-wormhole-updates.md"
+        },
+        {
+          "title": "框架四：正定传播子 vs. 行列式——玻色子与费米子的分水岭",
+          "node_id": "0006",
+          "summary": "### 框架四：正定传播子 vs. 行列式——玻色子与费米子的分水岭\n\n这是虫洞更新能够高效的关键物理原因：\n\n- **玻色子浴**：自由玻色子传播子 $D(\\omega,\\tau) = e^{-\\omega\\tau}/(1-e^{-\\beta\\omega}) > 0$（正定），Wick 收缩直接给出正权重乘积\n- **费米子浴**：传播子可取负值，需要构造行列式来保证正性 → $O(\\beta^3)$ 标度\n\n虫洞更新的存在性依赖于\"无符号问题\"——这等价于要求浴传播子正定。",
+          "line_num": 35,
+          "line_end": 44,
+          "source_md": "content/notes/qmc-wormhole-updates.md"
+        },
+        {
+          "title": "框架五：有限温度标度分析——温度作为虚时方向的系统尺寸",
+          "node_id": "0007",
+          "summary": "### 框架五：有限温度标度分析——温度作为虚时方向的系统尺寸\n\n在量子临界点的有限尺寸标度中，空间方向和虚时方向不对称。对于零维杂质模型（无空间维度），逆温度 $\\beta$ 扮演唯一的\"系统尺寸\"角色。通过对 $\\{T, T/10\\}$ 数据对的交叉点做幂律外推 $\\alpha_*(T) = \\alpha_c + A T^e$，可以在零温极限精确确定临界耦合。",
+          "line_num": 44,
+          "line_end": 48,
+          "source_md": "content/notes/qmc-wormhole-updates.md"
+        }
+      ]
+    },
+    {
+      "title": "核心推导（原子步骤展开）",
+      "node_id": "0008",
+      "summary": "## 核心推导（原子步骤展开）",
+      "line_num": 48,
+      "line_end": 50,
+      "source_md": "content/notes/qmc-wormhole-updates.md",
+      "nodes": [
+        {
+          "title": "推导一：从自旋-玻色子哈密顿量到延迟相互作用",
+          "node_id": "0009",
+          "summary": "### 推导一：从自旋-玻色子哈密顿量到延迟相互作用  **起点**：通用自旋-玻色子模型  $$ \\hat{H} = \\hat{H}_{\\mathrm{s}} + \\hat{H}_{\\mathrm{b}} + \\hat{H}_{\\mathrm{sb}}, \\quad \\hat{H}_{\\mathrm{b}} = \\sum_\\mu \\omega_\\mu \\hat{a}_\\mu^\\dagger \\h",
+          "line_num": 50,
+          "line_end": 137,
+          "source_md": "content/notes/qmc-wormhole-updates.md"
+        },
+        {
+          "title": "推导二：Wick 定理对玻色子迹的逐项收缩",
+          "node_id": "0010",
+          "summary": "### 推导二：Wick 定理对玻色子迹的逐项收缩  考虑玻色子热期望值：  $$ \\langle \\hat{\\mathcal{T}}_\\tau \\hat{a}_{\\mu_1}(\\tau_1) \\cdots \\hat{a}_{\\mu_n}(\\tau_n) \\hat{a}_{\\mu_{n+1}}^\\dagger(\\tau_{n+1}) \\cdots \\hat{a}_{\\mu_{2n}}^\\dagge",
+          "line_num": 137,
+          "line_end": 199,
+          "source_md": "content/notes/qmc-wormhole-updates.md"
+        },
+        {
+          "title": "推导三：有向环方程的推导与求解",
+          "node_id": "0011",
+          "summary": "### 推导三：有向环方程的推导与求解  **出发点**：在扩展构型空间中，每个顶点 $v$ 被赋予入口腿 $l_{\\mathrm{in}}$ 和出口腿 $l_{\\mathrm{out}}$，权重变为 $W_v(l_{\\mathrm{in}}, l_{\\mathrm{out}})$。  **第 1 步**：写出局域细致平衡条件  $$ W_v(l_1, l_2) = W_{\\bar{v}}(l_2",
+          "line_num": 199,
+          "line_end": 351,
+          "source_md": "content/notes/qmc-wormhole-updates.md"
+        },
+        {
+          "title": "推导四：为什么延迟顶点等价于最近邻顶点",
+          "node_id": "0012",
+          "summary": "### 推导四：为什么延迟顶点等价于最近邻顶点  **关键观察**：有向环方程只依赖于顶点权重 $W_v$ 的值和腿的连接拓扑。  **第 1 步**：写出延迟顶点的矩阵元结构  延迟顶点 $\\hat{\\varrho}^\\dagger(\\tau) \\hat{\\varrho}(\\tau')$ 作用于世界线构型时，产生四个腿：  - $\\tau$ 处：进入腿（自旋态在算符作用前）、退出腿（自旋态在算符",
+          "line_num": 351,
+          "line_end": 394,
+          "source_md": "content/notes/qmc-wormhole-updates.md"
+        },
+        {
+          "title": "推导五：玻色子传播子的逆变换采样",
+          "node_id": "0013",
+          "summary": "### 推导五：玻色子传播子的逆变换采样  对角更新需要从 $\\mathcal{I}(\\omega)$ 和 $P(\\omega, \\tau)$ 中采样。对于幂律谱 $J(\\omega) = 2\\pi\\alpha \\omega_c^{1-s} \\omega^s$：  **第 1 步**：归一化谱密度  $$ \\mathcal{I}(\\omega) = \\frac{J(\\omega)/\\omega}{",
+          "line_num": 394,
+          "line_end": 461,
+          "source_md": "content/notes/qmc-wormhole-updates.md"
+        },
+        {
+          "title": "推导六：有限温度标度分析与临界耦合估计",
+          "node_id": "0014",
+          "summary": "### 推导六：有限温度标度分析与临界耦合估计  **第 1 步**：定义重标度磁化率  $$ T^s \\chi_{xy} = T^s \\cdot \\frac{1}{\\beta} \\iint_0^\\beta d\\tau d\\tau' \\, C_{xy}(\\tau - \\tau') \\quad \\text{(仅写出定义)} $$  **第 2 步**：在临界相中，$C_{xy}(\\tau) \\sim",
+          "line_num": 461,
+          "line_end": 505,
+          "source_md": "content/notes/qmc-wormhole-updates.md"
+        }
+      ]
+    },
+    {
+      "title": "决策启发式",
+      "node_id": "0015",
+      "summary": "## 决策启发式  1. **何时使用虫洞更新**：哈密顿量中玻色子部分是二次型（可精确积分）且自由传播子正定（无符号问题）。这是虫洞更新存在性的充要条件。  2. **何时不用虫洞更新**：存在玻色子跳跃项 $\\hat{a}_i^\\dagger \\hat{a}_j$（$i \\neq j$）时，积分掉玻色子产生的非局域传播子可能取负值 → 符号问题。此时直接模拟玻色子更优（如 Jaynes-Cum",
+      "line_num": 505,
+      "line_end": 523,
+      "source_md": "content/notes/qmc-wormhole-updates.md"
+    },
+    {
+      "title": "批判性思考",
+      "node_id": "0016",
+      "summary": "## 批判性思考",
+      "line_num": 523,
+      "line_end": 525,
+      "source_md": "content/notes/qmc-wormhole-updates.md",
+      "nodes": [
+        {
+          "title": "方法局限",
+          "node_id": "0017",
+          "summary": "### 方法局限  1. **玻色子可观测量不可直接访问**：因为玻色子已被积分掉，$\\langle \\hat{a}^\\dagger \\hat{a} \\rangle$ 等只能通过自旋的高阶关联函数间接恢复。从离散频率到连续谱的映射存在系统性模糊（需引入与 NRG 类似的离散化-连续化方案）。  2. **无自旋哈密顿量的假设**：推导中设 $\\hat{H}_0$ 不含自旋项（使得虚时演化平凡）。如",
+          "line_num": 525,
+          "line_end": 535,
+          "source_md": "content/notes/qmc-wormhole-updates.md"
+        },
+        {
+          "title": "与其他方法的比较",
+          "node_id": "0018",
+          "summary": "### 与其他方法的比较\n\n5. **vs. 杂化展开 CT-QMC**：虫洞更新保持了 $O(n)$ 的全局更新标度（环长 $\\sim \\chi_{xy}$），而杂化展开 CT-QMC 仅有局域更新（$O(\\beta^3)$ 标度来自行列式计算）。但杂化展开可以处理费米子浴（通过行列式处理符号），虫洞更新目前限于正定玻色子传播子。\n\n6. **vs. MPS/Wilson 链方法**：MPS 方法的系统误差来自对数离散化（约 1%），虫洞更新的误差来自统计涨落和有限温度外推（可系统性减小）。两者互补：MPS 直接给 $T=0$ 结果，QMC 给有限温度行为。",
+          "line_num": 535,
+          "line_end": 541,
+          "source_md": "content/notes/qmc-wormhole-updates.md"
+        },
+        {
+          "title": "未解决的问题",
+          "node_id": "0019",
+          "summary": "### 未解决的问题\n\n7. **符号问题的边界**：什么条件下非局域传播子保持正定？对于一般的浴谱函数 $J(\\omega)$ 和一般的耦合结构，这个问题的完整刻画仍是开放的。\n\n8. **多浴互斥效应的全貌**：论文仅考虑了 $s=0.8$ 的 U(1) 对称双浴模型。$s^* \\approx 0.76$ 以下的临界相消失机制、三浴（SU(2) 对称）情形在后续工作 [62] 中处理，但更高浴数或更一般的耦合结构尚待探索。",
+          "line_num": 541,
+          "line_end": 547,
+          "source_md": "content/notes/qmc-wormhole-updates.md"
+        }
+      ]
+    },
+    {
+      "title": "关键公式速查",
+      "node_id": "0020",
+      "summary": "## 关键公式速查  | 公式 | 表达式 | 含义 | |------|--------|------| | 自由玻色子传播子 | $D(\\omega,\\tau) = \\frac{e^{-\\omega\\tau}}{1-e^{-\\beta\\omega}}$ | 玻色子浴的裸传播子，正定 | | 延迟自旋相互作用 | $\\hat{\\mathcal{H}}_{\\mathrm{ret}} = -\\iin",
+      "line_num": 547,
+      "line_end": 562,
+      "source_md": "content/notes/qmc-wormhole-updates.md"
+    },
+    {
+      "title": "术语对照",
+      "node_id": "0021",
+      "summary": "## 术语对照  | 英文 | 中文 | 注释 | |------|------|------| | wormhole update | 虫洞更新 | 环头利用延迟相互作用顶点在虚时中相距很远的两点间瞬移 | | retarded interaction | 延迟相互作用 | 积分掉玻色子浴后自旋间的有效非瞬时耦合 | | directed-loop update | 有向环更新 | 沿闭合环翻转",
+      "line_num": 562,
+      "line_end": 582,
+      "source_md": "content/notes/qmc-wormhole-updates.md"
+    }
+  ]
+}
