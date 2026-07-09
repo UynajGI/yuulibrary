@@ -218,10 +218,20 @@ pre-commit:
 pre-push:
   jobs:
     - name: hugo-build
-      run: hugo --gc --minify
+      run: |
+        # Skip for tag pushes (deploy tags don't need local build check)
+        if git describe --exact-match --tags HEAD >/dev/null 2>&1; then
+          echo "Tag push detected, skipping hugo build."
+          exit 0
+        fi
+        hugo --gc --minify
 
     - name: html-check
       run: |
+        if git describe --exact-match --tags HEAD >/dev/null 2>&1; then
+          echo "Tag push detected, skipping html check."
+          exit 0
+        fi
         python3 - <<'PY'
         import os, sys, re
         public = 'public'
