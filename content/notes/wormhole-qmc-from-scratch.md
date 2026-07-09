@@ -571,7 +571,13 @@ $$
 \end{aligned}
 $$
 
-取 $\hat{\varrho}_{q} = \gamma_{q} \hat{S}_{-}$，$\hat{\varrho}_{q}^{\dagger} = \gamma_{q} \hat{S}_{+}$。代入推迟相互作用的一般形式：
+对照通用形式 $\hat{H}_{\mathrm{sb}} = \sum_{\mu} (\hat{a}_{\mu}^{\dagger} \hat{\varrho}_{\mu} + \hat{\varrho}_{\mu}^{\dagger} \hat{a}_{\mu})$，读出
+
+$$
+\hat{\varrho}_{q} = \gamma_{q} \hat{S}_{-}, \qquad \hat{\varrho}_{q}^{\dagger} = \gamma_{q} \hat{S}_{+}.
+$$
+
+代入推迟相互作用的一般形式 $\hat{\mathcal{H}}_{\mathrm{ret}} = -\iint d\tau d\tau' \sum_{\mu} \hat{\varrho}_{\mu}^{\dagger}(\tau) D(\omega_{\mu}, \tau - \tau') \hat{\varrho}_{\mu}(\tau')$：
 
 $$
 \begin{aligned}
@@ -582,7 +588,11 @@ $$
 \end{aligned}
 $$
 
-注意这里使用有方向的 $D$（非 $D_{+}$），因为 $\hat{\varrho} \neq \hat{\varrho}^{\dagger}$，推迟相互作用不是对称组合。顶点算符分类为
+**为什么只有 $\hat{S}_{+}\hat{S}_{-}$ 一项？** 回顾 §3.3 的 Wick 收缩：Dyson 展开中，每个湮灭算符 $\hat{a}$ 必须与一个产生算符 $\hat{a}^{\dagger}$ 配对。JC 耦合中，$\hat{a}^{\dagger}$ 伴随 $\hat{S}_{-}$，$\hat{a}$ 伴随 $\hat{S}_{+}$。因此每个非零收缩对产生 $\hat{S}_{+}(\tau)$（来自 $\hat{a}(\tau)$ 的伴侣）和 $\hat{S}_{-}(\tau')$（来自 $\hat{a}^{\dagger}(\tau')$ 的伴侣），乘积为 $\hat{S}_{+}(\tau) \hat{S}_{-}(\tau')$。
+
+这一点与 XXZ / Rabi 截然不同。Rabi 的 $\hat{\varrho} = \hat{\varrho}^{\dagger} = \gamma \hat{S}_{z}$，因此一个产生算符的伴侣可以是 $\hat{S}_{z}$（来自 $\hat{a}^{\dagger}\hat{S}_{z}$ 项），一个湮灭算符的伴侣也可以是 $\hat{S}_{z}$（来自 $\hat{S}_{z}\hat{a}$ 项）——收缩后总是 $\hat{S}_{z}(\tau)\hat{S}_{z}(\tau')$，自然地出现对称组合并对称化为 $D_{+}$。JC 的 $\hat{\varrho} \neq \hat{\varrho}^{\dagger}$ 打破了这种对称性。
+
+回到 JC 的 $\hat{S}_{z}$ 基底：对角顶点 $\hat{h}_{2}$ 来自常数 $C$ 和 Zeeman 项（不涉及 $\hat{\varrho}$），非对角顶点仅来自 $\hat{\mathcal{H}}_{\mathrm{ret}}^{\mathrm{JC}}$：
 
 $$
 \boxed{
@@ -593,7 +603,13 @@ $$
 }
 $$
 
-在 Weber 采用的有向顶点定义中，JC retarded vertex 是**带方向的** $\hat{S}_{+}(\tau) D(\tau - \tau') \hat{S}_{-}(\tau')$，而非 $\hat{S}_{+}\hat{S}_{-} + \hat{S}_{-}\hat{S}_{+}$ 的对称组合。因此顶点权重类似于 XXZ 情形但 $\lambda_{z} = 0$ 且 $W_{5} = 0$（仅保留单一方向的 spin-flip 顶点）。
+**顶点权重的后果。** $\hat{S}_{+}(\tau) \hat{S}_{-}(\tau')$ 在 $S_{z}$ 基底下先作用 $\hat{S}_{-}$（将 $|\uparrow\rangle$ 翻为 $|\downarrow\rangle$），后作用 $\hat{S}_{+}$（将 $|\downarrow\rangle$ 翻回 $|\uparrow\rangle$）。它对应一种特定的四腿顶点——入口腿 $l_1$ 和出口腿 $l_2$ 的赋值只能沿一个方向。与之对称的反向过程 $\hat{S}_{-}(\tau) \hat{S}_{+}(\tau')$ 在 JC 的 $\hat{\mathcal{H}}_{\mathrm{ret}}$ 中根本不存在，因此 $W_{6} = 0$。对比 XXZ（§5.3）中两个方向都存在，$W_{5} = W_{6} = \lambda_{xy}/2$。JC 的非对角顶点权重只有
+
+$$
+W_{5} = \frac{\lambda_{xy}}{2}, \qquad W_{6} = 0.
+$$
+
+对角权重与 XXZ 相比取 $\lambda_{z} = 0$。
 
 ### 5.3 XXZ / XYZ 自旋-玻色子模型
 
