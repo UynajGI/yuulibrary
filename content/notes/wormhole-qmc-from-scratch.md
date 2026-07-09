@@ -336,8 +336,8 @@ $$
 **第四步：归约系数。** $\frac{1}{(2n)!} \binom{2n}{n} = \frac{1}{n! \, n!}$（第一步），乘以 $n!$（上一步）得 $\frac{1}{n!}$。最终：
 
 $$
-\begin{aligned}
 \boxed{
+\begin{aligned}
 \frac{Z}{Z_{\mathrm{b}}} &= \sum_{n=0}^{\infty} \frac{1}{n!}
    \mathrm{Tr}_{\mathrm{s}}\Biggl\{
    \hat{\mathcal{T}}_{\tau} \biggl[
@@ -345,8 +345,8 @@ $$
    \hat{\varrho}_{\mu}^{\dagger}(\tau) D(\omega_{\mu}, \tau - \tau') \hat{\varrho}_{\mu}(\tau')
    \biggr]^{n}
    \Biggr\}.
-}
 \end{aligned}
+}
 $$
 
 ### 3.5 重指数化
