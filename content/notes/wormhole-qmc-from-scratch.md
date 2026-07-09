@@ -159,21 +159,33 @@ $$
 
 ### 3.2 为何只保留偶数阶
 
-玻色热平均
+玻色迹的核心是
 
 $$
-\langle \bullet \rangle_{\mathrm{b}} = Z_{\mathrm{b}}^{-1} \mathrm{Tr}_{\mathrm{b}}[e^{-\beta \hat{H}_{\mathrm{b}}} \bullet]
+\mathrm{Tr}_{\mathrm{b}}\bigl[ e^{-\beta \hat{H}_{\mathrm{b}}} \hat{\mathcal{T}}_{\tau} \hat{a}^{c_1}(\tau_1) \cdots \hat{a}^{c_m}(\tau_m) \bigr].
 $$
 
-仅在产生和湮灭算符数目相等时非零。令
+玻色浴 $\hat{H}_{\mathrm{b}} = \sum_{\mu} \omega_{\mu} \hat{a}_{\mu}^{\dagger} \hat{a}_{\mu}$ 是粒子数算符的和，因此 $[\hat{H}_{\mathrm{b}}, \hat{N}] = 0$ 其中 $\hat{N} = \sum_{\mu} \hat{a}_{\mu}^{\dagger} \hat{a}_{\mu}$。$\hat{H}_{\mathrm{b}}$ 的本征态是粒子数态 $|n_1, n_2, \ldots\rangle$。
+
+在粒子数基底下求迹：
 
 $$
-Z_{\mathrm{b}} = \mathrm{Tr}_{\mathrm{b}}[e^{-\beta \hat{H}_{\mathrm{b}}}] = \prod_{\mu} \frac{1}{1 - e^{-\beta \omega_{\mu}}}.
+\mathrm{Tr}_{\mathrm{b}}[\bullet] = \sum_{n_1, n_2, \ldots} \langle n_1, n_2, \ldots | \bullet | n_1, n_2, \ldots \rangle.
 $$
 
-玻色粒子数守恒意味着 $\langle \hat{a}_{\mu}^{c_1} \cdots \hat{a}_{\mu}^{c_m} \rangle_{\mathrm{b}} = 0$ 除非产生算符数等于湮灭算符数。
+每个湮灭算符 $\hat{a}$ 将某个模式的粒子数减 1；每个产生算符 $\hat{a}^{\dagger}$ 将粒子数加 1。因此算符串 $\hat{a}^{c_1} \cdots \hat{a}^{c_m}$ 作用后，总粒子数的净变化为
 
-设 $m = 2n$，其中 $n$ 个产生算符和 $n$ 个湮灭算符。奇数项自动为零。
+$$
+\Delta N = (\text{产生算符的个数}) - (\text{湮灭算符的个数}).
+$$
+
+由于迹求的是 $\langle \text{初态} | \bullet | \text{初态} \rangle$——初态和末态必须是同一个粒子数态——只有当 $\Delta N = 0$ 时矩阵元才可能非零。也就是说，**产生和湮灭算符的个数必须相等**。
+
+令产生算符数为 $n$，湮灭算符数也为 $n$，则总算符数 $m = 2n$。所有奇数 $m$ 的项严格为零。
+
+同时 $(-1)^{m} = (-1)^{2n} = +1$——Dyson 展开中的符号因子不引入负号。
+
+最后，$Z_{\mathrm{b}} = \prod_{\mu} (1 - e^{-\beta \omega_{\mu}})^{-1}$ 是自由玻色子的配分函数，是所有推导的归一化基准。
 
 ### 3.3 Wick 收缩
 
