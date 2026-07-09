@@ -892,40 +892,22 @@ $$
 
 **顶点的四条腿——编号约定。** 一个推迟顶点（retarded vertex）包含两个虚时间子顶点，由 bath 传播子（虚线）连接：
 
-{{< rough-canvas width="560" height="200" id="retarded-vertex-legs" >}}
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const rc = rough.canvas(document.getElementById("retarded-vertex-legs"));
-  const s = 18, y1 = 60, y2 = 140;
-  // θ sub-vertex: left block
-  rc.rectangle( 50, y1-30, 160, 60, { roughness: 1, fill: "rgba(0,122,255,0.06)", stroke: "#007aff" });
-  // θ' sub-vertex: right block
-  rc.rectangle(350, y2-30, 160, 60, { roughness: 1, fill: "rgba(0,122,255,0.06)", stroke: "#007aff" });
-  // Labels: θ and θ'
-  rc.rectangle( 55, y1-38, 36, s, { roughness: 0, fill: "white", stroke: "none" });
-  rc.rectangle(355, y2-38, 44, s, { roughness: 0, fill: "white", stroke: "none" });
-  // Bath dashed line connecting the two sub-vertices
-  rc.line(210, y1, 350, y2, { roughness: 1.5, stroke: "#ff9500", strokeWidth: 1.5, strokeLineDash: [6,4] });
-  // Leg circles: l=1,2 at θ; l=3,4 at θ'
-  const legs = [
-    {x: 70, y: y1, label:"l=1"}, {x:190, y: y1, label:"l=2"},
-    {x:370, y: y2, label:"l=3"}, {x:490, y: y2, label:"l=4"}
-  ];
-  legs.forEach(function(l) {
-    rc.circle(l.x, l.y, 22, { roughness: 0.8, fill: "rgba(52,199,89,0.15)", stroke: "#34c759", strokeWidth: 1.5 });
-  });
-  // "before/after" labels inside blocks
-  // Spin arrows inside blocks
-  rc.line( 85, y1-10,  85, y1+10, { roughness: 0.5, stroke: "#555" });
-  rc.line(175, y1-10, 175, y1+10, { roughness: 0.5, stroke: "#555" });
-  rc.line(385, y2-10, 385, y2+10, { roughness: 0.5, stroke: "#555" });
-  rc.line(475, y2-10, 475, y2+10, { roughness: 0.5, stroke: "#555" });
-  // "bath line" label
-  rc.rectangle(214, (y1+y2)/2-12, 85, s, { roughness: 0, fill: "white", stroke: "none" });
-});
-</script>
+```
+      τ 子顶点                    τ' 子顶点
+  before ──●── after        before ──●── after
+            |                         |
+            +======== bath line ======+
+```
 
-- $l = 1$：$\tau$ 处算符作用前的自旋态
+四条腿按以下约定编号：
+
+```
+    l=1   l=2                l=3   l=4
+     ○────○      ~~~~~      ○────○
+      τ 子顶点                τ' 子顶点
+```
+
+- $l = 1$：$\tau$ 处算符作用前的自旋态（入口/出口）
 - $l = 2$：$\tau$ 处算符作用后的自旋态
 - $l = 3$：$\tau'$ 处算符作用前的自旋态
 - $l = 4$：$\tau'$ 处算符作用后的自旋态
