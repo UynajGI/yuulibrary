@@ -635,13 +635,7 @@ $$
 
 其中耦合常数 $\lambda_{xy}$ 来源于谱函数的积分 $\frac{1}{\pi} \int d\omega \, J(\omega)$，具体值与谱指数 $s$ 和截断 $\omega_c$ 有关（$\lambda_{\ell} = 2\alpha_{\ell} \omega_c / s$）。前因子 $1/2$ 来自推迟相互作用分解中的归一化约定。
 
-**顶点权重的后果。** $\hat{S}_{+}(\tau) \hat{S}_{-}(\tau')$ 在 $S_{z}$ 基底下先作用 $\hat{S}_{-}$（将 $|\uparrow\rangle$ 翻为 $|\downarrow\rangle$），后作用 $\hat{S}_{+}$（将 $|\downarrow\rangle$ 翻回 $|\uparrow\rangle$）。它对应一种特定的四腿顶点——入口腿 $l_1$ 和出口腿 $l_2$ 的赋值只能沿一个方向。与之对称的反向过程 $\hat{S}_{-}(\tau) \hat{S}_{+}(\tau')$ 在 JC 的 $\hat{\mathcal{H}}_{\mathrm{ret}}$ 中根本不存在（因为 $\hat{\varrho}^{\dagger} \hat{\varrho} = \hat{S}_{+} \hat{S}_{-}$ 固定了算符次序），因此 $W_{6} = 0$。对比 XXZ（§5.4）中两个方向都存在，$W_{5} = W_{6} = \lambda_{xy}/2$。JC 的非对角顶点权重只有
-
-$$
-W_{5} = \frac{\lambda_{xy}}{2}, \qquad W_{6} = 0.
-$$
-
-对角权重与 XXZ 相比取 $\lambda_{z} = 0$（JC 的 $\hat{\varrho}_{z}$ 不存在）。
+**顶点类型差异。** $\hat{S}_{+}(\tau) \hat{S}_{-}(\tau')$ 在 $S_{z}$ 基底下先作用 $\hat{S}_{-}$（将 $|\uparrow\rangle$ 翻为 $|\downarrow\rangle$），后作用 $\hat{S}_{+}$（将 $|\downarrow\rangle$ 翻回 $|\uparrow\rangle$）。它对应一种特定的四腿顶点——入口腿和出口腿的赋值只能沿一个方向。与之对称的反向过程 $\hat{S}_{-}(\tau) \hat{S}_{+}(\tau')$ 在 JC 的 $\hat{\mathcal{H}}_{\mathrm{ret}}$ 中根本不存在（因为 $\hat{\varrho}^{\dagger} \hat{\varrho} = \hat{S}_{+} \hat{S}_{-}$ 固定了算符次序）。对比 XXZ（§5.4）中两个方向都存在。这两种差异——$\lambda_z = 0$ 和单向 spin-flip——使得 JC 的顶点权重表比 XXZ 少一种非对角顶点。具体数值见 §6。
 
 ### 5.4 XXZ / XYZ 自旋-玻色子模型
 
