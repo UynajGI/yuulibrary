@@ -592,7 +592,19 @@ $$
 
 这一点与 XXZ / Rabi 截然不同。Rabi 的 $\hat{\varrho} = \hat{\varrho}^{\dagger} = \gamma \hat{S}_{z}$，因此一个产生算符的伴侣可以是 $\hat{S}_{z}$（来自 $\hat{a}^{\dagger}\hat{S}_{z}$ 项），一个湮灭算符的伴侣也可以是 $\hat{S}_{z}$（来自 $\hat{S}_{z}\hat{a}$ 项）——收缩后总是 $\hat{S}_{z}(\tau)\hat{S}_{z}(\tau')$，自然地出现对称组合并对称化为 $D_{+}$。JC 的 $\hat{\varrho} \neq \hat{\varrho}^{\dagger}$ 打破了这种对称性。
 
-回到 JC 的 $\hat{S}_{z}$ 基底：对角顶点 $\hat{h}_{2}$ 来自常数 $C$ 和 Zeeman 项（不涉及 $\hat{\varrho}$），非对角顶点仅来自 $\hat{\mathcal{H}}_{\mathrm{ret}}^{\mathrm{JC}}$：
+**从推迟相互作用提取顶点算符。** 将 $\hat{\mathcal{H}}_{\mathrm{ret}}^{\mathrm{JC}}$ 代入 §5.0 的分解式 $\hat{\mathcal{H}}_{\mathrm{ret}} = -\int d\omega \, \mathcal{I}(\omega) \iint d\tau d\tau' \sum_{a} P(\omega, \tau - \tau') \hat{h}_{a}$。逐一比对各部分：
+
+- $\mathcal{I}(\omega)$ 和 $P(\omega, \tau - \tau')$ 是纯数值因子（§5.0 已定义），与自旋算符无关，在所有顶点 $a$ 中共享。
+- 自旋部分 $\hat{h}_{a}$ 需要从 $\hat{\mathcal{H}}_{\mathrm{ret}}^{\mathrm{JC}}$ 的自旋算符中读出。$\hat{\mathcal{H}}_{\mathrm{ret}}^{\mathrm{JC}}$ 的自旋部分为 $\hat{S}_{+}(\tau) \hat{S}_{-}(\tau')$——这是非对角算符组合，对应 $a = 1$（非对角顶点）。
+- 对角部分 $\hat{h}_{2}$ 来自两个来源：(1) 常数 $C$，为确保 Monte Carlo 权重非负而人为加入（见下文）；(2) Zeeman 项 $-\hat{h}_{z} \hat{S}_{z}$（来自 $\hat{H}_{\mathrm{s}}$，之前在 §3.1 暂设为 0，现在加回）。
+
+Zeeman 项如何变成顶点形式：$\hat{H}_{\mathrm{s}} = -h_{z} \hat{S}_{z}$ 在 SSE 展开中作为额外的相互作用顶点加入。每加入一个 Zeeman 顶点，它作用于一个虚时间点；在推迟顶点的四腿框架下，我们将其对称分配到两个子顶点上，每个贡献 $\frac{h_{z}}{2} \hat{S}_{z}$：
+
+$$
+-h_{z} \hat{S}_{z} \;\longrightarrow\; \frac{h_{z}}{2} \bigl[ \hat{S}_{z}(\tau) + \hat{S}_{z}(\tau') \bigr].
+$$
+
+因此 JC 的两类顶点算符为
 
 $$
 \boxed{
@@ -603,13 +615,15 @@ $$
 }
 $$
 
-**顶点权重的后果。** $\hat{S}_{+}(\tau) \hat{S}_{-}(\tau')$ 在 $S_{z}$ 基底下先作用 $\hat{S}_{-}$（将 $|\uparrow\rangle$ 翻为 $|\downarrow\rangle$），后作用 $\hat{S}_{+}$（将 $|\downarrow\rangle$ 翻回 $|\uparrow\rangle$）。它对应一种特定的四腿顶点——入口腿 $l_1$ 和出口腿 $l_2$ 的赋值只能沿一个方向。与之对称的反向过程 $\hat{S}_{-}(\tau) \hat{S}_{+}(\tau')$ 在 JC 的 $\hat{\mathcal{H}}_{\mathrm{ret}}$ 中根本不存在，因此 $W_{6} = 0$。对比 XXZ（§5.3）中两个方向都存在，$W_{5} = W_{6} = \lambda_{xy}/2$。JC 的非对角顶点权重只有
+其中耦合常数 $\lambda_{xy}$ 来源于谱函数的积分 $\frac{1}{\pi} \int d\omega \, J(\omega)$，具体值与谱指数 $s$ 和截断 $\omega_c$ 有关（$\lambda_{\ell} = 2\alpha_{\ell} \omega_c / s$）。前因子 $1/2$ 来自推迟相互作用分解中的归一化约定。
+
+**顶点权重的后果。** $\hat{S}_{+}(\tau) \hat{S}_{-}(\tau')$ 在 $S_{z}$ 基底下先作用 $\hat{S}_{-}$（将 $|\uparrow\rangle$ 翻为 $|\downarrow\rangle$），后作用 $\hat{S}_{+}$（将 $|\downarrow\rangle$ 翻回 $|\uparrow\rangle$）。它对应一种特定的四腿顶点——入口腿 $l_1$ 和出口腿 $l_2$ 的赋值只能沿一个方向。与之对称的反向过程 $\hat{S}_{-}(\tau) \hat{S}_{+}(\tau')$ 在 JC 的 $\hat{\mathcal{H}}_{\mathrm{ret}}$ 中根本不存在（因为 $\hat{\varrho}^{\dagger} \hat{\varrho} = \hat{S}_{+} \hat{S}_{-}$ 固定了算符次序），因此 $W_{6} = 0$。对比 XXZ（§5.3）中两个方向都存在，$W_{5} = W_{6} = \lambda_{xy}/2$。JC 的非对角顶点权重只有
 
 $$
 W_{5} = \frac{\lambda_{xy}}{2}, \qquad W_{6} = 0.
 $$
 
-对角权重与 XXZ 相比取 $\lambda_{z} = 0$。
+对角权重与 XXZ 相比取 $\lambda_{z} = 0$（JC 的 $\hat{\varrho}_{z}$ 不存在）。
 
 ### 5.3 XXZ / XYZ 自旋-玻色子模型
 
