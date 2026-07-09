@@ -261,6 +261,10 @@ def is_chinese_text(body: str) -> bool:
 # ── Reference section isolation ──────────────────────────────────────────
 REF_HEADING_RE = re.compile(r"^##\s+(References|参考文献|Bibliography|文献)", re.MULTILINE | re.IGNORECASE)
 NEXT_H2_RE = re.compile(r"^##\s+", re.MULTILINE)
+# Bare reference entries at end of file: [N] Author, Title, Journal ...
+# MinerU sometimes fails to extract the ## References heading, leaving raw
+# [1] Author... lines at the very end with no heading at all.
+BARE_REF_RE = re.compile(r"^\[\d+\]\s+")
 
 
 def isolate_references(body: str):
@@ -273,20 +277,38 @@ def isolate_references(body: str):
     Any section after References (e.g. ## Appendix, ## Acknowledgements) is
     returned in after_refs so it gets translated normally.
 
+    Fallback: if no ## References heading is found, detects bare [N] Author...
+    lines at the end of the file (MinerU sometimes drops the heading).
+
     Returns (before_refs, ref_section_or_empty, after_refs_or_empty).
     """
     m = REF_HEADING_RE.search(body)
-    if not m:
-        return body, "", ""
-    ref_start = m.start()
-    # Find the next ## heading after the References heading (not ### or deeper)
-    next_h2 = NEXT_H2_RE.search(body, m.end())
-    ref_end = next_h2.start() if next_h2 else len(body)
+    if m:
+        ref_start = m.start()
+        # Find the next ## heading after the References heading (not ### or deeper)
+        next_h2 = NEXT_H2_RE.search(body, m.end())
+        ref_end = next_h2.start() if next_h2 else len(body)
+        return body[:ref_start], body[ref_start:ref_end], body[ref_end:]
 
-    before = body[:ref_start]
-    ref_section = body[ref_start:ref_end]
-    after = body[ref_end:]
-    return before, ref_section, after
+    # ── Fallback: no heading → detect bare [N] references at end of file ──
+    lines = body.split("\n")
+    # Scan backwards for consecutive bare reference lines
+    ref_start_line = None
+    for i in range(len(lines) - 1, -1, -1):
+        stripped = lines[i].strip()
+        if not stripped:
+            continue
+        if BARE_REF_RE.match(stripped):
+            ref_start_line = i
+        else:
+            break
+
+    if ref_start_line is not None and ref_start_line < len(lines) - 1:
+        before = "\n".join(lines[:ref_start_line])
+        ref_section = "## References\n\n" + "\n".join(lines[ref_start_line:])
+        return before, ref_section, ""
+
+    return body, "", ""
 
 
 # ── Image restoration (deterministic safeguard against LLM dropping images) ─
