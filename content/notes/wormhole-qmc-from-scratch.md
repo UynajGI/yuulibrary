@@ -475,28 +475,49 @@ $s$ 越小，虚时间关联越长程，量子临界行为越强。
 
 ---
 
-## 5. 具体模型的推迟顶点
+## 5. 从推迟作用量到 Monte Carlo 采样
 
-对 $\hat{\mathcal{H}}_{\mathrm{ret}}$ 做幂级数展开（SSE 风格）：
+### 5.0 随机级数展开（SSE）的基本思想
 
-$$
-\begin{aligned}
-e^{-\hat{\mathcal{H}}_{\mathrm{ret}}} &= \sum_{n=0}^{\infty} \frac{1}{n!}
-   \Biggl[ \iint_{0}^{\beta} d\tau d\tau' \sum_{\mu}
-   \hat{\varrho}_{\mu}^{\dagger}(\tau) D(\omega_{\mu}, \tau - \tau') \hat{\varrho}_{\mu}(\tau') \Biggr]^{n}.
-\end{aligned}
-$$
-
-定义归一化谱分布和传播子，用于 Monte Carlo 采样：
+§3 推导了 $Z = Z_{\mathrm{b}} \mathrm{Tr}_{\mathrm{s}} \hat{\mathcal{T}}_{\tau} e^{-\hat{\mathcal{H}}_{\mathrm{ret}}}$。但如何用 Monte Carlo 计算这个迹？**随机级数展开**（Stochastic Series Expansion, SSE）的策略是：把 $e^{-\hat{\mathcal{H}}_{\mathrm{ret}}}$ 展开为幂级数，每一项对应一个具体的"顶点配置"，然后用 Metropolis 算法在这些配置间采样。
 
 $$
-\begin{aligned}
-P(\omega, \tau) &= \omega D(\omega, \tau), \\[4pt]
-\mathcal{I}(\omega) &= \frac{J(\omega) / \omega}{\int d\omega \, J(\omega) / \omega},
-\end{aligned}
+e^{-\hat{\mathcal{H}}_{\mathrm{ret}}} = \sum_{n=0}^{\infty} \frac{1}{n!} \bigl( -\hat{\mathcal{H}}_{\mathrm{ret}} \bigr)^{n}.
 $$
 
-使得 $P(\omega, \tau)$ 在 $\tau$ 上归一化，$\mathcal{I}(\omega)$ 在 $\omega$ 上归一化。推迟相互作用重写为
+$\hat{\mathcal{H}}_{\mathrm{ret}}$ 本身是对 $\tau, \tau'$ 的积分，所以 $(\hat{\mathcal{H}}_{\mathrm{ret}})^{n}$ 是 $n$ 个积分因子（$n$ 个"推迟顶点"）的乘积。展开阶数 $n$ 不是固定的——MC 采样时连 $n$ 也一起变（对角更新加删顶点）。
+
+**为什么需要分解传播子。** 离散 bath 下 $\sum_{\mu}$ 是求和；连续 bath 下 $\sum_{\mu} \to \frac{1}{\pi} \int d\omega \, J(\omega)$。一个顶点包含连续的自由度 $\omega$、$\tau$、$\tau'$，以及离散的顶点类型 $v$。为了高效 Monte Carlo 采样，把顶点的完整权重分解为三个归一化因子的乘积：
+
+$$
+D(\omega, \tau) \;\longrightarrow\; \mathcal{I}(\omega) \times P(\omega, \tau) \times (\text{自旋矩阵元}),
+$$
+
+其中 $\mathcal{I}(\omega)$ 是归一化的频率分布，$P(\omega, \tau)$ 是给定频率下 $\tau$ 的条件分布。这样可以用**逆变换采样**直接从理论分布中抽 $\omega$ 和 $\tau$（§7），接受率大幅简化。
+
+**连续极限的积分表示。** 将离散 bath 替换为连续谱函数 $J(\omega)$：
+
+$$
+\sum_{\mu} f(\omega_{\mu}) \;\longrightarrow\; \frac{1}{\pi} \int_{0}^{\infty} d\omega \, J(\omega) f(\omega).
+$$
+
+定义归一化频率分布（总权重为 1）：
+
+$$
+\mathcal{I}(\omega) \equiv \frac{J(\omega) / \omega}{\int_{0}^{\infty} d\omega' \, J(\omega') / \omega'}.
+$$
+
+（分母是归一化常数；$J(\omega)/\omega$ 而非 $J(\omega)$ 的原因—— §4.3 中 $K(\tau)$ 的衰减行为由 $J(\omega)/\omega$ 的权重主导。）
+
+定义给定 $\omega$ 下 $\tau$ 的条件分布：
+
+$$
+P(\omega, \tau) \equiv \omega D(\omega, \tau).
+$$
+
+（乘以 $\omega$ 使 $P$ 在 $0 \le \tau < \beta$ 上归一化：$\int_{0}^{\beta} d\tau \, \omega D(\omega, \tau) = 1$。）
+
+推迟相互作用重写为这三个因子的乘积：
 
 $$
 \boxed{
@@ -508,7 +529,13 @@ $$
 }
 $$
 
-其中 $\hat{h}_{a}(\tau, \tau')$ 按自旋算符的对角/非对角性分类。
+其中 $\hat{h}_{a}(\tau, \tau')$ 只含自旋算符，$a \in \{\text{diagonal}, \text{off-diagonal}\}$ 标记对角/非对角类别。顶点的总权重：
+
+$$
+\mathcal{W}_{\nu} = \mathcal{I}(\omega) \, P(\omega, \tau - \tau') \, W_{v} \, d\omega \, d\tau \, d\tau',
+$$
+
+其中 $W_{v}$ 是 $\hat{h}_{a}$ 在当前自旋基下的矩阵元——这些就是下一节的顶点权重。
 
 ### 5.1 Rabi / 原始自旋-玻色子模型
 
