@@ -15,227 +15,323 @@
   "source_title": "Quantum Monte Carlo simulation of spin-boson models using wormhole updates",
   "structure": [
     {
-      "title": "1. 通用自旋-玻色子哈密顿量",
+      "title": "1. What this algorithm solves",
       "node_id": "0001",
-      "summary": "## 1. 通用自旋-玻色子哈密顿量  考虑一个 spin-$1/2$ 自由度与玻色浴耦合的系统。自旋算符定义为  $$ \\hat{S}_\\ell = \\frac{1}{2}\\hat{\\sigma}_\\ell, \\qquad \\ell \\in \\{x, y, z\\}. $$  通用哈密顿量为  $$ \\begin{aligned} \\hat{H} &= \\hat{H}_{\\mathrm{s}} +",
+      "summary": "## 1. What this algorithm solves  自旋-玻色子模型（spin-boson model）描述一个或少数几个自旋自由度与大量玻色模式的线性耦合。它是量子耗散、量子相变、量子光学（Rabi、Jaynes-Cummings）和量子磁性（XXZ spin-boson）的统一框架。  核心困难：玻色浴的自由度是无限的。微扰论只在弱耦合有效，精确对角化受浴截断限制，张量网络方法",
       "line_num": 0,
-      "line_end": 46,
+      "line_end": 16,
       "source_md": "content/notes/wormhole-qmc-from-scratch.md"
     },
     {
-      "title": "2. 相互作用绘景中的配分函数展开",
+      "title": "2. 通用模型与模型字典",
       "node_id": "0002",
-      "summary": "## 2. 相互作用绘景中的配分函数展开  将哈密顿量拆分为  $$ \\begin{aligned} \\hat{H}_0 &\\equiv \\hat{H}_{\\mathrm{b}}, \\\\ \\hat{V} &\\equiv \\hat{H}_{\\mathrm{sb}}. \\end{aligned} $$  为简化记号，暂设 $\\hat{H}_{\\mathrm{s}} = 0$（之后可将 $\\hat{H}",
-      "line_num": 46,
-      "line_end": 94,
-      "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+      "summary": "## 2. 通用模型与模型字典",
+      "line_num": 16,
+      "line_end": 18,
+      "source_md": "content/notes/wormhole-qmc-from-scratch.md",
+      "nodes": [
+        {
+          "title": "2.1 哈密顿量",
+          "node_id": "0003",
+          "summary": "### 2.1 哈密顿量  考虑一个 spin-$1/2$ 自由度与玻色浴耦合的系统。自旋算符定义为  $$ \\hat{S}_\\ell = \\frac{1}{2}\\hat{\\sigma}_\\ell, \\qquad \\ell \\in \\{x, y, z\\}. $$  通用哈密顿量为  $$ \\begin{aligned} \\hat{H} &= \\hat{H}_{\\mathrm{s}} + \\hat{",
+          "line_num": 18,
+          "line_end": 64,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "2.2 模型字典",
+          "node_id": "0004",
+          "summary": "### 2.2 模型字典  同一套推导框架覆盖三个物理上截然不同的模型：  | Model | $\\hat{H}_{\\mathrm{sb}}$ | $\\hat{\\varrho}_{\\mu}$ | |-------|------|-----| | Rabi / original spin-boson | $g_{\\mu}\\,\\hat{\\sigma}_z(\\hat{a}_{\\mu}^{\\dagger}",
+          "line_num": 64,
+          "line_end": 78,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        }
+      ]
     },
     {
-      "title": "3. 玻色迹与 Wick 定理",
-      "node_id": "0003",
-      "summary": "## 3. 玻色迹与 Wick 定理  由于玻色粒子数守恒，热平均  $$ \\langle \\bullet \\rangle_{\\mathrm{b}} = Z_{\\mathrm{b}}^{-1} \\mathrm{Tr}_{\\mathrm{b}}[e^{-\\beta \\hat{H}_{\\mathrm{b}}} \\bullet] $$  仅在产生和湮灭算符数目相等时非零，即要求 $m = 2n$，其中产",
-      "line_num": 94,
-      "line_end": 137,
-      "source_md": "content/notes/wormhole-qmc-from-scratch.md"
-    },
-    {
-      "title": "4. 组合因子的计算",
-      "node_id": "0004",
-      "summary": "## 4. 组合因子的计算  从 $2n$ 个相互作用顶点中选择 $n$ 个作为产生算符（另 $n$ 个为湮灭算符），共有 $\\binom{2n}{n}$ 种等价的排序方式。  将 Wick 定理的结果代入 $Z$ 的展开式。定义 $\\tau_{k}' = \\tau_{n+k}$，得  $$ \\begin{aligned} \\frac{Z}{Z_{\\mathrm{b}}} &= \\sum_{n=0",
-      "line_num": 137,
-      "line_end": 198,
-      "source_md": "content/notes/wormhole-qmc-from-scratch.md"
-    },
-    {
-      "title": "5. 重指数化：推迟自旋相互作用",
+      "title": "3. 从 Dyson 展开到推迟相互作用",
       "node_id": "0005",
-      "summary": "## 5. 重指数化：推迟自旋相互作用  上式是指数函数的 Taylor 展开：  $$ e^{A} = \\sum_{n=0}^{\\infty} \\frac{A^{n}}{n!}. $$  因此  $$ \\boxed{ \\begin{aligned} Z &= Z_{\\mathrm{b}} \\, \\mathrm{Tr}_{\\mathrm{s}} \\, \\hat{\\mathcal{T}}_{\\tau",
-      "line_num": 198,
-      "line_end": 237,
-      "source_md": "content/notes/wormhole-qmc-from-scratch.md"
-    },
-    {
-      "title": "6. SSE 展开：推迟相互作用的幂级数",
-      "node_id": "0006",
-      "summary": "## 6. SSE 展开：推迟相互作用的幂级数  将 $e^{-\\hat{\\mathcal{H}}_{\\mathrm{ret}}}$ 展开为幂级数（相互作用展开，围绕 $\\hat{H}_0 = 0$）：  $$ \\begin{aligned} e^{-\\hat{\\mathcal{H}}_{\\mathrm{ret}}} &= \\sum_{n=0}^{\\infty} \\frac{(-1)^{n}}{n",
-      "line_num": 237,
-      "line_end": 276,
-      "source_md": "content/notes/wormhole-qmc-from-scratch.md"
-    },
-    {
-      "title": "7. 顶点权重",
-      "node_id": "0007",
-      "summary": "## 7. 顶点权重  一个 Monte Carlo 配置定义为  $$ \\mathcal{C} = \\{n, \\mathcal{C}_{n}, |\\alpha\\rangle\\}, $$  其中 $n$ 是展开阶数，$\\mathcal{C}_{n} = \\{\\nu_1, \\ldots, \\nu_n\\}$ 是有序顶点列表，$|\\alpha\\rangle$ 是 $S_z$ 基底中的初态。每个顶点变量为",
-      "line_num": 276,
-      "line_end": 316,
-      "source_md": "content/notes/wormhole-qmc-from-scratch.md"
-    },
-    {
-      "title": "8. 对角更新 (Diagonal Update)",
-      "node_id": "0008",
-      "summary": "## 8. 对角更新 (Diagonal Update)\n\n对角更新的作用是通过 Metropolis-Hastings 算法添加或删除一个对角顶点 $\\hat{h}_{2}(\\tau, \\tau')$，从而改变展开阶数 $n$。",
-      "line_num": 316,
-      "line_end": 320,
+      "summary": "## 3. 从 Dyson 展开到推迟相互作用\n\n推导的核心逻辑是：**展开耦合 $\\hat{V}$ → Wick 收缩玻色子 → 重指数化为 $\\hat{\\mathcal{H}}_{\\mathrm{ret}}$**。然后对 $\\hat{\\mathcal{H}}_{\\mathrm{ret}}$ 再做 QMC 展开。",
+      "line_num": 78,
+      "line_end": 82,
       "source_md": "content/notes/wormhole-qmc-from-scratch.md",
       "nodes": [
         {
-          "title": "8.1 Metropolis-Hastings 接受率",
+          "title": "3.1 展开配分函数",
+          "node_id": "0006",
+          "summary": "### 3.1 展开配分函数  将哈密顿量拆分为  $$ \\begin{aligned} \\hat{H}_0 &\\equiv \\hat{H}_{\\mathrm{b}}, \\\\ \\hat{V} &\\equiv \\hat{H}_{\\mathrm{sb}}. \\end{aligned} $$  为简化记号，以下设 $\\hat{H}_{\\mathrm{s}} = 0$。这不是算法限制：在实际计算中，$\\h",
+          "line_num": 82,
+          "line_end": 126,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "3.2 为何只保留偶数阶",
+          "node_id": "0007",
+          "summary": "### 3.2 为何只保留偶数阶\n\n玻色热平均\n\n$$\n\\langle \\bullet \\rangle_{\\mathrm{b}} = Z_{\\mathrm{b}}^{-1} \\mathrm{Tr}_{\\mathrm{b}}[e^{-\\beta \\hat{H}_{\\mathrm{b}}} \\bullet]\n$$\n\n仅在产生和湮灭算符数目相等时非零。令\n\n$$\nZ_{\\mathrm{b}} = \\mathrm{Tr}_{\\mathrm{b}}[e^{-\\beta \\hat{H}_{\\mathrm{b}}}] = \\prod_{\\mu} \\frac{1}{1 - e^{-\\beta \\omega_{\\mu}}}.\n$$\n\n玻色粒子数守恒意味着 $\\langle \\hat{a}_{\\mu}^{c_1} \\cdots \\hat{a}_{\\mu}^{c_m} \\rangle_{\\mathrm{b}} = 0$ 除非产生算符数等于湮灭算符数。\n\n设 $m = 2n$，其中 $n$ 个产生算符和 $n$ 个湮灭算符。奇数项自动为零。",
+          "line_num": 126,
+          "line_end": 144,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "3.3 Wick 收缩",
+          "node_id": "0008",
+          "summary": "### 3.3 Wick 收缩\n\n将 $n$ 个湮灭算符排在左边、$n$ 个产生算符排在右边，应用 Wick 定理：\n\n$$\n\\begin{aligned}\n&\\langle \\hat{\\mathcal{T}}_{\\tau} \\hat{a}_{\\mu_{1}}(\\tau_{1}) \\cdots \\hat{a}_{\\mu_{n}}(\\tau_{n})\n   \\hat{a}_{\\mu_{n+1}}^{\\dagger}(\\tau_{n+1}) \\cdots \\hat{a}_{\\mu_{2n}}^{\\dagger}(\\tau_{2n}) \\rangle_{\\mathrm{b}} \\\\\n&\\qquad = \\sum_{\\pi \\in S_{n}} \\prod_{k=1}^{n}\n   D(\\omega_{\\mu_{k}}, \\tau_{k} - \\tau_{n+\\pi[k]}) \\,\n   \\delta_{\\mu_{k}, \\mu_{n+\\pi[k]}},\n\\end{aligned}\n$$\n\n其中 $S_{n}$ 是 $n$ 阶对称群，$\\pi \\in S_{n}$ 是 $n$ 个对象的排列。自由玻色传播子定义为\n\n$$\nD(\\omega_{\\mu}, \\tau - \\tau') = \\langle \\hat{\\mathcal{T}}_{\\tau} \\hat{a}_{\\mu}(\\tau) \\hat{a}_{\\mu}^{\\dagger}(\\tau') \\rangle_{\\mathrm{b}}.\n$$",
+          "line_num": 144,
+          "line_end": 164,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "3.4 组合因子",
           "node_id": "0009",
-          "summary": "### 8.1 Metropolis-Hastings 接受率\n\n从配置 $\\mathcal{C}$ 到 $\\mathcal{C}'$ 的 Metropolis 接受概率为\n\n$$\n\\boxed{\n\\begin{aligned}\nA(\\mathcal{C} \\to \\mathcal{C}') &= \\min\\bigl[1, \\, R(\\mathcal{C} \\to \\mathcal{C}')\\bigr],\n\\end{aligned}\n}\n$$\n\n其中接受比为\n\n$$\n\\boxed{\n\\begin{aligned}\nR(\\mathcal{C} \\to \\mathcal{C}') &= \\frac{W(\\mathcal{C}') \\, T_{0}(\\mathcal{C}' \\to \\mathcal{C})}\n                                  {W(\\mathcal{C}) \\, T_{0}(\\mathcal{C} \\to \\mathcal{C}')}.\n\\end{aligned}\n}\n$$",
-          "line_num": 320,
-          "line_end": 343,
+          "summary": "### 3.4 组合因子  从 $2n$ 个相互作用顶点中选 $n$ 个为产生算符（余下 $n$ 个为湮灭算符）。  原始展开系数为 $1/(2n)!$。  选择 $n$ 个位置放产生算符的组合数：  $$ \\begin{aligned} \\frac{1}{(2n)!} \\cdot \\binom{2n}{n} &= \\frac{1}{(2n)!} \\cdot \\frac{(2n)!}{n! \\,",
+          "line_num": 164,
+          "line_end": 204,
           "source_md": "content/notes/wormhole-qmc-from-scratch.md"
         },
         {
-          "title": "8.2 添加顶点的提议概率",
+          "title": "3.5 重指数化",
           "node_id": "0010",
-          "summary": "### 8.2 添加顶点的提议概率\n\n提议添加一个新顶点的概率密度为\n\n$$\n\\begin{aligned}\nT_{0}(\\mathcal{C}_{n} \\to \\mathcal{C}_{n+1}) &=\n   \\frac{\\mathcal{I}(\\omega) \\, P(\\omega, \\tau - \\tau') \\, p_{t_{\\mathrm{int}}} \\, d\\omega \\, d\\tau \\, d\\tau'}\n        {\\beta (n + 1)}.\n\\end{aligned}\n$$\n\n分子中的 $\\mathcal{I}(\\omega) P(\\omega, \\tau - \\tau') d\\omega d\\tau d\\tau'$ 是按谱和传播子自身分布采样的概率密度。分母中 $n+1$ 是因为新顶点有 $n+1$ 种插入到有序列表中的位置。",
-          "line_num": 343,
-          "line_end": 357,
+          "summary": "### 3.5 重指数化\n\n上式的求和是指数函数的 Taylor 级数 $e^{A} = \\sum_{n=0}^{\\infty} A^{n}/n!$。因此\n\n$$\n\\boxed{\n\\begin{aligned}\nZ &= Z_{\\mathrm{b}} \\, \\mathrm{Tr}_{\\mathrm{s}} \\, \\hat{\\mathcal{T}}_{\\tau} \\, e^{-\\hat{\\mathcal{H}}_{\\mathrm{ret}}},\n\\end{aligned}\n}\n$$\n\n其中推迟自旋相互作用：\n\n$$\n\\boxed{\n\\begin{aligned}\n\\hat{\\mathcal{H}}_{\\mathrm{ret}} &= -\\iint_{0}^{\\beta} d\\tau d\\tau' \\sum_{\\mu}\n   \\hat{\\varrho}_{\\mu}^{\\dagger}(\\tau) D(\\omega_{\\mu}, \\tau - \\tau') \\hat{\\varrho}_{\\mu}(\\tau').\n\\end{aligned}\n}\n$$\n\n负号匹配：$-\\hat{\\mathcal{H}}_{\\mathrm{ret}} = +\\iint \\hat{\\varrho}^{\\dagger} D \\hat{\\varrho}$。\n\n此时，玻色自由度已被精确积掉，问题化为纯自旋的推迟相互作用系统。\n\n---",
+          "line_num": 204,
+          "line_end": 233,
           "source_md": "content/notes/wormhole-qmc-from-scratch.md"
-        },
+        }
+      ]
+    },
+    {
+      "title": "4. 玻色传播子与谱函数",
+      "node_id": "0011",
+      "summary": "## 4. 玻色传播子与谱函数",
+      "line_num": 233,
+      "line_end": 235,
+      "source_md": "content/notes/wormhole-qmc-from-scratch.md",
+      "nodes": [
         {
-          "title": "8.3 删除顶点的提议概率",
-          "node_id": "0011",
-          "summary": "### 8.3 删除顶点的提议概率\n\n从 $n_2 + 1$ 个对角顶点中随机选择一个删除（$n_2$ 是当前配置中对角顶点的数量）：\n\n$$\n\\begin{aligned}\nT_{0}(\\mathcal{C}_{n+1} \\to \\mathcal{C}_{n}) &= \\frac{1}{n_{2} + 1}.\n\\end{aligned}\n$$",
-          "line_num": 357,
-          "line_end": 367,
-          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
-        },
-        {
-          "title": "8.4 最终接受比",
+          "title": "4.1 正确的周期性：玻色 KMS 条件",
           "node_id": "0012",
-          "summary": "### 8.4 最终接受比\n\n权重之比为\n\n$$\n\\begin{aligned}\n\\frac{W_{\\alpha}(\\mathcal{C}_{n+1})}{W_{\\alpha}(\\mathcal{C}_{n})}\n&= \\frac{\\mathcal{I}(\\omega) \\, P(\\omega, \\tau - \\tau') \\, W_{v} \\, d\\omega \\, d\\tau \\, d\\tau'}{n + 1}.\n\\end{aligned}\n$$\n\n代入接受比公式，分子 $\\mathcal{I}(\\omega) P(\\omega, \\tau - \\tau') d\\omega d\\tau d\\tau'$ 与提议概率中的对应项抵消：\n\n$$\n\\boxed{\n\\begin{aligned}\nR_{\\mathrm{add}} &= \\frac{\\beta \\, W_{v}}{(n_{2} + 1) \\, p_{t_{\\mathrm{int}}}}, \\\\[6pt]\nR_{\\mathrm{remove}} &= \\frac{n_{2} \\, p_{t_{\\mathrm{int}}}}{\\beta \\, W_{v}}.\n\\end{aligned}\n}\n$$\n\n这里 $p_{t_{\\mathrm{int}}}$ 是选择相互作用类型的概率（若只有一种相互作用，$p_{t_{\\mathrm{int}}} = 1$）。",
-          "line_num": 367,
-          "line_end": 391,
+          "summary": "### 4.1 正确的周期性：玻色 KMS 条件  自由玻色传播子由虚时间编序定义，直接计算得，对 $0 \\le \\tau < \\beta$：  $$ D(\\omega, \\tau) = \\langle \\hat{\\mathcal{T}}_{\\tau} \\hat{a}(\\tau) \\hat{a}^{\\dagger}(0) \\rangle = \\frac{e^{-\\omega \\tau}}{1 -",
+          "line_num": 235,
+          "line_end": 278,
           "source_md": "content/notes/wormhole-qmc-from-scratch.md"
         },
         {
-          "title": "8.5 采样 $\\omega$ 和 $\\tau - \\tau'$",
+          "title": "4.2 为何坐标耦合使用 $D_{+}$",
           "node_id": "0013",
-          "summary": "### 8.5 采样 $\\omega$ 和 $\\tau - \\tau'$  利用逆变换采样法从 $\\mathcal{I}(\\omega)$ 和 $P(\\omega, \\tau - \\tau')$ 抽取连续变量。  对幂律谱：  $$ J(\\omega) = 2\\pi \\alpha \\omega_{c}^{1-s} \\omega^{s}, \\qquad 0 < \\omega < \\omega_{c}",
-          "line_num": 391,
-          "line_end": 463,
+          "summary": "### 4.2 为何坐标耦合使用 $D_{+}$\n\n对坐标型耦合 $\\hat{\\varrho}_{\\mu} = \\hat{\\varrho}_{\\mu}^{\\dagger}$（如 Rabi 模型），推迟相互作用中的被积函数自然对称化。定义对称传播子\n\n$$\nD_{+}(\\omega, \\tau) = \\frac{1}{2}\\bigl[ D(\\omega, \\tau) + D(\\omega, \\beta - \\tau) \\bigr].\n$$\n\n代入 $D$ 的显式，利用周期性 $D(\\omega, \\beta - \\tau) = D(\\omega, -\\tau)$：\n\n$$\n\\begin{aligned}\nD_{+}(\\omega, \\tau)\n&= \\frac{1}{2} \\cdot \\frac{e^{-\\omega \\tau} + e^{-\\omega(\\beta - \\tau)}}{1 - e^{-\\beta \\omega}} \\\\\n&= \\frac{\\cosh[\\omega(\\beta/2 - \\tau)]}{2 \\sinh(\\beta \\omega / 2)}.\n\\end{aligned}\n$$\n\n$D_{+}$ 在 $\\tau \\to \\beta - \\tau$ 下对称：$D_{+}(\\omega, \\tau) = D_{+}(\\omega, \\beta - \\tau)$。这使得推迟相互作用在交换 $\\tau \\leftrightarrow \\tau'$ 下不变。",
+          "line_num": 278,
+          "line_end": 298,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "4.3 幂律谱与长程虚时间核",
+          "node_id": "0014",
+          "summary": "### 4.3 幂律谱与长程虚时间核\n\n在连续极限 $\\sum_{\\mu} \\to \\int d\\omega \\, J(\\omega)/\\pi$ 下，谱函数 $J(\\omega)$ 编码了浴的全部信息。\n\n幂律谱（ohmic 族）：\n\n$$\nJ(\\omega) = 2\\pi \\alpha \\, \\omega_{c}^{1-s} \\, \\omega^{s}, \\qquad 0 < \\omega < \\omega_{c},\n$$\n\n其中 $\\alpha$ 是无量纲耦合强度，$s$ 是谱指数（$s=1$ 为 ohmic，$s<1$ 为 sub-ohmic，$s>1$ 为 super-ohmic），$\\omega_c$ 是截断频率。\n\n对应的推迟相互作用核在长虚时间极限 $\\omega_c (\\tau - \\tau') \\gg 1$ 下呈幂律衰减：\n\n$$\nD_{+}(\\omega, \\tau - \\tau') \\sim \\frac{1}{|\\tau - \\tau'|^{s+1}}.\n$$\n\n$s$ 越小，虚时间关联越长程，量子临界行为越强。\n\n---",
+          "line_num": 298,
+          "line_end": 320,
           "source_md": "content/notes/wormhole-qmc-from-scratch.md"
         }
       ]
     },
     {
-      "title": "9. Directed-Loop 方程",
-      "node_id": "0014",
-      "summary": "## 9. Directed-Loop 方程\n\nDirected-loop 更新通过扩展配置空间来连接两个需要大量局部更改的正则 MC 配置。全局细致平衡条件因 MC 权重 $W(\\mathcal{C}) \\propto \\prod_{p} \\mathcal{W}_{\\nu_p}$ 因子化而退化为对每个顶点的局部条件。\n\n在扩展配置空间中，每个顶点被赋予一个入口腿 $l_1$ 和出口腿 $l_2$，相应权重记为 $W_{v}(l_1, l_2)$。",
-      "line_num": 463,
-      "line_end": 469,
+      "title": "5. 具体模型的推迟顶点",
+      "node_id": "0015",
+      "summary": "## 5. 具体模型的推迟顶点  对 $\\hat{\\mathcal{H}}_{\\mathrm{ret}}$ 做幂级数展开（SSE 风格）：  $$ \\begin{aligned} e^{-\\hat{\\mathcal{H}}_{\\mathrm{ret}}} &= \\sum_{n=0}^{\\infty} \\frac{1}{n!}    \\Biggl[ \\iint_{0}^{\\beta} d\\tau d",
+      "line_num": 320,
+      "line_end": 355,
       "source_md": "content/notes/wormhole-qmc-from-scratch.md",
       "nodes": [
         {
-          "title": "9.1 局部细致平衡",
-          "node_id": "0015",
-          "summary": "### 9.1 局部细致平衡\n\n正向过程（顶点类型 $v$，入口 $l_1$，出口 $l_2$）和反向过程（顶点类型 $\\bar{v}$，入口 $l_2$，出口 $l_1$）的权重相等：\n\n$$\n\\boxed{\n\\begin{aligned}\nW_{v}(l_1, l_2) &= W_{\\bar{v}}(l_2, l_1).\n\\end{aligned}\n}\n$$\n\n其中 $\\bar{v}$ 是将顶点 $v$ 沿 loop 段翻转自旋后得到的顶点类型。",
-          "line_num": 469,
-          "line_end": 483,
-          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
-        },
-        {
-          "title": "9.2 概率守恒",
+          "title": "5.1 Rabi / 原始自旋-玻色子模型",
           "node_id": "0016",
-          "summary": "### 9.2 概率守恒\n\n从入口腿 $l_1$ 进入后，所有可能出口的总权重等于原始顶点权重：\n\n$$\n\\boxed{\n\\begin{aligned}\n\\sum_{l_2} W_{v}(l_1, l_2) &= W_{v}.\n\\end{aligned}\n}\n$$\n\n由此，实际退出概率为\n\n$$\n\\boxed{\n\\begin{aligned}\nP(l_1 \\to l_2) &= \\frac{W_{v}(l_1, l_2)}{W_{v}}.\n\\end{aligned}\n}\n$$",
-          "line_num": 483,
-          "line_end": 505,
+          "summary": "### 5.1 Rabi / 原始自旋-玻色子模型  $$ \\hat{H} = -h_{x} \\hat{S}_{x} + \\sum_{q} \\omega_{q} \\hat{a}_{q}^{\\dagger} \\hat{a}_{q}    \\;+\\; \\sum_{q} \\gamma_{q} (\\hat{a}_{q}^{\\dagger} + \\hat{a}_{q}) \\hat{S}_{z}. $$  取",
+          "line_num": 355,
+          "line_end": 377,
           "source_md": "content/notes/wormhole-qmc-from-scratch.md"
         },
         {
-          "title": "9.3 求解线性系统",
+          "title": "5.2 JC-like 模型",
           "node_id": "0017",
-          "summary": "### 9.3 求解线性系统  以图 3(b) 的分配表为例，定义 bounce 权重 $b_1, b_2, b_3$ 和转移权重 $a, b, c$。概率守恒给出三个方程：  $$ \\boxed{ \\begin{aligned} b_{1} + a + b &= W_{1}, \\\\ a + b_{2} + c &= W_{2}, \\\\ b + c + b_{3} &= W_{5}. \\end{a",
-          "line_num": 505,
-          "line_end": 537,
+          "summary": "### 5.2 JC-like 模型\n\n$$\n\\boxed{\n\\begin{aligned}\n\\hat{h}_{1}(\\tau, \\tau') &= \\frac{\\lambda_{xy}}{2} \\hat{S}_{+}(\\tau) \\hat{S}_{-}(\\tau'), \\\\[4pt]\n\\hat{h}_{2}(\\tau, \\tau') &= C + \\frac{h_{z}}{2} \\bigl[ \\hat{S}_{z}(\\tau) + \\hat{S}_{z}(\\tau') \\bigr].\n\\end{aligned}\n}\n$$\n\n顶点权重类似于 XXZ 情形，但 $\\lambda_{z} = 0$，$W_{5} = 0$（仅保留单一方向的 spin-flip 顶点 $\\hat{S}_{+}\\hat{S}_{-}$）。$\\hat{\\varrho}_{\\mu} \\neq \\hat{\\varrho}_{\\mu}^{\\dagger}$ 意味着没有 $\\hat{S}_{-}\\hat{S}_{+}$ 项。",
+          "line_num": 377,
+          "line_end": 390,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "5.3 XXZ / XYZ 自旋-玻色子模型",
+          "node_id": "0018",
+          "summary": "### 5.3 XXZ / XYZ 自旋-玻色子模型  非对角算符部分：  $$ \\boxed{ \\begin{aligned} \\hat{h}_{1}(\\tau, \\tau') &= \\frac{\\lambda_{xy}}{2}    \\bigl[ \\hat{S}_{+}(\\tau) \\hat{S}_{-}(\\tau') + \\hat{S}_{-}(\\tau) \\hat{S}_{+}(\\tau'",
+          "line_num": 390,
+          "line_end": 439,
           "source_md": "content/notes/wormhole-qmc-from-scratch.md"
         }
       ]
     },
     {
-      "title": "10. Wormhole 更新：推迟顶点到最近邻顶点的拓扑等价",
-      "node_id": "0018",
-      "summary": "## 10. Wormhole 更新：推迟顶点到最近邻顶点的拓扑等价  推迟相互作用顶点（图 3(a)）有四个腿：两个在虚时间 $\\tau$，两个在虚时间 $\\tau'$。若将 $\\tau'$ 处的子顶点放在 $\\tau$ 处子顶点的右侧，从拓扑上看  $$ \\begin{aligned} (\\tau, \\tau') \\quad \\longleftrightarrow \\quad (i, j),",
-      "line_num": 537,
-      "line_end": 558,
-      "source_md": "content/notes/wormhole-qmc-from-scratch.md"
-    },
-    {
-      "title": "11. 可观测量",
+      "title": "6. QMC 配置空间与顶点权重",
       "node_id": "0019",
-      "summary": "## 11. 可观测量\n\n与标准世界线 QMC 方法一致。",
-      "line_num": 558,
-      "line_end": 562,
+      "summary": "## 6. QMC 配置空间与顶点权重",
+      "line_num": 439,
+      "line_end": 441,
       "source_md": "content/notes/wormhole-qmc-from-scratch.md",
       "nodes": [
         {
-          "title": "11.1 自旋关联函数",
+          "title": "6.1 配置定义",
           "node_id": "0020",
-          "summary": "### 11.1 自旋关联函数\n\n$$\n\\boxed{\n\\begin{aligned}\nC_{\\ell}(\\tau - \\tau') &= \\langle \\hat{S}_{\\ell}(\\tau) \\hat{S}_{\\ell}(\\tau') \\rangle.\n\\end{aligned}\n}\n$$",
-          "line_num": 562,
-          "line_end": 572,
+          "summary": "### 6.1 配置定义  一个 Monte Carlo 配置定义为  $$ \\mathcal{C} = \\{n, \\mathcal{C}_{n}, |\\alpha\\rangle\\}, $$  其中 $n$ 是展开阶数，$\\mathcal{C}_{n} = \\{\\nu_1, \\ldots, \\nu_n\\}$ 是有序顶点列表，$|\\alpha\\rangle$ 是 $S_z$ 基底中的初态。每个顶点变",
+          "line_num": 441,
+          "line_end": 477,
           "source_md": "content/notes/wormhole-qmc-from-scratch.md"
         },
         {
-          "title": "11.2 磁化率",
+          "title": "6.2 顶点类型表",
           "node_id": "0021",
-          "summary": "### 11.2 磁化率\n\n$$\n\\boxed{\n\\begin{aligned}\n\\chi_{\\ell}(\\mathrm{i}\\Omega_{m}) &=\n   \\frac{1}{\\beta} \\iint_{0}^{\\beta} d\\tau d\\tau' \\, e^{\\mathrm{i}\\Omega_{m}(\\tau - \\tau')} C_{\\ell}(\\tau - \\tau'),\n\\end{aligned}\n}\n$$\n\n其中 $\\Omega_{m} = 2\\pi m / \\beta$，$m \\in \\mathbb{Z}$ 为玻色 Matsubara 频率。静态磁化率定义为 $\\chi_{\\ell} = \\chi_{\\ell}(\\mathrm{i}\\Omega_{0})$。\n\n$z$ 分量（对角可观测量）可直接从传播态 $|\\alpha_{p}\\rangle$ 读出；$x, y$ 分量（非对角可观测量）通过追踪 directed-loop 更新中 loop head/tail 的传播来测量。",
-          "line_num": 572,
-          "line_end": 587,
-          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
-        },
-        {
-          "title": "11.3 平均展开阶数",
-          "node_id": "0022",
-          "summary": "### 11.3 平均展开阶数\n\n平均展开阶数与自旋子系统能量相关：\n\n$$\n\\langle n \\rangle = -\\beta \\langle \\hat{H}_{\\mathrm{s}} + \\hat{H}_{\\mathrm{sb}} \\rangle.\n$$\n\n玻色可观测量（如 bath 能量、传播子、比热）可从高阶自旋-自旋关联函数通过生成泛函恢复。\n\n---",
-          "line_num": 587,
-          "line_end": 599,
+          "summary": "### 6.2 顶点类型表  对 $S_z$ 基底下 spin-$1/2$ 的推迟相互作用，共有六种顶点类型。本文使用 spin-$1/2$ 给出最小顶点表；原则上更高自旋不被禁止，但需要重新定义局域 Hilbert 空间、顶点类型和 directed-loop 方程，复杂性显著增加。  | $v$ | 算符类型 | 效果 | |---|--------------|--------| | 1--",
+          "line_num": 477,
+          "line_end": 491,
           "source_md": "content/notes/wormhole-qmc-from-scratch.md"
         }
       ]
     },
     {
-      "title": "12. 具体模型中的顶点权重",
-      "node_id": "0023",
-      "summary": "## 12. 具体模型中的顶点权重",
-      "line_num": 599,
-      "line_end": 601,
+      "title": "7. 对角更新",
+      "node_id": "0022",
+      "summary": "## 7. 对角更新\n\n对角更新的作用是通过 Metropolis-Hastings 算法添加或删除一个对角顶点 $\\hat{h}_{2}(\\tau, \\tau')$，从而改变展开阶数 $n$。",
+      "line_num": 491,
+      "line_end": 495,
       "source_md": "content/notes/wormhole-qmc-from-scratch.md",
       "nodes": [
         {
-          "title": "12.1 XXZ 自旋-玻色子模型",
-          "node_id": "0024",
-          "summary": "### 12.1 XXZ 自旋-玻色子模型  非对角算符部分：  $$ \\boxed{ \\begin{aligned} \\hat{h}_{1}(\\tau, \\tau') &= \\frac{\\lambda_{xy}}{2}    \\bigl[ \\hat{S}_{+}(\\tau) \\hat{S}_{-}(\\tau') + \\hat{S}_{-}(\\tau) \\hat{S}_{+}(\\tau') \\bi",
-          "line_num": 601,
-          "line_end": 648,
+          "title": "7.1 Metropolis-Hastings 接受率",
+          "node_id": "0023",
+          "summary": "### 7.1 Metropolis-Hastings 接受率\n\n从配置 $\\mathcal{C}$ 到 $\\mathcal{C}'$ 的接受概率：\n\n$$\n\\boxed{\n\\begin{aligned}\nA(\\mathcal{C} \\to \\mathcal{C}') &= \\min\\bigl[1, \\, R(\\mathcal{C} \\to \\mathcal{C}')\\bigr],\n\\end{aligned}\n}\n$$\n\n接受比为\n\n$$\n\\boxed{\n\\begin{aligned}\nR(\\mathcal{C} \\to \\mathcal{C}') &= \\frac{W(\\mathcal{C}') \\, T_{0}(\\mathcal{C}' \\to \\mathcal{C})}\n                                  {W(\\mathcal{C}) \\, T_{0}(\\mathcal{C} \\to \\mathcal{C}')}.\n\\end{aligned}\n}\n$$",
+          "line_num": 495,
+          "line_end": 518,
           "source_md": "content/notes/wormhole-qmc-from-scratch.md"
         },
         {
-          "title": "12.2 Jaynes-Cummings 模型",
+          "title": "7.2 添加顶点的提议概率",
+          "node_id": "0024",
+          "summary": "### 7.2 添加顶点的提议概率\n\n提议添加一个新顶点的概率密度：\n\n$$\n\\begin{aligned}\nT_{0}(\\mathcal{C}_{n} \\to \\mathcal{C}_{n+1}) &=\n   \\frac{\\mathcal{I}(\\omega) \\, P(\\omega, \\tau - \\tau') \\, p_{t_{\\mathrm{int}}} \\, d\\omega \\, d\\tau \\, d\\tau'}\n        {\\beta (n + 1)}.\n\\end{aligned}\n$$\n\n分子中的 $\\mathcal{I}(\\omega) P(\\omega, \\tau - \\tau') d\\omega d\\tau d\\tau'$ 是按谱和传播子自身分布采样的概率密度。分母中 $n+1$ 来自新顶点插入有序列表的 $n+1$ 个可能位置。",
+          "line_num": 518,
+          "line_end": 532,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "7.3 删除顶点的提议概率",
           "node_id": "0025",
-          "summary": "### 12.2 Jaynes-Cummings 模型\n\n$$\n\\boxed{\n\\begin{aligned}\n\\hat{h}_{1}(\\tau, \\tau') &= \\frac{\\lambda_{xy}}{2} \\hat{S}_{+}(\\tau) \\hat{S}_{-}(\\tau'), \\\\[4pt]\n\\hat{h}_{2}(\\tau, \\tau') &= C + \\frac{h_{z}}{2} \\bigl[ \\hat{S}_{z}(\\tau) + \\hat{S}_{z}(\\tau') \\bigr].\n\\end{aligned}\n}\n$$\n\n顶点权重类似于 XXZ 情形，但 $\\lambda_{z} = 0$，$W_{5} = 0$（仅保留单一方向的 spin-flip 顶点）。",
-          "line_num": 648,
+          "summary": "### 7.3 删除顶点的提议概率\n\n从 $n_2 + 1$ 个对角顶点中均匀随机选择一个删除（$n_2$ 是当前配置中对角顶点的数量）：\n\n$$\n\\begin{aligned}\nT_{0}(\\mathcal{C}_{n+1} \\to \\mathcal{C}_{n}) &= \\frac{1}{n_{2} + 1}.\n\\end{aligned}\n$$",
+          "line_num": 532,
+          "line_end": 542,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "7.4 最终接受比",
+          "node_id": "0026",
+          "summary": "### 7.4 最终接受比\n\n权重之比：\n\n$$\n\\begin{aligned}\n\\frac{W_{\\alpha}(\\mathcal{C}_{n+1})}{W_{\\alpha}(\\mathcal{C}_{n})}\n&= \\frac{\\mathcal{I}(\\omega) \\, P(\\omega, \\tau - \\tau') \\, W_{v} \\, d\\omega \\, d\\tau \\, d\\tau'}{n + 1}.\n\\end{aligned}\n$$\n\n代入接受比公式，分子 $\\mathcal{I}(\\omega) P(\\omega, \\tau - \\tau') d\\omega d\\tau d\\tau'$ 与提议概率中的对应项抵消：\n\n$$\n\\boxed{\n\\begin{aligned}\nR_{\\mathrm{add}} &= \\frac{\\beta \\, W_{v}}{(n_{2} + 1) \\, p_{t_{\\mathrm{int}}}}, \\\\[6pt]\nR_{\\mathrm{remove}} &= \\frac{n_{2} \\, p_{t_{\\mathrm{int}}}}{\\beta \\, W_{v}}.\n\\end{aligned}\n}\n$$\n\n这里 $p_{t_{\\mathrm{int}}}$ 是选择相互作用类型的概率（若只有一种相互作用，$p_{t_{\\mathrm{int}}} = 1$）。",
+          "line_num": 542,
+          "line_end": 566,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "7.5 采样 $\\omega$ 和 $\\Delta\\tau$",
+          "node_id": "0027",
+          "summary": "### 7.5 采样 $\\omega$ 和 $\\Delta\\tau$  利用逆变换采样法从 $\\mathcal{I}(\\omega)$ 和 $P(\\omega, \\Delta\\tau)$ 抽取连续变量。  对幂律谱 $J(\\omega) = 2\\pi \\alpha \\omega_{c}^{1-s} \\omega^{s}$（$0 < \\omega < \\omega_{c}$），归一化谱分布为 $\\m",
+          "line_num": 566,
+          "line_end": 619,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        }
+      ]
+    },
+    {
+      "title": "8. Directed-Loop / Wormhole 更新",
+      "node_id": "0028",
+      "summary": "## 8. Directed-Loop / Wormhole 更新\n\nDirected-loop 更新通过扩展配置空间来连接两个需要大量局部更改的正则 MC 配置。全局细致平衡条件因 $W(\\mathcal{C}) \\propto \\prod_{p} \\mathcal{W}_{\\nu_p}$ 因子化而退化为每个顶点的局部条件。\n\n在扩展配置空间中，每个顶点被赋予一个入口腿 $l_1$ 和出口腿 $l_2$，相应权重记为 $W_{v}(l_1, l_2)$。",
+      "line_num": 619,
+      "line_end": 625,
+      "source_md": "content/notes/wormhole-qmc-from-scratch.md",
+      "nodes": [
+        {
+          "title": "8.1 局部细致平衡",
+          "node_id": "0029",
+          "summary": "### 8.1 局部细致平衡\n\n正向过程（顶点 $v$，入口 $l_1$，出口 $l_2$）和反向过程（顶点 $\\bar{v}$，入口 $l_2$，出口 $l_1$）的权重相等：\n\n$$\n\\boxed{\n\\begin{aligned}\nW_{v}(l_1, l_2) &= W_{\\bar{v}}(l_2, l_1).\n\\end{aligned}\n}\n$$\n\n其中 $\\bar{v}$ 是沿 loop 段翻转自旋后得到的顶点类型。",
+          "line_num": 625,
+          "line_end": 639,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "8.2 概率守恒",
+          "node_id": "0030",
+          "summary": "### 8.2 概率守恒\n\n从入口腿 $l_1$ 进入后，所有可能出口的总权重等于原始顶点权重：\n\n$$\n\\boxed{\n\\begin{aligned}\n\\sum_{l_2} W_{v}(l_1, l_2) &= W_{v}.\n\\end{aligned}\n}\n$$\n\n实际退出概率为\n\n$$\n\\boxed{\n\\begin{aligned}\nP(l_1 \\to l_2) &= \\frac{W_{v}(l_1, l_2)}{W_{v}}.\n\\end{aligned}\n}\n$$",
+          "line_num": 639,
           "line_end": 661,
           "source_md": "content/notes/wormhole-qmc-from-scratch.md"
         },
         {
-          "title": "12.3 原始自旋-玻色子模型 / Rabi 模型",
-          "node_id": "0026",
-          "summary": "### 12.3 原始自旋-玻色子模型 / Rabi 模型  $$ \\hat{H} = -h_{x} \\hat{S}_{x} + \\sum_{q} \\omega_{q} \\hat{a}_{q}^{\\dagger} \\hat{a}_{q}    \\;+\\; \\sum_{q} \\gamma_{q} (\\hat{a}_{q}^{\\dagger} + \\hat{a}_{q}) \\hat{S}_{z}. $",
+          "title": "8.3 求解线性系统",
+          "node_id": "0031",
+          "summary": "### 8.3 求解线性系统  以图 3(b) 的分配表为例，定义 bounce 权重 $b_1, b_2, b_3$ 和转移权重 $a, b, c$。概率守恒给出三个方程：  $$ \\boxed{ \\begin{aligned} b_{1} + a + b &= W_{1}, \\\\ a + b_{2} + c &= W_{2}, \\\\ b + c + b_{3} &= W_{5}. \\end{a",
           "line_num": 661,
-          "line_end": 685,
+          "line_end": 691,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "8.4 虫洞拓扑等价",
+          "node_id": "0032",
+          "summary": "### 8.4 虫洞拓扑等价  推迟相互作用顶点（图 3(a)）有四条腿：两条在虚时间 $\\tau$，两条在 $\\tau'$。若将 $\\tau'$ 处的子顶点放在 $\\tau$ 处子顶点的右侧，从拓扑上看  $$ \\begin{aligned} (\\tau, \\tau') \\quad \\longleftrightarrow \\quad (i, j), \\end{aligned} $$  即推迟顶点",
+          "line_num": 691,
+          "line_end": 712,
           "source_md": "content/notes/wormhole-qmc-from-scratch.md"
         }
       ]
     },
     {
-      "title": "13. 算法适用条件",
-      "node_id": "0027",
-      "summary": "## 13. 算法适用条件  该算法的适用范围由以下条件限定：  1. **玻色浴是二次型**：$\\hat{H}_{\\mathrm{b}} = \\sum_{\\mu} \\omega_{\\mu} \\hat{a}_{\\mu}^{\\dagger} \\hat{a}_{\\mu}$（或可对角化为此形式），否则 Wick 定理不适用。  2. **自旋-玻色耦合对 $\\hat{a}, \\hat{a}^{\\dagg",
-      "line_num": 685,
-      "line_end": 702,
+      "title": "9. 可观测量",
+      "node_id": "0033",
+      "summary": "## 9. 可观测量\n\n与标准世界线 QMC 方法一致。",
+      "line_num": 712,
+      "line_end": 716,
+      "source_md": "content/notes/wormhole-qmc-from-scratch.md",
+      "nodes": [
+        {
+          "title": "9.1 自旋关联函数",
+          "node_id": "0034",
+          "summary": "### 9.1 自旋关联函数\n\n$$\n\\boxed{\n\\begin{aligned}\nC_{\\ell}(\\tau - \\tau') &= \\langle \\hat{S}_{\\ell}(\\tau) \\hat{S}_{\\ell}(\\tau') \\rangle.\n\\end{aligned}\n}\n$$",
+          "line_num": 716,
+          "line_end": 726,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "9.2 磁化率",
+          "node_id": "0035",
+          "summary": "### 9.2 磁化率\n\n$$\n\\boxed{\n\\begin{aligned}\n\\chi_{\\ell}(\\mathrm{i}\\Omega_{m}) &=\n   \\frac{1}{\\beta} \\iint_{0}^{\\beta} d\\tau d\\tau' \\, e^{\\mathrm{i}\\Omega_{m}(\\tau - \\tau')} C_{\\ell}(\\tau - \\tau'),\n\\end{aligned}\n}\n$$\n\n其中 $\\Omega_{m} = 2\\pi m / \\beta$（$m \\in \\mathbb{Z}$）为玻色 Matsubara 频率。静态磁化率 $\\chi_{\\ell} = \\chi_{\\ell}(\\mathrm{i}\\Omega_{0})$。\n\n$z$ 分量（对角可观测量）直接从传播态 $|\\alpha_{p}\\rangle$ 读出；$x, y$ 分量（非对角可观测量）通过追踪 directed-loop 更新中 loop head/tail 的传播来测量。",
+          "line_num": 726,
+          "line_end": 741,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        },
+        {
+          "title": "9.3 平均展开阶数",
+          "node_id": "0036",
+          "summary": "### 9.3 平均展开阶数\n\n平均展开阶数与自旋子系统能量相关：\n\n$$\n\\langle n \\rangle = -\\beta \\langle \\hat{H}_{\\mathrm{s}} + \\hat{H}_{\\mathrm{sb}} \\rangle.\n$$\n\n玻色可观测量（bath 能量、传播子、比热）可从高阶自旋-自旋关联函数通过生成泛函恢复。\n\n---",
+          "line_num": 741,
+          "line_end": 753,
+          "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+        }
+      ]
+    },
+    {
+      "title": "10. 适用性条件与无符号问题的边界",
+      "node_id": "0037",
+      "summary": "## 10. 适用性条件与无符号问题的边界  该算法的适用范围由以下条件限定：  1. **玻色浴是二次型**：$\\hat{H}_{\\mathrm{b}} = \\sum_{\\mu} \\omega_{\\mu} \\hat{a}_{\\mu}^{\\dagger} \\hat{a}_{\\mu}$（或可对角化为此形式）。若非二次型，Wick 定理不适用，无法解析积掉玻色子。  2. **自旋-玻色耦合对 $\\h",
+      "line_num": 753,
+      "line_end": 767,
+      "source_md": "content/notes/wormhole-qmc-from-scratch.md"
+    },
+    {
+      "title": "11. 与 Rabi 鞍点方法的比较",
+      "node_id": "0038",
+      "summary": "## 11. 与 Rabi 鞍点方法的比较  wormhole QMC 和 Rabi 模型的鞍点方法（如变分法、平均场理论）处理的是同一类问题，但原理截然不同：  | 方面 | wormhole QMC | 鞍点方法 | |------|-------------|---------| | 处理 bath | 精确解析积分（Wick + 重指数化） | 变分/鞍点近似 | | 适用范围 | 任意耦",
+      "line_num": 767,
+      "line_end": 785,
       "source_md": "content/notes/wormhole-qmc-from-scratch.md"
     }
   ]
