@@ -722,4 +722,4 @@ Schneider, 和 A. Weiße (Springer, Berlin, Heidelberg, 2008), 第 357–366 页
 
 ### 延伸阅读
 
-- **[利用虫洞更新进行自旋-玻色子模型的量子蒙特卡洛模拟](/papers/weber2022-wormhole-qmc-spin-boson/)** — Weber（2022）提出精确连续时间量子蒙特卡洛方法，通过非局域虫洞更新模拟耗散玻色子浴耦合的自旋系统。
+- **[利用虫洞更新进行自旋-玻色子模型的量子蒙特卡洛模拟](/papers/weber2022-qmc-spin-boson-wormhole/)** — Weber（2022）提出精确连续时间量子蒙特卡洛方法，通过非局域虫洞更新模拟耗散玻色子浴耦合的自旋系统。
