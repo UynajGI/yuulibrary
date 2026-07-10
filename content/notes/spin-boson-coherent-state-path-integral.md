@@ -398,13 +398,13 @@ $$
 
 ## 6. 联合自旋-玻色路径积分
 
-> **严格性说明**：下文的连续时间表达式应理解为继承了离散时间切片处方的记号简写。真正的严格对象是有限 $M$ 片、步长 $\varepsilon=\beta/M$ 的离散时间路径积分——在这一层次上，玻色场的高斯积分是严格成立的。连续极限 $M\to\infty$ 在积掉玻色场之后再取。推导逻辑链为：
->
-> $$
-> \boxed{\text{先离散}\;\to\;\text{积掉玻色场}\;\to\;\text{再取连续极限}}
-> $$
->
-> 若先将所有协变符号替换为同一时刻的对角符号再声称完全严格，对含 $J_z^2$ 或非线性自旋项的模型可能产生异常（Solari–Kochetov 修正，见 [arXiv:1012.1328](https://arxiv.org/abs/1012.1328)）。
+**严格性说明**：下文的连续时间表达式应理解为继承了离散时间切片处方的记号简写。真正的严格对象是有限 $M$ 片、步长 $\varepsilon=\beta/M$ 的离散时间路径积分——在这一层次上，玻色场的高斯积分是严格成立的。连续极限 $M\to\infty$ 在积掉玻色场之后再取。推导逻辑链为：
+
+$$
+\boxed{\text{先离散}\;\to\;\text{积掉玻色场}\;\to\;\text{再取连续极限}}
+$$
+
+若先将所有协变符号替换为同一时刻的对角符号再声称完全严格，对含 $J_z^2$ 或非线性自旋项的模型可能产生异常（Solari–Kochetov 修正，见 [arXiv:1012.1328](https://arxiv.org/abs/1012.1328)）。
 
 ### 6.1 连续极限作用量
 
@@ -491,32 +491,32 @@ $$
 
 这是全文最关键的一步：把每个玻色模式的高斯积分做掉。
 
-> **离散到连续的桥梁**：在 $M$ 片时间切片中，令指标模 $M$ 周期识别（$\phi_M=\phi_0$），玻色离散作用量可写成矩阵形式：
->
-> $$
-> \boxed{
-> \begin{aligned}
-> S_{\mathrm b}^{(M)} =
-> \sum_{j=0}^{M-1}
-> \Big[
-> &\bar\phi_j\phi_j - (1-\varepsilon\omega)\bar\phi_j\phi_{j-1} \\
-> &+ \varepsilon\bar\phi_j \varrho^{j,j-1} + \varepsilon \varrho^{\dagger,j,j-1} \phi_{j-1}
-> \Big].
-> \end{aligned}
-> }
-> $$
->
-> 写成 $\bar{\boldsymbol\phi}A^{(M)}\boldsymbol\phi + \bar{\boldsymbol\phi}\boldsymbol\eta + \bar{\boldsymbol\eta}\boldsymbol\phi$，有限维复高斯积分严格给出
->
-> $$
-> \boxed{
-> \int d\bar{\boldsymbol\phi}\,d\boldsymbol\phi\, e^{-S_{\mathrm b}^{(M)}} =
-> \frac{1}{\det A^{(M)}}
-> \exp\left[\bar{\boldsymbol\eta}(A^{(M)})^{-1}\boldsymbol\eta\right].
-> }
-> $$
->
-> 最后取 $M\to\infty$ 极限：$(A^{(M)})^{-1}\to D_\omega(\tau-\tau')$，$[\det A^{(M)}]^{-1}\to Z_{\mathrm b}^{(0)}$（或等价地 $\det A^{(M)}\to 1-e^{-\beta\omega}=1/Z_{\mathrm b}^{(0)}$）。下文在继承此离散处方的连续记号中完成推导。
+**离散到连续的桥梁**：在 $M$ 片时间切片中，令指标模 $M$ 周期识别（$\phi_M=\phi_0$），玻色离散作用量可写成矩阵形式：
+
+$$
+\boxed{
+\begin{aligned}
+S_{\mathrm b}^{(M)} =
+\sum_{j=0}^{M-1}
+\Big[
+&\bar\phi_j\phi_j - (1-\varepsilon\omega)\bar\phi_j\phi_{j-1} \\
+&+ \varepsilon\bar\phi_j \varrho^{j,j-1} + \varepsilon \varrho^{\dagger,j,j-1} \phi_{j-1}
+\Big].
+\end{aligned}
+}
+$$
+
+写成 $\bar{\boldsymbol\phi}A^{(M)}\boldsymbol\phi + \bar{\boldsymbol\phi}\boldsymbol\eta + \bar{\boldsymbol\eta}\boldsymbol\phi$，有限维复高斯积分严格给出
+
+$$
+\boxed{
+\int d\bar{\boldsymbol\phi}\,d\boldsymbol\phi\, e^{-S_{\mathrm b}^{(M)}} =
+\frac{1}{\det A^{(M)}}
+\exp\left[\bar{\boldsymbol\eta}(A^{(M)})^{-1}\boldsymbol\eta\right].
+}
+$$
+
+最后取 $M\to\infty$ 极限：$(A^{(M)})^{-1}\to D_\omega(\tau-\tau')$，$[\det A^{(M)}]^{-1}\to Z_{\mathrm b}^{(0)}$（或等价地 $\det A^{(M)}\to 1-e^{-\beta\omega}=1/Z_{\mathrm b}^{(0)}$）。下文在继承此离散处方的连续记号中完成推导。
 
 ### 7.1 配平方
 
@@ -2256,13 +2256,13 @@ $$
 
 它不是 $|\tau|^{-1-s}$，而是**带方向的** $\Theta(\tau)\tau^{-1-s}$。这正是 JC 与 Rabi/XXZ 在积去玻色子后最根本的差别：前者的推迟核在虚时间热圆周上保持有向的算符排序结构，后者的推迟核在时间上对称。
 
-> **幂律近似的适用范围**：上述推导在硬截止谱下将积分上限从 $\omega_c$ 延伸到 $\infty$，是长时间近似，要求
->
-> $$
-> \boxed{\omega_c^{-1} \ll |\tau| \ll \beta}
-> $$
->
-> 零温时则为 $\omega_c^{-1}\ll|\tau|$。有限温度下虚时间是圆，最大无向距离只有 $\beta/2$，不存在无限大的 $|\tau|$——因此有限温幂律尾部应在 $|\tau|\sim\beta/2$ 处截断。此外，$s>-1$ 保证 Laplace 积分在低频可积；若还要求静态位移 $\int_0^\infty d\omega\,J(\omega)/\omega$ 收敛，通常需要更强的红外条件（如 $s>0$ 的 Ohmic 族）。
+**幂律近似的适用范围**：上述推导在硬截止谱下将积分上限从 $\omega_c$ 延伸到 $\infty$，是长时间近似，要求
+
+$$
+\boxed{\omega_c^{-1} \ll |\tau| \ll \beta}
+$$
+
+零温时则为 $\omega_c^{-1}\ll|\tau|$。有限温度下虚时间是圆，最大无向距离只有 $\beta/2$，不存在无限大的 $|\tau|$——因此有限温幂律尾部应在 $|\tau|\sim\beta/2$ 处截断。此外，$s>-1$ 保证 Laplace 积分在低频可积；若还要求静态位移 $\int_0^\infty d\omega\,J(\omega)/\omega$ 收敛，通常需要更强的红外条件（如 $s>0$ 的 Ohmic 族）。
 
 ---
 
