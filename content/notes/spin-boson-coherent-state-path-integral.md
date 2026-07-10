@@ -13,9 +13,11 @@ weight: 5
 
 线性自旋-玻色耦合模型是量子耗散、量子光学（Rabi、Jaynes–Cummings）和量子磁性（XXZ spin-boson）的共同框架。它的核心结构可以一句话概括：一个（或少数几个）自旋自由度，通过一个对玻色算符**线性**的耦合项，与一个自由玻色浴相互作用。
 
-对这种模型，有一条解析上完全严格的化简路线：**用玻色相干态和自旋相干态把配分函数写成联合路径积分，然后把所有玻色自由度高斯积掉**，得到一个只含自旋相干态变量、但带有长程虚时间相互作用的"有效自旋理论"。本文按这条路线完整推导一遍，不做任何模型特殊化；最后再把 $\hat\varrho_\mu$ 分别代入 Rabi、JC、XXZ，看看三类耦合如何给出不同的有效作用量。
+> **本文范围**：下面的推导插入单个自旋相干态 $|z\rangle$，因此严格对应**单个自旋**或已限制到固定总自旋 $S$ 表示中的**集体自旋**。多自旋推广需要 $\bigotimes_i|z_i\rangle$ 和相应的多自旋 Berry 项，见第 1.1 节末尾的说明。
 
-为什么这件事值得单独写一篇？因为整条推导只依赖两个条件——$\hat H_{\mathrm b}$ 对玻色场是二次型、$\hat H_{\mathrm{sb}}$ 对 $\hat a_\mu,\hat a_\mu^\dagger$ 是线性的——只要满足这两个条件，浴积分就能解析完成。剩下真正决定模型差异的只有一个判据：耦合算符 $\hat\varrho_\mu$ 是不是厄米的（$\hat\varrho_\mu^\dagger=\hat\varrho$ 还是 $\hat\varrho_\mu^\dagger\neq\hat\varrho_\mu$）。这个判据决定了玻色传播子能否对称化，进而决定了有效自旋作用量的结构。
+对这种模型，有一条在有限时间切片层面严格的化简路线：**用玻色相干态和自旋相干态把配分函数写成联合路径积分，然后把所有玻色自由度高斯积掉**，得到一个只含自旋相干态变量、但带有长程虚时间相互作用的"有效自旋理论"。在离散时间切片层面，玻色积分归结为有限维复高斯积分；本文的连续时间作用量是该离散结果的记号简写。下文按这条路线完整推导一遍，不做任何模型特殊化；最后再把 $\hat\varrho_\mu$ 分别代入 Rabi、JC、XXZ，看看三类耦合如何给出不同的有效作用量。
+
+为什么这件事值得单独写一篇？因为整条推导只依赖两个条件——$\hat H_{\mathrm b}$ 对玻色场是二次型、$\hat H_{\mathrm{sb}}$ 对 $\hat a_\mu,\hat a_\mu^\dagger$ 是线性的——只要满足这两个条件，浴积分就能解析完成。耦合算符 $\hat\varrho_\mu$ 是否厄米（$\hat\varrho_\mu^\dagger=\hat\varrho$ 还是 $\hat\varrho_\mu^\dagger\neq\hat\varrho_\mu$）是一个方便的一阶判据：它直接决定了玻色传播子能否对称化，进而决定了有效自旋作用量的结构。但模型的差异不止于此——对称性（$\mathbb Z_2$、$U(1)$）、耦合矩阵的秩、谱的红外结构等同样关键，后续各节会逐一展开。
 
 ---
 
@@ -53,6 +55,8 @@ $$
 $$
 
 我们的目标是同时插入玻色相干态和自旋相干态，把配分函数写成联合路径积分，然后精确积掉玻色场，得到只含自旋相干态变量的配分函数。
+
+> **多自旋推广**：若 $\hat H_{\mathrm s}$ 含多个自旋间的交换作用，则需要为每个自旋插入独立的相干态 $|z_i\rangle$，测度变为 $\prod_i\mathcal D\mu_{S_i}[\bar z_i,z_i]$，Berry 项变为 $\sum_i S_i\int d\tau\,\frac{\bar z_i\dot z_i-\dot{\bar z}_iz_i}{1+\bar z_iz_i}$。本文以下推导均针对单自旋或集体自旋情形，多自旋推广在形式上直接但记号更繁。
 
 ---
 
@@ -131,7 +135,9 @@ $$
 }
 $$
 
-需要注意，自旋相干态**并非任意两态都不正交**。当 $1+\bar z' z=0$ 时，它们对应 Bloch 球上的对跖点，重叠为零。但路径积分真正依赖的是相邻时间片的光滑性：只要 $z_{j+1}-z_j=O(\varepsilon)$，就有 $\langle z_{j+1}|z_j\rangle\to 1$，并不要求所有自旋相干态之间的重叠都非零。这正是路径积分只在相邻时间片上做短时间展开、而非同时对比相距很远的两个态的原因。
+需要注意，自旋相干态**并非任意两态都不正交**。当 $1+\bar z' z=0$ 时，它们对应 Bloch 球上的对跖点，重叠为零。但路径积分真正依赖的是相邻时间片的行为：对连续的经典路径或鞍点路径，$z_{j+1}-z_j=O(\varepsilon)$ 保证了 $\langle z_{j+1}|z_j\rangle\to 1$，从而可以作短时间展开。然而**精确量子路径积分中的典型路径不必光滑**——连续导数形式只是离散极限的形式表达，不应把所有被积路径预先限制为光滑路径。
+
+另外，单一立体投影坐标 $z$ 在南极（$z\to\infty$）奇异。对于穿过南极的闭合路径，需要南北两个坐标片或直接用 $\mathbf n(\tau)$ 和 Wess–Zumino 曲面表示。此时两个坐标片给出的 Berry 项之差为 $\mathcal A_1-\mathcal A_2=4\pi k$，但 $e^{-iS\cdot 4\pi k}=1$（因为 $2S\in\mathbb Z$），因此配分函数仍是良定义的。这一规范单值性在第 5.2 节进一步讨论。
 
 ---
 
@@ -375,7 +381,9 @@ S\int_0^\beta d\tau\,
 }
 $$
 
-这个量是纯虚数。在 Bloch 球语言中，记自旋相干态对应的单位向量为 $\mathbf n(\tau)$（北极 $z=0$、南极 $z\to\infty$），它可以写成
+在原始物理积分轮廓 $\bar z(\tau)=z(\tau)^*$（即路径位于真实 Bloch 球上）时，这个量是纯虚数。但在复鞍点、瞬子计算、或将 $z,\bar z$ 作为独立变量处理时，Berry 项不一定保持纯虚——复化鞍点分析中不应继续使用这一结论。
+
+在 Bloch 球语言中，记自旋相干态对应的单位向量为 $\mathbf n(\tau)$（北极 $z=0$、南极 $z\to\infty$），它可以写成
 
 $$
 S_{\mathrm B}^{\mathrm{spin}} =
@@ -384,11 +392,19 @@ $$
 
 其中 $\mathcal A[\mathbf n]$ 是闭合路径 $\mathbf n(\tau)$ 在单位球面上所围的**有向立体角**。整体正负号依赖于生成约定（$e^{zJ_-}|S,S\rangle$ 还是 $e^{zJ_+}|S,-S\rangle$）以及所选的局部规范。
 
-**需要纠正一个常见误解**：一般闭合路径的立体角并不是 $4\pi k$。任意闭合曲线都可以围出连续取值的立体角。只有使用不同曲面填充**同一条**闭合曲线时，两种立体角之间的差才是 $4\pi k$（$k\in\mathbb Z$）。因此自旋 Berry 相一般不能直接忽略——它贡献的是纯虚相位，会真实地影响配分函数的干涉结构。
+**需要纠正一个常见误解**：一般闭合路径的立体角并不是 $4\pi k$。任意闭合曲线都可以围出连续取值的立体角。只有使用不同曲面填充**同一条**闭合曲线时，两种立体角之间的差才是 $4\pi k$（$k\in\mathbb Z$）。这个 $4\pi k$ 的规范单值性也保证了 $z$ 坐标在南极的奇异性不会破坏配分函数的良定性：换用不同坐标片时，Berry 项的差为 $4\pi k S$，而 $e^{-i\cdot 4\pi k S}=1$（因为 $2S\in\mathbb Z$）。因此自旋 Berry 相一般不能直接忽略——它贡献的是纯虚相位，会真实地影响配分函数的干涉结构。
 
 ---
 
 ## 6. 联合自旋-玻色路径积分
+
+> **严格性说明**：下文的连续时间表达式应理解为继承了离散时间切片处方的记号简写。真正的严格对象是有限 $M$ 片、步长 $\varepsilon=\beta/M$ 的离散时间路径积分——在这一层次上，玻色场的高斯积分是严格成立的。连续极限 $M\to\infty$ 在积掉玻色场之后再取。推导逻辑链为：
+>
+> $$
+> \boxed{\text{先离散}\;\to\;\text{积掉玻色场}\;\to\;\text{再取连续极限}}
+> $$
+>
+> 若先将所有协变符号替换为同一时刻的对角符号再声称完全严格，对含 $J_z^2$ 或非线性自旋项的模型可能产生异常（Solari–Kochetov 修正，见 [arXiv:1012.1328](https://arxiv.org/abs/1012.1328)）。
 
 ### 6.1 连续极限作用量
 
@@ -467,11 +483,40 @@ $$
 
 关键观察：**每个玻色模式都只以二次型和线性源项出现**。其中 $\varrho_\mu,\varrho_\mu^\dagger$ 对玻色积分而言只是外部源（它们是 $z(\tau)$ 的函数）。因此玻色路径积分是严格的高斯泛函积分，可以解析完成。
 
+> **可逆性条件**：高斯积分要求 $L_\mu=\partial_\tau+\omega_\mu$ 在周期函数空间上可逆，这要求 $\omega_\mu>0$。若存在严格零模（$\omega_\mu=0$），则 $Z_{\mathrm b}^{(0)}$ 发散且 $L_\mu^{-1}$ 无定义，需单独处理。连续谱延伸到 $\omega\to 0$ 时，还需检查红外收敛性。
+
 ---
 
 ## 7. 精确积去玻色相干态
 
 这是全文最关键的一步：把每个玻色模式的高斯积分做掉。
+
+> **离散到连续的桥梁**：在 $M$ 片时间切片中，令指标模 $M$ 周期识别（$\phi_M=\phi_0$），玻色离散作用量可写成矩阵形式：
+>
+> $$
+> \boxed{
+> \begin{aligned}
+> S_{\mathrm b}^{(M)} =
+> \sum_{j=0}^{M-1}
+> \Big[
+> &\bar\phi_j\phi_j - (1-\varepsilon\omega)\bar\phi_j\phi_{j-1} \\
+> &+ \varepsilon\bar\phi_j \varrho^{j,j-1} + \varepsilon \varrho^{\dagger,j,j-1} \phi_{j-1}
+> \Big].
+> \end{aligned}
+> }
+> $$
+>
+> 写成 $\bar{\boldsymbol\phi}A^{(M)}\boldsymbol\phi + \bar{\boldsymbol\phi}\boldsymbol\eta + \bar{\boldsymbol\eta}\boldsymbol\phi$，有限维复高斯积分严格给出
+>
+> $$
+> \boxed{
+> \int d\bar{\boldsymbol\phi}\,d\boldsymbol\phi\, e^{-S_{\mathrm b}^{(M)}} =
+> \frac{1}{\det A^{(M)}}
+> \exp\left[\bar{\boldsymbol\eta}(A^{(M)})^{-1}\boldsymbol\eta\right].
+> }
+> $$
+>
+> 最后取 $M\to\infty$ 极限：$(A^{(M)})^{-1}\to D_\omega(\tau-\tau')$，$\det A^{(M)}\to Z_{\mathrm b}^{(0)}$。下文在继承此离散处方的连续记号中完成推导。
 
 ### 7.1 配平方
 
@@ -495,6 +540,8 @@ L_\mu^{-1}\varrho_\mu,
 \bar\phi_\mu +
 \varrho_\mu^\dagger L_\mu^{-1}.
 $$
+
+> **独立变量说明**：在相干态泛函积分中，$\phi$ 与 $\bar\phi$ 在高斯积分和复轮廓延拓意义下作为**独立变量**处理——因此第二个平移并非第一个的复共轭。完成积分后，原始积分轮廓才对应 $\bar\phi=\phi^*$。此外，平移后的场仍满足周期边界条件，因为 $L_\mu^{-1}$ 是周期逆算符，而自旋源 $\varrho_\mu(\tau)$ 也是周期的。
 
 验证配平方：
 
@@ -793,6 +840,36 @@ $$
 
 注意传播子是**有方向的**：一般地 $D_\mu(\tau-\tau')\neq D_\mu(\tau'-\tau)$。这个方向性来自玻色相干态几何项 $\bar\phi\,\partial_\tau\phi$ 的一阶导数结构——下一节会看到，它决定了能否对称化。
 
+### 9.3 等时跳跃与时间切片处方
+
+传播子在 $\tau=0$ 处存在跳跃。由分段形式直接读出：
+
+$$
+\boxed{
+D_\mu(0^+) = 1 + n_B(\omega_\mu),
+\qquad
+D_\mu(0^-) = n_B(\omega_\mu),
+}
+$$
+
+因此
+
+$$
+\boxed{
+D_\mu(0^+) - D_\mu(0^-) = 1.
+}
+$$
+
+这个跳跃正是 $(\partial_\tau+\omega_\mu)D_\mu(\tau)=\delta_\beta(\tau)$ 成立的原因——对 $\delta_\beta$ 积分时，阶跃来自 $\partial_\tau$ 作用在 $D_\mu$ 在 $\tau=0$ 的间断上。
+
+**等时处方对以下情形不可省略**：
+- 离散时间推导中，$\tau=\tau'$ 的顶点位于同一时间片；
+- 正常序问题与等时自收缩；
+- QMC 顶点位于同一虚时间；
+- 从 Matsubara 频率表达式恢复时间核。
+
+在实际计算中，当 $\tau=\tau'$ 时需根据时间切片约定选取 $D_\mu(0^+)$ 或 $D_\mu(0^-)$。本文后续双时间积分均理解为 $\tau\neq\tau'$ 的情形，等时点为零测集，不影响连续积分值。
+
 ---
 
 ## 10. 传播子的对称化判据
@@ -857,7 +934,7 @@ D_\mu(-\Delta\tau)
 }
 $$
 
-代入 $D_\mu$ 的分段形式，对 $0\le|\Delta\tau|_\beta\le\beta$ 有
+代入 $D_\mu$ 的分段形式，对 $0\le d_\beta(\Delta\tau)\le\beta/2$ 有
 
 $$
 \boxed{
@@ -867,7 +944,7 @@ D_{\mu,+}(\Delta\tau) =
 \omega_\mu
 \left(
 \frac{\beta}{2} -
-|\Delta\tau|_\beta
+d_\beta(\Delta\tau)
 \right)
 \right]
 }{
@@ -888,7 +965,7 @@ D_{0,\mu}(\Delta\tau) =
 \omega_\mu
 \left(
 \frac{\beta}{2} -
-|\Delta\tau|_\beta
+d_\beta(\Delta\tau)
 \right)
 \right]
 }{
@@ -907,9 +984,36 @@ $$
 
 所以文献中常见的两种写法——$D_+={\cosh}/{(2\sinh)}$ 与 $D_0={\cosh}/{\sinh}$——并不矛盾。区别只是因子 $1/2$ 放在核内部还是作用量外部。
 
+> **注意**：以上讨论假设所有文献采用相同的玻色场归一化和相同的谱函数定义。若使用不同坐标归一化（如 $X=a+a^\dagger$、$q=(a+a^\dagger)/\sqrt{2\omega}$、或 $q=(a+a^\dagger)/\sqrt{2m\omega}$），核中还会出现额外的 $\omega$ 或质量因子，不能简单归约为因子 $1/2$ 的放置位置。
+
+### 10.4 Matsubara 频率表示
+
+在频域中，传播子的方向性、对称化和因子关系都变得透明。取玻色 Matsubara 频率 $\nu_n=2\pi n/\beta$，在约定 $\phi(\tau)\sim e^{-i\nu_n\tau}$ 下：
+
+$$
+\boxed{
+D_\omega(i\nu_n) = \frac{1}{\omega - i\nu_n}.
+}
+$$
+
+于是对称核与反对称核为：
+
+$$
+\boxed{
+D_{\omega,+}(i\nu_n) = \frac{\omega}{\omega^2 + \nu_n^2},
+\qquad
+D_{\omega,-}(i\nu_n) = \frac{i\nu_n}{\omega^2 + \nu_n^2}.
+}
+$$
+
+频域视角立刻揭示了模型分类的物理实质：
+- **Rabi / 坐标耦合**：厄米耦合只保留偶频部分 $D_{\omega,+}$（$\nu_n$ 的偶函数）；
+- **JC**：非厄米耦合同时包含偶频和奇频结构，$D_{\omega,-}$ 正是方向性的频域来源；
+- $D_{\omega,-}$ 在 $\nu_n\to 0$ 时消失，因此静态极限下方向性减弱——这与高温下所有模型趋同的事实一致。
+
 ---
 
-## 11. Berry 项的个数
+## 11. 几何一阶项：积掉玻色场前后的去向
 
 在积去玻色场之前，联合路径积分中的几何项为
 
@@ -987,107 +1091,48 @@ $$
 
 ### 12.1 共同起点（代入前回顾）
 
-考虑
+有效作用量与传播子已在第 8–10 节完整推导，这里只摘要结论以便代入具体模型。配分函数为
 
 $$
-\hat H =
-\hat H_{\mathrm s} +
-\sum_\mu\omega_\mu\hat a_\mu^\dagger\hat a_\mu +
-\sum_\mu
-\left(
-\hat a_\mu^\dagger\hat\varrho_\mu +
-\hat\varrho_\mu^\dagger \hat a_\mu
-\right).
+Z = Z_{\mathrm b}^{(0)}
+\int_{\mathrm{PBC}} \mathcal D\mu_S[\bar z,z]\,
+e^{-S_{\mathrm{eff}}[\bar z,z]},
+\qquad
+S_{\mathrm{eff}} =
+S_{\mathrm B}^{\mathrm{spin}} + \int h_{\mathrm s} -
+\sum_\mu \iint \varrho_\mu^\dagger(\tau) D_{\omega_\mu}(\tau-\tau') \varrho_\mu(\tau').
 $$
 
-积去玻色相干态之后，得到
+传播子 $D_\omega(\tau)=(\partial_\tau+\omega)^{-1}$ 在第 9 节已给出分段形式和 KMS 周期性，对称核 $D_{\omega,+}$ 在第 10 节已定义。此处仅引入后续讨论所需的周期距离记号。
 
-$$
-\boxed{
-Z =
-Z_{\mathrm b}^{(0)}
-\int_{\mathrm{PBC}}
-\mathcal D\mu_S[\bar z,z]\,
-e^{-S_{\mathrm{eff}}[\bar z,z]}
-}
-$$
+**周期距离记号**。对虚时间差 $\Delta\tau$，区分两个量：
 
-其中
+- **有向余数** $u_\beta(\Delta\tau)\equiv \Delta\tau\bmod\beta$，满足 $0\le u_\beta<\beta$；
+- **无向周期距离** $d_\beta(\Delta\tau)\equiv\min\bigl[u_\beta(\Delta\tau),\,\beta-u_\beta(\Delta\tau)\bigr]$，满足 $0\le d_\beta\le\beta/2$。
 
-$$
-\boxed{
-\begin{aligned}
-S_{\mathrm{eff}}
-={}&
-S_{\mathrm B}^{\mathrm{spin}} +
-\int_0^\beta d\tau\,
-h_{\mathrm s}(\tau)
-\\
-&-
-\sum_\mu
-\int_0^\beta d\tau
-\int_0^\beta d\tau'\,
-\varrho_\mu^\dagger(\tau)
-D_{\omega_\mu}(\tau-\tau')
-\varrho_\mu(\tau').
-\end{aligned}
-}
-$$
-
-这里 $S_{\mathrm B}^{\mathrm{spin}}=S\int_0^\beta d\tau\,\frac{\bar z\dot z-\dot{\bar z}z}{1+\bar z z}$ 是自旋 Berry 项，而 $D_\omega(\tau-\tau')=(\partial_\tau+\omega)^{-1}$ 是有方向的玻色传播子。
-
-定义周期距离 $|\Delta\tau|_\beta\equiv \Delta\tau\bmod\beta$（$0\le|\Delta\tau|_\beta<\beta$），则
+于是**有向传播子**用有向余数写出：
 
 $$
 \boxed{
 D_\omega(\Delta\tau) =
-\frac{
-e^{-\omega|\Delta\tau|_\beta}
-}{
-1-e^{-\beta\omega}
-}
+\frac{e^{-\omega\,u_\beta(\Delta\tau)}}{1-e^{-\beta\omega}},
 }
 $$
 
-或者写成分段形式：
-
-$$
-\boxed{
-D_\omega(\Delta\tau) =
-\begin{cases}
-(1+n_B)e^{-\omega\Delta\tau},
-&0<\Delta\tau<\beta,
-\\[4pt]
-n_B\,e^{-\omega\Delta\tau},
-&-\beta<\Delta\tau<0,
-\end{cases}
-}
-$$
-
-其中 $n_B(\omega)=1/(e^{\beta\omega}-1)$。对称传播子定义为
+而**对称传播子**用无向距离写出：
 
 $$
 \boxed{
 D_{\omega,+}(\Delta\tau) =
-\frac12
-\left[
-D_\omega(\Delta\tau) +
-D_\omega(-\Delta\tau)
-\right] =
 \frac{
-\cosh\left[
-\omega\left(
-\frac{\beta}{2} -
-|\Delta\tau|_\beta
-\right)
-\right]
+\cosh\left[\omega\left(\frac{\beta}{2} - d_\beta(\Delta\tau)\right)\right]
 }{
 2\sinh(\beta\omega/2)
 }.
 }
 $$
 
-还可以定义 $D_{0,\omega}\equiv 2D_{\omega,+}$。
+> **旧版记号勘误**：此前版本用 $|\Delta\tau|_\beta$ 同时表示有向余数和无向距离，这是不规范的。本文自此以下统一使用 $u_\beta$（有向）和 $d_\beta$（无向）。
 
 ### 12.2 自旋相干态符号
 
@@ -1120,9 +1165,7 @@ $$
 
 ---
 
-**第二部分：离散单模情形。** 下面把 $\hat\varrho_\mu$ 分别代入 Rabi、JC、XXZ 的单模版本。"单模"对 Rabi 和 JC 是一个玻色振子；对 XXZ 是每个分量耦合到独立的单模通道。
-
-这里"单模"对 Rabi 和 JC 是一个玻色振子。对于 XXZ，若要求得到严格的 $J_xJ_x+J_yJ_y+\Delta J_zJ_z$ 结构，就必须让不同自旋分量耦合到彼此独立的玻色通道。因此"单模 XXZ"更准确地说是：**每个独立耦合通道只有一个模式**。否则，一个共同模式同时耦合 $J_x,J_y,J_z$ 会产生交叉项（见 §15.3）。
+**第二部分：离散单模情形。** 下面把 $\hat\varrho_\mu$ 分别代入 Rabi、JC、XXZ 的单模版本。"单模"对 Rabi 和 JC 是一个玻色振子；对 XXZ，若要求得到对角结构，需让不同自旋分量耦合到彼此独立的玻色通道——因此"单模 XXZ"更准确地说：**每个独立耦合通道只有一个模式**（否则一个共同模式同时耦合多分量会产生交叉项，见 §15.3）。
 
 ## 13. 单模 Rabi
 
@@ -1374,13 +1417,75 @@ $$
 
 这说明 **JC 的核在零温下仍然是有方向的**——这是 JC 与 Rabi/XXZ 最根本的差别。
 
+### 14.4 JC 推迟项的 $D_+/D_-$ 完整分解
+
+"不能对称化"并不意味着不能分解。定义反对称传播子
+
+$$
+\boxed{
+D_{\omega,-}(\Delta\tau) \equiv
+\frac12\left[D_\omega(\Delta\tau) - D_\omega(-\Delta\tau)\right],
+}
+$$
+
+其 Matsubara 表示为 $D_{\omega,-}(i\nu_n)=i\nu_n/(\omega^2+\nu_n^2)$（见 §10.4）。则可以将 JC 推迟项严格分解为对称部分与反对称部分：
+
+$$
+\boxed{
+\begin{aligned}
+I_{\mathrm{JC}}
+&=
+\iint s_+(\tau) D_\omega(\tau-\tau') s_-(\tau')
+\\
+&=
+\frac12 \iint
+\left[s_+(\tau)s_-(\tau') + s_+(\tau')s_-(\tau)\right]
+D_{\omega,+}(\tau-\tau')
+\\
+&\quad +
+\frac12 \iint
+\left[s_+(\tau)s_-(\tau') - s_+(\tau')s_-(\tau)\right]
+D_{\omega,-}(\tau-\tau').
+\end{aligned}
+}
+$$
+
+用 $s_x,s_y$ 写出更为透明。利用 $s_\pm = s_x \pm i s_y$：
+
+$$
+\boxed{
+\begin{aligned}
+I_{\mathrm{JC}}
+=&
+\iint D_{\omega,+}(\tau-\tau')
+\Big[s_x(\tau)s_x(\tau') + s_y(\tau)s_y(\tau')\Big]
+\\
+&+
+i\iint D_{\omega,-}(\tau-\tau')
+\Big[s_y(\tau)s_x(\tau') - s_x(\tau)s_y(\tau')\Big].
+\end{aligned}
+}
+$$
+
+因此 **JC 并非完全不能分解为对称核——而是不能只保留对称核**。它包含两项：
+- **对称的横向交换项**（由 $D_+$ 控制），形式上与 XXZ 的 $J_xJ_x+J_yJ_y$ 部分完全相同；
+- **反对称有向项**（由 $D_-$ 控制），携带 $s_x,s_y$ 之间的反对称时序结构，是 JC 独有的。
+
+零温下 $D_-$ 仍然非零（$\lim_{\beta\to\infty} D_{\omega,-}(i\nu_n) = i\nu_n/(\omega^2+\nu_n^2)$），因此即使 $T=0$，反对称部分也存活。这比单纯说"不能对称化"更精确：**JC 与横向 XXZ 的差别在于多了由 $D_-$ 控制的反对称有向项**。
+
+另外，沿物理积分轮廓 $\bar z=z^*$，$s_x,s_y$ 为实数，因此 $D_+$ 项为实数，而 $D_-$ 项（前面带有 $i$）一般贡献复相位。这意味着 JC 的相干态有效作用量一般是**复的**——这对数值方法（QMC 有无符号问题）有直接影响。
+
+> **措辞修正**：上文"JC 的推迟核因果地指向未来"应改为"JC 的核在虚时间热圆周上保持有向的算符排序结构"。这是 Euclidean/Matsubara 热传播子，方向性表示的是虚时间排序和 $\hat a$ 与 $\hat a^\dagger$ 的算符顺序，而非实时间因果性。
+
 ---
 
-## 15. 单模 XXZ 自旋-玻色模型
+## 15. 单模 XXZ 对称的自旋-玻色耦合
 
-### 15.1 为什么需要独立通道
+> **命名说明**：本节得到的有效作用量是同一自旋在不同虚时间之间的各向异性推迟自相互作用 $-\iint K_\alpha(\tau-\tau') s_\alpha(\tau)s_\alpha(\tau')$，它并不等于通常的瞬时空间 XXZ 哈密顿量 $H_{\mathrm{XXZ}}=\sum_{\langle ij\rangle}[J_\perp(S_i^xS_j^x+S_i^yS_j^y)+J_zS_i^zS_j^z]$。称其为"XXZ"是指浴耦合具有 $x,y$ 通道的各向同性（$g_x=g_y$，$J_{xx}=J_{yy}$），这是一种 $U(1)$ 对称的双浴/三通道自旋-玻色模型。
 
-考虑三个独立玻色模式 $\hat a_x,\hat a_y,\hat a_z$，哈密顿量写成
+### 15.1 独立通道：最简单的对角实现
+
+彼此独立的浴通道是得到对角 XXZ 核的最简单充分条件——但并非必要条件（真正条件见 §15.3 和 §18.3）。考虑三个独立玻色模式 $\hat a_x,\hat a_y,\hat a_z$，哈密顿量写成
 
 $$
 \boxed{
@@ -1536,9 +1641,9 @@ s_\beta(\tau').
 \end{aligned}
 $$
 
-除了 $s_xs_x$、$s_ys_y$、$s_zs_z$，还会出现 $s_xs_y$、$s_xs_z$、$s_ys_z$ 等交叉项。因此，一个共同模式通常产生的是一个**秩一耦合矩阵** $K_{\alpha\beta}\propto g_\alpha g_\beta$，而不是对角 XXZ 结构。这就是为什么严格 XXZ 需要每个分量耦合到独立的浴通道。
+除了 $s_xs_x$、$s_ys_y$、$s_zs_z$，还会出现 $s_xs_y$、$s_xs_z$、$s_ys_z$ 等交叉项。因此，一个共同模式通常产生的是一个**秩一耦合矩阵** $K_{\alpha\beta}\propto g_\alpha g_\beta$，而不是对角 XXZ 结构。
 
----
+**一般情况下得到对角 XXZ 核的真正条件**是：矩阵谱函数 $J_{\alpha\beta}(\omega)$（定义见 §18.3）在所选自旋基底中对角化，即 $J_{\alpha\beta}(\omega)=0$（$\alpha\neq\beta$），且 $J_{xx}(\omega)=J_{yy}(\omega)$。彼此独立的浴通道（每个 $\alpha$ 有自己的一套模式）是满足这一条件的简单充分构造，但即使某些单个模式同时耦合多个分量，只要所有模式求和后的交叉谱密度消失，仍然可以得到对角核。Weber 等人的 $U(1)$ 对称双浴模型采用的正是相同而独立的横向浴，是一种标准且合理的实现（[arXiv:2108.01131](https://arxiv.org/abs/2108.01131)）。
 
 ---
 
@@ -1602,7 +1707,7 @@ J_{\mathrm R}(\omega)
 \cosh\left[
 \omega\left(
 \frac{\beta}{2} -
-|\Delta\tau|_\beta
+d_\beta(\Delta\tau)
 \right)
 \right]
 }{
@@ -1658,7 +1763,7 @@ J_{\mathrm R}(\omega)
 \cosh\left[
 \omega\left(
 \frac{\beta}{2} -
-|\Delta\tau|_\beta
+d_\beta(\Delta\tau)
 \right)
 \right]
 }{
@@ -1847,7 +1952,7 @@ J_\ell(\omega)
 \cosh\left[
 \omega\left(
 \frac{\beta}{2} -
-|\Delta\tau|_\beta
+d_\beta(\Delta\tau)
 \right)
 \right]
 }{
@@ -1932,34 +2037,81 @@ $$
 
 ### 18.3 一般共同浴需要矩阵谱函数
 
-如果同一个浴模式同时耦合多个分量：$\hat\varrho_q=\sum_{\alpha=x,y,z}g_{q\alpha}\hat J_\alpha$，则应定义矩阵谱函数
+如果同一个浴模式同时耦合多个分量：$\hat\varrho_q=\sum_{\alpha=x,y,z}g_{q\alpha}\hat J_\alpha$，由于 $g_{q\alpha}$ 可为复数，$\hat\varrho_q$ 一般不是厄米算符——因此**不能**预先将传播子对称化为 $D_{\omega,+}$。正确的一般式保留有向传播子，定义**矩阵谱函数**
 
 $$
 \boxed{
 J_{\alpha\beta}(\omega) =
 \pi
 \sum_q
-g_{q\alpha}g_{q\beta}
-\delta(\omega-\omega_q).
+g_{q\alpha}^* g_{q\beta}
+\delta(\omega-\omega_q),
 }
 $$
 
-有效作用量为
+它是厄米正半定矩阵（$J_{\beta\alpha}=J_{\alpha\beta}^*$，且对任意向量 $v_\alpha$ 有 $\sum_{\alpha\beta}v_\alpha^* J_{\alpha\beta}v_\beta\ge 0$）。有效作用量与核为
 
 $$
 \boxed{
-S_{\mathrm{ret}} = -
+\begin{aligned}
+S_{\mathrm{ret}} &= -
 \sum_{\alpha,\beta}
 \iint
 s_\alpha(\tau)
-K_{\alpha\beta}(\tau-\tau')
-s_\beta(\tau'),
+K_{\alpha\beta}^{\rightarrow}(\tau-\tau')
+s_\beta(\tau'), \\[4pt]
+K_{\alpha\beta}^{\rightarrow}(\Delta\tau) &=
+\int_0^\infty \frac{d\omega}{\pi}
+J_{\alpha\beta}(\omega)
+D_\omega(\Delta\tau).
+\end{aligned}
 }
 $$
 
-其中 $K_{\alpha\beta}(\Delta\tau)=\int_0^\infty \frac{d\omega}{\pi}J_{\alpha\beta}(\omega)D_{\omega,+}(\Delta\tau)$。纯 XXZ 要求 $J_{\alpha\beta}=0$（$\alpha\neq\beta$）并且 $J_{xx}=J_{yy}$。
+注意这里用的是**有向** $D_\omega$，而非对称 $D_{\omega,+}$。
 
----
+**实部/虚部分解**。将厄米矩阵谱函数写成
+
+$$
+\boxed{
+J_{\alpha\beta}(\omega) =
+J_{\alpha\beta}^{\mathrm R}(\omega) +
+i J_{\alpha\beta}^{\mathrm I}(\omega),
+}
+$$
+
+其中 $J^{\mathrm R}$ 为实对称矩阵，$J^{\mathrm I}$ 为实反对称矩阵。代入 $D_\omega = D_{\omega,+} + D_{\omega,-}$：
+
+$$
+\boxed{
+K_{\alpha\beta}^{\rightarrow}(\Delta\tau) =
+\int_0^\infty \frac{d\omega}{\pi}
+\Big[
+J_{\alpha\beta}^{\mathrm R}(\omega) D_{\omega,+}(\Delta\tau) +
+i J_{\alpha\beta}^{\mathrm I}(\omega) D_{\omega,-}(\Delta\tau)
+\Big].
+}
+$$
+
+因此：
+- 实对称谱矩阵 $\leftrightarrow$ 搭配 $D_{\omega,+}$（对称核）；
+- 虚反对称谱矩阵 $\leftrightarrow$ 搭配 $i D_{\omega,-}$（反对称核）。
+
+**回退到已有特例**：
+- 若所有 $g_{q\alpha}$ 均为实数（或每个模式的共同相位可吸收到 $\hat a_q$ 中），则 $J^{\mathrm I}=0$，$K_{\alpha\beta}^{\rightarrow}$ 退化为纯 $D_+$ 核——这覆盖本文 Rabi 和独立通道 XXZ 的情形；
+- JC 的 $\hat\varrho_q = g_q\hat J_- = g_q(\hat J_x - i\hat J_y)$，此时 $J^{\mathrm I}_{xy} = -J^{\mathrm I}_{yx} \neq 0$，必须保留 $D_-$ 项。
+
+**得到对角 XXZ 核的条件**（在所选自旋基底中）：
+
+$$
+\boxed{
+J^{\mathrm I}_{\alpha\beta}=0,\qquad
+J^{\mathrm R}_{\alpha\beta}=0\;\;(\alpha\neq\beta),\qquad
+J^{\mathrm R}_{xx}=J^{\mathrm R}_{yy}.
+}
+$$
+
+独立浴通道是实现这一条件的简单充分构造，但非唯一方式。
 
 ---
 
@@ -2060,7 +2212,15 @@ K_{\mathrm{JC}}^\rightarrow(\tau)
 }
 $$
 
-它不是 $|\tau|^{-1-s}$，而是**带方向的** $\Theta(\tau)\tau^{-1-s}$。这正是 JC 与 Rabi/XXZ 在积去玻色子后最根本的差别：前者的推迟核因果地指向未来，后者的推迟核在时间上对称。
+它不是 $|\tau|^{-1-s}$，而是**带方向的** $\Theta(\tau)\tau^{-1-s}$。这正是 JC 与 Rabi/XXZ 在积去玻色子后最根本的差别：前者的推迟核在虚时间热圆周上保持有向的算符排序结构，后者的推迟核在时间上对称。
+
+> **幂律近似的适用范围**：上述推导在硬截止谱下将积分上限从 $\omega_c$ 延伸到 $\infty$，是长时间近似，要求
+>
+> $$
+> \boxed{\omega_c^{-1} \ll |\tau| \ll \beta}
+> $$
+>
+> 零温时则为 $\omega_c^{-1}\ll|\tau|$。有限温度下虚时间是圆，最大无向距离只有 $\beta/2$，不存在无限大的 $|\tau|$——因此有限温幂律尾部应在 $|\tau|\sim\beta/2$ 处截断。此外，$s>-1$ 保证 Laplace 积分在低频可积；若还要求静态位移 $\int_0^\infty d\omega\,J(\omega)/\omega$ 收敛，通常需要更强的红外条件（如 $s>0$ 的 Ohmic 族）。
 
 ---
 
@@ -2072,40 +2232,229 @@ $$
 | 谱 Rabi | $J_{\mathrm R}(\omega)$ | $g_qJ_z$ | $K_{\mathrm R,+}$ | $s_z(\tau)s_z(\tau')$ |
 | 单模 JC | 一个模式 | $gJ_-$ | $D_{\omega_0}$ | $s_+(\tau)s_-(\tau')$ |
 | 谱 JC | $J_{\mathrm{JC}}(\omega)$ | $g_qJ_-$ | $K_{\mathrm{JC}}^\rightarrow$ | $s_+(\tau)s_-(\tau')$ |
-| 单模 XXZ | 每通道一个模式 | $g_\ell J_\ell$ | $D_{\omega_\ell,+}$ | $s_xs_x+s_ys_y+\text{各向异性 }s_zs_z$ |
-| 谱 XXZ | $J_\perp,J_z$ | $g_{q\ell}J_\ell$ | $K_\perp,K_z$ | $\frac12(s_+s_-+s_-s_+)+s_zs_z$ |
+| 单模 XXZ | 每通道一个模式 | $g_\ell J_\ell$ | $D_{\omega_\ell,+}$ | $s_x(\tau)s_x(\tau')+s_y(\tau)s_y(\tau')+\text{各向异性 }s_z(\tau)s_z(\tau')$ |
+| 谱 XXZ | $J_\perp,J_z$ | $g_{q\ell}J_\ell$ | $K_\perp,K_z$ | $\frac12[s_+(\tau)s_-(\tau')+s_-(\tau)s_+(\tau')]+s_z(\tau)s_z(\tau')$ |
 
-最简洁的统一结论是：
+### 21.1 统一结论：从 $\hat\varrho$ 到传播子结构
+
+三种模型的 $\hat\varrho$ 分别为 $gJ_z$（Rabi）、$gJ_-$（JC）、$g_\ell J_\ell$（XXZ 对称耦合）。厄米性（$\hat\varrho^\dagger=\hat\varrho$ 还是 $\hat\varrho^\dagger\neq\hat\varrho$）是一个方便的一阶判据——$\hat\varrho^\dagger=\hat\varrho$ 时传播子可对称化为 $D_+$，$\hat\varrho^\dagger\neq\hat\varrho$ 时必须保留有方向的 $D$（或其 $D_+/D_-$ 分解）。
+
+但厄米性并非模型的唯一根本区别。更深层的差异包括：
+
+### 21.2 对称性与守恒量
+
+$$
+\begin{array}{c|c|c|c}
+\text{模型} & \text{对称性} & \text{守恒量} & \text{传播子结构} \\
+\hline
+\text{Rabi} & \mathbb Z_2 & \text{宇称 } \hat\Pi=(-1)^{\hat a^\dagger\hat a}\hat\sigma_x & D_+ \text{（对称）} \\
+\text{JC} & U(1) & N_{\mathrm{ex}}=\hat a^\dagger\hat a+\hat J_z+S & D = D_+ + D_- \text{（有向）} \\
+\text{XXZ 对称浴} & U(1) & \text{自旋-浴通道联合旋转} & D_+ \text{（对称，对角）}
+\end{array}
+$$
+
+> **Rabi 宇称与旋转约定**：本文采用 $H_{\mathrm R}=-h_x\hat J_x+\omega\hat a^\dagger\hat a+g(\hat a+\hat a^\dagger)\hat J_z$，其 $\mathbb Z_2$ 变换为 $\hat a\to-\hat a$、$\hat J_z\to-\hat J_z$、$\hat J_x\to\hat J_x$。对 $S=1/2$，$\hat\sigma_x\hat\sigma_z\hat\sigma_x=-\hat\sigma_z$，故 $\hat\Pi=(-1)^{\hat a^\dagger\hat a}\hat\sigma_x$。对一般自旋 $S$，可写为 $\hat\Pi=\exp[i\pi(\hat a^\dagger\hat a+\hat J_x+S)]$（整体相位不影响对称性）。注意 $(-1)^{\hat a^\dagger\hat a}\hat\sigma_z$ 对应的是未旋转的标准 Rabi 写法 $H\sim\Omega\hat\sigma_z+g(\hat a+\hat a^\dagger)\hat\sigma_x$，而非本文使用的约定。
+
+积掉玻色场后，有效作用量仍保留相应的对称性——这是检验推导正确性的重要交叉验证。
+
+### 21.3 其他区分模型的关键因素
+
+除厄米性和对称性外，以下因素同样决定模型的物理行为：
+- **耦合矩阵的秩与通道数**：单实象限耦合通道（Rabi）、单复模式两个正交象限耦合横向自旋（JC：$a=(q+ip)/\sqrt2$，$\sqrt2(qJ_x+pJ_y)$）、两个或三个独立浴通道（XXZ）；
+- **谱的红外结构**：单模（$\delta$ 峰）vs. 连续谱（sub-Ohmic/Ohmic/super-Ohmic），决定是否存在真正的量子临界行为；
+- **是否存在复相位**：JC 的 $D_-$ 项贡献复相位，可能影响 QMC 的符号问题；
+- **静态位移与重整化**：厄米坐标耦合产生静态能量降低 $\lambda=\int_0^\infty\frac{d\omega}{\pi}\frac{J(\omega)}{\omega}$，在静态/绝热近似下产生单离子各向异性；若 $\hat H_{\mathrm s}$ 不与 $\hat J_z$ 对易还会重整化横场动力学（见 §22）。
+
+因此，更完整的表述是：
 
 $$
 \boxed{
 \begin{aligned}
-\text{Rabi:}\quad&
-\varrho=gJ_z,
-\\
-\text{JC:}\quad&
-\varrho=gJ_-,
-\\
-\text{XXZ:}\quad&
-\varrho_\ell=g_\ell J_\ell.
+&\text{厄米性}\;\hat\varrho^\dagger=\hat\varrho
+\;\Rightarrow\;
+D\ \text{可对称化为}\ D_+ \quad\text{（Rabi, XXZ）} \\
+&\text{非厄米}\;\hat\varrho^\dagger\neq\hat\varrho
+\;\Rightarrow\;
+\text{必须保留有向结构}\ D=D_++D_- \quad\text{（JC）}
 \end{aligned}
 }
 $$
 
-然后由厄米性决定传播子结构：
+但同属厄米类的 Rabi 与 XXZ，其对称性（$\mathbb Z_2$ vs. $U(1)$）、通道数（1 vs. 3）和谱结构仍然导致不同的物理——厄米性只是第一层分类。
+
+---
+
+## 22. 静态位移与反项
+
+对厄米坐标耦合（Rabi、XXZ），推迟核包含静态能量降低。考虑核的静态积分（对所有 $\omega>0$）：
 
 $$
 \boxed{
-\varrho^\dagger=\varrho
-\;\Rightarrow\;
-D\ \text{可对称化为}\ D_+,
+\int_0^\beta d\tau\, D_{\omega,+}(\tau) = \frac{1}{\omega}.
 }
 $$
 
+因此定义静态耦合强度
+
 $$
 \boxed{
-\varrho^\dagger\neq\varrho
-\;\Rightarrow\;
-\text{必须保留有方向的}\ D.
+\lambda_z \equiv \int_0^\infty \frac{d\omega}{\pi} \frac{J_z(\omega)}{\omega}.
 }
 $$
+
+### 22.1 零 Matsubara 模分解（非局域项，非局域 $s_z^2$）
+
+$K_+(\tau)$ 的零频分量为 $\lambda_z/\beta$。将核分解为
+
+$$
+\boxed{
+K_+(\tau) = \frac{\lambda_z}{\beta} + \widetilde K_+(\tau),
+\qquad
+\int_0^\beta d\tau\,\widetilde K_+(\tau) = 0.
+}
+$$
+
+按照本文第 16 节的约定（无外部 $1/2$ 因子），推迟项为
+
+$$
+\boxed{
+\begin{aligned}
+S_{\mathrm{ret}}
+&= -\iint s_z(\tau) K_+(\tau-\tau') s_z(\tau')
+\\
+&= -\frac{\lambda_z}{\beta}
+\left[\int_0^\beta d\tau\, s_z(\tau)\right]^2
+\;-\; \iint s_z(\tau) \widetilde K_+(\tau-\tau') s_z(\tau').
+\end{aligned}
+}
+$$
+
+**关键点**：第一项是全局虚时间非局域项——它耦合了 $s_z$ 在整个 $[0,\beta]$ 上的平均值，**不是**局域的 $-\lambda_z\int d\tau\,s_z(\tau)^2$。不能写成 $\int s_z(\tau)^2$ 的局域形式。
+
+### 22.2 静态/绝热极限
+
+仅在**静态路径或绝热近似** $s_z(\tau)\simeq s_z$（常数）下：
+
+$$
+-\frac{\lambda_z}{\beta}(\beta s_z)^2 = -\beta\lambda_z s_z^2,
+$$
+
+此时才可解释为类似单离子各向异性的静态能量降低。若 $\hat H_{\mathrm s}$ 不与 $\hat J_z$ 对易（例如 Rabi 模型含 $\hat J_x$ 横场项），玻色位移还会重整化横场动力学——不能简单归约为局域 $J_z^2$ 项。
+
+因此，关于 $S=1/2$ 只产生常数、$S>1/2$ 产生单离子各向异性、多自旋产生瞬时交换等结论，均需限定在**静态近似或 $\hat H_{\mathrm s}$ 与 $\hat J_z$ 对易**的前提下。
+
+### 22.3 紫外发散类型
+
+对你采用的幂律谱
+
+$$
+J(\omega) = 2\pi\alpha\,\omega_c^{1-s}\omega^s\,\Theta(\omega_c-\omega),
+$$
+
+静态位移为
+
+$$
+\boxed{
+\lambda = 2\alpha\,\omega_c^{1-s}\int_0^{\omega_c} \omega^{s-1}d\omega
+= \frac{2\alpha}{s}\,\omega_c,
+\qquad s>0.
+}
+$$
+
+- **$s>0$**（Ohmic 及 super-Ohmic）：$\lambda$ 为线性紫外发散 $\sim\omega_c$（不是对数发散）；
+- **$s=0$**（sub-Ohmic 边界）：出现低频对数发散 $\sim\ln\omega_c$；
+- **$s<0$**：低频幂律发散，需红外截断。
+
+因此，若 $\lambda$ 紫外发散，需要 counterterm 或参数重整化吸收到裸自旋哈密顿量中。
+
+---
+
+## 23. 一致性检查
+
+以下三个简单极限可作为推导正确性的交叉验证。
+
+### 23.1 自由极限
+
+$g_\mu=0$（所有耦合关闭）时，推迟项消失：
+
+$$
+Z = Z_{\mathrm b}^{(0)} \int\mathcal D\mu_S\, e^{-S_{\mathrm B}^{\mathrm{spin}} - \int h_{\mathrm s}} = Z_{\mathrm b}^{(0)} Z_{\mathrm s}^{(0)},
+$$
+
+配分函数分解为自由玻色浴和自由自旋的乘积，与直接求迹 $\operatorname{Tr}e^{-\beta(\hat H_{\mathrm s}+\hat H_{\mathrm b})}$ 一致。
+
+### 23.2 核的静态积分
+
+对所有 $\omega>0$：
+
+$$
+\boxed{
+\int_0^\beta d\tau\, D_\omega(\tau) = \int_0^\beta d\tau\, D_{\omega,+}(\tau) = \frac{1}{\omega}.
+}
+$$
+
+反对称核积分为零：$\int_0^\beta d\tau\, D_{\omega,-}(\tau)=0$。这保证静态极限下方向性消失，与高温下所有模型趋同的物理一致。
+
+### 23.3 高温与零温极限
+
+**零温**（$\beta\omega\gg 1$）：
+
+$$
+D_{\omega,+}(\tau) \to \frac12 e^{-\omega|\tau|},
+\qquad
+D_{\omega,-}(\tau) \to \frac12\operatorname{sgn}(\tau) e^{-\omega|\tau|}.
+$$
+
+**高温**（$\beta\omega\ll 1$，令 $x=\beta\omega$，$y=\tau/\beta$）：
+
+$$
+\boxed{
+D_{\omega,+}(\tau) \sim \frac{1}{\beta\omega} + O(\beta\omega),
+\qquad
+D_{\omega,-}(\tau) \sim \frac12 - \frac{\tau}{\beta} + O(\beta\omega).
+}
+$$
+
+$D_-$ 本身并不在高温极限逐点趋于零——但它相对于巨大的零频部分被抑制：
+
+$$
+\boxed{
+\frac{D_-}{D_+} = O(\beta\omega).
+}
+$$
+
+因此高温下有向结构在静态热力学量中相对减弱。$D_+\simeq 1/(\beta\omega)$ 是近似**常数核**（零 Matsubara 模主导），在整个虚时间圆上全局耦合——它并非局域的 $\delta(\tau-\tau')$，不能称作"无记忆"。
+
+---
+
+## 24. 单模不自动意味着相变
+
+从有效作用量出现长时间或非局域核，不能直接推出量子相变。具体而言：
+
+- **有限参数单模 Rabi**：一般只有 crossover（能级免交叉），量子相变需要特定的缩放极限（如原子频率与振子频率之比趋于无穷）。有限频率比下主要表现为有限频率标度和交叉行为（参见 [arXiv:1503.03090](https://arxiv.org/abs/1503.03090)）。
+- **单模 JC**：零温下可有不同激发数扇区之间的基态能级交叉（ground-state level crossing），即基态所属总激发数发生阶梯式转变——这不是通常意义上的激发态量子相变（excited-state QPT），而是基态的逐级 level crossing（参见 [arXiv:1603.03943](https://arxiv.org/abs/1603.03943)）。在有限温度下，这些零温台阶被热混合平滑。
+- **连续 sub-Ohmic 浴（$0<s<1$）**：可产生局域化—离域化之间的**连续零温二级量子相变**。
+- **连续 Ohmic 浴（$s=1$）**：出现 **Kosterlitz–Thouless（BKT）型量子相变**，临界行为与 sub-Ohmic 的连续二级转变本质不同。
+- **有限温度**：对固定有限 $S$、有限模式数且哈密顿量稳定的单自旋模型，有限 $\beta$ 下配分函数通常解析，零温能级非解析性被平滑为 crossover。若同时取热力学极限（$S\to\infty$、$N\to\infty$ 或连续扩展系统极限），则需要另行判断是否存在有限温热相变。
+
+不同 $s$ 区间的临界指数及量子—经典映射还需要谱函数的具体分析。因此，结论"有效作用量是非局域的"与"存在有限温相变"之间有一道需要谱函数具体分析才能跨越的鸿沟。
+
+---
+
+## 25. 恢复玻色可观测量
+
+积掉玻色场后，读者可能以为玻色信息全部丢失。实际上可以通过引入外源恢复。
+
+在积掉玻色场之前，向作用量加入外源项：
+
+$$
+S_\eta = -\int_0^\beta d\tau\,\left[\bar\eta_\mu(\tau)\phi_\mu(\tau) + \bar\phi_\mu(\tau)\eta_\mu(\tau)\right].
+$$
+
+平移高斯积分后得到生成泛函 $Z[\bar\eta,\eta]$。由泛函微分可恢复：
+
+- **平均玻色场**：$\langle a_\mu(\tau)\rangle = -\int d\tau'\, D_\mu(\tau-\tau')\langle\varrho_\mu(\tau')\rangle_{\mathrm s}$——由自旋源完全决定；
+- **传播子**：$\langle T_\tau a_\mu(\tau)a_\mu^\dagger(\tau')\rangle = D_\mu(\tau-\tau') + \text{自旋源的双收缩}$；
+- **光子数/浴能量**：$\langle a_\mu^\dagger a_\mu\rangle$ 可由等时传播子结合自旋关联函数得到。
+
+这一节对后续算光子数、浴能量、纠缠熵等物理量非常有用——积掉浴并不丢失信息，只是将其编码在自旋关联函数的非局域结构中。
