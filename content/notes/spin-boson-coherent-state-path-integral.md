@@ -516,7 +516,7 @@ $$
 > }
 > $$
 >
-> 最后取 $M\to\infty$ 极限：$(A^{(M)})^{-1}\to D_\omega(\tau-\tau')$，$\det A^{(M)}\to Z_{\mathrm b}^{(0)}$。下文在继承此离散处方的连续记号中完成推导。
+> 最后取 $M\to\infty$ 极限：$(A^{(M)})^{-1}\to D_\omega(\tau-\tau')$，$[\det A^{(M)}]^{-1}\to Z_{\mathrm b}^{(0)}$（或等价地 $\det A^{(M)}\to 1-e^{-\beta\omega}=1/Z_{\mathrm b}^{(0)}$）。下文在继承此离散处方的连续记号中完成推导。
 
 ### 7.1 配平方
 
@@ -868,7 +868,7 @@ $$
 - QMC 顶点位于同一虚时间；
 - 从 Matsubara 频率表达式恢复时间核。
 
-在实际计算中，当 $\tau=\tau'$ 时需根据时间切片约定选取 $D_\mu(0^+)$ 或 $D_\mu(0^-)$。本文后续双时间积分均理解为 $\tau\neq\tau'$ 的情形，等时点为零测集，不影响连续积分值。
+在实际计算中，当 $\tau=\tau'$ 时需根据时间切片约定选取 $D_\mu(0^+)$ 或 $D_\mu(0^-)$。对有限模式或具有有限紫外截止、在 $\tau=0$ 可积的核，等时点是零测集，不影响普通双积分；若连续谱无紫外截止导致核在等时处奇异（如某些幂律谱的接触项），则必须保留离散时间处方或引入紫外正则化。本文后续双时间积分默认核在原点可积。
 
 ---
 
@@ -2070,7 +2070,7 @@ $$
 
 注意这里用的是**有向** $D_\omega$，而非对称 $D_{\omega,+}$。
 
-**实部/虚部分解**。将厄米矩阵谱函数写成
+**实部/虚部分解（作用量层面）**。将厄米矩阵谱函数写成
 
 $$
 \boxed{
@@ -2080,25 +2080,67 @@ i J_{\alpha\beta}^{\mathrm I}(\omega),
 }
 $$
 
-其中 $J^{\mathrm R}$ 为实对称矩阵，$J^{\mathrm I}$ 为实反对称矩阵。代入 $D_\omega = D_{\omega,+} + D_{\omega,-}$：
+其中 $J^{\mathrm R}$ 为实对称矩阵，$J^{\mathrm I}$ 为实反对称矩阵。将 $J_{\alpha\beta}$ 和 $D_\omega = D_{\omega,+} + D_{\omega,-}$ 代入完整作用量：
+
+$$
+\begin{aligned}
+S_{\mathrm{ret}} &=
+-\sum_{\alpha,\beta}\iint
+s_\alpha(\tau)
+\int_0^\infty\frac{d\omega}{\pi}
+J_{\alpha\beta}(\omega) D_\omega(\tau-\tau')
+s_\beta(\tau') \\
+&=
+-\sum_{\alpha,\beta}\iint
+s_\alpha(\tau)
+\int_0^\infty\frac{d\omega}{\pi}
+\Big[
+J_{\alpha\beta}^{\mathrm R} D_{\omega,+}
++
+J_{\alpha\beta}^{\mathrm R} D_{\omega,-}
++
+i J_{\alpha\beta}^{\mathrm I} D_{\omega,+}
++
+i J_{\alpha\beta}^{\mathrm I} D_{\omega,-}
+\Big]
+s_\beta(\tau').
+\end{aligned}
+$$
+
+在同时交换积分哑变量 $(\alpha,\tau)\leftrightarrow(\beta,\tau')$ 后：
+- $J^{\mathrm R}_{\alpha\beta} D_{\omega,-}(\tau-\tau')$ 项因 $J^{\mathrm R}$ 对称而 $D_-$ 反对称，积分为零；
+- $i J^{\mathrm I}_{\alpha\beta} D_{\omega,+}(\tau-\tau')$ 项因 $J^{\mathrm I}$ 反对称而 $D_+$ 对称，积分为零。
+
+因此**仅剩两项**，作用量级的有效形式为
 
 $$
 \boxed{
-K_{\alpha\beta}^{\rightarrow}(\Delta\tau) =
-\int_0^\infty \frac{d\omega}{\pi}
+\begin{aligned}
+S_{\mathrm{ret}} =
+-\sum_{\alpha,\beta}\iint
+s_\alpha(\tau)
+\int_0^\infty\frac{d\omega}{\pi}
 \Big[
-J_{\alpha\beta}^{\mathrm R}(\omega) D_{\omega,+}(\Delta\tau) +
-i J_{\alpha\beta}^{\mathrm I}(\omega) D_{\omega,-}(\Delta\tau)
-\Big].
+&J_{\alpha\beta}^{\mathrm R}(\omega)
+D_{\omega,+}(\tau-\tau')
+\\
+&+
+i J_{\alpha\beta}^{\mathrm I}(\omega)
+D_{\omega,-}(\tau-\tau')
+\Big]
+s_\beta(\tau').
+\end{aligned}
 }
 $$
 
+> **注意**：上式是**作用量层面**的化简，利用了 $J^{\mathrm R}$/$J^{\mathrm I}$ 的对称性以及 $D_+$/$D_-$ 的奇偶性在交换积分变量后抵消——并非原始矩阵核 $K_{\alpha\beta}^{\rightarrow}$ 逐元素等于 $J^{\mathrm R}D_+ + i J^{\mathrm I}D_-$。
+
 因此：
-- 实对称谱矩阵 $\leftrightarrow$ 搭配 $D_{\omega,+}$（对称核）；
-- 虚反对称谱矩阵 $\leftrightarrow$ 搭配 $i D_{\omega,-}$（反对称核）。
+- 实对称谱矩阵 $\leftrightarrow$ 在作用量中搭配 $D_{\omega,+}$；
+- 虚反对称谱矩阵 $\leftrightarrow$ 在作用量中搭配 $i D_{\omega,-}$。
 
 **回退到已有特例**：
-- 若所有 $g_{q\alpha}$ 均为实数（或每个模式的共同相位可吸收到 $\hat a_q$ 中），则 $J^{\mathrm I}=0$，$K_{\alpha\beta}^{\rightarrow}$ 退化为纯 $D_+$ 核——这覆盖本文 Rabi 和独立通道 XXZ 的情形；
+- 若所有 $g_{q\alpha}$ 均为实数，则 $J^{\mathrm I}=0$；$J^{\mathrm R}D_-$ 项虽在核矩阵元中存在，但在完整双线性作用量中因反对称性积分为零。因此最终作用量中只剩 $J^{\mathrm R}D_+$——这覆盖本文 Rabi 和独立通道 XXZ 的情形；
 - JC 的 $\hat\varrho_q = g_q\hat J_- = g_q(\hat J_x - i\hat J_y)$，此时 $J^{\mathrm I}_{xy} = -J^{\mathrm I}_{yx} \neq 0$，必须保留 $D_-$ 项。
 
 **得到对角 XXZ 核的条件**（在所选自旋基底中）：
@@ -2260,7 +2302,7 @@ $$
 ### 21.3 其他区分模型的关键因素
 
 除厄米性和对称性外，以下因素同样决定模型的物理行为：
-- **耦合矩阵的秩与通道数**：单实象限耦合通道（Rabi）、单复模式两个正交象限耦合横向自旋（JC：$a=(q+ip)/\sqrt2$，$\sqrt2(qJ_x+pJ_y)$）、两个或三个独立浴通道（XXZ）；
+- **耦合矩阵的秩与通道数**：单实象限耦合通道（Rabi）、单复模式两个正交象限耦合横向自旋（JC：$a=(q+ip)/\sqrt2$，$a^\dagger J_-+J_+a=\sqrt2(qJ_x-pJ_y)$）、两个或三个独立浴通道（XXZ）；
 - **谱的红外结构**：单模（$\delta$ 峰）vs. 连续谱（sub-Ohmic/Ohmic/super-Ohmic），决定是否存在真正的量子临界行为；
 - **是否存在复相位**：JC 的 $D_-$ 项贡献复相位，可能影响 QMC 的符号问题；
 - **静态位移与重整化**：厄米坐标耦合产生静态能量降低 $\lambda=\int_0^\infty\frac{d\omega}{\pi}\frac{J(\omega)}{\omega}$，在静态/绝热近似下产生单离子各向异性；若 $\hat H_{\mathrm s}$ 不与 $\hat J_z$ 对易还会重整化横场动力学（见 §22）。
@@ -2361,8 +2403,8 @@ $$
 }
 $$
 
-- **$s>0$**（Ohmic 及 super-Ohmic）：$\lambda$ 为线性紫外发散 $\sim\omega_c$（不是对数发散）；
-- **$s=0$**（sub-Ohmic 边界）：出现低频对数发散 $\sim\ln\omega_c$；
+- **$s>0$**（sub-Ohmic $0<s<1$、Ohmic $s=1$ 及 super-Ohmic $s>1$）：红外端 $\lambda$ 收敛；在本文带 $\omega_c^{1-s}$ 的参数化下 $\lambda\propto\omega_c$，当 $\omega_c\to\infty$ 时呈线性紫外增长；
+- **$s=0$**：引入红外截止 $\omega_{\mathrm{IR}}$ 后 $\lambda_{s=0}=2\alpha\omega_c\ln(\omega_c/\omega_{\mathrm{IR}})$，为红外对数发散（结果也依赖紫外尺度 $\omega_c$）；
 - **$s<0$**：低频幂律发散，需红外截断。
 
 因此，若 $\lambda$ 紫外发散，需要 counterterm 或参数重整化吸收到裸自旋哈密顿量中。
@@ -2433,8 +2475,9 @@ $$
 
 - **有限参数单模 Rabi**：一般只有 crossover（能级免交叉），量子相变需要特定的缩放极限（如原子频率与振子频率之比趋于无穷）。有限频率比下主要表现为有限频率标度和交叉行为（参见 [arXiv:1503.03090](https://arxiv.org/abs/1503.03090)）。
 - **单模 JC**：零温下可有不同激发数扇区之间的基态能级交叉（ground-state level crossing），即基态所属总激发数发生阶梯式转变——这不是通常意义上的激发态量子相变（excited-state QPT），而是基态的逐级 level crossing（参见 [arXiv:1603.03943](https://arxiv.org/abs/1603.03943)）。在有限温度下，这些零温台阶被热混合平滑。
-- **连续 sub-Ohmic 浴（$0<s<1$）**：可产生局域化—离域化之间的**连续零温二级量子相变**。
-- **连续 Ohmic 浴（$s=1$）**：出现 **Kosterlitz–Thouless（BKT）型量子相变**，临界行为与 sub-Ohmic 的连续二级转变本质不同。
+- **连续 sub-Ohmic 浴（$0<s<1$）**：对标准单浴 Ising 型 spin-boson 模型，通常表现为局域化—离域化之间的**连续零温二级量子相变**。
+- **连续 Ohmic 浴（$s=1$）**：对标准单浴 Ising 型 spin-boson 模型，出现 **Kosterlitz–Thouless（BKT）型量子相变**，临界行为与 sub-Ohmic 的连续二级转变本质不同。
+- **$U(1)$ 双浴、XXZ 对称浴或 JC 型有向耦合**：临界结构需要根据具体对称性和矩阵谱函数另行分析——上述 sub-Ohmic/Ohmic 分类不可直接套用。
 - **有限温度**：对固定有限 $S$、有限模式数且哈密顿量稳定的单自旋模型，有限 $\beta$ 下配分函数通常解析，零温能级非解析性被平滑为 crossover。若同时取热力学极限（$S\to\infty$、$N\to\infty$ 或连续扩展系统极限），则需要另行判断是否存在有限温热相变。
 
 不同 $s$ 区间的临界指数及量子—经典映射还需要谱函数的具体分析。因此，结论"有效作用量是非局域的"与"存在有限温相变"之间有一道需要谱函数具体分析才能跨越的鸿沟。
