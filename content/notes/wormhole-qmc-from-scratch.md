@@ -19,7 +19,7 @@ wormhole QMC 算法（Weber, PRB 105, 165129, 2022）解决这个问题的方式
 
 1. **精确积分掉玻色浴**：利用浴是自由玻色子 + 耦合对玻色算符线性的条件，在虚时间路径积分中解析地积掉所有玻色自由度。
 2. **得到推迟自旋相互作用**：积分后产生一个纯自旋的推迟作用量 $\hat{\mathcal{H}}_{\mathrm{ret}}$，包含长程虚时间关联。
-3. **对推迟作用量做 QMC 展开**：将 $e^{-\hat{\mathcal{H}}_{\mathrm{ret}}}$ 展开为幂级数（SSE 风格），用 directed-loop / wormhole 更新在扩展配置空间中采样。
+3. **对推迟作用量做 QMC 展开**：将 $e^{-\hat{\mathcal{H}}_{\mathrm{ret}}}$ 展开为幂级数（连续时间相互作用展开，采用 SSE/directed-loop 型局部更新），用 directed-loop / wormhole 更新在扩展配置空间中采样。
 
 输出：有限温度下自旋-玻色子模型的统计力学性质（磁化率、关联函数、相边界）。在 quadratic bath + linear coupling + sign-free 条件下，无微扰近似、无浴截断。
 
@@ -87,13 +87,20 @@ $$
 
 同一套推导框架覆盖三个物理上截然不同的模型：
 
-| Model | $\hat{H}_{\mathrm{sb}}$ | $\hat{\varrho}_{\mu}$ |
-|-------|------|-----|
-| Rabi / original spin-boson | $\gamma_{\mu}\,\hat{S}_z(\hat{a}_{\mu}^{\dagger}+\hat{a}_{\mu})$ | $\gamma_{\mu}\,\hat{S}_z$ |
-| JC-like | $\gamma_{\mu}\,(\hat{a}_{\mu}^{\dagger}\hat{S}_- + \hat{S}_+\hat{a}_{\mu})$ | $\gamma_{\mu}\,\hat{S}_-$ |
-| XXZ spin-boson | $\gamma_{\mu\ell}\,(\hat{a}_{\mu\ell}^{\dagger}+\hat{a}_{\mu\ell})\,\hat{S}_\ell$ | $\gamma_{\mu\ell}\,\hat{S}_\ell$ |
+| Model | $\hat{H}_{\mathrm{sb}}$ | $\hat{\varrho}_{\mu}$ | 浴结构 |
+|-------|------|-----|------|
+| 原始 spin-boson | $\gamma_{\mu}\,\hat{S}_z(\hat{a}_{\mu}^{\dagger}+\hat{a}_{\mu})$ | $\gamma_{\mu}\,\hat{S}_z$ | 连续耗散浴 $\sum_\mu \to \int d\omega\,J(\omega)$ |
+| Quantum Rabi（单模极限） | 同上，但 $\mu$ 仅一个模式 | $\gamma\,\hat{S}_z$ | 单一离散频率 $\omega_0$ |
+| JC（多模旋转波） | $\gamma_{\mu}\,(\hat{a}_{\mu}^{\dagger}\hat{S}_- + \hat{S}_+\hat{a}_{\mu})$ | $\gamma_{\mu}\,\hat{S}_-$ | 连续浴；标准单模 JC 取 $J(\omega)=\pi g^2\delta(\omega-\omega_0)$ |
+| XXZ spin-boson | $\gamma_{\mu\ell}\,(\hat{a}_{\mu\ell}^{\dagger}+\hat{a}_{\mu\ell})\,\hat{S}_\ell$ | $\gamma_{\mu\ell}\,\hat{S}_\ell$ | 每个自旋分量独立连续浴 |
 
-关键区分：Rabi 模型中 $\hat{\varrho}_{\mu} = \hat{\varrho}_{\mu}^{\dagger}$（厄米耦合算符），导致推迟相互作用自然对称化为 $D_{+}$ 传播子。JC 模型中 $\hat{\varrho}_{\mu} \neq \hat{\varrho}_{\mu}^{\dagger}$，推迟相互作用保留非对称结构，顶点类型也因此不同。
+**注意三组区分。**
+
+第一，原始 spin-boson 与 quantum Rabi **不是同一模型**：前者是连续耗散浴（$\mu$ 取无限多个模式），有热力学极限和量子相变；后者是单一玻色模式，无浴截断问题但谱结构迥异。二者在自旋旋转后可采用相同的厄米耦合算符结构 $\hat{\varrho} = \hat{\varrho}^{\dagger} = \gamma\hat{S}_z$，但谱函数、热力学行为和临界性质并不相同。本框架对二者均适用。
+
+第二，表中"JC"指的是**多模、连续浴的旋转波（rotating-wave）spin-boson 模型**，即 $\sum_q \gamma_q(a_q^\dagger S_- + S_+ a_q)$ 对连续谱求和。标准的单模 Jaynes–Cummings 模型只是取 $J(\omega) = \pi g^2 \delta(\omega - \omega_0)$ 的特例。Weber 论文虽然沿用"Jaynes–Cummings model"之名，但明确采用了连续浴。
+
+第三，厄米与非厄米耦合的区别。原始 spin-boson / Rabi 中 $\hat{\varrho}_{\mu} = \hat{\varrho}_{\mu}^{\dagger}$（厄米耦合算符），推迟相互作用自然对称化为 $D_{+}$ 传播子。JC 模型中 $\hat{\varrho}_{\mu} \neq \hat{\varrho}_{\mu}^{\dagger}$，推迟相互作用保留非对称结构，顶点类型也因此不同。
 
 对于 XXZ spin-boson，指标 $\ell \in \{x, y, z\}$ 标记自旋分量，每个分量耦合到独立的浴（复合指标 $\mu\ell$）。XY 各向同性（$J_x = J_y \equiv \lambda_{xy}$，$J_z \equiv \lambda_z$）时退化为常规 XXZ 结构，$S_x S_x + S_y S_y$ 可写成升降算符的对称组合 $\frac{1}{2}(S_+ S_- + S_- S_+)$。
 
@@ -173,17 +180,27 @@ $$
 \mathrm{Tr}_{\mathrm{b}}[\bullet] = \sum_{n_1, n_2, \ldots} \langle n_1, n_2, \ldots | \bullet | n_1, n_2, \ldots \rangle.
 $$
 
-每个湮灭算符 $\hat{a}$ 将某个模式的粒子数减 1；每个产生算符 $\hat{a}^{\dagger}$ 将粒子数加 1。因此算符串 $\hat{a}^{c_1} \cdots \hat{a}^{c_m}$ 作用后，总粒子数的净变化为
+每个湮灭算符 $\hat{a}_{\mu}$ 将模式 $\mu$ 的粒子数减 1；每个产生算符 $\hat{a}_{\mu}^{\dagger}$ 将模式 $\mu$ 的粒子数加 1。算符串 $\hat{a}^{c_1} \cdots \hat{a}^{c_m}$ 作用后，总粒子数的净变化为
 
 $$
 \Delta N = (\text{产生算符的个数}) - (\text{湮灭算符的个数}).
 $$
 
-由于迹求的是 $\langle \text{初态} | \bullet | \text{初态} \rangle$——初态和末态必须是同一个粒子数态——只有当 $\Delta N = 0$ 时矩阵元才可能非零。也就是说，**产生和湮灭算符的个数必须相等**。
+由于迹求的是 $\langle \text{初态} | \bullet | \text{初态} \rangle$——初态和末态必须是同一个粒子数态——总粒子数守恒 $\Delta N = 0$ 只是**必要条件**。例如 $\hat{a}_1^{\dagger}\hat{a}_2$ 虽然总粒子数不变，但在独立的各模式热迹中仍为零。
+
+**严格的非零条件是逐模式配平**：对每个模式 $\mu$，产生数和湮灭数分别相等，
+
+$$
+N_{\mu}^{\dagger} = N_{\mu}, \qquad \forall\,\mu.
+$$
+
+下一节 Wick 收缩中的 $\delta_{\mu\nu}$ 正是强制执行了这一约束——只有同一模式的 $\hat{a}_{\mu}$ 与 $\hat{a}_{\nu}^{\dagger}$ 才有非零收缩。在此先记下这个条件，具体效果在 §3.3 给出。
 
 令产生算符数为 $n$，湮灭算符数也为 $n$，则总算符数 $m = 2n$。所有奇数 $m$ 的项严格为零。
 
 同时 $(-1)^{m} = (-1)^{2n} = +1$——Dyson 展开中的符号因子不引入负号。
+
+**关于"偶数阶"的适用范围。** 上述论证完全依赖每个 $V$ 顶点含一个 $\hat{a}$ 或 $\hat{a}^{\dagger}$，而后者只在 $V = \hat{H}_{\mathrm{sb}}$ 时成立。一旦把 $\hat{H}_{\mathrm{s}}$ 也纳入展开 $V$（如实际计算中把磁场、交换项作为顶点加入），纯自旋顶点不含玻色算符，总展开阶数就不再受偶数约束。此时正确的说法是：**含玻色耦合的顶点数仍必须逐模式配平**（产生 = 湮灭）；纯自旋顶点的数量没有偶数限制。本文的浴积分推导（§3--§5）只针对 $V = \hat{H}_{\mathrm{sb}}$；$\hat{H}_{\mathrm{s}}$ 的重新加入方式见 §5.3 和 §10。
 
 最后，$Z_{\mathrm{b}} = \prod_{\mu} (1 - e^{-\beta \omega_{\mu}})^{-1}$ 是自由玻色子的配分函数，是所有推导的归一化基准。
 
@@ -283,7 +300,16 @@ Z &= \sum_{n=0}^{\infty} \frac{(-1)^{2n}}{(2n)!}
 \end{aligned}
 $$
 
-**第一步：选位置。** 在 $2n$ 个算符中，必须恰好 $n$ 个是产生算符（$\dagger$）、$n$ 个是湮灭算符（$\varnothing$），否则玻色迹为零（§3.2）。从 $2n$ 个位置中选 $n$ 个放产生算符，有 $\binom{2n}{n}$ 种选法。$(-1)^{2n}=+1$。暂时只写出一种典型排序（所有湮灭算符在前，所有产生算符在后），在乘以 $\binom{2n}{n}$ 后覆盖所有等价排序：
+**第一步：选位置。** 在 $2n$ 个算符中，必须恰好 $n$ 个是产生算符（$\dagger$）、$n$ 个是湮灭算符（$\varnothing$），否则玻色迹为零（§3.2）。从 $2n$ 个位置中选 $n$ 个放产生算符，有 $\binom{2n}{n}$ 种选法。$(-1)^{2n}=+1$。
+
+**伴随关系（决定自旋算符的匕首归属）。** 回到 $V = \sum_\mu(\hat{a}_\mu^{\dagger}\hat{\varrho}_\mu + \hat{\varrho}_\mu^{\dagger}\hat{a}_\mu)$：每个湮灭算符 $\hat{a}$ 与 $\hat{\varrho}^{\dagger}$ 同处一项，每个产生算符 $\hat{a}^{\dagger}$ 与 $\hat{\varrho}$（无匕首）同处一项。因此在自旋迹里，**$\hat{a}$ 带出 $\hat{\varrho}^{\dagger}$，$\hat{a}^{\dagger}$ 带出 $\hat{\varrho}$**：
+
+$$
+\hat{a}(\tau) \;\leftrightarrow\; \hat{\varrho}^{\dagger}(\tau), \qquad
+\hat{a}^{\dagger}(\tau') \;\leftrightarrow\; \hat{\varrho}(\tau').
+$$
+
+这恰好与 $\bar c$ 的定义一致（$c=\dagger \Rightarrow \bar c=\varnothing$）。暂时只写出一种典型排序（所有湮灭算符在前，所有产生算符在后），在乘以 $\binom{2n}{n}$ 后覆盖所有等价排序。玻色部分照写 $\hat{a}\cdots\hat{a}\,\hat{a}^{\dagger}\cdots\hat{a}^{\dagger}$；自旋部分按伴随关系翻转匕首：
 
 $$
 \begin{aligned}
@@ -294,12 +320,12 @@ Z &= \sum_{n=0}^{\infty} \frac{1}{(2n)!} \cdot \binom{2n}{n}
    \langle \hat{\mathcal{T}}_{\tau} \hat{a}_{\mu_{1}}(\tau_{1}) \cdots \hat{a}_{\mu_{n}}(\tau_{n})
       \hat{a}_{\nu_{1}}^{\dagger}(\tau_{1}') \cdots \hat{a}_{\nu_{n}}^{\dagger}(\tau_{n}') \rangle_{\mathrm{b}} \\
   &\quad \times \mathrm{Tr}_{\mathrm{s}}\bigl[ \hat{\mathcal{T}}_{\tau}
-      \hat{\varrho}_{\mu_{1}}(\tau_{1}) \cdots \hat{\varrho}_{\mu_{n}}(\tau_{n})
-      \hat{\varrho}_{\nu_{1}}^{\dagger}(\tau_{1}') \cdots \hat{\varrho}_{\nu_{n}}^{\dagger}(\tau_{n}') \bigr].
+      \hat{\varrho}_{\mu_{1}}^{\dagger}(\tau_{1}) \cdots \hat{\varrho}_{\mu_{n}}^{\dagger}(\tau_{n})
+      \hat{\varrho}_{\nu_{1}}(\tau_{1}') \cdots \hat{\varrho}_{\nu_{n}}(\tau_{n}') \bigr].
 \end{aligned}
 $$
 
-其中 $\tau_k' = \tau_{n+k}$。
+其中 $\tau_k' = \tau_{n+k}$。注意自旋迹里匕首跟随湮灭算符、无匕首跟随产生算符——这与原文中初看可能误写的对应关系相反，但正是这一翻转使最终推迟作用量取 $\hat{\varrho}^{\dagger}(\tau)D(\tau-\tau')\hat{\varrho}(\tau')$ 的正确形式。
 
 **第二步：Wick 收缩。** 应用 §3.3 的 Wick 定理。每种完全收缩对应一个排列 $\pi \in S_n$：第 $k$ 个湮灭算符 $\hat{a}_{\mu_k}(\tau_k)$ 与第 $\pi[k]$ 个产生算符 $\hat{a}_{\nu_{\pi[k]}}^{\dagger}(\tau_{\pi[k]}')$ 配对。代入传播子 $D$ 和 Kronecker $\delta$：
 
@@ -312,7 +338,7 @@ $$
 \end{aligned}
 $$
 
-对每个 $\pi$，$\delta$ 迫使 $\nu_{\pi[k]} = \mu_k$，即 $\nu_k = \mu_{\pi^{-1}[k]}$。代入自旋迹，暂时保留 $\sum_{\pi}$：
+对每个 $\pi$，$\delta$ 迫使 $\nu_{\pi[k]} = \mu_k$，即 $\nu_k = \mu_{\pi^{-1}[k]}$。代入自旋迹（此时自旋迹中产生算符一侧的无匕首算符索引为 $\nu_k$），暂时保留 $\sum_{\pi}$：
 
 $$
 \begin{aligned}
@@ -321,19 +347,19 @@ Z &= Z_{\mathrm{b}} \sum_{n=0}^{\infty}
    \int d\tau_{1} \cdots d\tau_{n}' \sum_{\mu_{1} \cdots \mu_{n}}
    \sum_{\pi \in S_n} \prod_{k=1}^{n} D(\omega_{\mu_k}, \tau_k - \tau_{\pi[k]}') \\
   &\quad \times \mathrm{Tr}_{\mathrm{s}}\bigl[ \hat{\mathcal{T}}_{\tau}
-      \hat{\varrho}_{\mu_{1}}(\tau_{1}) \cdots \hat{\varrho}_{\mu_{n}}(\tau_{n})
-      \hat{\varrho}_{\mu_{\pi^{-1}[1]}}^{\dagger}(\tau_{1}') \cdots
-      \hat{\varrho}_{\mu_{\pi^{-1}[n]}}^{\dagger}(\tau_{n}') \bigr].
+      \hat{\varrho}_{\mu_{1}}^{\dagger}(\tau_{1}) \cdots \hat{\varrho}_{\mu_{n}}^{\dagger}(\tau_{n})
+      \hat{\varrho}_{\mu_{\pi^{-1}[1]}}(\tau_{1}') \cdots
+      \hat{\varrho}_{\mu_{\pi^{-1}[n]}}(\tau_{n}') \bigr].
 \end{aligned}
 $$
 
-**第三步：哑变量重标号消除 $\sum_{\pi}$。** $\tau_1', \ldots, \tau_n'$ 是积分哑变量。对任意 $\pi$，做替换 $\tau_k' \to \tau_{\pi[k]}'$，积分测度不变。重标号后 $D$ 的乘积变为 $\prod_k D(\omega_{\mu_k}, \tau_k - \tau_k')$（恒等排列的形式），自旋迹中的 $\hat{\varrho}_{\mu_{\pi^{-1}[k]}}^{\dagger}(\tau_{\pi[k]}')$ 变为 $\hat{\varrho}_{\mu_{k}}^{\dagger}(\tau_{k}')$——与 $\pi$ 无关。因此 $n!$ 个 $\pi$ 给出完全相同的积分值：
+**第三步：哑变量重标号消除 $\sum_{\pi}$。** $\tau_1', \ldots, \tau_n'$ 是积分哑变量。对任意 $\pi$，做替换 $\tau_k' \to \tau_{\pi[k]}'$，积分测度不变。重标号后 $D$ 的乘积变为 $\prod_k D(\omega_{\mu_k}, \tau_k - \tau_k')$（恒等排列的形式），自旋迹中的 $\hat{\varrho}_{\mu_{\pi^{-1}[k]}}(\tau_{\pi[k]}')$ 变为 $\hat{\varrho}_{\mu_{k}}(\tau_{k}')$——与 $\pi$ 无关。因此 $n!$ 个 $\pi$ 给出完全相同的积分值：
 
 $$
 \sum_{\pi \in S_n} (\cdots)_{\pi} = n! \, (\cdots)_{\mathrm{id}}.
 $$
 
-**第四步：归约系数。** $\frac{1}{(2n)!} \binom{2n}{n} = \frac{1}{n! \, n!}$（第一步），乘以 $n!$（上一步）得 $\frac{1}{n!}$。最终：
+**第四步：归约系数。** $\frac{1}{(2n)!} \binom{2n}{n} = \frac{1}{n! \, n!}$（第一步），乘以 $n!$（上一步）得 $\frac{1}{n!}$。重标号后自旋迹化为 $\prod_k \hat{\varrho}_{\mu_k}^{\dagger}(\tau_k)\hat{\varrho}_{\mu_k}(\tau_k')$，最终：
 
 $$
 \boxed{
@@ -375,6 +401,8 @@ $$
 负号匹配：$-\hat{\mathcal{H}}_{\mathrm{ret}} = +\iint \hat{\varrho}^{\dagger} D \hat{\varrho}$。
 
 此时，玻色自由度已被精确积掉，问题化为纯自旋的推迟相互作用系统。
+
+**关于 $\hat{\mathcal{T}}_{\tau}$ 对双时间顶点的作用范围。** $\hat{\mathcal{H}}_{\mathrm{ret}}$ 是双时间算符：每个推迟顶点携带两个子时间点 $\tau_p, \tau_p'$ 和两个子算符 $\hat{\varrho}^{\dagger}(\tau_p), \hat{\varrho}(\tau_p')$。写 $\hat{\mathcal{T}}_{\tau} e^{-\hat{\mathcal{H}}_{\mathrm{ret}}}$ 时，$\hat{\mathcal{T}}_{\tau}$ **不是**给"每个双时间顶点"按某个代表时间排序，而是对展开中出现的**所有 $2n$ 个子时间点的子算符**统一编序。因此不同双时间顶点之间可以发生时间交错，例如 $\tau_1 > \tau_2 > \tau_1' > \tau_2'$ 也是合法构型。不要误以为顶点可以按某一代表时间排序——只有将所有子时间点重新排序后，才能得到正确的世界线构型（§6.1 的完备基插入正对应这一步）。
 
 ---
 
@@ -471,6 +499,14 @@ K(\tau - \tau') \sim \frac{1}{|\tau - \tau'|^{1+s}}.
 }
 $$
 
+**适用区间。** 有限温度下核 $K$ 是 $\beta$-周期的，上述幂律只在中间区间
+
+$$
+\omega_c^{-1} \ll d_\beta(\tau-\tau') \ll \beta, \qquad d_\beta(\tau)\equiv\min(|\tau|,\,\beta-|\tau|),
+$$
+
+成立。当 $d_\beta\to\beta$（接近周期边界）时不能再使用 $|\tau|^{-1-s}$，应改用周期距离 $d_\beta$ 表达的核。采样 $\Delta\tau$ 时（§7.5）已隐含了这一周期性。
+
 $s$ 越小，虚时间关联越长程，量子临界行为越强。
 
 ---
@@ -483,7 +519,9 @@ $s$ 越小，虚时间关联越长程，量子临界行为越强。
 
 §3 的结果是 $Z / Z_{\mathrm{b}} = \mathrm{Tr}_{\mathrm{s}} \, \hat{\mathcal{T}}_{\tau} \, e^{-\hat{\mathcal{H}}_{\mathrm{ret}}}$。到这一步为止，我们只完成了**解析化简**：玻色浴已被精确积分掉，原来的自旋-玻色问题变成了一个纯自旋但非局域虚时间相互作用的问题。
 
-**但这个形式只是纸上简洁，计算机根本没法直接算。** 原因有三：(1) 它是算符的指数，不是普通函数；(2) 推迟相互作用在虚时间上是非局域的——$\tau$ 和 $\tau'$ 可以隔得很远，没有解析解；(3) 自旋希尔伯特空间虽小，但直接对角化完全对付不了连续时间的非局域作用量。因此必须再做一步：把连续的非局域作用量，拆成一堆离散的"基本作用单元"的组合——这就是 SSE 的动机。
+**但这个形式只是纸上简洁，计算机根本没法直接算。** 原因有三：(1) 它是算符的指数，不是普通函数；(2) 推迟相互作用在虚时间上是非局域的——$\tau$ 和 $\tau'$ 可以隔得很远，没有解析解；(3) 自旋希尔伯特空间虽小，但直接对角化完全对付不了连续时间的非局域作用量。因此必须再做一步：把连续的非局域作用量，拆成一堆离散的"基本作用单元"的组合——这就是相互作用展开的动机。
+
+需要强调：本文做的是**连续时间相互作用展开**，不是传统的定长算符串 SSE。每个顶点携带显式的连续虚时间变量 $(\tau, \tau')$，不需要时间离散化；而 directed-loop 的局部顶点结构与 SSE 相同。因此更准确的说法是"连续时间相互作用展开 + SSE/directed-loop 型局部更新"，而非无显式时间变量的传统 SSE。
 
 下一步不是再近似 $\hat{\mathcal{H}}_{\mathrm{ret}}$，而是把迹重写成 Monte Carlo 可以采样的构型和权重：
 
@@ -510,50 +548,73 @@ $$
 
 ### 5.1 通用推迟相互作用到顶点权重的三步分解
 
-重写的核心是把推迟相互作用的连续权重拆成"采样分布 × 矩阵元"。
+重写的核心是把推迟相互作用的连续权重拆成"采样分布 × 矩阵元"。关键是让归一化常数闭合：连续核 $J(\omega)D/\pi$ 拆成归一化采样分布 $\mathcal{J}(\omega)P(\omega,\Delta\tau)$ 乘以一个无量纲耦合常数 $\lambda$，后者被吸收进顶点算符 $\hat{h}_v$。
 
-**第一步：写出通用推迟相互作用。** 从 §3.5 的 $\hat{\mathcal{H}}_{\mathrm{ret}}$ 出发，将连续 bath 替换为谱函数积分：
+**第一步：定义归一化常数。** 定义谱函数矩
+
+$$
+\mathcal{N}_J \equiv \int_0^\infty d\omega \, \frac{J(\omega)}{\omega}, \qquad \lambda \equiv \frac{\mathcal{N}_J}{\pi}.
+$$
+
+$\lambda$ 是无量纲耦合强度（后续进入顶点权重）。引入归一化频率分布和给定 $\omega$ 下的虚时间差分布：
+
+$$
+\mathcal{J}(\omega) \equiv \frac{J(\omega)/\omega}{\mathcal{N}_J} \;\;(\Rightarrow \int d\omega\,\mathcal{J}(\omega)=1), \qquad
+P(\omega, \Delta\tau) \equiv \omega D(\omega, \Delta\tau).
+$$
+
+直接验证 $\int_0^{\beta} d(\Delta\tau)\,P(\omega, \Delta\tau) = \int_0^\beta \omega D(\omega,\tau)d\tau = 1$，故 $P$ 归一化。
+
+**第二步：闭合常数，把连续核拆成"采样分布 × 常数"。** 把 $J(\omega) = \omega\,\mathcal{N}_J\,\mathcal{J}(\omega)$ 代入 $\frac{1}{\pi}J(\omega)D(\omega,\Delta\tau)$：
+
+$$
+\frac{1}{\pi} J(\omega) D(\omega, \Delta\tau) = \frac{\mathcal{N}_J}{\pi}\,\mathcal{J}(\omega)\,\bigl[\omega D(\omega,\Delta\tau)\bigr] = \lambda\,\mathcal{J}(\omega)\,P(\omega, \Delta\tau).
+$$
+
+因此常数 $\lambda = \mathcal{N}_J/\pi$ 必须进入顶点算符部分。Weber 原文明确说谱函数的归一化因子被吸收到算符部分——这正是 $\lambda$ 出现在 §5.3--§5.4 的 $\hat{h}_1$ 中的原因。
+
+**第三步：MC 只采样这个乘积。** 将通用推迟相互作用写成
 
 $$
 \hat{\mathcal{H}}_{\mathrm{ret}} = -\int_{0}^{\infty} d\omega \iint_{0}^{\beta} d\tau d\tau' \;
-K(\omega, \tau - \tau') \, \hat{O}(\tau, \tau'),
+\Bigl[\tfrac{1}{\pi}J(\omega)D(\omega,\tau-\tau')\Bigr] \, \hat{O}(\tau, \tau'),
 $$
 
-其中 $K(\omega, \tau - \tau') \equiv \frac{1}{\pi} J(\omega) D(\omega, \tau - \tau')$ 是 bath 给出的正权重核，$\hat{O}(\tau, \tau')$ 是自旋算符（例如 $\hat{S}_{+}(\tau) \hat{S}_{-}(\tau')$）。
-
-**第二步：把连续权重拆成"采样分布 × 矩阵元"。** 引入归一化分布 $\mathcal{I}(\omega)$（频率）和 $P(\omega, \tau)$（给定频率下的虚时间差），将核分解：
+其中 $\hat{O}(\tau,\tau')$ 是自旋算符（例如 $\hat{S}_+(\tau)\hat{S}_-(\tau')$）。代入第一步的分解：
 
 $$
-K(\omega, \tau - \tau') \, \hat{O}(\tau, \tau')
-= \mathcal{I}(\omega) \, P(\omega, \tau - \tau') \, \hat{h}_{v}(\tau, \tau'),
+\hat{\mathcal{H}}_{\mathrm{ret}} = -\int_{0}^{\infty} d\omega \, \mathcal{J}(\omega)
+   \iint_{0}^{\beta} d\tau d\tau' \sum_{a}
+   P(\omega, \tau - \tau') \, \hat{h}_{a}(\tau, \tau'),
 $$
 
-其中：
-- $\mathcal{I}(\omega) \equiv \frac{J(\omega)/\omega}{\int d\omega' J(\omega')/\omega'}$ —— 归一化频率分布（分母来自 §4.3 中 $K(\tau)$ 由 $J(\omega)/\omega$ 主导）
-- $P(\omega, \Delta\tau) \equiv \omega D(\omega, \Delta\tau)$ —— 给定 $\omega$ 下 $\Delta\tau$ 的条件分布（$\int_{0}^{\beta} d\tau \, \omega D(\omega, \tau) = 1$）
-- $\hat{h}_{v}(\tau, \tau')$ —— 只含自旋算符，$v$ 标记顶点类型（对角/非对角）
-
-**第三步：MC 只采样这个乘积。** 代入展开后，单顶点配置的权重为
+其中 $\hat{h}_{a} \equiv \lambda\,\hat{O}_{a}$，$a \in \{\text{diagonal}, \text{off-diagonal}\}$ 标记对角/非对角类别。常数 $\lambda$ 已被 $\hat{h}_{a}$ 吸收。代入展开后，单顶点配置的权重为
 
 $$
-\mathcal{W}_{\nu} = \mathcal{I}(\omega) \, P(\omega, \tau - \tau') \, W_{v} \, d\omega \, d\tau \, d\tau',
+\mathcal{W}_{\nu} = \mathcal{J}(\omega) \, P(\omega, \tau - \tau') \, W_{v} \, d\omega \, d\tau \, d\tau',
 $$
 
-其中 $W_{v} \equiv \langle \alpha' | \hat{h}_{v} | \alpha \rangle$ 是自旋顶点矩阵元（见 §6）。$\mathcal{I}$ 负责抽 $\omega$，$P$ 负责抽 $\tau, \tau'$，$W_v$ 处理离散顶点——三者解耦，各自处理。
+其中 $W_{v} \equiv \langle \alpha' | \hat{h}_{v} | \alpha \rangle$ 是自旋顶点矩阵元（见 §6）。$\mathcal{J}$ 负责抽 $\omega$，$P$ 负责抽 $\tau, \tau'$，$W_v$ 处理离散顶点——三者解耦，各自处理。
 
-推迟相互作用的三因子形式：
+推迟相互作用的三因子形式（为方便 §5.2--§5.4 引用，重列）：
 
 $$
 \boxed{
 \begin{aligned}
-\hat{\mathcal{H}}_{\mathrm{ret}} &= -\int_{0}^{\infty} d\omega \, \mathcal{I}(\omega)
+\hat{\mathcal{H}}_{\mathrm{ret}} &= -\int_{0}^{\infty} d\omega \, \mathcal{J}(\omega)
    \iint_{0}^{\beta} d\tau d\tau' \sum_{a}
    P(\omega, \tau - \tau') \, \hat{h}_{a}(\tau, \tau').
 \end{aligned}
 }
 $$
 
-其中 $a \in \{\text{diagonal}, \text{off-diagonal}\}$ 标记对角/非对角类别。§5.2--§5.4 分别对 Rabi、JC、XXZ 写出 $\hat{h}_{a}$ 的具体形式。
+**幂律谱的 $\lambda$ 显式值。** 对 $J(\omega) = 2\pi\alpha\,\omega_c^{1-s}\omega^{s}$（$0<\omega<\omega_c$），
+
+$$
+\lambda = \frac{1}{\pi}\int_0^{\omega_c} d\omega\,\frac{2\pi\alpha\,\omega_c^{1-s}\omega^{s}}{\omega} = 2\alpha\,\omega_c^{1-s}\int_0^{\omega_c}\omega^{s-1}\,d\omega = \boxed{\frac{2\alpha\,\omega_c}{s}}.
+$$
+
+注意分母是 $J(\omega)/\omega$ 的积分（即 $\omega^{s-1}$ 的积分），而不是 $J(\omega)$ 本身的积分。每个自旋分量 $\ell$ 对应各自的 $\lambda_\ell = \frac{1}{\pi}\int d\omega\,J_\ell(\omega)/\omega = 2\alpha_\ell\omega_c/s$；§5.3 的 $\lambda_{xy}$ 正是来自这一公式，而非 $\frac{1}{\pi}\int d\omega\,J(\omega)$。
 
 ### 5.2 Rabi / 原始自旋-玻色子模型
 
@@ -608,15 +669,42 @@ $$
 
 **为什么只有 $\hat{S}_{+}\hat{S}_{-}$ 一项？** 回顾 §3.3 的 Wick 收缩：Dyson 展开中，每个湮灭算符 $\hat{a}$ 必须与一个产生算符 $\hat{a}^{\dagger}$ 配对。JC 耦合中，$\hat{a}^{\dagger}$ 伴随 $\hat{S}_{-}$，$\hat{a}$ 伴随 $\hat{S}_{+}$。因此每个非零收缩对产生 $\hat{S}_{+}(\tau)$（来自 $\hat{a}(\tau)$ 的伴侣）和 $\hat{S}_{-}(\tau')$（来自 $\hat{a}^{\dagger}(\tau')$ 的伴侣），乘积为 $\hat{S}_{+}(\tau) \hat{S}_{-}(\tau')$。
 
+**二阶项的显式验证。** 最低非零阶 $m=2$ 的自旋迹为 $\frac{1}{2}\int d\tau d\tau'\langle\hat{\mathcal{T}}_\tau V(\tau)V(\tau')\rangle_{\mathrm{b}}$。展开 JC 耦合 $V=\sum_q(\hat{a}_q^\dagger\hat{S}_-+\hat{S}_+\hat{a}_q)$ 后，只有交叉项非零（$\langle\hat{a}\hat{a}\rangle_{\mathrm{b}}=\langle\hat{a}^\dagger\hat{a}^\dagger\rangle_{\mathrm{b}}=0$）：
+
+$$
+\langle\hat{\mathcal{T}}_\tau\hat{a}(\tau)\hat{a}^{\dagger}(\tau')\rangle_{\mathrm{b}}\,\hat{S}_{+}(\tau)\hat{S}_{-}(\tau')
+\;+\;
+\langle\hat{\mathcal{T}}_\tau\hat{a}^{\dagger}(\tau)\hat{a}(\tau')\rangle_{\mathrm{b}}\,\hat{S}_{-}(\tau)\hat{S}_{+}(\tau').
+$$
+
+利用玻色 KMS 关系 $\langle\hat{\mathcal{T}}_\tau\hat{a}^{\dagger}(\tau)\hat{a}(\tau')\rangle_{\mathrm{b}}=D(\omega,\tau-\tau')=D(\omega,\tau'-\tau+\beta)$ 以及时间积分对 $\tau,\tau'$ 对称，第二项在交换哑变量 $\tau\leftrightarrow\tau'$ 后恰好回到第一项。因此最终只有一个独立的有向核 $\hat{S}_+(\tau)D(\omega,\tau-\tau')\hat{S}_-(\tau')$——这正是 §5.3 前文 $\hat{\mathcal{H}}_{\mathrm{ret}}^{\mathrm{JC}}$ 中只出现一项的原因，而无需借助模糊的"先翻下再翻上"。
+
 这一点与 XXZ / Rabi 截然不同。Rabi 的 $\hat{\varrho} = \hat{\varrho}^{\dagger} = \gamma \hat{S}_{z}$，因此一个产生算符的伴侣可以是 $\hat{S}_{z}$（来自 $\hat{a}^{\dagger}\hat{S}_{z}$ 项），一个湮灭算符的伴侣也可以是 $\hat{S}_{z}$（来自 $\hat{S}_{z}\hat{a}$ 项）——收缩后总是 $\hat{S}_{z}(\tau)\hat{S}_{z}(\tau')$，自然地出现对称组合并对称化为 $D_{+}$。JC 的 $\hat{\varrho} \neq \hat{\varrho}^{\dagger}$ 打破了这种对称性。
 
-**从推迟相互作用提取顶点算符。** 将 $\hat{\mathcal{H}}_{\mathrm{ret}}^{\mathrm{JC}}$ 代入 §5.0 的分解式 $\hat{\mathcal{H}}_{\mathrm{ret}} = -\int d\omega \, \mathcal{I}(\omega) \iint d\tau d\tau' \sum_{a} P(\omega, \tau - \tau') \hat{h}_{a}$。逐一比对各部分：
+**从推迟相互作用提取顶点算符。** 将 $\hat{\mathcal{H}}_{\mathrm{ret}}^{\mathrm{JC}}$ 代入 §5.1 的分解式 $\hat{\mathcal{H}}_{\mathrm{ret}} = -\int d\omega \, \mathcal{J}(\omega) \iint d\tau d\tau' \sum_{a} P(\omega, \tau - \tau') \hat{h}_{a}$。逐一比对各部分：
 
-- $\mathcal{I}(\omega)$ 和 $P(\omega, \tau - \tau')$ 是纯数值因子（§5.0 已定义），与自旋算符无关，在所有顶点 $a$ 中共享。
+- $\mathcal{J}(\omega)$ 和 $P(\omega, \tau - \tau')$ 是纯数值因子（§5.1 已定义），与自旋算符无关，在所有顶点 $a$ 中共享。
 - 自旋部分 $\hat{h}_{a}$ 需要从 $\hat{\mathcal{H}}_{\mathrm{ret}}^{\mathrm{JC}}$ 的自旋算符中读出。$\hat{\mathcal{H}}_{\mathrm{ret}}^{\mathrm{JC}}$ 的自旋部分为 $\hat{S}_{+}(\tau) \hat{S}_{-}(\tau')$——这是非对角算符组合，对应 $a = 1$（非对角顶点）。
 - 对角部分 $\hat{h}_{2}$ 来自两个来源：(1) 常数 $C$，为确保 Monte Carlo 权重非负而人为加入（见下文）；(2) Zeeman 项 $-\hat{h}_{z} \hat{S}_{z}$（来自 $\hat{H}_{\mathrm{s}}$，之前在 §3.1 暂设为 0，现在加回）。
 
-Zeeman 项如何变成顶点形式：$\hat{H}_{\mathrm{s}} = -h_{z} \hat{S}_{z}$ 在 SSE 展开中作为额外的相互作用顶点加入。每加入一个 Zeeman 顶点，它作用于一个虚时间点；在推迟顶点的四腿框架下，我们将其对称分配到两个子顶点上，每个贡献 $\frac{h_{z}}{2} \hat{S}_{z}$：
+Zeeman 项如何变成顶点形式：$\hat{H}_{\mathrm{s}} = -h_{z} \hat{S}_{z}$ 在相互作用展开中本作用于单一虚时间点。要把它嵌入推迟顶点的四腿框架（两个子时间点 $\tau,\tau'$），需将其对称分配为 $\frac{h_z}{2}[\hat{S}_z(\tau)+\hat{S}_z(\tau')]$。**这并非任意的形式变换**，它依赖 §5.1 定义的分布 $\mathcal{J}, P$ 的归一化恒等式：
+
+$$
+\int_0^\infty d\omega\,\mathcal{J}(\omega)\int_0^\beta d\tau'\,P(\omega,\tau-\tau') = 1.
+$$
+
+由此可直接验证分配的等价性：
+
+$$
+\begin{aligned}
+&-\int d\omega\,\mathcal{J}(\omega)\int d\tau d\tau'\,P(\omega,\tau-\tau')\,\frac{h_z}{2}\bigl[\hat{S}_z(\tau)+\hat{S}_z(\tau')\bigr] \\
+&\qquad = -\frac{h_z}{2}\int d\tau\,\hat{S}_z(\tau)\cdot\underbrace{\int d\omega\,\mathcal{J}(\omega)\int d\tau'\,P}_{=\,1}
+   -\frac{h_z}{2}\underbrace{\int d\omega\,\mathcal{J}(\omega)\int d\tau\,P}_{=\,1}\int d\tau'\,\hat{S}_z(\tau') \\
+&\qquad = -h_z\int_0^\beta d\tau\,\hat{S}_z(\tau).
+\end{aligned}
+$$
+
+第二步中第一个等号的两个 $\hat{S}_z$ 积分在交换哑变量 $\tau\leftrightarrow\tau'$ 后相等。因此
 
 $$
 -h_{z} \hat{S}_{z} \;\longrightarrow\; \frac{h_{z}}{2} \bigl[ \hat{S}_{z}(\tau) + \hat{S}_{z}(\tau') \bigr].
@@ -633,9 +721,13 @@ $$
 }
 $$
 
-其中耦合常数 $\lambda_{xy}$ 来源于谱函数的积分 $\frac{1}{\pi} \int d\omega \, J(\omega)$，具体值与谱指数 $s$ 和截断 $\omega_c$ 有关（$\lambda_{\ell} = 2\alpha_{\ell} \omega_c / s$）。前因子 $1/2$ 来自推迟相互作用分解中的归一化约定。
+其中耦合常数 $\lambda_{xy}$ 来源于谱矩 $\frac{1}{\pi}\int d\omega\,J(\omega)/\omega = 2\alpha_{xy}\omega_c/s$（§5.1 已推导）。前因子 $1/2$ 来自推迟相互作用分解中的归一化约定。
 
-**顶点类型差异。** $\hat{S}_{+}(\tau) \hat{S}_{-}(\tau')$ 在 $S_{z}$ 基底下先作用 $\hat{S}_{-}$（将 $|\uparrow\rangle$ 翻为 $|\downarrow\rangle$），后作用 $\hat{S}_{+}$（将 $|\downarrow\rangle$ 翻回 $|\uparrow\rangle$）。它对应一种特定的四腿顶点——入口腿和出口腿的赋值只能沿一个方向。与之对称的反向过程 $\hat{S}_{-}(\tau) \hat{S}_{+}(\tau')$ 在 JC 的 $\hat{\mathcal{H}}_{\mathrm{ret}}$ 中根本不存在（因为 $\hat{\varrho}^{\dagger} \hat{\varrho} = \hat{S}_{+} \hat{S}_{-}$ 固定了算符次序）。对比 XXZ（§5.4）中两个方向都存在。这两种差异——$\lambda_z = 0$ 和单向 spin-flip——使得 JC 的顶点权重表比 XXZ 少一种非对角顶点。具体数值见 §6。
+**顶点类型差异：有向算符配对，而非固定的时间先后。** JC 的推迟作用量只含 $\hat{S}_+(\tau)\hat{S}_-(\tau')$ 一个非对角核：$\hat{S}_+$ 固定连接到湮灭端（$\hat{a}(\tau)$ 的伴侣），$\hat{S}_-$ 固定连接到产生端（$\hat{a}^\dagger(\tau')$ 的伴侣）。这是一个**有向的算符配对**，但**不**意味着固定的虚时间先后——$\tau$ 和 $\tau'$ 独立取遍 $[0,\beta)$，没有约束 $\tau>\tau'$。
+
+真正的算符顺序由 $\hat{\mathcal{T}}_\tau$ 决定：若 $\tau>\tau'$，$\hat{S}_+(\tau)$ 在编序积中位于左侧；若 $\tau<\tau'$，次序相反。又因 $D(\omega,\tau-\tau')$ 是 $\beta$-周期的有向传播子，$\tau,\tau'$ 在整个方形区域 $[0,\beta)^2$ 上积分时两种时间先后都已包含在内。因此准确的说法是"JC 只有一个独立的有向顶点类型"，而**不是**"反向过程根本不存在"。
+
+与之对比，XXZ（§5.4）中 $\hat{S}_+\hat{S}_-$ 和 $\hat{S}_-\hat{S}_+$ 两个方向都作为独立的核出现。这两种差异——$\lambda_z=0$ 和单向 spin-flip——使得 JC 的顶点权重表比 XXZ 少一种非对角顶点（$W_5=0$，见 §6.2）。
 
 ### 5.4 XXZ / XYZ 自旋-玻色子模型
 
@@ -661,7 +753,7 @@ $$
 }
 $$
 
-其中 $\lambda_{\ell} = 2 \alpha_{\ell} \omega_{c} / s$ 包含了谱函数的归一化因子。将 $\hat{h}_{1}, \hat{h}_{2}$ 放到 $S_{z}$ 基底下算矩阵元，即得六种顶点权重 $W_{1} \sim W_{6}$——详见 §6。
+其中 $\lambda_{\ell} = 2 \alpha_{\ell} \omega_{c} / s$ 来自谱矩（§5.1）。将 $\hat{h}_{1}, \hat{h}_{2}$ 放到 $S_{z}$ 基底下算矩阵元，XXZ 得六种顶点权重 $W_{1} \sim W_{6}$；JC 取其中 $W_5=0$；XYZ 追加 $W_7,W_8$——详见 §6.2。
 
 ---
 
@@ -671,7 +763,14 @@ $$
 
 **为什么是四条腿？** 一个推迟顶点同时接触两个虚时间点（$\tau$ 和 $\tau'$），每个时间点有算符作用前、后的自旋态。$2 \times 2 = 4$ 个接口——这就是"腿"的来源。
 
-**为什么正好六种顶点？** spin-$1/2$ 只有 $|\uparrow\rangle, |\downarrow\rangle$ 两个态。对角顶点不翻转自旋，四种组合（$\uparrow\uparrow\uparrow\uparrow$、$\uparrow\downarrow\uparrow\downarrow$、$\downarrow\uparrow\downarrow\uparrow$、$\downarrow\downarrow\downarrow\downarrow$）；非对角顶点翻转自旋，两种组合（$\uparrow\downarrow\downarrow\uparrow$ 对应 $\hat{S}_+\hat{S}_-$、$\downarrow\uparrow\uparrow\downarrow$ 对应 $\hat{S}_-\hat{S}_+$）。总计六种。算出每种顶点在 $S_z$ 基下的矩阵元，就是下一节的 $W_1 \sim W_6$。
+**顶点种数依赖模型，并非"spin-$1/2$ 固定六种"。** spin-$1/2$ 只有 $|\uparrow\rangle, |\downarrow\rangle$ 两个态，但这只决定腿的可能赋值，不直接决定顶点种数——顶点种数由非对角算符核的类型数决定，而后者依赖模型：
+
+- **XXZ（§5.4）**：非对角核含 $\hat{S}_+\hat{S}_-$ 和 $\hat{S}_-\hat{S}_+$ 两个方向。对角顶点不翻转自旋（四种组合 $\uparrow\uparrow\uparrow\uparrow$、$\uparrow\downarrow\uparrow\downarrow$、$\downarrow\uparrow\downarrow\uparrow$、$\downarrow\downarrow\downarrow\downarrow$），非对角顶点翻转自旋（两种：$\uparrow\downarrow\downarrow\uparrow$、$\downarrow\uparrow\uparrow\downarrow$），**总计六种**。
+- **JC（§5.3）**：非对角核只有 $\hat{S}_+\hat{S}_-$ 一个方向，$\hat{S}_-\hat{S}_+$ 对应的权重 $W_5=0$。因此只有**五种**非零顶点。
+- **XYZ / 旋转后的原始 spin-boson（§5.5）**：非对角核含 $\hat{S}_+\hat{S}_-$、$\hat{S}_-\hat{S}_+$、$\hat{S}_+\hat{S}_+$、$\hat{S}_-\hat{S}_-$ 全部四种组合，对应**八种**顶点。
+- 更高自旋则顶点更多。
+
+因此"spin-$1/2$ 正好六种顶点"只对 XXZ 成立，不是普适结论。§6.2 的权重表以 XXZ 六种为基准，JC 取 $W_5=0$，XYZ 追加 $W_7,W_8$。
 
 ---
 
@@ -683,15 +782,35 @@ $$
 \mathcal{C} = \{n, \mathcal{C}_{n}, |\alpha\rangle\},
 $$
 
-其中 $n$ 是展开阶数，$\mathcal{C}_{n} = \{\nu_1, \ldots, \nu_n\}$ 是有序顶点列表，$|\alpha\rangle$ 是 $S_z$ 基底中的初态。每个顶点变量为
+其中 $n$ 是展开阶数，$\mathcal{C}_{n} = \{\nu_1, \ldots, \nu_n\}$ 是顶点列表，$|\alpha\rangle$ 是 $S_z$ 基底中的初态。每个顶点变量为
 
 $$
 \nu = \{t_{\mathrm{int}}, v, \omega, \tau, \tau'\}.
 $$
 
-其中 $t_{\mathrm{int}}$ 标记相互作用类型（区分浴顶点、磁场顶点、交换顶点等），$v \in \{1, \ldots, 6\}$ 是具体的四腿顶点类型（见 §6.2），$\omega$ 是被采样的 bath 频率，$\tau, \tau'$ 是推迟相互作用的两个虚时间点。
+其中 $t_{\mathrm{int}}$ 标记相互作用类型（区分浴顶点、磁场顶点、交换顶点等），$v \in \{1, \ldots, N_v\}$ 是具体的四腿顶点类型（$N_v$ 依赖模型：XXZ 六种、JC 五种、XYZ 八种，见 §6.2），$\omega$ 是被采样的 bath 频率，$\tau, \tau'$ 是推迟相互作用的两个虚时间点。
 
-配置的总权重：
+**配置权重的完整推导：从算符迹到世界线乘积。** 展开的自旋迹 $\mathrm{Tr}_{\mathrm{s}}\,\hat{\mathcal{T}}_\tau\prod_p\hat{h}_{a_p}(\tau_p,\tau_p')$ 还不是可以直接写成"顶点乘积"的形式。必须按如下步骤闭合：
+
+1. **插入完备基。** 在每个子时间点插入 $1=\sum_{\sigma\in\{\uparrow,\downarrow\}}|\sigma\rangle\langle\sigma|$。
+2. **统一排序所有子时间点。** 把全部 $2n$ 个子时间点 $\{\tau_1,\tau_1',\ldots,\tau_n,\tau_n'\}$ 重新排序为 $0\le t_1<t_2<\cdots<t_{2n}<\beta$（注意不同顶点的子时间点可能交错，见 §3.5）。
+3. **按顺序传播世界线。** 自旋态沿排序后的子时间点逐段传播：
+
+$$
+\prod_{j=1}^{2n}\langle\sigma_{j+1}|\,\hat{o}_j\,|\sigma_j\rangle, \qquad \sigma_{2n+1}=\sigma_1,
+$$
+
+其中 $\hat{o}_j$ 是第 $j$ 个子时间点上的算符（来自某一顶点的 $\hat{\varrho}^\dagger$ 或 $\hat{\varrho}$）。
+4. **周期闭合条件。** 末态必须等于初态 $|\alpha(\beta)\rangle=|\alpha(0)\rangle$，即 $\sigma_{2n+1}=\sigma_1$。
+5. **非法构型权重为零。** 任何使某个局域矩阵元 $\langle\sigma_{j+1}|\hat{o}_j|\sigma_j\rangle=0$ 的构型（如对角顶点处自旋被翻转、非对角顶点处自旋未翻转）权重为零。
+
+完成这些步骤后，自旋迹才真正分解为各局域 $W_{v_p}$ 的乘积，配置权重才取下列形式。更完整地：
+
+$$
+W(\mathcal{C}) = \frac{1}{n!}\prod_{p=1}^{n}\bigl[\mathcal{J}(\omega_p)P(\omega_p,\tau_p-\tau_p')\,d\omega_p\,d\tau_p\,d\tau_p'\bigr]\cdot\underbrace{\langle\alpha|\,\hat{\mathcal{T}}_\tau\prod_p\hat{h}_{a_p}(\tau_p,\tau_p')\,|\alpha\rangle}_{\text{按上述 1--5 步分解为 }\prod_p W_{v_p}}.
+$$
+
+配置的总权重（完成世界线闭合后）：
 
 $$
 \boxed{
@@ -706,12 +825,14 @@ $$
 $$
 \boxed{
 \begin{aligned}
-\mathcal{W}_{\nu} &= \mathcal{I}(\omega) \, P(\omega, \tau - \tau') \, W_{v} \, d\omega \, d\tau \, d\tau',
+\mathcal{W}_{\nu} &= \mathcal{J}(\omega) \, P(\omega, \tau - \tau') \, W_{v} \, d\omega \, d\tau \, d\tau',
 \end{aligned}
 }
 $$
 
-其中 $W_{v}$ 是离散顶点类型的权重。$\mathcal{I}(\omega)$ 和 $P(\omega, \tau - \tau')$ 是全局前置因子（与顶点类型 $v$ 无关），在 directed-loop 方程中抵消。
+其中 $W_{v}$ 是离散顶点类型的权重（局域矩阵元）。$\mathcal{J}(\omega)$ 和 $P(\omega, \tau - \tau')$ 是全局前置因子（与顶点类型 $v$ 无关），在 directed-loop 方程中抵消。
+
+**关于 $1/n!$ 与顶点列表的排序。** 数学展开中的 $1/n!$ 对应顶点标签的置换冗余。在程序实现中，顶点可以保存在未按时间排序的数组里（见 §9.6），此时 $1/n!$ 仍由展开定义保留；构造世界线时再把所有子时间点重新排序。
 
 ### 6.2 顶点类型表
 
@@ -725,7 +846,7 @@ $$
 
 对角顶点（类型 1--4）在传播时不改变世界线的自旋态。非对角顶点（类型 5, 6）通过一对时间和方向相反的 spin flip 改变世界线——这正是 wormhole 更新中 loop 传播的物理来源。
 
-**顶点权重 $W_v$ 的用途。** $W_v$ 是 $\hat{h}_v$ 在 $S_z$ 基底下的矩阵元 $\langle \alpha' | \hat{h}_v | \alpha \rangle$——即上面六种顶点在对应自旋初末态下的数值。它是 MC 算法实际使用的离散权重：对角更新接受比直接用 $W_v$ 计算（§7）；有向环方程中的概率只依赖 $W_v$ 的相对值（§8.3），连续因子 $\mathcal{I} P$ 已被 proposal 吸收。$W_v$ 也是判断 sign problem 的最终对象——只要所有 $W_v \ge 0$（通过选择适当的 $C$ 和自旋基底），算法就无符号问题。
+**顶点权重 $W_v$ 的用途。** $W_v$ 是 $\hat{h}_v$ 在 $S_z$ 基底下的矩阵元 $\langle \alpha' | \hat{h}_v | \alpha \rangle$——即上面六种顶点在对应自旋初末态下的数值。它是 MC 算法实际使用的离散权重：对角更新接受比直接用 $W_v$ 计算（§7）；有向环方程中的概率只依赖 $W_v$ 的相对值（§8.3），连续因子 $\mathcal{J} P$ 已被 proposal 吸收。$W_v$ 也是判断 sign problem 的最终对象——只要所有 $W_v \ge 0$（通过选择适当的 $C$ 和自旋基底），算法就无符号问题。
 
 以 XXZ 模型为例（§5.4），将 $\hat{h}_1, \hat{h}_2$ 在 $S_z$ 基下求矩阵元，六种顶点权重为
 
@@ -740,7 +861,30 @@ W_{5} &= W_{6} = \frac{\lambda_{xy}}{2}.
 }
 $$
 
-常数 $C$ 不改变物理——它等价于给 $\hat{H}_{\mathrm{ret}}$ 加一个常数项 $C \hat{\mathbb{1}}(\tau) \hat{\mathbb{1}}(\tau')$，只平移所有权重。调节 $C$ 使全部 $W_v \ge 0$ 即可消除 sign problem：
+**JC 的顶点权重表。** JC 中 $\lambda_z=0$（无 $S_zS_z$ 浴耦合项）、且非对角核只有一个方向，因此 $W_5=0$。将 $\lambda_z\to 0$ 代入并取 $W_5=0$：
+
+$$
+\boxed{
+\begin{aligned}
+W_{1} &= C - \frac{h_{z}}{2},  &
+W_{2} &= W_{3} = C, \\[4pt]
+W_{4} &= C + \frac{h_{z}}{2},  &
+W_{5} &= 0, \qquad W_{6} = \frac{\lambda_{xy}}{2}.
+\end{aligned}
+}
+$$
+
+JC 因此只有**五种非零顶点**（$W_1,W_2,W_3,W_4,W_6$）。$W_5=0$ 的处理在 directed-loop 中见 §8.3。无符号条件为 $C\ge|h_z|/2$。
+
+> 注：$W_5,W_6$ 哪一个为零取决于非对角算符的编号约定（哪个方向记为 5、哪个记为 6）。本表取 $v=6$ 对应 $\hat{S}_+(\tau)\hat{S}_-(\tau')$（JC 的唯一非对角核），故 $v=5$（$\hat{S}_-(\tau)\hat{S}_+(\tau')$）权重为零。
+
+**常数 $C$ 对物理量的影响。** 加入 $C$ 后，$\hat{\mathcal{H}}_{\mathrm{ret}}\to\hat{\mathcal{H}}_{\mathrm{ret}}-\int d\omega\,\mathcal{J}\int d\tau d\tau'\,P\cdot C=\hat{\mathcal{H}}_{\mathrm{ret}}-\beta C$（最后一步用了 §5.1 的归一化恒等式），因此配分函数 $Z\to e^{\beta C}Z$。**$C$ 不改变归一化后的自旋关联函数等普通可观测量**，但会改变：
+
+- 配分函数的绝对归一化；
+- 自由能 $F\to F-C$；
+- 能量估计量中的常数项。
+
+调节 $C$ 使全部 $W_v \ge 0$ 即可消除 sign problem（这是 $C$ 的主要用途）。对 XXZ，无符号条件为
 
 $$
 \boxed{
@@ -748,7 +892,7 @@ C \ge \max\!\left[ \frac{\lambda_{z}}{4}, \; \frac{|h_{z}|}{2} - \frac{\lambda_{
 }
 $$
 
-这些权重与铁磁 XXZ 最近邻自旋模型的顶点权重完全一致——这也是有向环方程可以照搬的根本原因。
+这些权重（XXZ 六种 / JC 五种）与铁磁 XXZ 最近邻自旋模型的顶点权重一致——这也是有向环方程可以照搬的根本原因。
 
 ---
 
@@ -792,12 +936,12 @@ $$
 $$
 \begin{aligned}
 T_{0}(\mathcal{C}_{n} \to \mathcal{C}_{n+1}) &=
-   \frac{\mathcal{I}(\omega) \, P(\omega, \tau - \tau') \, p_{t_{\mathrm{int}}} \, d\omega \, d\tau \, d\tau'}
+   \frac{\mathcal{J}(\omega) \, P(\omega, \tau - \tau') \, p_{t_{\mathrm{int}}} \, d\omega \, d\tau \, d\tau'}
         {\beta (n + 1)}.
 \end{aligned}
 $$
 
-分子中的 $\mathcal{I}(\omega) P(\omega, \tau - \tau') d\omega d\tau d\tau'$ 是按谱和传播子自身分布采样的概率密度。分母中 $n+1$ 来自新顶点插入有序列表的 $n+1$ 个可能位置。
+分子中的 $\mathcal{J}(\omega) P(\omega, \tau - \tau') d\omega d\tau d\tau'$ 是按谱和传播子自身分布采样的概率密度。分母中 $n+1$ 来自新顶点插入有序列表的 $n+1$ 个可能位置。
 
 ### 7.3 删除顶点的提议概率
 
@@ -816,11 +960,11 @@ $$
 $$
 \begin{aligned}
 \frac{W_{\alpha}(\mathcal{C}_{n+1})}{W_{\alpha}(\mathcal{C}_{n})}
-&= \frac{\mathcal{I}(\omega) \, P(\omega, \tau - \tau') \, W_{v} \, d\omega \, d\tau \, d\tau'}{n + 1}.
+&= \frac{\mathcal{J}(\omega) \, P(\omega, \tau - \tau') \, W_{v} \, d\omega \, d\tau \, d\tau'}{n + 1}.
 \end{aligned}
 $$
 
-代入接受比公式，分子 $\mathcal{I}(\omega) P(\omega, \tau - \tau') d\omega d\tau d\tau'$ 与提议概率中的对应项抵消：
+代入接受比公式，分子 $\mathcal{J}(\omega) P(\omega, \tau - \tau') d\omega d\tau d\tau'$ 与提议概率中的对应项抵消：
 
 $$
 \boxed{
@@ -835,9 +979,9 @@ $$
 
 ### 7.5 采样 $\omega$ 和 $\Delta\tau$
 
-利用逆变换采样法从 $\mathcal{I}(\omega)$ 和 $P(\omega, \Delta\tau)$ 抽取连续变量。
+利用逆变换采样法从 $\mathcal{J}(\omega)$ 和 $P(\omega, \Delta\tau)$ 抽取连续变量。
 
-对幂律谱 $J(\omega) = 2\pi \alpha \omega_{c}^{1-s} \omega^{s}$（$0 < \omega < \omega_{c}$），归一化谱分布为 $\mathcal{I}(\omega) = s \omega_{c}^{-s} \omega^{s-1}$。
+对幂律谱 $J(\omega) = 2\pi \alpha \omega_{c}^{1-s} \omega^{s}$（$0 < \omega < \omega_{c}$），归一化谱分布为 $\mathcal{J}(\omega) = s \omega_{c}^{-s} \omega^{s-1}$。
 
 累计分布：
 
@@ -890,9 +1034,9 @@ $$
 
 §7 的对角更新只改顶点数量 $n$，**完全碰不到自旋构型**。如果只有对角更新，世界线从始至终不变，采样彻底失效。
 
-那能不能做局域自旋翻转？不行。因为推迟相互作用是长程虚时间关联——翻转某一时刻的自旋，会同时改变所有包含该时刻的顶点的权重，数量极多。局域翻转的接受率在低温、强耦合、临界区几乎为零（临界慢化）。
+那能不能做局域自旋翻转？并非完全不行，但通常效率很低。因为推迟相互作用是长程虚时间关联——翻转某一时刻的自旋，会同时改变所有包含该时刻的顶点的权重，数量极多。局域翻转的接受率在低温、强耦合、临界区通常极低（临界慢化），实际难以用作主更新。
 
-所以要采用 directed-loop 策略：不翻单个自旋，而是构造一条**闭合的世界线环**，把环内所有自旋段整体翻转。一次更新同时改变大量自旋态，但天然满足细致平衡。关键是：长程关联越强，loop 越长，更新效率反而越高——完美解决临界慢化。
+所以要采用 directed-loop 策略：不翻单个自旋，而是构造一条**闭合的世界线环**，把环内所有自旋段整体翻转。一次更新同时改变大量自旋态，但天然满足细致平衡。Weber 报告该算法在所研究的参数区间显著改善了临界区的采样效率，且 loop 平均长度与相应磁化率相关；但这不等于在所有参数区间都没有遍历或自相关问题——极端参数下的表现需另行验证。
 
 **关键理解：虚时间同时扮演两个角色。** 单自旋自旋-玻色模型没有空间格点（0 维空间）。虚时间 $\tau$ 既是自旋演化的"时间轴"，又是顶点连接的"节点"——顶替了格点 SSE 里空间格点的位置。因此只有**一条**世界线，非对角顶点 $\hat{S}^+(\tau)\hat{S}^-(\tau')$ 纵向连接这同一条世界线上的两个远点，loop 在这条世界线上"瞬移"——这就是**虫洞跳跃（wormhole jump）**。
 
@@ -956,16 +1100,18 @@ $$
 - $l = 3$：$\tau'$ 处算符作用前的自旋态
 - $l = 4$：$\tau'$ 处算符作用后的自旋态
 
-$W_{v}(l_1, l_2)$ 的含义是：head 从腿 $l_1$ 进入顶点，从腿 $l_2$ 离开。四种典型跳转：
+$W_{v}(l_1, l_2)$ 的含义是：head 从腿 $l_1$ 进入顶点，从腿 $l_2$ 离开。**bounce 的严格定义是 $l_2 = l_1$**——head 从进入的同一条腿退出，原路返回。四种典型跳转：
 
-| $l_1 \to l_2$ | 物理含义 |
-|---|---|
-| $1 \to 2$（同一子顶点内） | 直行：head 穿过 $\tau$ 子顶点，继续沿世界线传播 |
-| $2 \to 1$（同一子顶点内，反向） | bounce：原路返回，更新几乎无效 |
-| $1 \to 3$ 或 $2 \to 4$（跨子顶点） | **wormhole jump**：head 从 $\tau$ 子顶点沿 bath 传播子跳到 $\tau'$ 子顶点 |
-| $1 \to 4$ 或 $2 \to 3$ | 转弯：跨子顶点同时改变进入/退出腿的配对 |
+| 跳转类型 | 判据 | 物理含义 |
+|---|---|---|
+| **bounce** | $l_2 = l_1$（如 $1\to1$、$2\to2$） | head 原路返回，更新几乎无效，效率杀手 |
+| **直行** | $l_2$ 与 $l_1$ 在同一子顶点内但 $l_2\ne l_1$（如 $1\to2$、$3\to4$） | head 穿过子顶点，继续沿世界线传播 |
+| **wormhole jump** | $l_2$ 与 $l_1$ 分属不同子顶点、且同为"前"或同为"后"（如 $1\to3$、$2\to4$） | head 从 $\tau$ 子顶点沿 bath 传播子跳到 $\tau'$ 子顶点 |
+| **转弯** | $l_2$ 与 $l_1$ 分属不同子顶点、一"前"一"后"（如 $1\to4$、$2\to3$） | 跨子顶点同时改变进入/退出腿的配对 |
 
-头两类（直行/反弹）不改变顶点类型，只重连自旋段归属；后两类（虫洞跳跃/转弯）会改变顶点类型——这正是 loop 穿越世界线构型的方式。在 §8.3 的方程组中，$a$ 对应直行、$b$ 对应转弯、$c$ 对应虫洞跳跃、$b_1,b_2,b_3$ 对应 bounce。
+> **重要说明：腿号到物理跳转的映射不是固定的。** 上表按"前/后、同/跨子顶点"这一组合特征分类，而不是按具体的 $(l_1,l_2)$ 数对。例如 $2\to1$ 是否为 bounce 取决于编号约定和传播方向约定——它可能直行、可能转弯，但**不一定是 bounce**（原表中"$2\to1$ 是 bounce"的说法在没有完整顶点图和方向约定时不成立）。唯一可靠的 bounce 判据是 $l_{\rm out}=l_{\rm in}$，与 Weber 原文对角 assignment-table 元素的定义一致。具体实现 directed-loop 时，必须先画出每种顶点的四腿自旋赋值图，再据此确定 $(l_1,l_2)$ 与跳转类型的对应。
+
+头两类（bounce/直行）不改变顶点类型，只重连自旋段归属；后两类（虫洞跳跃/转弯）会改变顶点类型——这正是 loop 穿越世界线构型的方式。在 §8.3 的方程组中，$a$ 对应直行、$b$ 对应转弯、$c$ 对应虫洞跳跃、$b_1,b_2,b_3$ 对应 bounce。
 
 ### 8.1 局部细致平衡：为什么全局退化为局部
 
@@ -982,7 +1128,7 @@ W(\mathcal{C}) P(\mathcal{C} \to \mathcal{C}')
 \end{aligned}
 $$
 
-（这里省略了正反过程相同的起点选择概率、方向选择概率、以及 $\mathcal{I}(\omega)P(\omega,\tau-\tau')$ 等公共因子——这些在正反权重比 $\frac{W(\mathcal{C})P(\mathcal{C}\to\mathcal{C}')}{W(\mathcal{C}')P(\mathcal{C}'\to\mathcal{C})}$ 中抵消。）
+（这里省略了正反过程相同的起点选择概率、方向选择概率、以及 $\mathcal{J}(\omega)P(\omega,\tau-\tau')$ 等公共因子——这些在正反权重比 $\frac{W(\mathcal{C})P(\mathcal{C}\to\mathcal{C}')}{W(\mathcal{C}')P(\mathcal{C}'\to\mathcal{C})}$ 中抵消。）
 
 反向过程（loop 沿相反方向走，顶点翻转为 $\bar{v}_p$）的总权重为
 
@@ -1074,7 +1220,7 @@ $$
 - 格点模型：loop 沿空间键 $(i, j)$ 移动；
 - 推迟自旋-玻色模型：loop 沿虚时间虫洞 $(\tau, \tau')$ 跳跃 —— 当 loop head 进入 $\tau$ 处的顶点腿时，通过传播子直接跳到 $\tau'$ 处继续。
 
-因为 $\mathcal{I}(\omega)$ 和 $P(\omega, \tau - \tau')$ 对每个顶点是全局因子，在 directed-loop 方程中抵消，因此 wormhole update 的数学结构完全退化为标准 directed-loop 更新。
+因为 $\mathcal{J}(\omega)$ 和 $P(\omega, \tau - \tau')$ 对每个顶点是全局因子，在 directed-loop 方程中抵消，因此 wormhole update 的数学结构完全退化为标准 directed-loop 更新。
 
 ### 8.5 格点 SSE ↔ wormhole QMC 对照表
 
@@ -1096,12 +1242,16 @@ $$
 
 ### 9.1 对角可观测量（$z$ 分量）
 
-对角可观测量（$\hat{S}_{z}$、对角关联函数）不改变世界线构型，直接从传播态 $|\alpha_{p}\rangle$ 读出——无需额外采样。静态磁化率定义为
+对角可观测量（$\hat{S}_{z}$、对角关联函数）不改变世界线构型，直接从传播态 $|\alpha_{p}\rangle$ 读出——无需额外采样。静态磁化率（线性响应定义）应使用**连通**关联函数：
 
 $$
-\chi_{\ell} = \frac{1}{\beta} \iint_{0}^{\beta} d\tau d\tau' \, C_{\ell}(\tau - \tau'), \qquad
-C_{\ell}(\tau - \tau') = \langle \hat{S}_{\ell}(\tau) \hat{S}_{\ell}(\tau') \rangle.
+\boxed{
+\chi_{\ell} = \frac{1}{\beta} \iint_{0}^{\beta} d\tau d\tau' \, C_{\ell}^{\mathrm{conn}}(\tau - \tau'), \qquad
+C_{\ell}^{\mathrm{conn}}(\tau - \tau') = \bigl\langle \hat{S}_{\ell}(\tau) \hat{S}_{\ell}(\tau') \bigr\rangle - \bigl\langle \hat{S}_{\ell} \bigr\rangle^{2}.
+}
 $$
+
+当对称性保证 $\langle \hat{S}_{\ell}\rangle = 0$（如零场下 $\ell\in\{x,y\}$）时，连通项退化为非连通项 $\langle \hat{S}_{\ell}(\tau)\hat{S}_{\ell}(\tau')\rangle$。但存在外场使 $\langle\hat{S}_z\rangle\ne 0$ 时，必须减去 $\langle\hat{S}_z\rangle^2$，否则 $\chi_z$ 会偏大。
 
 ### 9.2 非对角可观测量（$x, y$ 分量）
 
@@ -1117,15 +1267,25 @@ $$
 
 将平均展开阶数与自旋子系统能量关联。玻色能量、传播子、比热等估计量已在针对单个 bath 频率的文献 [15,55] 中推导。推广到连续浴时，需要定义从离散频率到连续谱的附加映射 [56,57]，浴的性质因此保留一定的不确定性。
 
-### 9.4 预热与 $\beta$-倍增策略
+### 9.4 遍历性：为什么两类更新合起来够用
+
+对角更新和 directed-loop 更新必须合起来才能到达所有非零权重构型。两者的分工：
+
+- **对角更新**改变展开阶数 $n$，插入或删除对角顶点（类型 1--4）——负责采样顶点数的泊松涨落。
+- **directed loop** 把对角顶点翻成非对角顶点（及其逆过程），并整体翻转世界线段——负责遍历自旋构型空间。
+- **初态更新**：loop 闭合时可改变周期迹的初态 $|\alpha\rangle$（即 $\sigma(\beta)=\sigma(0)$ 的自旋值）。
+
+**JC 的特殊考量。** JC 缺少一个非对角方向（$W_5=0$），需确认缺失该方向后仍能遍历所有允许的总激发数扇区。对单自旋 JC，仅存的非对角顶点 $\hat{S}_+\hat{S}_-$ 在 loop 传播中成对翻转自旋（先翻下再翻上，或反之），每次 loop 闭合保持总 $S_z$ 守恒，因此各 $S_z$ 扇区内部遍历；扇区之间的跃迁由初态更新覆盖。若模型存在额外守恒量使某些扇区无法由上述更新连接，则需补充全局更新（如全局自旋翻转）。
+
+### 9.5 预热与 $\beta$-倍增策略
 
 MC 预热（warmup）从随机初态 $|\alpha\rangle$ 和空顶点列表开始。对角更新的提议次数和有向环更新的构造环数在预热期间动态调整——使每个顶点平均被每类更新至少触及一次——之后固定不变。
 
 为加速预热，使用 **$\beta$-倍增方案**：从较小的逆温度开始仿真，逐步倍增 $\beta$，每一步将前一步的平衡构型作为新 $\beta$ 的初始构型。这比直接在目标 $\beta$ 上从零开始预热收敛快得多，尤其对低温（$\beta \gg 1$）仿真至关重要。
 
-### 9.5 顶点列表的数据结构
+### 9.6 顶点列表的数据结构
 
-与 SSE 表示中将顶点保存在定长算符串中不同，这里顶点保存在**无序列表**中，每个元素包含 $\nu = \{t_{\mathrm{int}}, v, \omega, \tau, \tau'\}$。开始对角更新前遍历列表，提取所有非对角算符的时间变量并排序以获取世界线构型。排序操作虽然需要 $\mathcal{O}(\beta \ln \beta)$ 运算，但在所有可及温度下，环的构建仍是最昂贵的任务——排序开销始终小于有向环更新。
+与 SSE 表示中将顶点保存在定长算符串中不同，这里顶点保存在**未按时间排序的数组**中，每个元素包含 $\nu = \{t_{\mathrm{int}}, v, \omega, \tau, \tau'\}$。这与 §6.1 中数学展开的"顶点标签置换冗余"（$1/n!$）是两件事：程序里顶点可以无序存放，但 $1/n!$ 仍保留。开始对角更新前遍历列表，提取所有子时间点并统一排序以获取世界线构型（§6.1 的步骤 2）。排序操作虽然需要 $\mathcal{O}(\beta \ln \beta)$ 运算，但在所有可及温度下，环的构建仍是最昂贵的任务——排序开销始终小于有向环更新。
 
 对角顶点增删使用交换-计数技巧：添加时插入到位置 $n+1$；删除时随机选取对角顶点，与位置 $n$ 交换后减 $n$。顶点列表使用定长数组，仅前 $n$ 个元素有效。
 
@@ -1183,7 +1343,9 @@ $$
 
 3. **顶点权重非负**：通过调节常数位移 $C$ 或选择适当自旋基底，确保 $W_{v} \ge 0$。若某模型在所有 $C$ 和所有自旋基底下均出现负 $W_{v}$，则 sign problem 不可消除。
 
-4. **传播子正定性与符号问题的关系**：玻色传播子 $D(\omega, \tau)$ 对所有 $(\omega, \tau)$ 为正，这意味着玻色收缩本身不引入负权重。然而，**正定传播子是 QMC 无符号问题的必要条件，而非充分条件**。完整的无符号条件还要求所有顶点权重 $W_v \ge 0$（通过选择适当的自旋基底和常数位移 $C$ 满足），且不存在复相位。若 bath 存在 hopping 导致空间非局域传播子矩阵元为负，则需直接采样玻色子而非使用推迟表述。
+4. **传播子正定性与符号问题的关系**：玻色传播子 $D(\omega, \tau)$ 对所有 $(\omega, \tau)$ 为正，意味着玻色收缩本身不引入负权重。需要厘清几个不同层次的概念——**点值正**（$D(\tau)>0$）、**正定核**（$\int f^*Df\ge0$）、**某种局域顶点分解具有正权重**、**整个 QMC 存在其他无符号重组**——它们互不等价。
+
+对于本框架的因子化 wormhole 表示，正的连续前因子（$\mathcal{J}P\ge0$，来自 $D>0$）加上非负局域顶点权重 $W_v\ge0$，是一个**方便的充分条件**。但这**不是所有无符号 QMC 的必要条件**：负的局域矩阵元有时可以通过基底变换、规范变换、配对或 determinant 重组消除（如 determinant QMC、meron-cluster 等方法）。因此不要把"$D>0$ 是无符号 QMC 的必要条件"作为普适结论。完整的无符号条件还需满足：不存在复相位；若 bath 存在 hopping 导致空间非局域传播子矩阵元为负，则需直接采样玻色子而非使用推迟表述。
 
 > **来源**：Weber (2022), Phys. Rev. B 105, 165129 — Quantum Monte Carlo simulation of spin-boson models using wormhole updates
-> **调研时间**：2026-07-09
+> **调研时间**：2026-07-09（2026-07-10 修订：ρ/ρ† 配对、谱归一化、JC 有向核、世界线闭合、bounce 编号等）
