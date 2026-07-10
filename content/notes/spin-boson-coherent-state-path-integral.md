@@ -27,16 +27,12 @@ weight: 5
 
 $$
 \boxed{
-\hat H
-=
-\hat H_{\mathrm s}
-+
-\sum_\mu \omega_\mu \hat a_\mu^\dagger\hat a_\mu
-+
+\hat H =
+\hat H_{\mathrm s} +
+\sum_\mu \omega_\mu \hat a_\mu^\dagger\hat a_\mu +
 \sum_\mu
 \left(
-\hat a_\mu^\dagger\hat\varrho_\mu
-+
+\hat a_\mu^\dagger\hat\varrho_\mu +
 \hat\varrho_\mu^\dagger \hat a_\mu
 \right)
 }
@@ -51,10 +47,8 @@ $$
 由于玻色算符与自旋算符作用于不同的 Hilbert 空间，
 
 $$
-[\hat a_\mu,\hat\varrho_\nu]
-=
-[\hat a_\mu^\dagger,\hat\varrho_\nu]
-=
+[\hat a_\mu,\hat\varrho_\nu] =
+[\hat a_\mu^\dagger,\hat\varrho_\nu] =
 0.
 $$
 
@@ -69,8 +63,7 @@ $$
 对每个玻色模式 $\mu$，采用归一化相干态
 
 $$
-|\phi_\mu\rangle
-=
+|\phi_\mu\rangle =
 e^{-|\phi_\mu|^2/2}
 e^{\phi_\mu\hat a_\mu^\dagger}|0\rangle ,
 $$
@@ -81,8 +74,7 @@ $$
 \boxed{
 \int_{\mathbb C}
 \frac{d^2\phi_\mu}{\pi}
-|\phi_\mu\rangle\langle\phi_\mu|
-=
+|\phi_\mu\rangle\langle\phi_\mu| =
 \hat{\mathbb 1}_{\mu}.
 }
 $$
@@ -91,12 +83,10 @@ $$
 
 $$
 \boxed{
-\langle\phi_\mu'|\phi_\mu\rangle
-=
+\langle\phi_\mu'|\phi_\mu\rangle =
 \exp\left[
 -\frac12|\phi_\mu'|^2
--\frac12|\phi_\mu|^2
-+
+-\frac12|\phi_\mu|^2 +
 \bar\phi_\mu'\phi_\mu
 \right].
 }
@@ -110,8 +100,7 @@ $$
 
 $$
 \boxed{
-|z\rangle
-=
+|z\rangle =
 \frac{1}{(1+|z|^2)^S}
 e^{z\hat J_-}|S,S\rangle ,
 \qquad z\in\mathbb C .
@@ -125,8 +114,7 @@ $$
 \frac{2S+1}{\pi}
 \int_{\mathbb C}
 \frac{d^2z}{(1+|z|^2)^2}
-|z\rangle\langle z|
-=
+|z\rangle\langle z| =
 \hat{\mathbb 1}_{\mathrm s},
 }
 $$
@@ -137,8 +125,7 @@ $$
 
 $$
 \boxed{
-\langle z'|z\rangle
-=
+\langle z'|z\rangle =
 \frac{(1+\bar z' z)^{2S}}
 {(1+|z'|^2)^S(1+|z|^2)^S}.
 }
@@ -297,8 +284,7 @@ $$
 \begin{aligned}
 H_{j+1,j}
 ={}&
-h_{\mathrm s}^{j+1,j}
-+
+h_{\mathrm s}^{j+1,j} +
 \sum_\mu
 \omega_\mu
 \bar\phi_{\mu,j+1}\phi_{\mu,j}
@@ -307,8 +293,7 @@ h_{\mathrm s}^{j+1,j}
 \sum_\mu
 \left[
 \bar\phi_{\mu,j+1}
-\varrho_\mu^{j+1,j}
-+
+\varrho_\mu^{j+1,j} +
 \varrho_\mu^{\dagger,j+1,j}
 \phi_{\mu,j}
 \right].
@@ -330,28 +315,23 @@ $$
 
 $$
 -\ln
-\langle\phi_{\mu,j+1}|\phi_{\mu,j}\rangle
-=
+\langle\phi_{\mu,j+1}|\phi_{\mu,j}\rangle =
 \frac{\varepsilon}{2}
 \left(
-\bar\phi_\mu\dot\phi_\mu
--
+\bar\phi_\mu\dot\phi_\mu -
 \dot{\bar\phi}_\mu\phi_\mu
-\right)
-+
+\right) +
 O(\varepsilon^2).
 $$
 
 因此每个玻色模式产生一个一阶时间导数项：
 
 $$
-S_{\mathrm B,\mu}^{\mathrm{bos}}
-=
+S_{\mathrm B,\mu}^{\mathrm{bos}} =
 \frac12
 \int_0^\beta d\tau
 \left(
-\bar\phi_\mu\dot\phi_\mu
--
+\bar\phi_\mu\dot\phi_\mu -
 \dot{\bar\phi}_\mu\phi_\mu
 \right).
 $$
@@ -360,8 +340,7 @@ $$
 
 $$
 \boxed{
-S_{\mathrm B,\mu}^{\mathrm{bos}}
-=
+S_{\mathrm B,\mu}^{\mathrm{bos}} =
 \int_0^\beta d\tau\,
 \bar\phi_\mu\partial_\tau\phi_\mu .
 }
@@ -372,15 +351,13 @@ $$
 令 $z_{j+1}=z_j+\varepsilon\dot z_j$。从自旋相干态重叠得到
 
 $$
--\ln\langle z_{j+1}|z_j\rangle
-=
+-\ln\langle z_{j+1}|z_j\rangle =
 \varepsilon S
 \frac{
 \bar z\dot z-\dot{\bar z}z
 }{
 1+\bar z z
-}
-+
+} +
 O(\varepsilon^2).
 $$
 
@@ -388,8 +365,7 @@ $$
 
 $$
 \boxed{
-S_{\mathrm B}^{\mathrm{spin}}[\bar z,z]
-=
+S_{\mathrm B}^{\mathrm{spin}}[\bar z,z] =
 S\int_0^\beta d\tau\,
 \frac{
 \bar z\dot z-\dot{\bar z}z
@@ -402,8 +378,7 @@ $$
 这个量是纯虚数。在 Bloch 球语言中，记自旋相干态对应的单位向量为 $\mathbf n(\tau)$（北极 $z=0$、南极 $z\to\infty$），它可以写成
 
 $$
-S_{\mathrm B}^{\mathrm{spin}}
-=
+S_{\mathrm B}^{\mathrm{spin}} =
 iS\,\mathcal A[\mathbf n],
 $$
 
@@ -420,16 +395,13 @@ $$
 在连续极限中定义对角协变符号（同一时间片）
 
 $$
-h_{\mathrm s}(\bar z,z)
-=
+h_{\mathrm s}(\bar z,z) =
 \frac{\langle z|\hat H_{\mathrm s}|z\rangle}{\langle z|z\rangle},
 \qquad
-\varrho_\mu(\bar z,z)
-=
+\varrho_\mu(\bar z,z) =
 \frac{\langle z|\hat\varrho_\mu|z\rangle}{\langle z|z\rangle},
 \qquad
-\varrho_\mu^\dagger(\bar z,z)
-=
+\varrho_\mu^\dagger(\bar z,z) =
 \frac{\langle z|\hat\varrho_\mu^\dagger|z\rangle}{\langle z|z\rangle}.
 $$
 
@@ -437,8 +409,7 @@ $$
 
 $$
 \boxed{
-Z
-=
+Z =
 \int_{\mathrm{PBC}}
 \mathcal D\mu_S[\bar z,z]\,
 \prod_\mu
@@ -454,8 +425,7 @@ $$
 \begin{aligned}
 S
 ={}&
-S_{\mathrm B}^{\mathrm{spin}}[\bar z,z]
-+
+S_{\mathrm B}^{\mathrm{spin}}[\bar z,z] +
 \int_0^\beta d\tau\,
 h_{\mathrm s}(\bar z,z)
 \\
@@ -471,8 +441,7 @@ h_{\mathrm s}(\bar z,z)
 \int_0^\beta d\tau
 \left[
 \bar\phi_\mu(\tau)
-\varrho_\mu(\tau)
-+
+\varrho_\mu(\tau) +
 \varrho_\mu^\dagger(\tau)
 \phi_\mu(\tau)
 \right].
@@ -486,14 +455,11 @@ $$
 
 $$
 \boxed{
-S_{\mathrm b,\mu}
-=
+S_{\mathrm b,\mu} =
 \int_0^\beta d\tau
 \left[
-\bar\phi_\mu L_\mu\phi_\mu
-+
-\bar\phi_\mu\varrho_\mu
-+
+\bar\phi_\mu L_\mu\phi_\mu +
+\bar\phi_\mu\varrho_\mu +
 \varrho_\mu^\dagger\phi_\mu
 \right].
 }
@@ -512,28 +478,21 @@ $$
 把 $S_{\mathrm b,\mu}$ 写成算符矩阵记号（省略虚时间积分）：
 
 $$
-S_{\mathrm b,\mu}
-=
-\bar\phi_\mu L_\mu\phi_\mu
-+
-\bar\phi_\mu\varrho_\mu
-+
+S_{\mathrm b,\mu} =
+\bar\phi_\mu L_\mu\phi_\mu +
+\bar\phi_\mu\varrho_\mu +
 \varrho_\mu^\dagger\phi_\mu.
 $$
 
 作变量平移
 
 $$
-\widetilde\phi_\mu
-=
-\phi_\mu
-+
+\widetilde\phi_\mu =
+\phi_\mu +
 L_\mu^{-1}\varrho_\mu,
 \qquad
-\widetilde{\bar\phi}_\mu
-=
-\bar\phi_\mu
-+
+\widetilde{\bar\phi}_\mu =
+\bar\phi_\mu +
 \varrho_\mu^\dagger L_\mu^{-1}.
 $$
 
@@ -546,24 +505,19 @@ L_\mu
 \widetilde\phi_\mu
 ={}&
 \left(
-\bar\phi_\mu
-+
+\bar\phi_\mu +
 \varrho_\mu^\dagger L_\mu^{-1}
 \right)
 L_\mu
 \left(
-\phi_\mu
-+
+\phi_\mu +
 L_\mu^{-1}\varrho_\mu
 \right)
 \\
 ={}&
-\bar\phi_\mu L_\mu\phi_\mu
-+
-\bar\phi_\mu\varrho_\mu
-+
-\varrho_\mu^\dagger\phi_\mu
-+
+\bar\phi_\mu L_\mu\phi_\mu +
+\bar\phi_\mu\varrho_\mu +
+\varrho_\mu^\dagger\phi_\mu +
 \varrho_\mu^\dagger
 L_\mu^{-1}
 \varrho_\mu .
@@ -574,12 +528,10 @@ $$
 
 $$
 \boxed{
-S_{\mathrm b,\mu}
-=
+S_{\mathrm b,\mu} =
 \widetilde{\bar\phi}_\mu
 L_\mu
-\widetilde\phi_\mu
--
+\widetilde\phi_\mu -
 \varrho_\mu^\dagger
 L_\mu^{-1}
 \varrho_\mu .
@@ -601,8 +553,7 @@ $$
 $$
 \boxed{
 (\partial_\tau+\omega_\mu)
-D_\mu(\tau-\tau')
-=
+D_\mu(\tau-\tau') =
 \delta_\beta(\tau-\tau'),
 }
 $$
@@ -679,8 +630,7 @@ $$
 
 $$
 \boxed{
-Z_{\mathrm b,\mu}^{(0)}
-=
+Z_{\mathrm b,\mu}^{(0)} =
 \frac{1}{1-e^{-\beta\omega_\mu}}.
 }
 $$
@@ -711,8 +661,7 @@ $$
 
 $$
 \boxed{
-Z_{\mathrm b}^{(0)}
-=
+Z_{\mathrm b}^{(0)} =
 \prod_\mu
 \frac{1}{1-e^{-\beta\omega_\mu}}.
 }
@@ -734,15 +683,12 @@ Z_{\mathrm b}^{(0)}
 \mathcal D\mu_S[\bar z,z]\,
 \\
 &\times
-\exp\Bigg[
--
-S_{\mathrm B}^{\mathrm{spin}}[\bar z,z]
--
+\exp\Bigg[ -
+S_{\mathrm B}^{\mathrm{spin}}[\bar z,z] -
 \int_0^\beta d\tau\,
 h_{\mathrm s}(\bar z,z)
 \\
-&\qquad
-+
+&\qquad +
 \sum_\mu
 \int_0^\beta d\tau
 \int_0^\beta d\tau'\,
@@ -758,8 +704,7 @@ $$
 
 $$
 \boxed{
-Z
-=
+Z =
 Z_{\mathrm b}^{(0)}
 \int_{\mathrm{PBC}}
 \mathcal D\mu_S[\bar z,z]\,
@@ -774,8 +719,7 @@ $$
 \begin{aligned}
 S_{\mathrm{eff}}[\bar z,z]
 ={}&
-S_{\mathrm B}^{\mathrm{spin}}[\bar z,z]
-+
+S_{\mathrm B}^{\mathrm{spin}}[\bar z,z] +
 \int_0^\beta d\tau\,
 h_{\mathrm s}(\bar z,z)
 \\
@@ -806,8 +750,7 @@ $$
 
 $$
 \boxed{
-D_\mu(\tau)
-=
+D_\mu(\tau) =
 \begin{cases}
 \left[1+n_B(\omega_\mu)\right]
 e^{-\omega_\mu\tau},
@@ -830,8 +773,7 @@ $$
 
 $$
 \boxed{
-D_\mu(\tau+\beta)
-=
+D_\mu(\tau+\beta) =
 D_\mu(\tau).
 }
 $$
@@ -840,8 +782,7 @@ $$
 
 $$
 \boxed{
-D_\mu(\tau)
-=
+D_\mu(\tau) =
 \frac{
 e^{-\omega_\mu\tau_\beta}
 }{
@@ -895,8 +836,7 @@ $$
 
 $$
 \boxed{
-I_\mu
-=
+I_\mu =
 \int d\tau d\tau'\,
 \varrho_\mu(\tau)
 D_{\mu,+}(\tau-\tau')
@@ -908,12 +848,10 @@ $$
 
 $$
 \boxed{
-D_{\mu,+}(\Delta\tau)
-=
+D_{\mu,+}(\Delta\tau) =
 \frac12
 \left[
-D_\mu(\Delta\tau)
-+
+D_\mu(\Delta\tau) +
 D_\mu(-\Delta\tau)
 \right].
 }
@@ -923,14 +861,12 @@ $$
 
 $$
 \boxed{
-D_{\mu,+}(\Delta\tau)
-=
+D_{\mu,+}(\Delta\tau) =
 \frac{
 \cosh\left[
 \omega_\mu
 \left(
-\frac{\beta}{2}
--
+\frac{\beta}{2} -
 |\Delta\tau|_\beta
 \right)
 \right]
@@ -946,14 +882,12 @@ $$
 
 $$
 \boxed{
-D_{0,\mu}(\Delta\tau)
-=
+D_{0,\mu}(\Delta\tau) =
 \frac{
 \cosh\left[
 \omega_\mu
 \left(
-\frac{\beta}{2}
--
+\frac{\beta}{2} -
 |\Delta\tau|_\beta
 \right)
 \right]
@@ -966,8 +900,7 @@ $$
 相应地，有效作用量必须写成
 
 $$
-\int\varrho_\mu D_{\mu,+}\varrho_\mu
-=
+\int\varrho_\mu D_{\mu,+}\varrho_\mu =
 \frac12
 \int\varrho_\mu D_{0,\mu}\varrho_\mu .
 $$
@@ -982,20 +915,16 @@ $$
 
 $$
 \boxed{
-S_{\mathrm{geom}}
-=
-S_{\mathrm B}^{\mathrm{spin}}
-+
+S_{\mathrm{geom}} =
+S_{\mathrm B}^{\mathrm{spin}} +
 \sum_\mu
-S_{\mathrm B,\mu}^{\mathrm{bos}}
-=
+S_{\mathrm B,\mu}^{\mathrm{bos}} =
 S\int_0^\beta d\tau\,
 \frac{
 \bar z\dot z-\dot{\bar z}z
 }{
 1+\bar z z
-}
-+
+} +
 \sum_\mu
 \int_0^\beta d\tau\,
 \bar\phi_\mu\dot\phi_\mu .
@@ -1019,12 +948,9 @@ $$
 
 $$
 \boxed{
-S_{\mathrm{eff}}
-=
-S_{\mathrm B}^{\mathrm{spin}}
-+
-\int h_{\mathrm s}
--
+S_{\mathrm{eff}} =
+S_{\mathrm B}^{\mathrm{spin}} +
+\int h_{\mathrm s} -
 \sum_\mu
 \iint
 \varrho_\mu^\dagger(\tau)
@@ -1039,8 +965,7 @@ $$
 
 $$
 \boxed{
-\varrho_\mu(\bar z,z)
-=
+\varrho_\mu(\bar z,z) =
 \frac{
 \langle z|\hat\varrho_\mu|z\rangle
 }{
@@ -1060,23 +985,17 @@ $$
 
 ---
 
-# 第一部分：共同起点与自旋相干态符号
-
-## 12.1 共同起点
+### 12.1 共同起点（代入前回顾）
 
 考虑
 
 $$
-\hat H
-=
-\hat H_{\mathrm s}
-+
-\sum_\mu\omega_\mu\hat a_\mu^\dagger\hat a_\mu
-+
+\hat H =
+\hat H_{\mathrm s} +
+\sum_\mu\omega_\mu\hat a_\mu^\dagger\hat a_\mu +
 \sum_\mu
 \left(
-\hat a_\mu^\dagger\hat\varrho_\mu
-+
+\hat a_\mu^\dagger\hat\varrho_\mu +
 \hat\varrho_\mu^\dagger \hat a_\mu
 \right).
 $$
@@ -1085,8 +1004,7 @@ $$
 
 $$
 \boxed{
-Z
-=
+Z =
 Z_{\mathrm b}^{(0)}
 \int_{\mathrm{PBC}}
 \mathcal D\mu_S[\bar z,z]\,
@@ -1101,8 +1019,7 @@ $$
 \begin{aligned}
 S_{\mathrm{eff}}
 ={}&
-S_{\mathrm B}^{\mathrm{spin}}
-+
+S_{\mathrm B}^{\mathrm{spin}} +
 \int_0^\beta d\tau\,
 h_{\mathrm s}(\tau)
 \\
@@ -1123,8 +1040,7 @@ $$
 
 $$
 \boxed{
-D_\omega(\Delta\tau)
-=
+D_\omega(\Delta\tau) =
 \frac{
 e^{-\omega|\Delta\tau|_\beta}
 }{
@@ -1137,8 +1053,7 @@ $$
 
 $$
 \boxed{
-D_\omega(\Delta\tau)
-=
+D_\omega(\Delta\tau) =
 \begin{cases}
 (1+n_B)e^{-\omega\Delta\tau},
 &0<\Delta\tau<\beta,
@@ -1153,20 +1068,16 @@ $$
 
 $$
 \boxed{
-D_{\omega,+}(\Delta\tau)
-=
+D_{\omega,+}(\Delta\tau) =
 \frac12
 \left[
-D_\omega(\Delta\tau)
-+
+D_\omega(\Delta\tau) +
 D_\omega(-\Delta\tau)
-\right]
-=
+\right] =
 \frac{
 \cosh\left[
 \omega\left(
-\frac{\beta}{2}
--
+\frac{\beta}{2} -
 |\Delta\tau|_\beta
 \right)
 \right]
@@ -1178,7 +1089,7 @@ $$
 
 还可以定义 $D_{0,\omega}\equiv 2D_{\omega,+}$。
 
-## 12.2 自旋相干态符号
+### 12.2 自旋相干态符号
 
 采用 $|z\rangle=(1+|z|^2)^{-S}e^{zJ_-}|S,S\rangle$。定义
 
@@ -1195,16 +1106,13 @@ $$
 显式为
 
 $$
-s_z
-=
+s_z =
 S\frac{1-|z|^2}{1+|z|^2},
 \qquad
-s_+
-=
+s_+ =
 \frac{2Sz}{1+|z|^2},
 \qquad
-s_-
-=
+s_- =
 \frac{2S\bar z}{1+|z|^2}.
 $$
 
@@ -1212,7 +1120,7 @@ $$
 
 ---
 
-# 第二部分：离散单模情形
+**第二部分：离散单模情形。** 下面把 $\hat\varrho_\mu$ 分别代入 Rabi、JC、XXZ 的单模版本。"单模"对 Rabi 和 JC 是一个玻色振子；对 XXZ 是每个分量耦合到独立的单模通道。
 
 这里"单模"对 Rabi 和 JC 是一个玻色振子。对于 XXZ，若要求得到严格的 $J_xJ_x+J_yJ_y+\Delta J_zJ_z$ 结构，就必须让不同自旋分量耦合到彼此独立的玻色通道。因此"单模 XXZ"更准确地说是：**每个独立耦合通道只有一个模式**。否则，一个共同模式同时耦合 $J_x,J_y,J_z$ 会产生交叉项（见 §15.3）。
 
@@ -1224,12 +1132,9 @@ $$
 
 $$
 \boxed{
-\hat H_{\mathrm R}
-=
--h_x\hat J_x
-+
-\omega_0\hat a^\dagger\hat a
-+
+\hat H_{\mathrm R} =
+-h_x\hat J_x +
+\omega_0\hat a^\dagger\hat a +
 g(\hat a^\dagger+\hat a)\hat J_z.
 }
 $$
@@ -1237,12 +1142,9 @@ $$
 将耦合项与一般形式比较：
 
 $$
-\hat a^\dagger\hat\varrho
-+
-\hat\varrho^\dagger\hat a
-=
-g\hat a^\dagger\hat J_z
-+
+\hat a^\dagger\hat\varrho +
+\hat\varrho^\dagger\hat a =
+g\hat a^\dagger\hat J_z +
 g\hat J_z\hat a.
 $$
 
@@ -1253,8 +1155,7 @@ $$
 一般推迟项为 $-\iint\varrho^\dagger(\tau)D_{\omega_0}(\tau-\tau')\varrho(\tau')$，代入 $\varrho=\varrho^\dagger=gs_z$ 得到
 
 $$
-S_{\mathrm{ret}}^{\mathrm R}
-=
+S_{\mathrm{ret}}^{\mathrm R} =
 -g^2
 \int_0^\beta d\tau
 \int_0^\beta d\tau'\,
@@ -1273,8 +1174,7 @@ S_{\mathrm{ret}}^{\mathrm R}
 \iint
 s_z(\tau)
 \left[
-D_{\omega_0}(\tau-\tau')
-+
+D_{\omega_0}(\tau-\tau') +
 D_{\omega_0}(\tau'-\tau)
 \right]
 s_z(\tau')
@@ -1295,8 +1195,7 @@ $$
 \begin{aligned}
 S_{\mathrm{eff}}^{\mathrm{Rabi},1}
 ={}&
-S_{\mathrm B}^{\mathrm{spin}}
--
+S_{\mathrm B}^{\mathrm{spin}} -
 h_x\int_0^\beta d\tau\,s_x(\tau)
 \\
 &-
@@ -1317,8 +1216,7 @@ $$
 \begin{aligned}
 S_{\mathrm{eff}}^{\mathrm{Rabi},1}
 ={}&
-S_{\mathrm B}^{\mathrm{spin}}
--
+S_{\mathrm B}^{\mathrm{spin}} -
 h_x\int_0^\beta d\tau\,s_x(\tau)
 \\
 &-
@@ -1335,8 +1233,7 @@ $$
 
 $$
 \boxed{
-Z_{\mathrm{Rabi}}^{(1)}
-=
+Z_{\mathrm{Rabi}}^{(1)} =
 \frac{1}{1-e^{-\beta\omega_0}}
 \int\mathcal D\mu_S\,
 e^{-S_{\mathrm{eff}}^{\mathrm{Rabi},1}}.
@@ -1351,15 +1248,11 @@ $$
 
 $$
 \boxed{
-\hat H_{\mathrm{JC}}
-=
--h_z\hat J_z
-+
-\omega_0\hat a^\dagger\hat a
-+
+\hat H_{\mathrm{JC}} =
+-h_z\hat J_z +
+\omega_0\hat a^\dagger\hat a +
 g\left(
-\hat a^\dagger\hat J_-
-+
+\hat a^\dagger\hat J_- +
 \hat J_+\hat a
 \right).
 }
@@ -1375,8 +1268,7 @@ $$
 
 $$
 \boxed{
-S_{\mathrm{ret}}^{\mathrm{JC}}
-=
+S_{\mathrm{ret}}^{\mathrm{JC}} =
 -g^2
 \int_0^\beta d\tau
 \int_0^\beta d\tau'\,
@@ -1393,8 +1285,7 @@ $$
 \begin{aligned}
 S_{\mathrm{eff}}^{\mathrm{JC},1}
 ={}&
-S_{\mathrm B}^{\mathrm{spin}}
--
+S_{\mathrm B}^{\mathrm{spin}} -
 h_z\int_0^\beta d\tau\,s_z(\tau)
 \\
 &-
@@ -1412,8 +1303,7 @@ $$
 
 $$
 \boxed{
-Z_{\mathrm{JC}}^{(1)}
-=
+Z_{\mathrm{JC}}^{(1)} =
 \frac{1}{1-e^{-\beta\omega_0}}
 \int\mathcal D\mu_S\,
 e^{-S_{\mathrm{eff}}^{\mathrm{JC},1}}.
@@ -1462,8 +1352,7 @@ S_{\mathrm{ret}}^{\mathrm{JC}}
 e^{-\omega_0(\tau-\tau')}
 s_+(\tau)s_-(\tau')
 \\
-&\qquad
-+
+&\qquad +
 n_B
 e^{+\omega_0(\tau-\tau')}
 s_+(\tau')s_-(\tau)
@@ -1475,8 +1364,7 @@ $$
 第一项对应正向虚时间传播，第二项对应通过热圆周绕回来的过程。零温极限下 $n_B\to 0$，于是只剩
 
 $$
-S_{\mathrm{ret}}^{\mathrm{JC},T=0}
-=
+S_{\mathrm{ret}}^{\mathrm{JC},T=0} =
 -g^2
 \int_{\tau>\tau'}
 d\tau d\tau'\,
@@ -1499,8 +1387,7 @@ $$
 \begin{aligned}
 \hat H_{\mathrm{XXZ}}^{(1)}
 ={}&
-\hat H_{\mathrm s}
-+
+\hat H_{\mathrm s} +
 \sum_{\ell=x,y,z}
 \omega_\ell
 \hat a_\ell^\dagger\hat a_\ell
@@ -1521,9 +1408,7 @@ $$
 一般推迟项变成（每个通道对称化）
 
 $$
-S_{\mathrm{ret}}^{\mathrm{XXZ}}
-=
--
+S_{\mathrm{ret}}^{\mathrm{XXZ}} = -
 \sum_{\ell=x,y,z}
 g_\ell^2
 \iint
@@ -1545,8 +1430,7 @@ D_{\omega_\perp,+}(\tau-\tau')
 \\
 &\qquad\times
 \left[
-s_x(\tau)s_x(\tau')
-+
+s_x(\tau)s_x(\tau') +
 s_y(\tau)s_y(\tau')
 \right]
 \\
@@ -1573,8 +1457,7 @@ D_{\omega_\perp,+}(\tau-\tau')
 \\
 &\qquad\times
 \left[
-s_+(\tau)s_-(\tau')
-+
+s_+(\tau)s_-(\tau') +
 s_-(\tau)s_+(\tau')
 \right]
 \\
@@ -1592,12 +1475,9 @@ $$
 
 $$
 \boxed{
-S_{\mathrm{eff}}^{\mathrm{XXZ},1}
-=
-S_{\mathrm B}^{\mathrm{spin}}
-+
-\int_0^\beta d\tau\,h_{\mathrm s}(\tau)
-+
+S_{\mathrm{eff}}^{\mathrm{XXZ},1} =
+S_{\mathrm B}^{\mathrm{spin}} +
+\int_0^\beta d\tau\,h_{\mathrm s}(\tau) +
 S_{\mathrm{ret}}^{\mathrm{XXZ},1}.
 }
 $$
@@ -1606,8 +1486,7 @@ $$
 
 $$
 \boxed{
-Z_{\mathrm b}^{(0)}
-=
+Z_{\mathrm b}^{(0)} =
 \frac{1}{
 (1-e^{-\beta\omega_\perp})^2
 (1-e^{-\beta\omega_z})
@@ -1619,8 +1498,7 @@ $$
 
 $$
 \boxed{
-Z_{\mathrm{XXZ}}^{(1)}
-=
+Z_{\mathrm{XXZ}}^{(1)} =
 \frac{1}{
 (1-e^{-\beta\omega_\perp})^2
 (1-e^{-\beta\omega_z})
@@ -1635,14 +1513,11 @@ $$
 若只有一个共同模式，并写成
 
 $$
-\hat H_{\mathrm{sb}}
-=
+\hat H_{\mathrm{sb}} =
 (\hat a^\dagger+\hat a)
 \left(
-g_x\hat J_x
-+
-g_y\hat J_y
-+
+g_x\hat J_x +
+g_y\hat J_y +
 g_z\hat J_z
 \right),
 $$
@@ -1651,9 +1526,7 @@ $$
 
 $$
 \begin{aligned}
-S_{\mathrm{ret}}
-=
--
+S_{\mathrm{ret}} = -
 \sum_{\alpha,\beta=x,y,z}
 g_\alpha g_\beta
 \iint
@@ -1667,14 +1540,13 @@ $$
 
 ---
 
-# 第三部分：连续谱函数情形
+---
 
-连续谱情形的哈密顿量包含大量模式 $\sum_q\omega_q a_q^\dagger a_q$。定义谱函数
+**第三部分：连续谱函数情形。** 下面把同样的 $\hat\varrho_\mu$ 代入连续谱浴——大量模式求和，用谱函数 $J(\omega)$ 表示。连续谱情形的哈密顿量包含大量模式 $\sum_q\omega_q a_q^\dagger a_q$。定义谱函数
 
 $$
 \boxed{
-J(\omega)
-=
+J(\omega) =
 \pi
 \sum_q
 |g_q|^2
@@ -1694,13 +1566,10 @@ $$
 
 $$
 \boxed{
-\hat H_{\mathrm R}^{\mathrm{bath}}
-=
--h_x\hat J_x
-+
+\hat H_{\mathrm R}^{\mathrm{bath}} =
+-h_x\hat J_x +
 \sum_q
-\omega_q\hat a_q^\dagger\hat a_q
-+
+\omega_q\hat a_q^\dagger\hat a_q +
 \sum_q
 g_q(\hat a_q^\dagger+\hat a_q)\hat J_z.
 }
@@ -1709,8 +1578,7 @@ $$
 对每个模式 $\hat\varrho_q=g_q\hat J_z=\hat\varrho_q^\dagger$（厄米）。因此
 
 $$
-S_{\mathrm{ret}}
-=
+S_{\mathrm{ret}} =
 -\sum_q g_q^2
 \iint
 s_z(\tau)
@@ -1722,21 +1590,18 @@ $$
 
 $$
 \boxed{
-K_{\mathrm R,+}(\Delta\tau)
-=
+K_{\mathrm R,+}(\Delta\tau) =
 \int_0^\infty
 \frac{d\omega}{\pi}
 J_{\mathrm R}(\omega)
-D_{\omega,+}(\Delta\tau)
-=
+D_{\omega,+}(\Delta\tau) =
 \int_0^\infty
 \frac{d\omega}{\pi}
 J_{\mathrm R}(\omega)
 \frac{
 \cosh\left[
 \omega\left(
-\frac{\beta}{2}
--
+\frac{\beta}{2} -
 |\Delta\tau|_\beta
 \right)
 \right]
@@ -1753,8 +1618,7 @@ $$
 \begin{aligned}
 S_{\mathrm{eff}}^{\mathrm{Rabi},J}
 ={}&
-S_{\mathrm B}^{\mathrm{spin}}
--
+S_{\mathrm B}^{\mathrm{spin}} -
 h_x
 \int_0^\beta d\tau\,s_x(\tau)
 \\
@@ -1776,8 +1640,7 @@ $$
 Z_{\mathrm{Rabi}}^{(J)}
 }{
 Z_{\mathrm b}^{(0)}
-}
-=
+} =
 \int\mathcal D\mu_S\,
 e^{-S_{\mathrm{eff}}^{\mathrm{Rabi},J}}.
 }
@@ -1787,16 +1650,14 @@ $$
 
 $$
 \boxed{
-\chi_{\mathrm R}^{-1}(\Delta\tau)
-=
+\chi_{\mathrm R}^{-1}(\Delta\tau) =
 \int_0^\infty
 \frac{d\omega}{\pi}
 J_{\mathrm R}(\omega)
 \frac{
 \cosh\left[
 \omega\left(
-\frac{\beta}{2}
--
+\frac{\beta}{2} -
 |\Delta\tau|_\beta
 \right)
 \right]
@@ -1819,8 +1680,7 @@ $$
 \begin{aligned}
 \hat H_{\mathrm{JC}}^{\mathrm{bath}}
 ={}&
--h_z\hat J_z
-+
+-h_z\hat J_z +
 \sum_q
 \omega_q\hat a_q^\dagger\hat a_q
 \\
@@ -1828,8 +1688,7 @@ $$
 \sum_q
 g_q
 \left(
-\hat a_q^\dagger\hat J_-
-+
+\hat a_q^\dagger\hat J_- +
 \hat J_+\hat a_q
 \right).
 \end{aligned}
@@ -1839,8 +1698,7 @@ $$
 对每个模式 $\hat\varrho_q=g_q\hat J_-$，$\hat\varrho_q^\dagger=g_q\hat J_+$（非厄米）。因此
 
 $$
-S_{\mathrm{ret}}
-=
+S_{\mathrm{ret}} =
 -\sum_q g_q^2
 \iint
 s_+(\tau)
@@ -1852,8 +1710,7 @@ $$
 
 $$
 \boxed{
-K_{\mathrm{JC}}^{\rightarrow}(\Delta\tau)
-=
+K_{\mathrm{JC}}^{\rightarrow}(\Delta\tau) =
 \int_0^\infty
 \frac{d\omega}{\pi}
 J_{\mathrm{JC}}(\omega)
@@ -1868,8 +1725,7 @@ $$
 \begin{aligned}
 S_{\mathrm{eff}}^{\mathrm{JC},J}
 ={}&
-S_{\mathrm B}^{\mathrm{spin}}
--
+S_{\mathrm B}^{\mathrm{spin}} -
 h_z\int_0^\beta d\tau\,s_z(\tau)
 \\
 &-
@@ -1890,8 +1746,7 @@ $$
 Z_{\mathrm{JC}}^{(J)}
 }{
 Z_{\mathrm b}^{(0)}
-}
-=
+} =
 \int\mathcal D\mu_S\,
 e^{-S_{\mathrm{eff}}^{\mathrm{JC},J}}.
 }
@@ -1903,8 +1758,7 @@ $$
 
 $$
 \boxed{
-K_{\mathrm{JC}}^{\rightarrow}(\Delta\tau)
-=
+K_{\mathrm{JC}}^{\rightarrow}(\Delta\tau) =
 \int_0^\infty
 \frac{d\omega}{\pi}
 J_{\mathrm{JC}}(\omega)
@@ -1917,8 +1771,7 @@ $$
 
 $$
 \boxed{
-K_{\mathrm{JC}}^{\rightarrow}(\Delta\tau)
-=
+K_{\mathrm{JC}}^{\rightarrow}(\Delta\tau) =
 \int_0^\infty
 \frac{d\omega}{\pi}
 J_{\mathrm{JC}}(\omega)
@@ -1944,8 +1797,7 @@ $$
 \begin{aligned}
 \hat H_{\mathrm{XXZ}}^{\mathrm{bath}}
 ={}&
-\hat H_{\mathrm s}
-+
+\hat H_{\mathrm s} +
 \sum_{\ell=x,y,z}
 \sum_q
 \omega_{q\ell}
@@ -1957,8 +1809,7 @@ $$
 \sum_q
 g_{q\ell}
 \left(
-\hat a_{q\ell}^\dagger
-+
+\hat a_{q\ell}^\dagger +
 \hat a_{q\ell}
 \right)
 \hat J_\ell .
@@ -1970,8 +1821,7 @@ $$
 
 $$
 \boxed{
-J_\ell(\omega)
-=
+J_\ell(\omega) =
 \pi
 \sum_q
 g_{q\ell}^2
@@ -1985,21 +1835,18 @@ XXZ 条件为 $J_x(\omega)=J_y(\omega)\equiv J_\perp(\omega)$，而 $J_z(\omega)
 
 $$
 \boxed{
-K_\ell(\Delta\tau)
-=
+K_\ell(\Delta\tau) =
 \int_0^\infty
 \frac{d\omega}{\pi}
 J_\ell(\omega)
-D_{\omega,+}(\Delta\tau)
-=
+D_{\omega,+}(\Delta\tau) =
 \int_0^\infty
 \frac{d\omega}{\pi}
 J_\ell(\omega)
 \frac{
 \cosh\left[
 \omega\left(
-\frac{\beta}{2}
--
+\frac{\beta}{2} -
 |\Delta\tau|_\beta
 \right)
 \right]
@@ -2015,15 +1862,13 @@ $$
 \boxed{
 \begin{aligned}
 S_{\mathrm{ret}}^{\mathrm{XXZ},J}
-={}&
--
+={}& -
 \iint
 K_\perp(\tau-\tau')
 \\
 &\qquad\times
 \left[
-s_x(\tau)s_x(\tau')
-+
+s_x(\tau)s_x(\tau') +
 s_y(\tau)s_y(\tau')
 \right]
 \\
@@ -2048,8 +1893,7 @@ K_\perp(\tau-\tau')
 \\
 &\quad\times
 \left[
-s_+(\tau)s_-(\tau')
-+
+s_+(\tau)s_-(\tau') +
 s_-(\tau)s_+(\tau')
 \right]
 \\
@@ -2065,12 +1909,9 @@ $$
 
 $$
 \boxed{
-S_{\mathrm{eff}}^{\mathrm{XXZ},J}
-=
-S_{\mathrm B}^{\mathrm{spin}}
-+
-\int_0^\beta d\tau\,h_{\mathrm s}(\tau)
-+
+S_{\mathrm{eff}}^{\mathrm{XXZ},J} =
+S_{\mathrm B}^{\mathrm{spin}} +
+\int_0^\beta d\tau\,h_{\mathrm s}(\tau) +
 S_{\mathrm{ret}}^{\mathrm{XXZ},J}.
 }
 $$
@@ -2083,8 +1924,7 @@ $$
 Z_{\mathrm{XXZ}}^{(J)}
 }{
 Z_{\mathrm b}^{(0)}
-}
-=
+} =
 \int\mathcal D\mu_S\,
 e^{-S_{\mathrm{eff}}^{\mathrm{XXZ},J}}.
 }
@@ -2096,8 +1936,7 @@ $$
 
 $$
 \boxed{
-J_{\alpha\beta}(\omega)
-=
+J_{\alpha\beta}(\omega) =
 \pi
 \sum_q
 g_{q\alpha}g_{q\beta}
@@ -2109,9 +1948,7 @@ $$
 
 $$
 \boxed{
-S_{\mathrm{ret}}
-=
--
+S_{\mathrm{ret}} = -
 \sum_{\alpha,\beta}
 \iint
 s_\alpha(\tau)
@@ -2124,7 +1961,9 @@ $$
 
 ---
 
-# 第四部分：统一视角与长程行为
+---
+
+**第四部分：统一视角与长程行为。** 下面把单模与连续谱联系起来，并考察幂律谱下推迟核的长程虚时间行为。
 
 ## 19. 单模与谱函数的统一关系
 
@@ -2151,8 +1990,7 @@ $$
 考虑 ohmic 族幂律谱
 
 $$
-J_\ell(\omega)
-=
+J_\ell(\omega) =
 2\pi\alpha_\ell
 \omega_c^{1-s_\ell}
 \omega^{s_\ell}
