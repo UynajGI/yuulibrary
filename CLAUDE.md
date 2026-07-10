@@ -14,7 +14,7 @@
 ```bash
 hugo server -p 1314 --bind 127.0.0.1    # 本地预览(http://localhost:1314/yuulibrary/)
 hugo --gc --minify                        # 生产构建到 public/
-python scripts/build_pageindex.py         # 构建 PageIndex 索引(hugo 前必须跑)
+python3 scripts/build_pageindex.py        # 构建 PageIndex 索引(hugo 前必须跑)
 bash scripts/release.sh                   # 算下一个发布 tag(只读)
 ```
 
