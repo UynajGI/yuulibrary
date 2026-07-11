@@ -1,0 +1,594 @@
+---
+title: "亚欧姆系统中的量子临界性：超越传统自旋-玻色子物理的三项竞争"
+description: "Zhou, Shen, Sun (2026) 通过变分计算系统研究了亚欧姆自旋-玻色子模型中三项竞争的量子相变，揭示了低谱指数下丰富的相图和新颖的U(1)对称相。"
+date: 2026-07-12T01:00:00+08:00
+author: "Nengji Zhou, Yulong Shen, Zhe Sun"
+year: 2026
+category: ["quant-ph", "cond-mat.stat-mech", "cond-mat.str-el"]
+tags: ["量子相变", "自旋玻色子模型"]
+links:
+  - name: "DOI (Phys. Rev. B)"
+    url: "https://doi.org/10.1103/p7vp-74cd"
+  - name: "arXiv"
+    url: "https://arxiv.org/abs/2603.07031"
+weight: 40
+---
+
+## 具有三个竞争项的子欧姆系统中的量子临界性：超越传统自旋-玻色子物理
+
+Nengji Zhou, Yulong Shen, and Zhe Sun∗
+
+School of Physics, Hangzhou Normal University, Hangzhou 311121, China (Dated: March 10, 2026)
+
+通过使用高谱密度的子欧姆热库进行变分计算，系统研究了带有/不带有旋转波近似的自旋-玻色子模型中的量子相变。考察了涉及不同系统-环境相互作用的四种情况，并在不同隧穿强度下精确确定了转变点和临界指数。与先前工作相反，即使在低谱指数 $s < 1 / 2 ,$ 的情况下，隧穿-耦合平面中也揭示出丰富的相图，并识别出一种新颖的 U(1) 对称相。随着耦合增加，对于隧穿 $0 < \Delta < \Delta^{*} = 0.074 ( 1 )$ 会出现多级量子相变序列，而超出此范围则发生单一转变。此外，即使在正隧穿下也发现出现了奇宇称相，其表现出与原型模型不同的特征。
+
+### I. 引言
+
+耗散量子杂质模型在现代物理学中具有核心重要性[1]。其中，自旋-玻色子模型已成为理解开放量子系统的基石[2]。该模型描述了一个两能级量子系统（如自旋1/2粒子）与由无限多个谐振子组成的玻色子环境之间的相互作用[3, 4]。其广泛应用涵盖多个学科，包括凝聚态物理（如量子杂质问题）[5, 6]、量子光学（光-物质相互作用）[7–9]、量子化学（质子转移反应）[10–12]以及生物过程（光合作用复合体中的能量传递）[13–15]。
+
+自旋-玻色子模型的一个决定性特征是它能够展现量子相变，特别是由量子隧穿和耗散之间的竞争驱动的局域-离域转变[3]，其中系统与环境之间的耦合由无能隙谱 $J ( \omega ) \sim \omega^{s} \left[ 1 \right]$ 表征。相变的性质关键依赖于指数 s 的值，从而导致丰富的相图。具体而言，系统在子欧姆区域 $( s \ < \ 1 )$ 表现出二级相变，在欧姆点 (s = 1) 表现为 Kosterlitz-Thouless 型相变。相比之下，超欧姆区域 $( s > 1 )$ 不发生相变。在强系统-环境耦合区域，该模型还表现为相干-非相干动力学转变[16–19]，这对量子控制和信息处理具有重要意义。在过去的几十年里，人们对自旋-玻色子模型进行了广泛的分析和数值研究，巩固了其作为探索开放量子系统现象范式的地位[20–26]。最近的进展包括对集体自旋-玻色子系统[27–29]、非平衡量子动力学[19, 30–32]以及用于量子计算的量子算法[33, 34]的研究。
+
+近年来的研究越来越多地关注将自旋-玻色子模型扩展到阻挫相互作用架构，这是受其容纳奇异集体现象的独特能力所驱动[35, 36]。例如，对自旋-玻色子模型与两个相同独立热库的对角和非对角耦合的研究揭示了一个三方相结构，其中包括一个量子临界相、一个离域自由相和一个对称性破缺的局域相（在无偏置和隧穿的情况下）。据称，只有谱指数 $s^{*} < s < 1 [ 24 , 37 ]$ 时才存在分隔局域相和临界相的连续量子相变。最近的突破已将该形式扩展到 SU(2) 对称的三热库自旋-玻色子模型[38]。然而，在此类模型中，非平凡的隧穿效应在很大程度上仍未被探索。
+
+现代技术的进步使量子模拟能够在超导量子电路、冷原子和离子阱系统等平台中实现量子比特-玻色子耦合系统[39–42]。这些实验为研究量子相变提供了直接途径。在某些实现中，通过抑制反旋项[43, 44]，各向异性耦合自然产生。与此同时，各向异性量子开放系统的理论理解也得到了显著推进。各向异性量子拉比模型和迪克模型中的临界现象已被系统地表征，其相图被识别为包含三个基本区域：一个正常相和两个由一阶相线分隔的超辐射相[45, 46]。这些相通过二阶转变线对称地汇聚于量子三相点。对于各向异性自旋-玻色子模型，已在浅亚欧姆区域 $s > 0.5$ 中建立了一个非对称相结构，包含偶宇称离域（I）、奇宇称离域（II）和局域（III）相，并伴有共存的量子三相点。相比之下，深亚欧姆区域 $s < 0.5$ 的相图简化为一个分隔局域态和离域态的单量子相变，类似于传统的自旋-玻色子模型[47, 48]。然而，新出现的奇宇称量子相的基本特征仍知之甚少。此外，由于弱隧穿情况尚未被考虑，深亚欧姆情形下存在复杂相结构的可能性不能完全排除。
+
+由于缺乏解析处理方法，各种强大的数值工具已被用于研究自旋-玻色子模型中的量子相变[22, 24, 49, 50]。其中，基于系统相干态分解的数值变分方法[17, 51–54]在处理基态相变和量子动力学方面因其出色的准确性和可靠性而脱颖而出。然而，最近的一项研究报告指出，相对于变分矩阵乘积态方法，该数值变分方法未能获得各向异性自旋-玻色子模型的真正基态[47]。一个可能的原因是，数值变分方法计算仅在对应于高密度谱的连续极限下才产生精确结果[55, 56]，而上述参考文献中缺乏这一条件。
+
+在本工作中，使用数值变分方法系统地研究了与具有高谱密度的亚欧姆热库耦合的各向异性自旋-玻色子模型的基态性质，考虑了三种相互竞争的作用。准确地确定了转变边界和临界指数，并识别出了非平凡的隧穿效应。即使在深亚欧姆区域，在由隧穿和自旋-热库耦合定义的参数空间中也发现了一个丰富的相图，这与先前的发现形成对比。除了传统的局域相和离域相外，还揭示了展现 $U(1)$ 对称性的自由相和奇宇称相。
+
+本文的其余部分组织如下：第II节描述了模型和数值变分方法，以及主要的观测指标。第III节给出了数值结果。最后，在第IV节讨论了相图和临界行为，接着在第V节给出结论。
+
+### II. 方法论
+
+#### A. 模型
+
+根据泡利产生/湮灭算符 $\sigma_{\pm} = ( \sigma_{z} \pm i \sigma_{y} ) / 2$，各向异性自旋-玻色子模型的哈密顿量写为
+
+$$
+\begin{array} {r l} {\hat{H} =} & {\frac{\varepsilon} {2} \sigma_{z} - \cfrac{\Delta} {2} \sigma_{x} + \displaystyle \sum_{k} \hslash \omega_{k} b_{k}^{\dag} b_{k} + \displaystyle \sum_{k} [ \lambda_{k} ( b_{k}^{\dag} \sigma_{-} + b_{k} \sigma_{+} )} \\ & {+ \gamma_{k} ( b_{k}^{\dag} \sigma_{+} + b_{k} \sigma_{-} ) ] ,} \end{array}
+$$
+
+其中 $\varepsilon \ ( \Delta )$ 表示能偏（隧穿振幅），$b_{k}^{\dagger} \left( b_{k} \right)$ 代表第k个热库模式（频率为 $\omega_{k}$）的玻色子产生（湮灭）算符，$\sigma_{x}$ 和 $\sigma_{z}$ 是自旋-1/2算符，而 $\lambda_{k}$ 和 $\gamma_{k}$ 分别表示旋转波（RW）和反旋转波（CRW）耦合系数。为简单起见，我们设定普朗克常数 $\hbar = 1$，从而模型参数 $\Delta , \varepsilon , \lambda_{k}$ 和 $\gamma_{k}$ 成为无量纲量。
+
+从理论角度看，热库的影响完全由连续谱密度函数 $\begin{array} {r} {J ( \omega ) = \sum_{k} \eta_{k}^{2} \delta ( \omega - \omega_{k} )} \end{array}$ 描述，其中 ω 是玻色子热库的频率，$\eta_{k}$ 表示量子自旋与第k个热库模式之间的耦合强度。在红外极限 $( \omega 0 )$ 下，$J ( \omega )$ 的幂律行为变得尤为重要。为捕捉低能谱细节，谱密度通常表示为 $J ( \omega ) = 2 \alpha \omega_{c}^{1 - \bar{s}} \omega^{s}$ for $0 < \omega < \omega_{c} ~ [ 5 , 21 , 26 , 52 , 57 ]$，其中 α 是无量纲耦合常数，$\omega_{c} ~ = ~ 1$ 代表高频截止。基于Wilson能量网格的粗粒化处理，在将声子频率域 $[ 0 , \omega_{c} ]$ 划分为M个区间 $[ \Lambda_{k} , \Lambda_{k + 1} ] \omega_{c}$ $( k = 0 , \dot{1} , \ldots , M - \dot{1} )$ 后，式(1)中的 $\lambda_{k} , \gamma_{k} .$ 和 $\omega_{k}$ 取值可由下式得出：
+
+$$
+\eta_{k}^{2} = \int_{\Lambda_{k} \omega_{c}}^{\Lambda_{k + 1} \omega_{c}} d t J ( t ) , \quad \omega_{k} = \eta_{k}^{- 2} \int_{\Lambda_{k} \omega_{c}}^{\Lambda_{k + 1} \omega_{c}} d t J ( t ) t ,\tag{2}
+$$
+
+其中 $\Lambda_{k} = \Lambda^{k - M} \ [ 3 , 20 , 23 , 58 ]$。本研究通过引入具有足够高谱密度的玻色子热库来确保基态表征的可靠性，因为基态能量计算中的数值收敛需要对数离散化参数 $\Lambda 1$ [56]。考虑到计算限制，我们在下文设定 $\Lambda = 1.05$，这相比以往数值研究中使用的参数更接近1 [3, 20, 23, 58, 59]。
+
+式(1)中的哈密顿量也可表示为：
+
+$$
+\begin{array} {c c} {{\hat{H} =}} & {{\displaystyle \frac{\varepsilon} {2} \sigma_{z} - \frac{\Delta} {2} \sigma_{x} + \sum_{k} \omega_{k} b_{k}^{\dagger} b_{k} + \frac{\sigma_{z}} {2} \sum_{k} ( \lambda_{k} + \gamma_{k} ) ( b_{k}^{\dagger} + b_{k} )}} & {{}} \\ {{}} & {{+ \displaystyle \frac{i \sigma_{y}} {2} \sum_{k} ( \gamma_{k} - \lambda_{k} ) ( b_{k}^{\dagger} - b_{k} ) ,}} & {{( 3 )}} \end{array}
+$$
+
+在能偏 $\varepsilon = 0$ 的情况下，涉及泡利算符 $\sigma_{x} , \sigma_{y} ,$ 和 $\sigma_{z}$ 的相互作用有三种不同类型，分别对应隧穿项、热库诱导的对角耦合项和非对角耦合项。它们相互竞争，从而产生丰富的量子相变。为简化起见，本研究考虑了四种特殊情况：
+
+值得注意的是，四种情形下总相互作用的强度 $\eta = | \gamma | + | \lambda |$ 保持不变。
+
+#### B. 方法
+
+SBM最早的变分处理采用了由 Silbey 和 Harris [60] 引入的极化子幺正变换。该框架随后通过变分极化子拟设被应用于研究亚欧姆 SBM 中的基态相变 [23]。通过叠加多个相干态并放宽 $( f_{n , k} \equiv \pm g_{n , k} )$ 的强制对称约束 [61–64]，进一步取得了改进。随后，基于多体基态的系统性相干态分解，建立了数值变分方法 [26, 52]。
+
+在 NVM 中，采用多重极化子拟设 [26]（也称为“Davydov 多重 $. D_{1}$ 拟设”）作为尝试波函数：
+
+其中 H.c. 表示厄米共轭，( ) 分别代表自旋向上（自旋向下）态，$| 0 \rangle_{\mathrm{b}}$ 是玻色子热库的真空态。实际上，式 (5) 描述了与具有位移 $f_{n , k}$ 和 $g_{n , k}$ 的热库模相关联的自旋态的叠加，其中下标 n 和 k 表示序号。M 和 N 分别表示热库模数和相干叠加态的数量，$A_{n}$ 和 $B_{n}$ 表示相干态的权重。值得注意的是，所有变分参数 $f_{n , k} , g_{n , k} , A_{n}$ 和 $B_{n}$ 都是复数而非实数。
+
+基态 $| \Psi_{\mathrm{g}} \rangle$ 通过最小化能量 $E = \mathcal{H} / \mathcal{N} = \langle \Psi_{\mathrm{g}} | \hat{H} | \Psi_{\mathrm{g}} \rangle / \langle \Psi_{\mathrm{g}} | \Psi_{\mathrm{g}} \rangle$ 来确定，其中 $\mathcal{H}$ 和 $\mathcal{N}$ 分别表示哈密顿量期望值和波函数的范数。然后利用拉格朗日乘子法导出一组自洽方程：
+
+$$
+\frac{\partial \mathcal{H}} {\partial x_{i}} - E \frac{\partial \mathcal{N}} {\partial x_{i}} = 0 ,\tag{6}
+$$
+
+其中 $x_{i} ( i = 1 , 2 , 3 , \cdots , 2 N M + 2 N )$ 表示任意变分参数。最后，采用迭代算法对自洽方程进行数值求解：
+
+$$
+\begin{array} {r l} {A_{n}^{\mathrm{nest}} =} & {\sum_{m} \mathcal{B}_{m} \Gamma_{\mathrm{n} , m} c o s_{\mathrm{n} , m} + \sum_{m^{\prime}}^{\mathrm{nest}} A_{n} F_{\mathrm{n} , m} ( a a_{\mathrm{n} , m} - E ) ,} \\ & {E - c o_{n , n}} \\ {B_{n}^{\mathrm{nest}} =} & {\sum_{m} A_{n} K_{\mathrm{n} , m} d a_{\mathrm{n} , m} + \sum_{m^{\prime}}^{\mathrm{nest}} P_{n} ( c_{n , m} ( \mathrm{n} \hat{b}_{n , m} - E ) ) ,} \\ & {E - b_{\mathrm{n} , n}} \\ {f_{\mathrm{n} , k}^{\mathrm{nest}} =} & {\sum_{m}^{\mathrm{nest}} A_{n} F_{\mathrm{n} , m} \Big [ f_{\mathrm{n} , k} \big ( a b + a c o_{\mathrm{n} , m} - E \big ) + \frac{\lambda_{\mathrm{n}} + \rho_{k}} {2} \Big ]} \\ & {+ \sum_{m} B_{n} \Gamma_{\mathrm{n} , m} ( \hat{b}_{m , k} \cos_{\mathrm{n} , m} + 2 \frac{\lambda_{\mathrm{n}} - \lambda_{\mathrm{n}}} {\omega} ) + A_{n} \frac{\lambda_{\mathrm{n}} + \rho_{k}} {2} , \quad ( 7} \\ & {\hat{J}_{\mathrm{n} , k}^{\mathrm{nest}} =} & \sum_{m}^{\mathrm{nest}} B_{m} G_{\mathrm{n} , m} \Big [ \frac{\big ( p_{\mathrm{n} , k} \big ( \omega_{\mathrm{n}} + 6 \hat{b}_{\mathrm{n} , m} - E \big ) - \frac{\lambda_{\mathrm{n}} + \rho_{k}} {2} \Big ]} B_{n} \big ( E - \omega_ \mathrm{n} , m \end{array}
+$$
+
+其中 $\mathrm{aa}_{m , n} , \mathrm{bb}_{m , n} , \mathrm{cc}_{m , n}$ 和 ${\mathrm{d}} \mathrm{d}_{m , n}$ 分别定义为
+
+$$
+\begin{array} {r l r} {{a a_{m , n} = \sum_{k} [ \omega_{k} f_{m , k}^{*} f_{n , k} + \frac{\lambda_{k} + \gamma_{k}} {2} ( f_{m , k}^{*} + f_{n , k} ) ] + \frac{\varepsilon} {2} ,}} \\ & {} & {b b_{m , n} = \sum_{k} [ \omega_{k} g_{m , k}^{*} g_{n , k} - \frac{\lambda_{k} + \gamma_{k}} {2} ( g_{m , k}^{*} + g_{n , k} ) ] - \frac{\varepsilon} {2} ,} \\ & {} & {c c_{m , n} = \sum_{k} \frac{\gamma_{k} - \lambda_{k}} {2} ( f_{m , k}^{*} - g_{n , k} ) - \frac{\Delta} {2} , \qquad ( 8 )} \\ & {} & {d d_{m , n} = \sum_{k} \frac{\gamma_{k} - \lambda_{k}} {2} ( f_{n , k} - g_{m , k}^{*} ) - \frac{\Delta} {2} ,} \end{array}
+$$
+
+因此，哈密顿量期望值和波函数的范数可以表示为
+
+德拜-沃勒因子 $F_{m , n} , G_{m , n} , \Gamma_{m , n}$ 和 $K_{m , n}$ 定义为
+
+$$
+\begin{array} {l} {{\displaystyle \ln F_{m , n} ~ = ~ \sum_{k} \left[ f_{m , k}^{*} f_{n , k} - \frac{1} {2} ( \vert f_{m , k} \vert^{2} + \vert \vert f_{n , k} \vert^{2} ) \right] ,}} \\ {{\displaystyle \ln G_{m , n} ~ = ~ \sum_{k} \left[ g_{m , k}^{*} g_{n , k} - \frac{1} {2} ( \vert \vert g_{m , k} \vert \vert^{2} + \vert \vert g_{n , k} \vert \vert^{2} ) \right] ,}} \\ {{\displaystyle \ln \Gamma_{m , n} ~ = ~ \sum_{k} \left[ f_{m , k}^{*} g_{n , k} - \frac{1} {2} ( \vert \vert f_{m , k} \vert \vert^{2} + \vert \vert g_{n , k} \vert \vert^{2} ) \right] ( 10 \vert - \frac{1} {2} )}} \\ {{\displaystyle \ln K_{m , n} ~ = ~ \sum_{k} \left[ g_{m , k}^{*} f_{n , k} - \frac{1} {2} ( \vert \vert g_{m , k} \vert \vert^{2} + \vert \vert f_{n , k} \vert \vert^{2} ) \right] ,}} \end{array}
+$$
+
+其中 $\| \cdots \|$ 表示复数的模。利用松弛迭代技术，任意变分参数通过公式 $x_{i}^{t + 1} \overset{\cdot} {=}$ $x_{i}^{t} + f * \check{( x_{i}^{\mathrm{next}} - x_{i} )}$ 更新，其中变量 $\boldsymbol x_{i}^{\mathrm{next}}$ 定义于
+
+式(8)，$f$ 是松弛因子。通常，在变分过程中设置 $f = 0.1$，而在模拟退火算法中它逐渐减小到 0.001。
+
+在附录 A 中，针对相干叠加态数目 (N) 和有效浴模式数目 (M)，仔细评估了结果的收敛性。结果表明，当设置对数网格 $\Lambda = 1.05$ 和最低频率 $\omega_{\mathrm{min}} \approx 10^{- 9} \omega_{c}$ 时[56]，$\dot{M} = 430$ 对于 NVM 计算的收敛来说是足够大的。然而，受计算资源的限制，下文设定了适度的相干态数目，即对角耦合情况 $N = 6$，旋波耦合情况 $N = 4$，这足以精确描述 ASBM 的相图。式(6)中的方程组可以采用全局优化算法（如模拟退火）并结合松弛迭代技术进行数值求解。为确保收敛到真正的基态，每组模型参数都使用了超过一千个随机初始状态。
+
+#### C. 可观测量
+
+利用归一化的基态波函数 $\left| \Psi_{g} \right.$，我们可以确定自旋磁化强度 $| \langle \sigma_{z} \rangle |$ 或 $| \langle \sigma_{y} \rangle |$、自旋相干性 $\langle \sigma_{x} \rangle$ 以及冯·诺依曼熵 $S_{\mathrm{v - N}}$，后者表征自旋与周围浴之间的量子纠缠，
+
+$$
+\begin{array} {r l r} {\langle \sigma_{x , y , z} \rangle} & {=} & {\langle \Psi_{\mathrm{g}} | \sigma_{x , y , z} | \Psi_{\mathrm{g}} \rangle ,} \\ {S_{\mathrm{v - N}}} & {=} & {- \mathrm{Tr} [ \rho_{\mathrm{s}} \mathrm{log}_{2} \rho_{\mathrm{s}} ] ,} \end{array}\tag{11}
+$$
+
+其中 $\rho_{\mathrm{s}} = \mathrm{Tr}_{\mathrm{b}} [ \rho_{\mathrm{sb}} ]$ 是通过对总（系统+浴池）密度算符 $\rho_{\mathrm{sb}}$ 进行玻色子浴池求迹得到的约化系统密度矩阵。为了描述浴池的基态性质，我们引入相空间变量 $\Delta X_{\mathrm{b}}$ 和 $\Delta P_{\mathrm{b}}$ 的方差 2
+
+$$
+\begin{array} {r} {\Delta X_{\mathrm{b}} ~ = ~ \langle \Psi_{\mathrm{g}} | ( \hat{x}_{k} )^{2} | \Psi_{\mathrm{g}} \rangle - \langle \Psi_{\mathrm{g}} | \hat{x}_{k} | \Psi_{\mathrm{g}} \rangle^{2} ,} \\ {\Delta P_{\mathrm{b}} ~ = ~ \langle \Psi_{\mathrm{g}} | ( \hat{p}_{k} )^{2} | \Psi_{\mathrm{g}} \rangle - \langle \Psi_{\mathrm{g}} | \hat{p}_{k} | \Psi_{\mathrm{g}} \rangle^{2} ,} \end{array}\tag{12}
+$$
+
+其中正交分量定义为 $\hat{x}_{k} = \left( b_{k} + b_{k}^{\dagger} \right) / \sqrt{2}$ 和 $\hat{p}_{k} = i \left( b_{k}^{\dagger} - b_{k} \right) / \sqrt{2} .$ 然后得到与最小不确定度的偏离 $Q F ( \omega_{k} ) = \Delta X_{\mathrm{b}} \Delta P_{\mathrm{b}} - 1 / 4$，这反映了频率为 $\omega_{k}$ 的玻色子浴池模的量子涨落。
+
+接着，我们还研究了基态的对称性。在零偏置 $\varepsilon = 0$ 时，模型具有 $Z_{2}$ 对称性，其生成元为宇称算符，
+
+$$
+\hat{\Pi} = \exp ( i \pi \hat{N}_{\mathrm{ex}} ) ,\tag{13}
+$$
+
+其中 $\begin{array} {r} {\hat{N}_{\mathrm{ex}} = \sum_{k} ( b_{k}^{\dagger} b_{k} ) + \sigma_{+} \sigma_{-}} \end{array}$ 表示总激发数。由于 ${\hat{\Pi}}^{2} = \mathbb{I}$，宇称算符 Π<sup>ˆ</sup> 的本征值为 $\pm 1$，分别对应偶/奇宇称。对称参数 Π<sup>ˆ</sup> 会经历从 1 到 0 的突然转变，标志着自发对称性破缺。这种尖锐的跳跃被认为是检测 QPT 的可靠指标 [47, 48, 55]。此外，如果基态在算符 $\mathrm{Re} ( \theta ) = \exp ( i \theta \hat{N}_{\mathrm{ex}} )$（其中 θ 为任意角度）的作用下保持不变，则系统具有 $U ( 1 )$ 对称性。因此，预期的总激发数 $\langle \hat{N}_{\mathrm{ex}} \rangle = 0$。
+
+此外，波函数的结构也为区分 ASBM 的不同相提供了有价值的见解。尽管变分参数是复数，但为简单起见，我们引入其实数化的平均值对应量，包括相干态权重 $\overline{{A}}$ 和 ${\overline{{B}}}$，以及位移系数 $\overline{{f}}_{k}$ 和 $\overline{{g}}_{k}$ 2
+
+不失一般性，我们设定 $\overline{{A}} ~ > ~ 0$。因此，$\overline{B}$ 与自旋相干性同号，因为 $\langle \sigma_{x} \rangle =$ $\begin{array} {r} {2 \sum_{m , n} A_{m} B_{n} \Gamma_{m , n} .} \end{array}$
+
+### III. 数值结果
+
+通过数值变分计算，我们以光谱指数 $s = 0.3$ 为例，全面研究了嵌入在具有高密度谱的亚欧姆浴中的各向异性模型的基态性质，考虑了隧穿振幅 $\Delta = 0.1 , 0.05 , 0.025 , 0.01$ 和 0 的不同取值。除非另有说明，能量偏置 $\varepsilon = 0$。通过将总样本分成两个子组来估计临界耦合和临界指数的统计误差。如果曲线中的波动与统计误差相当或更大，则会将其考虑在内。以方程 (4) 中提到的四种不同情况为例来研究量子相变。
+
+#### A. 对角耦合或非对角耦合
+
+在本小节中，系统-浴相互作用类型设置为对角 $\left( \sigma_{z} \right)$ 或非对角 $\left( \sigma_{y} \right)$ 耦合。根据方程 (3) 中的哈密顿量，当 $\lambda_{k} = \gamma_{k} =$ $\eta_{k} / 2$ 时，各向异性模型简化为传统的 SBM。如图 1(a) 所示，对称参数
+
+![](images/15483725a13c1d385ba11602fb2052e40dc6195a0c9ff9944b13416882f0e483.webp)
+
+![](images/3eae88a56f30532afdfedc5534af116535fb2ddec3dd3c35ced5c5288430cd04.webp)
+
+{{< caption >}}图 1. 在对角耦合情况下，对称参数 $\langle \hat{\Pi} \rangle$ (a) 和自旋磁化强度 $| \langle \sigma_{z} \rangle |$ (b) 作为耦合强度 α 的函数，针对不同隧穿振幅 $\Delta$ 的值绘制。插图中显示了激发总数 $\langle \hat{N}_{\mathrm{ex}} \rangle$ 和转变点 $\alpha_{c}$，虚线表示幂律拟合。{{< /caption >}}
+
+![](images/8414edc690ee43a284404585cf33dfcc2f054c58f7f1f0277f0719e5aa87587d.webp)
+
+![](images/cc5e3c686652aadb2ac7312d52c5b6df41632cc947fb96005a12eaea2c913952.webp)
+
+{{< caption >}}图 2. 量子纠缠 $\left( S_{\mathrm{v - N}} \right)$ 和量子涨落 $( Q F = \Delta X_{b} \Delta P_{b} - 1 / 4 )$ 作为耦合强度 α 的函数，针对不同的隧穿 ∆ 绘制。插图中显示了曲线 $S_{\mathbf{v} - \mathrm{N}}$ 的斜率以及对于不同耦合 α 的频率相关 $Q F ( \omega_{k} )$。此外，(a) 及其插图中的虚线分别表示线性拟合和幂律拟合。在 (b) 中，$Q F_{\mathrm{max}}$ 表示曲线 $Q F ( \omega_{k} )$ 的峰值。{{< /caption >}}
+
+方程 (13) 中定义的 $\hat{\Pi}$，针对不同隧穿强度 $\Delta = 0.01 , 0.025 , 0.05$ 和 0.1 的值显示。从 $\langle \hat{\Pi} \rangle = 1$ 到 0 的突变估计出临界点 $\alpha_{c}$，由此确认了自发对称性破缺。在插图中，激发总数 $\langle \hat{N}_{\mathrm{ex}} \rangle$ 在定域相中随耦合 α 平滑增加，但在退定域相中保持低于 1。这种行为与量子拉比模型 [65] 中的超辐射相变非常相似。图 1(b) 显示了序参量 $| \langle \sigma_{z} \rangle |$ 与 α 的关系，针对不同 $\Delta$ 的值。预期相对于偏移 $\alpha - \alpha_{c}$ 存在幂律标度。临界耦合 $\alpha_{c}$ 通过最小化拟合误差来确定。这些结果显示出比子图 (a) 更高的精度。插图中显示了带误差棒的隧穿依赖性，通过数值拟合揭示出清晰的幂律关系 $\alpha_{c} ( \Delta ) \sim \Delta^{0.7}$。这与解析预测 $\alpha_{c} ( \Delta ) \sim \smash{\bigcup_{\Delta 1^{- s}} [ 2 \bar{3} ]}$ 吻合良好。
+
+随后，进一步研究了QPT的高阶统计量，例如量子纠缠和量子涨落，分别以冯·诺依曼熵 $S_{\mathrm{v - N}}$ 和最小不确定性偏差 $Q F$ 为典型代表。在图2(a)中，展示了不同隧穿 $\Delta$ 值下，纠缠熵 $S_{\mathrm{v - N}}$ 随耦合强度 $\alpha$ 从0到0.08的变化情况。所有曲线均呈现尖点形状，表明奇点出现。这证实了相变是二阶的。接着，在相变点 $\alpha_{c}$ 附近测量了表征角尖锐度的斜率 $t$，结果展示在插图中。$t ( 1 / \Delta )$ 的幂律增长给出的指数为0.72，与图1(b)几乎相同，这证明了 $\Delta$ 依赖性的鲁棒性。
+
+![](images/f598e99e0005a495df8f73e1908033a8da4b26b2c82682627f2317af12e9a4f6.webp)
+
+![](images/8122f776d8d978895c6bc5c7346b2783d7825b9cb86c2045c786e9127f6fdd83.webp)
+
+{{< caption >}}图3. (a) 两个平均相干态权重之比的对数值 log $_{10} ( \overline{{A}} / \overline{{B}} )$ 随不同隧穿 $\Delta$ 下耦合强度 $\alpha$ 的变化。(b) 以 $\alpha = 0.010$、0.0347 和 0.075 为例，展示了退局域相、相变点和局域相的平均位移系数 $\overline{{f}}_{k}$（加号）和 $\overline{{g}}_{k}$（三角形）。虚线表示根据最优位移公式进行的拟合。{{< /caption >}}
+
+在局域相 $( \alpha > \alpha_{c} )$ 中，基础量子场论预测纠缠熵与 $\ln ( \alpha - \alpha_{c} )$ 呈线性依赖关系 [66, 67]。该行为可表示为
+
+$$
+\begin{array} {r l} {S_{\mathrm{v - N}}} & {\sim \ A ( c / 6 ) \ln \xi} \\ {\} & {= \ A ( c / 6 ) \ln k ( \alpha - \alpha_{c} )^{- \nu}} \\ {\} & {= \ b - A \nu ( c / 6 ) \ln ( \alpha - \alpha_{c} )} \end{array}\tag{15}
+$$
+
+其中 ξ 表示虚时间关联长度，A 为边界点数目，ν 为关联长度指数，c 为有效共形场论的中心荷。参数 k 与 b 定义为非普适常数。我们的数值结果（未展示）清晰观察到该线性依赖关系，从线性拟合斜率提取出系数 $A c \nu / 6 = 0.0812$。假设 $A = 1$ 且平均场指数 $\nu = 1 / 2$，估算得到中心荷 $c \approx 0.97$。如文献[68]所述，逆关联长度的普适标度行为与最低能隙完全相同——后者可通过 NRG 和 VMPS 方法[20, 24]中的能流图推导，或通过平均位移临界频率区的下界[52]得到。因此，无需输入关联长度指数 ν，即可直接获得中心荷值。此外，揭示系统内在拓扑结构的左右纠缠熵与中心荷之间的关系已在先前的解析与数值工作中分析[69, 70]，这表明式(15)中的线性依赖关系可能具有普适性。
+
+在图2(b)的插图中，展示了不同耦合强度 $\alpha =$ 0.0060, 0.0110, 0.0129, 0.0150 和 0.0200 在 $\Delta = 0.025$ 时的量子涨落 $Q F ( \omega_{k} )$。每条曲线在高频区域呈现单峰结构，峰值在相变点 $\alpha_{c}$（点划线）处达到最大。同时展示了峰值 $Q F_{\mathrm{max}}$ 随耦合强度 α 的变化，其行为与冯·诺依曼熵 $S_{\mathrm{v - N}}$ 十分相似。通过奇异性位置识别的相变点与通过对称参数、总激发数及自旋磁化强度获得的结果吻合良好。
+
+最后，我们仔细检验了基态波函数结构以深入理解临界性质。图3(a)展示了平均相干态权重比值的对数值 $\log_{10} ( \overline{{A}} / \overline{{B}} )$ 在不同 ∆ 下随 α 的变化。在退局域化相中该值趋于零，表明对称关系 ${\overline{{A}}} = {\overline{{B}}}$ 成立。然而在局域化相中，同一耦合强度 $\alpha$ 处 $\log_{10} ( \overline{{A}} / \overline{{B}} )$ 出现两个符号相反的非零值，对应双重简并基态。对于平均位移系数 ${\overline{{f}}}_{k}$ 和 $\overline{{g}}_{k}$，在图3(b)的上（下）面板中，整个频率 $\omega_{k}$ 范围内存在完美反（正）对称关系，而中间面板显示该对称性在相变点处被自发破缺。为便于对比，同时以虚线绘制了最优位移公式 $\pm \lambda_{k} / ( \omega_{k} + \chi )$ 的结果，两者与数值数据吻合良好。
+
+此外，以隧穿振幅 $\Delta = 0.05$ 为代表，研究了耦合参数满足 $\lambda_{k} = - \gamma_{k} = \eta_{k} / 2$ 的非对角耦合区间模型的基态性质。图4(a)展示了如式(A1)定义的基态能量方差 $\delta E_{g}^{( 2 )} ( \alpha )$。根据峰值位置确定的相变点为 $\alpha_{c} = 0.0210 ( 3 )$，与对角耦合情形高度一致。此外，整条曲线始终低于 $10^{-6}$ 阈值，这与图A.2(c)中对角耦合情形的结果一致，从而进一步验证了本研究采用变分方法的准确性与可靠性。如图4(b)所示，在局域化相 $( \alpha > \alpha_{c} )$ 中，动量算符期望值变为非零 $\langle \hat{p}_{k} \rangle \neq 0$，而位置期望值仍保持为零 $\langle \hat{x}_{k} \rangle = 0$。这一行为与对角耦合情形下局域化相中 $\langle \hat{x}_{k} \rangle \neq 0$ 且 $\langle \hat{p}_{k} \rangle = 0$ 的表现形成鲜明对比。
+
+![](images/56a1ceb606da9d548175fdf8514034c99ae0b8ccd890558b449d818b13d09a9d.webp)
+
+![](images/bbc74dcd85b09e57f3f99f8098b8b88cd6fffd84a109f0a254eeae2fc22e3966.webp)
+
+![](images/353fcbf00ad9c079f74b009569f373614262ece8990355eb7cbc2d70fa5029e4.webp)
+
+![](images/56b362cc598662c68b754d8cadda9a236464d0896362333b14d8bacc40aec6c8.webp)
+
+{{< caption >}}图4. (a) 隧穿Δ = 0.05时，非对角耦合情形下基态能量方差δE_g^(2)随耦合α的变化。临界点α_c = 0.0210(3)由虚线标出。(b) 最低频率ω_min的浴模的位置绝对值|⟨ẑ_{k=0}⟩|和动量绝对值|⟨p̂_{k=0}⟩|在线性-对数坐标下的图。插图中给出了α = 0.0208和0.0213时的频率依赖行为。此外，(c)中的基态能量E_g、自旋相干⟨σ_x⟩和自旋磁化⟨σ_{y,z}⟩，以及(d)中的对称参数Π̂、冯·诺伊曼熵S_{v-N}和量子涨落最大值QF_max也被展示，并与对角耦合情形和旋转模型的结果进行了比较。{{< /caption >}}
+
+进一步的分析揭示，如果对自旋和玻色子算符进行联合变换——具体地，交换自旋磁化分量(σ_z → σ_y, σ_y → σ_z)并同时交换位置和动量算符(x̂_k → p̂_k)，则非对角和对角耦合情形下的量子临界性是等价的。这种等价性源于系统潜在的对称性。事实上，通过由P̂(θ) = exp(-iθσ_x/2) [71]生成的正交旋转，非对角耦合情形的SBM哈密顿量可以映射为对角形式。对于旋转角θ = -π/2且零能量偏置(ε = 0)，变换后的哈密顿量读作
+
+显然，这个旋转后的哈密顿量具有与标准对角耦合模型相同的函数形式，从而保证了相同的量子临界行为。本质区别在于局域化的性质：在对角情况下，局域化发生在位置空间 $( \langle \hat{x}_{k} \rangle \neq 0 )$ ，而在非对角（或旋转）情况下，它表现为动量空间局域化 $( \langle \hat{p}_{k} \rangle \neq 0 )$ 。图4(c)和(d)使用多个观测量（包括基态能量、自旋磁化强度、自旋相干性、冯·诺伊曼熵、量子涨落和对称性参数）对三种模型（对角、非对角和旋转）进行了全面比较。所有结果一致证实，在上述变换下，非对角耦合与对角耦合情景之间具有相同的量子临界性。
+
+![](images/cd3dba4a78ee593ce81c6474b68c2573e0a5e21714d95f56575214c860c3f1f9.webp)
+
+![](images/c9576cfe55b828dfa5f914123926d1fe2bdd16d4c53849fc592bc6064a3666bc.webp)
+
+![](images/745ffb36a3c414965f99b55357d98ebf16518b94576ad4432351f26218809b54.webp)
+
+![](images/295af68ad72380e551228d9a55525c96fcee2ef69d7f1e0730e9158fc72534e0.webp)
+
+{{< caption >}}图5. 在RW耦合情况下，展示了在强隧穿 $\Delta = 0.1$ 下，通过NVM1、NVM2和VMPS计算得到的自旋磁化强度 $| \langle \sigma_{z} \rangle |$ (a)和自旋相干性 $\langle \sigma_{x} \rangle$ (b)的数值结果。插图中显示了基态能量差 $\Delta E_{\mathrm{g}}$ 和宇称 Π<sup>ˆ</sup>。(c) 冯·诺伊曼熵 $S_{\mathbf{v} - \mathrm{N}}$ 和量子涨落最大值 $Q F_{\mathrm{max}}$ 随总激发数 $\langle \hat{N}_{\mathrm{ex}} \rangle$ 的变化（插图）。(d) 对于 $\alpha = 0.01, 0.02, 0.03$ 和 0.10（从上到下）的平均位移系数 $\overline{{f}}_{k}$ 和 $\overline{{g}}_{k}$。{{< /caption >}}
+
+#### B. RW耦合或CRW耦合
+
+为了进一步探索量子临界性，本小节研究了RW耦合 $( \lambda_{k} > 0 , \gamma_{k} = 0 )$ 或CRW耦合 $( \lambda_{k} = 0 , \gamma_{k} > 0 )$ 下的模型。对角耦合强度 $( \lambda_{k} + \gamma_{k} ) / 2 = \eta_{k} / 2$ 和非对角耦合强度 $( \lambda_{k} - \gamma_{k} ) / 2 = \pm \eta_{k} / 2$ 随之确定。在强隧穿 $\Delta = 0.1$ 下，我们命名为"NVM2"的变分结果绘于图5(a)和(b)，包括自旋磁化强度 $| \langle \sigma_{z} \rangle$、自旋相干性 $\langle \sigma_{x} \rangle$ 以及对称性参数 $\langle \Pi^{\hat{}} \rangle$。为了对比，还展示了文献[47]中命名为"NVM1"的早期变分结果，其中使用了远大于连续极限要求 $\Lambda 1$ 的对数离散化因子 $\Lambda = 2$。在强α区域，NVM2的基态能量 $E_{g}$ 远低于NVM1，表明需要具有高密度谱的浴才能准确描述量子转变。此外，我们的变分结果与NVM1的结果差异显著，尤其在自旋磁化强度方面，但与VMPS的数值结果吻合良好，验证了本工作中NVM计算的有效性。
+
+在图5(c)中，为了进一步研究，展示了冯·诺伊曼熵 $S_{\mathrm{v - N}}$ 和量子涨落 $Q F_{\mathrm{max}}$ 。通过非零 $S_{\mathrm{v - N}}$ 和 $Q F_{\mathrm{max}}$ 的出现，并结合 $| \langle \sigma_{z} \rangle |$ 的行为，在 $\alpha_{c} = 0.015$ 处识别出一个量子相变。对于耦合强度 $\alpha < \alpha_{c}$ ，插图中得到总激发数 $\langle \hat{N}_{\mathrm{ex}} \rangle \approx 10^{- 9}$ ，比对角耦合情况小八个数量级。结果表明，在旋转波耦合情况下，激发完全消失。因此，系统具有更高的 $U ( 1 )$ 对称性。以 $\alpha = 0.01$ 为例，在图5(d)的上图中得到结果 $\overline{{f}}_{k} = \overline{{g}}_{k} = 0$ ，表明玻色子浴处于真空态。因此，各向异性模型处于所谓的"自由"相，因为即使在非零耦合存在的情况下，杂质仍保持着自由自旋的特征。进一步的研究给出了基态波函数 $\begin{array} {r} {| \Psi_{g} \rangle = \frac{\sqrt{2}} {2} ( | \uparrow \rangle + | \downarrow \rangle ) \otimes | 0 \rangle_{\mathrm{b}}} \end{array}$
+
+![](images/1ea4e46e96bd0702b38a486074ce19015f8b1e99f39e2f5a2446bf66a73d4078.webp)
+
+![](images/824f6bbbd94575ebef9bc1549a818ca6d3c5cdd750fdf246529f6b0aa9e9bd61.webp)
+
+![](images/0569adbdd65e957bd4cd8c2167bd47cf75b6d1a760a24771635561407535fffd.webp)
+
+![](images/b9c02790fa1a97896e355e0f14e6c98b895ffe5043c4b584b1f95bb664d53816.webp)
+
+{{< caption >}}图6. 对于较弱和消失的隧穿 $( \Delta = 0.05 , 0.025 , 0.01$ 和 0)，基态性质包括宇称 Π<sup>ˆ</sup>、自旋磁化强度 $| \langle \sigma_{z} \rangle |$、冯·诺伊曼熵 $S_{\mathbf{v} - \mathrm{N}}$ 和量子涨落最大值 $Q F_{\mathrm{max}}$（从上到下），在半对数坐标上作为耦合 α 的函数显示。状态I、II、III和IV已被分类，转变点由虚线定位。{{< /caption >}}
+
+在强耦合区域 $\alpha > \alpha_{c}$ 中，观察到序参量 $| \langle \sigma_{z} \rangle |$ 对 α 的非单调依赖性，这与图1(b)中对角耦合情况截然不同。选取 $\alpha = 0.02 , 0.03$ 和 0.10 三个点作为说明性示例，检查波函数的结构，如图5(d)的下图所示。在所有三个情况的整个频率范围内，都发现了对称关系 $\overline{{f}}_{k} = \overline{{g}}_{k}$ ，表明它们都处于局域相。在子图(c)的插图中，总激发数 $\langle \hat{N}_{\mathrm{ex}} \rangle$ 在浴模数 $M = 430$ 附近波动。这与对角耦合情况显著不同，在对角耦合情况下 $\langle \hat{N}_{\mathrm{ex}} \rangle$ 随耦合 α 单调增加。此外，我们的发现与文献[47, 48, 72]中的论断相矛盾，这些文献声称旋转波近似下自旋玻色子模型中的 $\langle \hat{N}_{\mathrm{ex}} \rangle$ 在整数阶平台之间表现出离散跳跃，从而产生能级交叉诱导的转变。这证明了NVM在研究量子相变方面的卓越优越性。
+
+此外，自旋相干性 $\langle \sigma_{x} \rangle$ 在对角耦合场景中，当 $\Delta =$ 0.1 时始终保持正值。相比之下，在旋转波耦合情况下，随着 α 的增加， $\langle \sigma_{x} \rangle$ 迅速下降到负值，然后逐渐趋近于零。这表明非对角系统-浴相互作用取代了隧穿效应 $\Delta$，并在强耦合区域内成为主导因素。对 $S_{\mathrm{v - N}}$ 和 $Q F_{\mathrm{max}}$ 在 $\alpha \approx 0.04$ 处曲线的圆顶峰的进一步分析表明，发生的是平滑交叉而非量子相变。因此，局域相可以根据自旋相干性 $\langle \sigma_{x} \rangle$ 的不同符号分为两部分，导致了 $| \langle \sigma_{z} \rangle |$ 的异常行为。
+
+对于更弱的隧穿 $\Delta = 0.05, 0.025$ 和 $0.01$，根据 $\hat{\Pi}$、$| \langle \sigma_{z} \rangle |$、$S_{\mathrm{v - N}}$ 和 $Q F_{\mathrm{max}}$ 的行为，划分出四个不同的态 I、II、III 和 IV。它们被三个量子相变隔开，临界耦合值 $\alpha_{c 1}$、$\alpha_{c 2}$ 和 $\alpha_{c 3}$（从左到右）由点划线标出，如图 6(a)-(c) 所示。随着隧穿 $\Delta$ 减小，$\alpha_{c 1}$ 和 $\alpha_{c 2}$ 均迅速减小，并在 $\Delta = 0$ 处最终消失。这一行为与 $\alpha_{c 3}$ 显著不同。在图 6(d) 中，仅在态 III 和 IV 之间发现了一个单一的量子相变。
+
+以 $\Delta = 0.025$ 为例，进一步研究了这四个态，分别通过图 7(a) 中的平均相干态权重 $\overline{A}$ 和 $\overline{B}$，以及图 7(b) 中的平均位移系数 $\overline{f}_k$ 和 $\overline{g}_k$。类似地，结果 $\overline{A} = \overline{B} = \frac{\sqrt{2}}{2}$ 和 $\overline{f}_k = \overline{g}_k = 0$ 表明态 I 属于自由相。根据关系 $\overline{f}_k = \overline{g}$，态 II 和 IV 都处于局域相，尽管比值 $\overline{A} / \overline{B}$ 的符号相反，如图 (a) 子图的内插图所示。这意味着自旋相干性 $\langle \sigma_x \rangle$ 在态 II（IV）中为正（负），与图 5(b) 一致。此外，在态 III 中发现了反对称关系 $\overline{f}_k = -\overline{g}_k$，表明它属于退局域相。关系 $\overline{A} = -\overline{B}$ 与对角耦合情况形成对比，产生了如图 6 所示的新宇称 $\langle \hat{\Pi} \rangle = -1$。事实上，当隧穿 $\Delta$ 设为负值时，弱耦合区域的标准自旋玻色子模型也具有这种奇宇称。因此，奇宇称的态 III 可能源于负的有效隧穿 $\Delta_{\mathrm{eff}}$。
+
+![](images/64674ce8ffcf1abb6662bf428b83a2c50eb322e6de48a3f7bb7124e7c5e54f55.webp)
+
+![](images/3f16d40051bcd89b3a0d98b0c47a33afbb134b7fa224d8a039427441d03dbc35.webp)
+
+{{< caption >}}图 7. 以隧穿常数 $\Delta = 0.025$ 为例，在半对数坐标上展示了基态波函数的结构，包括态 I、II、III 和 IV 的平均相干态权重 $\overline{A}$ 和 $\overline{B}$，以及平均位移系数 $\overline{f}_k$ 和 $\overline{g}_k$。(a) 中带三角形/星号的线对应二重简并态的一个分支，(b) 中的虚线代表用最优位移公式进行的拟合。{{< /caption >}}
+
+为了比较，还研究了 CRW 耦合下的各向异性自旋玻色子模型，结果如图 8 所示。对于每个指定的隧穿参数 $\Delta = 0, 0.01, 0.025, 0.05$ 和 $0.1$，通过对称参数 $\langle \hat{\Pi} \rangle$ 和冯·诺依曼熵 $S_{\mathrm{v - N}}$ 识别出一个单一的量子相变。这种情况反映了在隧穿 $\Delta = 0$ 时 RW 耦合的情况，如图 6(d) 所示。临界耦合强度随隧穿参数的增加而单调增加。具体而言，在隧穿消失 $\Delta = 0$ 时确定了 $\alpha_c = 0.076(1)$，这与态 III 和 IV 之间的临界值一致。此外，冯·诺依曼熵 $S_{\mathrm{v - N}}$ 在每个分叉点处观察到尖点，表明该相变为二级相变。值得注意的是，所有数据在 $\alpha_c$ 之后汇聚到一条具有一致斜率 0.3 的单一曲线上，显示出与 $\Delta$ 无关性。以 $\Delta = 0.025$ 为代表案例，对基态波函数的分析，如图 8(c) 和 (d) 所示，证实了该量子相变确实是一个局域-退局域转变，尽管它源于对角耦合与非对角耦合之间的相互作用。
+
+### IV. 讨论
+
+在本研究中，我们在统一框架下对ASBM的基态性质进行了全面研究，涵盖了有无旋转波近似两种情况。通过对各种可观测量进行系统比较和分析，识别出几种不同的量子态，包括具有偶/奇宇称的退局域相、局域相和自由相。值得注意的是，这些态之间的量子相变伴随着离散$Z_{2}$对称性或连续U(1)对称性的自发破缺。这表明观察到的相变本质上是连续的。随后，在由隧穿强度和自旋-库耦合张成的参数空间中构建了完整的相图。所有相变的临界边界均被精确测量，并总结于图9中，其中子图(a)对应对角耦合情况，子图(b)对应RW耦合情况。
+
+为了更深入地理解ASBM的相图，通过代入式(5)中定义的基态试探波函数$\left| \Psi_{g} \right.$，推导了哈密顿量的期望表达式，
+
+$$
+\langle \Psi_{g} | \hat{H} | \Psi_{g} \rangle = H_{\mathrm{b}} + H_{\mathrm{diag}} + H_{\mathrm{offdiag}} + H_{\mathrm{tunnel}} ,\tag{17}
+$$
+
+其中$H_{\mathrm{tunnel}} , H_{\mathrm{diag}} ,$和$H_{\mathrm{o f f - d i a g}}$分别表示隧穿、对角和非对角耦合的能量项，而$H_{\mathrm{b}}$与玻色子库有关，
+
+$$
+\begin{array} {l} {{H_{\mathrm{b}} ~ = ~ \displaystyle \sum_{m , n} A_{m}^{*} A_{n} F_{m , n} \sum_{k} \omega_{k} f_{m , k}^{*} f_{n , k}}} \\ {{~ + ~ \displaystyle \sum_{m , n} B_{m}^{*} B_{n} G_{m , n} \sum_{k} \omega_{k} g_{m , k}^{*} g_{n , k} ,}} \end{array}\tag{18}
+$$
+
+![](images/78b70543ca8577d3b2f7eb564898e3bbf7ae364268dc205ede7337f5ced63512.webp)
+
+![](images/d16eab465954a002f64afb65222f8af01ef8e95b679903916cd0ddcdcf50fda2.webp)
+
+![](images/5dd81c0083bba4d8ae8d28d58ce76f105c2979a3c7827543a713c655a48ed91d.webp)
+
+![](images/8a09ff8984134baa32ba01beda35123127e2b2a61bc34fb7fbfce190a9c7b3e1.webp)
+
+{{< caption >}}图8. 在CRW耦合情况下，(a) 中的宇称Π和(b) 中的冯·诺依曼熵$S_{\mathbf{v} - \mathrm{N}}$作为α的函数（针对不同Δ）绘制。虚线表示幂律拟合。 (c) 中的平均相干态权重A和B，以及(d) 中的平均位移系数$\overline{{f}}_{k}$和$\overline{{g}}_{k}$，展示了$\Delta = 0.05$时波函数的结构特征。上方面板和下方面板分别对应退局域相和局域相。{{< /caption >}}
+
+如前所述，丰富的相变涌现源于 $H_{\mathrm{diag}} , H_{\mathrm{offdiag}}$ 与 $H_{\mathrm{tunnel}}$ 之间的竞争。
+
+在 $\lambda_{k} = \gamma_{k}$ 的对角耦合情形中，非对角耦合项 $H_{\mathrm{offdiag}}$ 恒为零。因此，尖锐的量子相变划定了定域与非定域量子相之间的边界。在正隧穿 $\Delta > 0$ 下，式 (5) 中关于 $H_{\mathrm{tunnel}}$ 的自洽方程要求系数 $A_{m}$ 与 $B_{n}$ 在基态实现中具有相同的代数符号。因此，自旋相干性 $\begin{array} {r} {\langle \sigma_{x} \rangle = \sum_{m , n} A_{m}^{*} B_{n} \Gamma_{m , n} + B_{m}^{*} A_{n} K_{m , n}} \end{array}$ 表现为正值，这与先前的数值结果一致。根据宇称算符 $\hat{\Pi} =$ $\begin{array} {r} {\sigma_{x} \exp \left[ i \pi \sum_{k} b_{k}^{\dagger} b_{k} \right]} \end{array}$ 的定义，对称参数与自旋相干性密切相关。具体而言，偶宇称 $\langle \hat{\Pi} \rangle = 1$ 通过该算符的本征值结构出现在非定域相中，如图 1(a) 的数值结果所证实。值得注意的是，基态能量在隧穿符号反转 $\Delta \to -\Delta$ 下保持不变，这可通过变换 $A_{m} \to -A_{m}$ 或 $B_{n} \to -B_{n}$ 实现。这种对称操作会反转自旋相干性与宇称，同时保持临界耦合强度关系 $\alpha_{c} ( \Delta ) = \alpha_{c} ( - \Delta )$。因此，所得相图关于 $\Delta = 0$ 呈现镜像对称。
+
+由于三个竞争项的相互作用，在 $\lambda_{k} > 0$ 且 $\gamma_{k} = 0$ 的旋转波耦合情形中，相图变得更加丰富，如图 9(b) 所示。通过对称参数 $\langle \hat{\Pi} \rangle$ 可识别出三个不同的相：自由相（偶宇称）、非定域相（奇宇称）与定域相（宇称破缺）。与对角耦合情形相比，由于非对角耦合项 $H_{\mathrm{offdiag}}$ 的存在，具有偶宇称的非定域相在很大程度上被自由相所取代。进一步分析表明，自由相具有更高的 $U(1)$ 对称性。相边界由表示临界耦合 $\alpha_{c} ( \Delta )$ 的圆圈和三角形，以及表示 $\Delta_{c} ( \alpha )$ 的星号来描绘。
+
+![](images/bff42b752af9948db3a26dac557ad495276174c7b0a5d03272a997fd6a12fc73.webp)
+
+![](images/d9ace58641ad4b1a9fdce16dbf2e2936453702241958c3e24d0bf8a6fd63f068.webp)
+
+{{< caption >}}图9. 在 $\alpha - \Delta$ 平面中展示了 ASBM 的相图：(a) 对角耦合情形；(b) 旋转波耦合情形。自由相和非定域相均保持 $Z_{2}$ 对称性 $\langle \hat{\Pi} \rangle = \pm 1$，而在定域相中对称性自发破缺，有 $\langle{\hat{\Pi}} \rangle = 0$。相边界由表示临界耦合 $\alpha_{c} ( \Delta )$ 的圆圈和三角形，以及 (b) 中的星号 $\Delta_{c} ( \alpha )$ 描绘。方块来自交叉旋转波耦合情形，通过关系 $\alpha_{c}^{\mathrm{RW}} ( \Delta ) = \tilde{\alpha}^{\mathrm{RW}} ( - \Delta )$ 获得。实线表示线性/多项式拟合，箭头指示定域到非定域的转变。{{< /caption >}}
+
+此外，基态能量在变换 $\Delta - \Delta , B_{n} - B_{n}$ 以及从涉及RW耦合的情形切换到涉及CRW耦合的情形（其中非对角耦合强度为 $( \gamma_{k} - \lambda_{k} ) = \pm \eta_{k}$）下保持不变。这种不变性确立了关系 $\alpha_{c}^{\mathrm{RW}} ( \Delta ) \stackrel{\cdot} {=} \alpha_{c}^{\mathrm{CRW}} ( - \Delta )$，表明尽管RW耦合系统具有固有不平衡性，但其相图相对于其CRW耦合对应物在 $\Delta = 0$ 处呈现精确镜像对称。为验证这一预测，将CRW耦合情形 $( \Delta \ge 0 )$ 相边界的数值结果（经镜像翻转后）以方块绘制。该曲线在点 $\alpha_{c} ( \Delta = 0 ) = 0.076 ( 1 )$ 处与RW耦合情形的曲线平滑融合，证实了两种耦合情形之间存在镜像对称。
+
+隧穿的特殊值 $\Delta^{*} = 0.074 ( 1 )$ 作为 $\Delta_{c} ( \alpha )$ 的最大值，是通过对定域与非定域相之间的整个相边界进行三次多项式拟合（实线）检测得到的。当隧穿强度超过此临界阈值时，系统经历一个明显的相变，称为自由-定域转变。后续分析表明，该转变具有二阶临界性，伴随着连续 $U ( 1 )$ 规范群中的自发对称性破缺[45, 73]。对于较弱的隧穿 $0 < \Delta < \Delta^{*}$，相变路径变得极其复杂。通过自由相（态I）、定域相（态II）、奇宇称非定域相（态III）以及最终定域相（态IV），观察到连续转变，建立了多级相变序列。此外，定域相II和IV可通过自旋相干性区分，对应相干态平均叠加权重的同号/异号，如图7(a)的插图所示。在负隧穿 $\Delta < 0$ 的情况下，系统回归到单次量子相变的情形。
+
+事实上，在ASBM的相图中发现了四种不同的定域-非定域转变（用箭头标记），分别对应对角耦合、CRW耦合和RW耦合的情形。如图10所示，序参量 $| \langle \sigma_{z} \rangle |$ 作为耦合偏移量 $\tau = | \alpha - \alpha_{c} |$ 的函数，针对不同隧穿 $\Delta$ 的值，以对数-对数坐标绘制。预期 $| \langle \sigma_{z} \rangle |$ 相对于 $\tau$ 呈现幂律行为，临界指数 $\beta$ 的值可从斜率测量得到。在子图$\mathrm{( a )}$和(c)中，增长的曲线几乎彼此平行，显示出显著的 $\Delta$ 依赖性，结果 $\beta = 0.48 ( 1 )$ 和0.50(1)相当接近平均场预测 $\beta = 1 / 2$。这表明态II和III之间的转变与传统SBM中的转变相同，非对角耦合项 $H_{\mathrm{offdiag}}$ 因此不重要。相反，在子图(b)和(d)中，不同$\Delta$下的 $| \langle \sigma_{z} \rangle | ( \tau )$ 数值数据坍缩到单条曲线上，分别对应CRW耦合和强RW耦合的情形。这意味着这些相变源于对角与非对角耦合之间的相互作用，与隧穿 $\Delta$ 无关。测量的斜率0.56(2)和 $0.46 ( 2 )$ 略微偏离平均场预测 $1 / 2$，这可能归因于非对角耦合的影响。
+
+由于变分拟设复杂度的限制，本文未涉及高阶量子可观测量（如近藤能量尺度$\chi$）的临界行为。然而，最近有研究基于解析方法提出了相干展开的新实施方案[63]。该方案证明，动量依赖的变分参数$f_{n , k}$和$g_{n , k}$可表示为频率$\omega_{k}$的有理函数。这一关键性质使得优化问题能够转化为有限维参数空间，该空间由这些有理函数的系数和相干态的权重构成。因此，变分参数总数减少为$N^{2} {+} N {-} 1$，与浴离散化大小$M$无关。这一技术进展使得在包含近藤能量尺度$\chi$的情况下，利用极大相干态数目$N$，有望在热力学极限下系统探索量子相变。
+
+![](images/d17b8e3bc21c1bfe8118afba8c6b85e7704dd18462276636ae91470a810a29f7.webp)
+
+![](images/71cb6abfb59413e70dbce45b37c410c4cae341a959d228a4d480719dc431c06b.webp)
+
+![](images/509c84115d2b6eb763b6735f700b06a2673d1fd671919edf382127c972b49e9a.webp)
+
+![](images/68b28e161b57aba638d4e9be786ce329208b869bb585394527aaaeca6849b58c.webp)
+
+{{< caption >}}图10. 在对角耦合情况(a)、CRW耦合情况(b)以及RW耦合情况(c)和(d)中，针对不同隧穿振幅$\Delta$，自旋磁化$| \langle \sigma_{z} \rangle |$随偏移量$\left| \alpha - \alpha_{c} \right|$在对数-对数坐标下的变化关系。虚线表示幂律拟合。{{< /caption >}}
+
+### V. 结论
+
+通过大规模数值变分计算，我们系统研究了具有三个竞争项的各向异性自旋玻色子模型中的量子相变，采用了高光谱密度的亚欧姆浴。我们仔细考察了四种不同的系统-环境相互作用情况，即对角耦合、非对角耦合、RW耦合和CRW耦合。通过对自旋相关可观测量、对称性参数、量子纠缠与涨落以及波函数结构的全面分析，我们能够精确确定不同隧穿强度下的转变点和临界指数。此外，在隧穿与自旋-浴耦合的参数空间中揭示了一个丰富的相图，并与原型模型进行了详细比较。我们的结果与VMPS获得的结果吻合良好，从而支持了本文变分计算的有效性。
+
+值得注意的是，即使在低光谱指数（例如$s = 0.3$）下，RW耦合情况也观察到了复杂的相变景观，这与先前的研究结果[48]形成对比。除了传统的退局域化（$Z_{2}$对称性守恒）和局域化（$Z_{2}$对称性破缺）相之外，我们识别出了一个具有更高$U(1)$对称性的新相。两条对应于自发$Z_{2}$和$U(1)$对称性破缺的二阶临界线在原点相交，不对称地划分了相空间。具体而言，对于弱隧穿$0 < \Delta < \Delta^{*} = 0.074(1)$，系统随耦合强度增加经历了三次量子相变：从自由相（I态）到局域化相（II态），再到奇宇称退局域化相（III态），最后回到局域化相（IV态）。相比之下，在此范围之外仅发生一次量子相变。值得注意的是，该相图相对于其CRW耦合对应物关于$\Delta = 0$呈现出精确的镜像对称性。在对角耦合情况的相图中也观察到了镜像对称性，而在非对角耦合情况中则发生了交叉行为而非量子相变。
+
+奇宇称退局域化相在各向异性和原型模型中均存在，但其潜在机制可能不同。临界行为分析显示，所有四个局域化—退局域化相变均表现出平均场临界指数，尽管这些相变起源不同：两个相变由基本隧穿-耗散竞争控制，另外两个则源于对角耦合项与非对角耦合项之间复杂的相互作用。鉴于其可能在超导电路量子电动力学系统中实现，该各向异性模型为探索这些基本相互作用竞争所产生的复杂量子临界现象提供了关键平台。
+
+[1] A. J. Leggett, S. Chakravarty, A. T. Dorsey, M. P. A. Fisher, A. Garg, and W. Zwerger, Dynamics of the dissipative two-state system, Rev. Mod. Phys. 59, 1 (1987).
+
+[2] U. Weiss, Quantum Dissipative Systems, 3rd ed. (World Scientific, Singapore, 2007).
+
+[3] K. Le Hur, Entanglement entropy, decoherence, and quantum phase transitions of a dissipative two-level system, Annals of Physics 323, 2208 (2008).
+
+[4] H. P. Breuer, E. M. Laine, J. Piilo, and B. Vacchini, Colloquium: Non-Markovian dynamics in open quantum systems, Rev. Mod. Phys. 88, 021002 (2016).
+
+[5] R. Bulla, H. J. Lee, N. H. Tong, and M. Vojta, Numerical renormalization group for quantum impurities in a bosonic bath, Phys. Rev. B 71, 045122 (2005).
+
+[6] E. Gull, A. J. Millis, A. I. Lichtenstein, A. N. Rubtsov, M. Troyer, and P. Werner, Continuous-time Monte Carlo methods for quantum impurity models, Rev. Mod. Phys. 83, 349 (2011).
+
+[7] M. O. Scully and M. S. Zubairy, Quantum Optics (Cambridge University Press, Cambridge, 1997).
+
+[8] Y. Ota, S. Iwamoto, N. Kumagai, and Y. Arakawa, Spontaneous Two-Photon Emission from a Single Quantum Dot, Phys. Rev. Lett. 107, 233602 (2011).
+
+[9] J. Liu, M. Liu, Z.-J. Ying, and H.-G. Luo, Fundamental Models in the Light–Matter Interaction: Quantum Phase Transitions and the Polaron Picture, Advanced Quantum Technologies 4, 2000139 (2021).
+
+[10] O. Ostroverkhova, Organic Optoelectronic Materials: Mechanisms and Applications, Chemical Reviews 116, 13279 (2016).
+
+[11] B. Kippelen and J. L. Bras, Organic photovoltaics, Energy Environ. Sci. 2, 251 (2009).
+
+[12] E. Collini and G. D. Scholes, Coherent Intrachain Energy Migration in a Conjugated Polymer at Room Temperature, Science 323, 369 (2009).
+
+[13] G. S. Engel, T. R. Calhoun, E. L. Read, T. K. Ahn, T. Mancal, Y. C. Cheng, R. E. Blankenship, and G. R. Fleming, Evidence for wavelike energy transfer through quantum coherence in photosynthetic systems, Nature 446, 782 (2007).
+
+致谢：本工作得到了国家自然科学基金（项目批准号：11875120 和 12175052）、浙江省自然科学基金杭州联合基金（项目批准号：LHZSD24A050001）以及杭州市领军型青年创新创业团队项目（项目批准号：TD2024005）的部分资助。
+
+支持本文结论的数据已公开发布 [74]。
+
+光合系统的量子相干性，《凝聚态物理年度评论》3, 333 (2012)。
+
+[15] S. Huelga and M. Plenio, 振动、量子与生物学，《当代物理学》54, 181 (2013)。
+
+[16] P. Nalbach and M. Thorwart, 亚欧姆退相干导致的从相干到非相干量子动力学的转变，《物理评论B》87, 014116 (2013)。
+
+[17] L. Wang, L. P. Chen, N. J. Zhou, and Y. Zhao, 基于多重Davydov D1态的亚欧姆自旋-玻色子模型的变分动力学，《化学物理学报》144, 024101 (2016)。
+
+[18] R. Dani and N. Makri, 与耗散浴相互作用的伊辛链的量子淬火与相干-非相干动力学，《化学物理杂志》155, 234705 (2021)。
+
+[19] F. Otterpohl, P. Nalbach, and M. Thorwart, 自旋-玻色子模型的隐藏相，《物理评论快报》129, 120406 (2022)。
+
+[20] R. Bulla, N. H. Tong, and M. Vojta, 玻色子系统数值重整化群及其在亚欧姆自旋-玻色子模型中的应用，《物理评论快报》91, 170601 (2003)。
+
+[21] M. Vojta, N. H. Tong, and R. Bulla, 亚欧姆自旋-玻色子模型中的量子相变：量子-经典映射的失效，《物理评论快报》94, 070604 (2005)。
+
+[22] A. Winter, H. Rieger, M. Vojta, and R. Bulla, 亚欧姆自旋-玻色子模型中的量子相变：基于连续虚时团簇算法的量子蒙特卡洛研究，《物理评论快报》102, 030601 (2009)。
+
+[23] A. W. Chin, J. Prior, S. F. Huelga, and M. B. Plenio, 亚欧姆自旋-玻色子模型基态的广义极化子拟设：局域化跃迁的分析理论，《物理评论快报》107, 160601 (2011)。
+
+[24] C. Guo, A. Weichselbaum, J. von Delft, and M. Vojta, 单浴和双浴自旋-玻色子模型中的临界相与强耦合相，《物理评论快报》108, 160401 (2012)。
+
+[25] N. H. Tong and Y. H. Hou, 亚欧姆自旋-玻色子模型数值重整化群研究中的标度分析，《物理评论B》85, 144425 (2012)。
+
+[26] N. J. Zhou, L. P. Chen, Y. Zhao, D. Mozyrsky, V. Chernyak, and Y. Zhao, 具有同时对角与非对角耦合的亚欧姆自旋-玻色子模型的基态性质，《物理评论B》90, 155135 (2014)。
+
+[27] A. Winter and H. Rieger, 多自旋-玻色子模型中的量子相变与关联，《物理评论B》90, 224401 (2014)。
+
+[28] G. De Filippis, A. de Candia, A. S. Mishchenko, L. M. Cangemi, A. Nocera, P. A. Mishchenko, M. Sassetti, R. Fazio, N. Nagaosa, and V. Cataudella, 多个相互作用自旋耦合到玻色子浴的量子相变：静态与动态性质，《物理评论B》104, L060410 (2021)。
+
+[29] C. A. Perroni, A. De Candia, V. Cataudella, R. Fazio, and G. De Filippis, 耦合到量子浴的自旋链中的一级相变，《物理评论B》107, L100302 (2023)。
+
+[30] L. J. Bond, A. Safavi-Naini, and J. c. v. Minář, 利用非高斯变分拟设和量子最优控制实现快速量子态制备与浴动力学，《物理评论快报》132, 170401 (2024)。
+
+[31] H. Takahashi, R. Borrelli, M. F. Gelin, and L. Chen, 极化亚欧姆热浴中的有限温度动力学：层次运动方程-张量列研究，《化学物理学报》160, 164106 (2024)。
+
+[32] L. Zhang, M. F. Gelin, and Y. Zhao, 三领结模型中的耗散Landau-Zener跃迁：基于Davydov Multi-D2拟设的精确动力学，《先进量子技术》7, 2300285 (2024)。
+
+[33] A. Miessen, P. J. Ollitrault, and I. Tavernelli, 量子动力学的量子算法：自旋-玻色子模型的性能研究，《物理评论研究》3, 043212 (2021)。
+
+[34] J. Leppäkangas, P. Stadler, D. Golubev, and et al., 利用混合谐振器-量子比特量子计算机模拟耦合到玻色子模式的系统的量子算法，arXiv:2503.11507v3 (2025)。
+
+[35] F. Hartmann, S. Scali, and J. Anders, 自旋-玻色子模型中的各向异性特征，《物理评论B》108, 184402 (2023)。
+
+[36] F. Cerisola, M. Berritta, S. Scali, S. A. R. Horsley, J. D. Cresser, and J. Anders, 任意耦合下自旋-玻色子平衡态的量子-经典对应，《新物理学杂志》26, 053032 (2024)。
+
+[37] N. J. Zhou, L. P. Chen, D. Z. Xu, V. Chernyak, and Y. Zhao, 双浴自旋-玻色子模型中的对称性与临界相：基态性质，《物理评论B》91, 195129 (2015)。
+
+[38] M. Weber and M. Vojta, SU(2)对称自旋-玻色子模型：量子临界性、不动点湮灭与对偶性，《物理评论快报》130, 186701 (2023)。
+
+[39] J. Leppäkangas, J. Braumüller, M. Hauck, J. M. Reiner, I. Schwenk, S. Zanker, L. Fritz, A. V. Ustinov, M. Weides, and M. Marthaler, 利用微波电路量子模拟自旋-玻色子模型，《物理评论A》97, 052321 (2018)。
+
+[40] L. Magazzù, P. Forn-Díaz, R. Belyansky, J. L. Orgiazzi, M. A. Yurtalan, M. R. Otto, A. Lupascu, C. M. Wilson, and M. Grifoni, 在超导量子电路中探测强驱动自旋-玻色子模型，《自然·通讯》9, 1403 (2018)。
+
+[41] A. Lemmer, C. Cormick, D. Tamascelli, T. Schaetz, S. F. Huelga, and M. B. Plenio, 用于具有结构化环境的自旋-玻色子模型的离子阱模拟器，《新物理学杂志》20, 073002 (2018)。
+
+[42] O. Katz and C. Monroe, 利用离子阱实现玻色子系统的可编程量子模拟，《物理评论快报》131, 033604 (2023)。
+
+[43] A. L. Grimsmo and S. Parkins, 腔量子电动力学模拟超强耦合区间的量子比特-振子动力学，《物理评论A》87, 033814 (2013)。
+
+[44] Q. T. Xie, S. Cui, J. P. Cao, L. Amico, and H. Fan, 各向异性Rabi模型，《物理评论X》4, 021046 (2014)。
+
+[45] A. Baksic 与 C. Ciuti，《利用电路QED系统控制“超辐射”相变中的离散和连续对称性》，《物理评论快报》112, 173601 (2014)。
+
+[46] M. X. Liu, S. Chesi, Z. J. Ying, X. S. Chen, H. G. Luo, 与 H. Q. Lin，《各向异性量子Rabi模型的普适标度与临界指数》，《物理评论快报》119, 220601 (2017)。
+
+[47] Y. Z. Wang, S. He, L. W. Duan, 与 Q. H. Chen，《无反旋转项的自旋-玻色子模型中的量子相变》，《物理评论B》100, 115106 (2019)。
+
+[48] Y. Z. Wang, S. He, L. W. Duan, 与 Q. H. Chen，《各向异性亚欧姆自旋-玻色子模型中量子相的丰富相图》，《物理评论B》101, 155147 (2020)。
+
+[49] H. Wong 与 Z. D. Chen，《自旋-玻色子模型的密度矩阵重整化群方法》，《物理评论B》77, 174305 (2008)。
+
+[50] A. Alvermann 与 H. Fehske，《耗散量子系统的稀疏多项式空间方法：应用于亚欧姆自旋-玻色子模型》，《物理评论快报》102, 150601 (2009)。
+
+[51] S. Bera, A. Nazir, A. W. Chin, H. U. Baranger, 与 S. Florens，《自旋-玻色子模型的广义多极化子展开：环境纠缠与偏置二能级系统》，《物理评论B》90, 075110 (2014)。
+
+[52] Z. Blunden-Codd, S. Bera, B. Bruognolo, N. O. Linden, A. W. Chin, J. von Delft, A. Nazir, 与 S. Florens，《耗散杂质问题中量子临界波函数的剖析》，《物理评论B》95, 085104 (2017)。
+
+[53] N. J. Zhou, Y. Y. Zhang, Z. G. Lü, 与 Y. Zhao，《具有公共欧姆浴的双杂质自旋-玻色子模型的变分研究：基态相变》，《物理学年鉴》530, 1800120 (2018)。
+
+[54] Y. L. Shen 与 N. J. Zhou，《使用多极化子拟设对亚欧姆自旋-玻色子模型中量子相变的数值变分研究》，《计算机物理通讯》293, 108895 (2023)。
+
+[55] X. H. Qian, C. Z. Zeng, 与 N. J. Zhou，《高密集谱下欧姆自旋-玻色子模型的量子临界性：对称性、量子涨落与关联》，《物理学报A》580, 126157 (2021)。
+
+[56] X. H. Qian, Z. Sun, 与 N. J. Zhou，《揭示亚欧姆和欧姆浴在耗散系统量子相变中的量子纠缠与关联》，《物理评论A》105, 012431 (2022)。
+
+[57] Y. Y. Zhang, Q. H. Chen, 与 K. L. Wang，《亚欧姆自旋-玻色子模型中的量子相变：一种扩展相干态方法》，《物理评论B》81, 121105(R) (2010)。
+
+[58] M. F. Frenzel 与 M. B. Plenio，《无需显式局域希尔伯特空间截断的矩阵乘积态表示及其在亚欧姆自旋-玻色子模型中的应用》，《新物理学报》15, 073046 (2013)。
+
+[59] S. Bera, S. Florens, H. U. Baranger, N. Roch, A. Nazir, 与 A. W. Chin，《通过强耗散量子系统中的环境纠缠稳定自旋相干性》，《物理评论B》89, 121108 (2014)。
+
+[60] R. Silbey 与 R. A. Harris，《与浴相互作用的二能级系统动力学的变分计算》，《化学物理学报》80, 2615 (1984)。
+
+[61] A. Nazir, D. P. S. McCutcheon, 与 A. W. Chin，《偏置耗散二能级系统的基态与动力学：超越变分极化子理论》，《物理评论B》85, 224301 (2012)。
+
+[62] H. Zheng, Z. G. Lü, 与 Y. Zhao，《耗散双量子比特系统中量子相变的拟设》，《物理评论E》91, 062115 (2015)。
+
+[63] S. Florens 与 I. Snyman，《各向异性近藤屏蔽云中的普适空间关联：来自相干态展开的分析见解与数值精确结果》，《物理评论B》92, 195106。
+
+[64] S. He, L. W. Duan, 与 Q. H. Chen，《自旋-玻色子模型的改进Silbey-Harris极化子拟设》，《物理评论B》97, 115157 (2018)。
+
+[65] M. J. Hwang, R. Puebla, 与 M. B. Plenio，《Rabi模型中的量子相变与普适动力学》，《物理评论快报》115, 180404 (2015)。
+
+[66] P. Calabrese 与 J. Cardy，《纠缠熵与量子场论》，《统计力学：理论与实验》2004, P06002 (2004)。
+
+[67] V. Balasubramanian, M. B. McDermott, 与 M. Van Raamsdonk，《量子场论中的动量空间纠缠与重整化》，《物理评论D》86, 045014 (2012)。
+
+[68] M. Oshikawa，《量子伊辛链的普适有限尺寸能隙标度》，arXiv: 1910.06353, 统计力学 (2019)。
+
+[69] D. Das 与 S. Datta，《左右纠缠熵的普适特征》，《物理评论快报》115, 131602 (2015)。
+
+[70] M. Lencsés, J. Viti 与 G. Takács，《1+1维大规模量子场论中的手征纠缠》，《高能物理杂志》2019, 177 (2019)。
+
+[71] J. Z. Tan, N. J. Zhou 与 Y. Zhao，《亚欧姆自旋-玻色子模型的量子相变：基于多重Davydov D2 Ansatz的方法》，《化学物理学报》163, 174108 (2025)。
+
+[72] Q. J. Tong, J. H. An, H. G. Luo 与 C. H. Oh，《自旋-玻色子模型退局域化区域的量子相变》，《物理评论B》84, 174301 (2011)。
+
+[73] M. J. Hwang 与 M. B. Plenio，《有限Jaynes-Cummings晶格系统的量子相变》，《物理评论快报》117, 123602 (2016)。
+
+### 附录A：NVM的基准测试
+
+我们分别在图A.1及其插图中仔细检验了数值变分结果关于浴模式数M和相干态数N的收敛性。
+
+采用了对数网格离散化因子 $\Lambda = 1.05$、谱指数 $s = 0.3$、隧穿振幅 $\Delta = 0.05$、能量偏置 $\varepsilon = 0$ 的设置。耦合强度 $\alpha = 0.02$ 和 0.05（略小于临界耦合 $\alpha_{c}$）分别固定于子图(a)和(b)中，对应着对角耦合和RW耦合两种情况，两者均处于退局域化相。随着浴模式数M的增加，子图(a)和(b)中的基态能量偏移 $\Delta E_{\mathrm{g}} = E_{\mathrm{g}} - E_{\mathrm{g , M = \infty}}$ 均呈指数衰减。此处，$E_{\mathrm{g , M = \infty}}$ 代表 $E_{\mathrm{g}} ( M )$ 的渐近值，且斜率0.056和0.061几乎相同。这表明，对于 $\Lambda = 1.05$ 的对数网格，$M = 430$ 足以保证NVM计算的收敛性[56]。
+
+在图A.1的插图中，进一步检验了基态能量 $E_{\mathrm{g}}$ 关于相干叠加态数目 $N$ 的收敛性。与 $E_{\mathrm{g}} ( M )$ 的行为相反，能量 $E_{\mathrm{g}} ( N )$ 快速下降，并迅速收敛到其渐近值 $E_{\mathrm{g}} ( N = \infty )$。这表明，适量的相干态数目（即对角耦合情况下 $N = 6$，RW耦合情况下 $N = 4$）足以获得可靠的结果。此外，我们还对其他关键可观测量进行了额外的收敛性测试，包括自旋磁化强度 $| \langle \sigma_{z} \rangle |$、自旋相干性 $\langle \sigma_{x} \rangle$、冯·诺依曼熵 $S_{\mathrm{v - N}}$ 和最大量子涨落 $QF_{\mathrm{max}}$。图 $\mathrm{A.2(a)}$ 和 (b) 展示的结果显示，所有这些可观测量均快速收敛，这有力地支持了我们的论断：对于对角耦合情况，$N = 6$ 是足够的。
+
+为了严格评估NVM的有效性，我们还引入了基态能量的方差：
+
+$$
+\delta E_{g}^{( 2 )} = \langle \Psi_{\mathrm{g}} | {\hat{H}}^{2} | \Psi_{\mathrm{g}} \rangle - \langle \Psi_{\mathrm{g}} | {\hat{H}} | \Psi_{\mathrm{g}} \rangle^{2} ,\tag{A1}
+$$
+
+它是判断NVM质量的重要基准。我们的计算表明，方差 $\delta E_{g}^{( 2 )}$ 收敛至 $10^{-7}$ 量级，这一结果验证了我们方法的有效性。此外，我们还系统考察了不同多重性 $N = 1 , 2 , 4$ 和 6 时，方差在整个耦合参数空间的行为。如图A.2(c)所示，每条曲线在临界点处均呈现明显峰值，且峰值大小随 N 增加单调递减。值得注意的是，当 $N = 6$ 时，方差保持在 $10^{-6}$ 阈值以下，这凸显了我们变分计算的稳健性与精确性。
+
+针对RW耦合情况，我们还以隧穿振幅 $\Delta = 0.05$ 为例，额外进行了 $N = 6$ 的对比分析。图A.3表明，在整个耦合范围内，$N = 4$ 与 $N = 6$ 计算结果在自旋磁化强度、自旋相干性以及冯·诺伊曼熵上高度一致。这进一步证实，在RW耦合框架下，多重性 $N = 4$ 已足以精确描述相变特征。
+
+![](images/3d58db85e8974ad791f0a7bd454f9bc9b89d65d92e8225b299c27e33af49c8e3.webp)
+
+![](images/75a53aa113550f5186124f6392e7102a6d1f7b74842691c3e69bba7684a1ba58.webp)
+
+{{< caption >}}图A.1. 对角耦合情况(a)和RW耦合情况(b)中，基态能量 $E_{g}$ 及偏移量 $\Delta E_{g} = E_{g} - E_{g , M = \infty}$ 随浴模数 M 与相干态叠加数 N 的变化关系。虚线为指数形式拟合曲线。为清晰起见，$\Delta E_{g}$ 曲线已向上微移。{{< /caption >}}
+
+![](images/868d94625b0fe0e645bbd4d8a713dfee85eb0e1e94ad5708b3b0ee0c4b0762d2.webp)
+
+![](images/787171b49b376a089716a42ba894b0fb6f293cb97351c02d03da2404e77884a5.webp)
+
+![](images/92f29fbab05a42454b162992cb121ccd94782d54d5cf472cc6891c7b2da66211.webp)
+
+{{< caption >}}图A.2. 对角耦合情况下，以耦合强度 $\alpha = 0.02$ 为例，(a)中展示了自旋相干性 $\langle \sigma_{x} \rangle$ 与冯·诺伊曼熵 $S_{\mathbf{v} - \mathrm{N}}$ 随多重性 N 的变化；(b)中展示了基态能量方差 $\delta E_{g}^{( 2 )}$ 及量子涨落最大值 $Q F_{\mathrm{max}}$ 随 N 的变化。(c)给出了不同多重性 $N = 1 , 2 , 4$ 和 6 时，能量方差 $\delta E_{g}^{( 2 )}$ 随耦合强度 α 的变化曲线。为清晰起见，$N = 1$ 和 2 的曲线已分别乘以因子 1/10 和 1/3。{{< /caption >}}
+
+![](images/28238dd873db0ed5884bbdaa294d3dac2b34173c193128b2ec7a3c35de896014.webp)
+
+![](images/70f2b2dd43e11019d0324baecb7e882a5f2f478d55c1e4fb4984166638e593dc.webp)
+
+{{< caption >}}图A.3. RW耦合情况下，多重性 $N = 4$（带点实线）与 $N = 6$（散点）时，(a)自旋磁化强度 $| \langle \sigma_{z} \rangle |$ 与(b)自旋相干性 $\langle \sigma_{x} \rangle$ 及冯·诺伊曼熵 $S_{\mathbf{v} - \mathrm{N}}$ 随耦合强度的变化曲线。{{< /caption >}}
+
+---
+
+## 阅读笔记
+
+### 一句话概括
+
+本文采用基于多重 Davydov D1 拟设的数值变分方法（NVM），以对数离散化因子 $\Lambda=1.05$、浴模数 $M=430$、最低频率 $\omega_{\mathrm{min}}\approx10^{-9}\omega_c$ 的高谱密度亚欧姆浴（谱指数 $s=0.3$），系统研究了各向异性自旋-玻色子模型（ASBM）中隧穿项、对角耦合项与非对角耦合项三者竞争导致的基态量子相变。核心结论：（1）在对角/非对角耦合情形下仅存在一个局域-离域二级相变，$\alpha_c(\Delta)\sim\Delta^{0.7}$ 与解析预测 $\alpha_c\sim\Delta^{1/(1-s)}$ 吻合（$s=0.3$ 时指数 $\approx0.7$）；（2）在旋转波（RW）耦合情形下发现了远超预期的丰富相图——当弱隧穿 $0<\Delta<\Delta^*=0.074(1)$ 时，系统随耦合强度增加经历**四态三级相变序列**：自由相（态 I，$U(1)$ 对称）→ 局域相（态 II，偶宇称破缺）→ 奇宇称离域相（态 III，$\langle\hat{\Pi}\rangle=-1$）→ 局域相（态 IV，负自旋相干）；（3）RW 与 CRW 耦合情形的相图关于 $\Delta=0$ 呈精确镜像对称 $\alpha_c^{\mathrm{RW}}(\Delta)=\alpha_c^{\mathrm{CRW}}(-\Delta)$，且所有四个局域-离域转变均表现平均场临界指数（$\beta\approx0.46$–$0.56$），但微观驱动机制不同。
+
+### 核心论证链
+
+1. **三方竞争模型构造**：从各向异性自旋-玻色子哈密顿量（式 1）出发，通过泡利算符重整将相互作用分解为 $\sigma_z$（对角）和 $\sigma_y$（非对角）两项（式 3），明确隧穿项 $-\Delta\sigma_x/2$、对角耦合 $(\lambda_k+\gamma_k)\sigma_z(b_k^\dagger+b_k)/2$、非对角耦合 $i(\gamma_k-\lambda_k)\sigma_y(b_k^\dagger-b_k)/2$ 三者并存且强度可独立调节——**原因**：只有三种相互作用势均力敌时才能产生超越传统 SBM 的丰富相图，**结论**：问题转化为四种极限情形（对角/非对角/RW/CRW）下的基态分类。
+
+2. **方法可靠性论证**：采用多重极化子拟设（Davydov D1）作为变分波函数（式 5），通过拉格朗日乘子法导出自洽方程（式 6）并用松弛迭代求解。关键创新在于设置 $\Lambda=1.05$（远小于以往研究的 $\Lambda=2$）以确保谱密度接近连续极限。附录 A 通过基态能量随 $M$ 的指数收敛（斜率 $\approx0.06$）和方差 $\delta E_g^{(2)}<10^{-6}$ 两个指标证明 $M=430$、$N=6$（对角）/ $N=4$（RW）足以得到收敛结果——**原因**：此前研究[47,48]因 $\Lambda=2$ 谱密度不足而遗漏了关键相，**结论**：高谱密度是正确描述 ASBM 基态的必要条件。
+
+3. **对角/非对角耦合的临界性与等价性**：通过宇称参数 $\langle\hat{\Pi}\rangle$ 从 1 到 0 的突变定位临界点 $\alpha_c$，发现 $\alpha_c(\Delta)\sim\Delta^{0.7}$ 与解析预测吻合。进一步引入正交旋转 $P(\theta)=\exp(-i\theta\sigma_x/2)$（$\theta=-\pi/2$），将非对角情形哈密顿量映射为对角形式（式 16）——**原因**：该旋转交换 $\sigma_z\leftrightarrow\sigma_y$ 同时交换 $\hat{x}_k\leftrightarrow\hat{p}_k$，**结论**：两种情形量子临界性等价，区别仅在于局域化从位置空间 $(\langle\hat{x}_k\rangle\neq0)$ 转移到动量空间 $(\langle\hat{p}_k\rangle\neq0)$。
+
+4. **NVM1 失败根源的诊断**：对比早期 NVM1 结果（$\Lambda=2$）与本文 NVM2（$\Lambda=1.05$），发现 NVM1 在强耦合区基态能量显著偏高，且自旋磁化呈现定性错误的行为（图 5a），而 NVM2 与 VMPS 吻合良好——**原因**：NVM1 的 $\Lambda=2$ 导致谱密度稀疏，在连续极限下才能精确的变分计算因离散化粗糙而收敛到错误的局部极值，**结论**：高谱密度是变分方法能否捕捉真正基态的决定性因素。
+
+5. **四态相变序列的发现与表征**：在弱隧穿 $0<\Delta<\Delta^*$ 的 RW 耦合中，联合分析 $\langle\hat{\Pi}\rangle$、$|\langle\sigma_z\rangle|$、$S_{\mathrm{v-N}}$、$QF_{\mathrm{max}}$ 识别出三个临界点 $\alpha_{c1},\alpha_{c2},\alpha_{c3}$（图 6）。波函数结构分析（图 7）揭示态 I 具有 $\overline{A}=\overline{B}=\sqrt2/2,\overline{f}_k=\overline{g}_k=0$（自由相，$\langle\hat{N}_{\mathrm{ex}}\rangle\approx10^{-9}$），态 III 具有 $\overline{f}_k=-\overline{g}_k$（奇宇称离域相，$\langle\hat{\Pi}\rangle=-1$），态 II 和 IV 虽同属局域相但 $\overline{A}/\overline{B}$ 符号相反——**原因**：态 III 的反反对称位移关系等价于负有效隧穿 $\Delta_{\mathrm{eff}}$，**结论**：RW 耦合下 ASBM 存在四个不同的量子态，由三级连续相变分隔。
+
+6. **完整相图与镜像对称性**：在 $\alpha$-$\Delta$ 参数平面上构建完整相图（图 9），通过能量期望分解（式 17-18）论证 $H_{\mathrm{diag}}/H_{\mathrm{offdiag}}/H_{\mathrm{tunnel}}$ 的竞争是丰富相图的根源。关键对称性：基态能量在 $\Delta\to-\Delta$ 与 $B_n\to-B_n$ 联合变换下不变，建立 $\alpha_c^{\mathrm{RW}}(\Delta)=\alpha_c^{\mathrm{CRW}}(-\Delta)$ 关系——**原因**：RW 和 CRW 耦合的非对角项符号相反，**结论**：相图关于 $\Delta=0$ 精确镜像对称，数值点 $\alpha_c(\Delta=0)=0.076(1)$ 验证了这一预测。
+
+7. **临界指数分类与微观归因**：四类局域-离域转变的 $\beta$ 值分属两组（图 10）——对角耦合/态 III-IV 转变 $\beta\approx0.48$–$0.50$（接近平均场 $1/2$），CRW/强 RW 耦合转变 $\beta\approx0.46$–$0.56$（轻微偏离）——**原因**：前者由隧穿-耗散竞争主导（对角耦合 $H_{\mathrm{offdiag}}=0$），后者因对角与非对角耦合的相互作用引入额外量子涨落，**结论**：$\beta$ 的微小偏离可作为判断相变驱动机制的诊断工具。
+
+### 实验参数详解
+
+| 参数 | 数值 | 含义 |
+|------|------|------|
+| 谱指数 $s$ | $0.3$ | 亚欧姆浴幂律指数，深亚欧姆区域 |
+| 对数离散化因子 $\Lambda$ | $1.05$ | Wilson 网格参数，保证高谱密度接近连续极限 |
+| 有效浴模数 $M$ | $430$ | 离散化后玻色子模式总数 |
+| 最低频率 $\omega_{\mathrm{min}}$ | $\approx10^{-9}\omega_c$ | 红外截断，$\omega_c=1$ 为高频截止 |
+| 相干态数 $N$（对角耦合） | $6$ | 多重 D1 拟设中相干位移态数量 |
+| 相干态数 $N$（RW 耦合） | $4$ | 多重 D1 拟设中相干位移态数量 |
+| 松弛因子 $f$ | $0.1\rightarrow0.001$ | 模拟退火中逐步减小的迭代步长 |
+| 能量偏置 $\varepsilon$ | $0$ | 零偏置，确保 $Z_2$ 对称性 $\hat{\Pi}=\exp(i\pi\hat{N}_{\mathrm{ex}})$ |
+| 隧穿振幅 $\Delta$ 扫描范围 | $0,0.01,0.025,0.05,0.1$ | 五种隧穿强度代表弱到强隧穿区域 |
+| 临界隧穿阈值 $\Delta^*$ | $0.074(1)$ | 分隔四态区域与单相变区域，三次多项式拟合 |
+| 耦合强度 $\alpha$ 扫描范围 | $0$–$0.1+$ | 无量纲系统-浴耦合常数 |
+| 临界指数 $\beta$（对角/态 III-IV） | $0.48(1)$–$0.50(1)$ | 序参量 $\lvert\langle\sigma_z\rangle\rvert\sim\lvert\alpha-\alpha_c\rvert^\beta$ |
+| 临界指数 $\beta$（CRW/强 RW） | $0.46(2)$–$0.56(2)$ | 略微偏离平均场 $1/2$，反映非对角耦合影响 |
+| 能量方差阈值 $\delta E_g^{(2)}$ | $<10^{-6}$ | NVM 收敛性判据 |
+
+### 批判性思考
+
+**1. 谱密度离散化方案的选择性偏差**：尽管 $\Lambda=1.05$ 比 $\Lambda=2$ 更优，但 Wilson 对数网格在低频区过度采样而高频区稀疏。基态能量收敛测试仅验证了整体能量而非每个玻色子模式的位移系数 $\overline{f}_k,\overline{g}_k$ 逐点收敛。$QF(\omega_k)$ 在高频区的单峰结构（图 2b 插图）部分源于离散化的人为特征，其峰位可能随 $\Lambda$ 取值移动——$\Lambda$ 的精确选择存在未量化的误差。
+
+**2. 相干态数 $N$ 充分性的判据缺陷**：能量方差 $\delta E_g^{(2)}<10^{-6}$ 仅是一阶必要判据而非充分条件。在具有多个近简并基态的相边界附近（如图 A.2c 中 $N=6$ 方差峰值仍明显高于背景），可能存在 $N=8,10$ 才能捕捉的额外近简并态。尤其对于态 III（奇宇称离域相）这类此前未被发现的新相，$N=4$ 的充分性缺乏严格证明。
+
+**3. 有限尺度截断效应未处理**：临界指数 $\beta$ 直接从 $|\langle\sigma_z\rangle|\sim|\alpha-\alpha_c|^\beta$ 拟合获得（图 10），未考虑有限 $M=430$ 引入的红外截断效应。已知 NRG 研究[20,25]指出 $s<0.5$ 时临界指数对截断敏感——缺少对 $M=200,300,430$ 的三组有限尺度标度分析意味着 $\beta$ 的统计误差可能被低估，$\beta\approx0.5$ 与平均场的一致可能是有限尺度假象。
+
+**4. 奇宇称离域相的微观机制论证不完整**：论文将态 III 归因于"负有效隧穿"但未给出从完整哈密顿量到 $\Delta_{\mathrm{eff}}<0$ 的解析推导（如 Schrieffer-Wolff 变换或绝热消除）。在能量分解框架（式 17-18）下，未展示 $H_{\mathrm{tunnel}},H_{\mathrm{diag}},H_{\mathrm{offdiag}}$ 三项在态 III 区域如何定量竞争以产生 $\langle\hat{\Pi}\rangle=-1$——这降低了新相物理起源的说服力。
+
+**5. VMPS 对比验证的覆盖范围不足**：论文声称与 VMPS 吻合良好以佐证 NVM 有效性，但仅在图 5(a)(b) 中展示了 $\Delta=0.1$ 下若干点的对比，未对 $\Delta=0.01,0.025$ 弱隧穿区域及各相边界附近进行系统性 VMPS 验证。考虑到 VMPS 是亚欧姆 SBM 最可靠的基准方法之一，参数覆盖的稀疏性削弱了四态相图的可信度。
+
+**6. 自由相 $U(1)$ 对称性的证据不足**：论文通过 $\langle\hat{N}_{\mathrm{ex}}\rangle\approx10^{-9}$（比对角耦合小 8 个数量级）推断系统具有 $U(1)$ 对称性。但 $10^{-9}$ 仅为数值零而非严格零，且未展示连续对称性的直接诊断——如计算 $\exp(i\theta\hat{N}_{\mathrm{ex}})$ 不同旋转角度下的能量变化、或验证 Goldstone 模的存在。$U(1)$ 对称性的确立需要更严格的数值或解析证据。
+
+**7. $\Delta^*=0.074(1)$ 的误差估计方法不明**：作为区分弱/强隧穿区域的关键参数，$\Delta^*$ 来自"三次多项式拟合"但未交代：拟合数据点的选取标准（哪些临界点纳入拟合？）、置信区间估计方法（bootstrap/Jackknife？）、拟合优度（$\chi^2/\mathrm{dof}$）。图 6 中 $S_{\mathrm{v-N}}$ 峰位在 $\alpha_{c2}$ 和 $\alpha_{c3}$ 附近存在可见波动，$\Delta^*$ 的不确定度 $0.001$ 很可能被低估。
+
+### 局限性
+
+- **仅研究单一谱指数 $s=0.3$**：论文聚焦深亚欧姆 $s=0.3$，未探索 $s=0.1,0.5,0.7$ 等谱指数。四态相图是否在强亚欧姆区域（$s<0.5$）普适存在，或仅在 $s=0.3$ 附近特例成立，尚未回答。浅亚欧姆 $s>0.5$ 时已知有三相点结构，本文的发现与浅亚欧姆结果的连接存在参数盲区。
+- **相干态数 $N$ 的上界受计算资源限制**：对角耦合 $N=6$、RW 耦合 $N=4$ 是计算资源约束下的"足够"而非"最优"选择。缺乏 $N=8,10,12$ 的系统收敛性测试，尤其对态 III 这类新发现的奇宇称相，更大 $N$ 可能揭示更多近简并结构。
+- **零温假设排除热涨落效应**：所有计算在 $T=0$ 基态下进行。实验实现（如超导电路 QED，典型温度 $T\sim20$–$50$ mK）中，热涨落可能洗掉部分弱相边界。特别地，$\alpha_{c1}$ 和 $\alpha_{c2}$ 在 $\Delta$ 较小时已趋近于零，在有限温度下可能完全消失。
+- **动力学性质完全缺失**：研究局限于基态相图，未涉及淬火动力学、激发态能隙标度、能量耗散等性质。自旋-玻色子模型在量子计算中的关键应用（量子比特退相干建模）本质上依赖于激发态动力学而非基态相图，这限制了论文的实际影响力。
+- **谱密度函数的高频行为未验证**：幂律谱 $J(\omega)\sim\omega^s$ 假定在整个 $[0,\omega_c]$ 区间有效，截断 $\omega_c=1$ 处的光滑性未做检验。Wilson 网格在 $\omega\sim\omega_c$ 附近的离散误差可能影响 $\alpha$ 的绝对标度，特别是当 $\alpha$ 在 $0.01$–$0.1$ 量级时，高频误差可能修正临界耦合 $\alpha_c$ 多位有效数字。
+- **$\Delta=0$ 极限下的相图拓扑未完全澄清**：$\Delta=0$ 时 RW 耦合仅剩一个相变（态 III-IV，$\alpha_c=0.076(1)$），图 6(d) 中 $\langle\hat{\Pi}\rangle$ 从 $-1$ 到 $0$ 的突变与有限 $\Delta$ 下 $\langle\hat{\Pi}\rangle$ 从 $+1\to0$（态 I-II）的行为不连续。论文未讨论 $\Delta=0$ 是否为多重临界点的汇聚点，以及这种拓扑变化是否意味着相图在 $\Delta\to0^+$ 极限下的奇异性。
+- **与可实验体系的参数映射未提供**：论文在引言中提及超导电路 QED、冷原子、离子阱等实验平台可实现 ASBM，但未给出任何具体参数映射——例如电路 QED 中 $\alpha,\Delta,s$ 对应怎样的电容耦合比或约瑟夫森能比。缺少这一桥梁，实验结果直接对比变得困难。
+
+### 关键公式速查
+
+- \[\hat{H} = \frac{\varepsilon}{2}\sigma_z - \frac{\Delta}{2}\sigma_x + \sum_k \hbar\omega_k b_k^\dagger b_k + \sum_k[\lambda_k(b_k^\dagger\sigma_-+b_k\sigma_+) + \gamma_k(b_k^\dagger\sigma_++b_k\sigma_-)]\] — 各向异性自旋-玻色子模型哈密顿量，式 (1)
+- \[J(\omega) = 2\alpha\omega_c^{1-s}\omega^s,\quad 0<\omega<\omega_c\] — 亚欧姆谱密度（$s=0.3$，$\omega_c=1$），式 (2) 前
+- \[\eta_k^2 = \int_{\Lambda_k\omega_c}^{\Lambda_{k+1}\omega_c} dt J(t),\quad \omega_k = \eta_k^{-2}\int_{\Lambda_k\omega_c}^{\Lambda_{k+1}\omega_c} dt J(t)t\] — Wilson 对数网格离散化（$\Lambda_k=\Lambda^{k-M}$），式 (2)
+- \[\frac{\partial\mathcal{H}}{\partial x_i} - E\frac{\partial\mathcal{N}}{\partial x_i} = 0\] — 变分自洽方程（拉格朗日乘子法），式 (6)
+- \[S_{\mathrm{v-N}} = -\mathrm{Tr}[\rho_s\log_2\rho_s]\] — 冯·诺依曼熵（自旋-浴纠缠度量），式 (11)
+- \[\hat{\Pi} = \exp(i\pi\hat{N}_{\mathrm{ex}}),\quad \hat{N}_{\mathrm{ex}} = \sum_k b_k^\dagger b_k + \sigma_+\sigma_-\] — 宇称算符与总激发数，式 (13)
+- \[S_{\mathrm{v-N}} \sim b - A\nu(c/6)\ln(\alpha-\alpha_c)\] — 局域相纠缠熵对数标度（共形场论），式 (15)
+- \[|\langle\sigma_z\rangle| \sim |\alpha-\alpha_c|^\beta\] — 序参量幂律标度（临界指数 $\beta$），图 10
+- \[\alpha_c^{\mathrm{RW}}(\Delta) = \alpha_c^{\mathrm{CRW}}(-\Delta)\] — RW/CRW 相图镜像对称关系，第 IV 节
+- \[\delta E_g^{(2)} = \langle\Psi_g|\hat{H}^2|\Psi_g\rangle - \langle\Psi_g|\hat{H}|\Psi_g\rangle^2\] — 基态能量方差（NVM 收敛判据），式 (A1)
+
+### 术语对照
+
+| 中文 | 英文 | 含义 |
+|------|------|------|
+| 各向异性自旋-玻色子模型 | Anisotropic Spin-Boson Model (ASBM) | 旋转波与反旋转波耦合系数不等，破坏 $U(1)$ 对称性 |
+| 亚欧姆浴 | Sub-Ohmic bath | 谱指数 $s<1$，$J(\omega)\sim\omega^s$，红外发散强于欧姆浴 |
+| 数值变分方法 | Numerical Variational Method (NVM) | 基于多重 Davydov D1 拟设的变分求解方法 |
+| 对数离散化因子 | Logarithmic discretization parameter ($\Lambda$) | Wilson 网格频率比，$\Lambda\to1^+$ 趋近连续极限 |
+| 多重 Davydov D1 拟设 | Multiple Davydov D1 ansatz | $\vert\Psi_g\rangle=\sum_n[A_n\vert\uparrow\rangle\prod_k D(f_{n,k})+B_n\vert\downarrow\rangle\prod_k D(g_{n,k})]\vert0\rangle$ |
+| 旋转波/反旋转波耦合 | Rotating-Wave (RW) / Counter-Rotating-Wave (CRW) coupling | $\sigma_+b^\dagger/\sigma_-b$ 与 $\sigma_+b/\sigma_-b^\dagger$ 分别对应能量守恒/不守恒项 |
+| 宇称算符 | Parity operator ($\hat{\Pi}$) | $Z_2$ 对称性生成元 $\exp(i\pi\hat{N}_{\mathrm{ex}})$，本征值 $\pm1$ |
+| 自由相 | Free phase | $U(1)$ 对称性守恒，$\langle\hat{N}_{\mathrm{ex}}\rangle\approx0$，自旋-浴无纠缠 |
+| 局域-离域转变 | Localization-Delocalization transition | 自旋磁化 $\lvert\langle\sigma_z\rangle\rvert$ 从零变为非零标记的量子相变 |
+| 平均位移系数 | Average displacement coefficient ($\overline{f}_k,\overline{g}_k$) | 频率 $\omega_k$ 的玻色子模相干态位移的实部平均值 |
+
+### 延伸阅读
+
+### 延伸阅读
+
+- **[耗散驱动的 Rabi 模型中的量子相变信号](/papers/dissipation-driven-rabi-qpt/)** — De Filippis 等（2023）证明耗散量子 Rabi 模型在深强耦合区发生 BKT 量子相变，并把序参量与线性响应测量（磁化率、弛豫函数）直接联系起来—
+- **[驱动里德堡阵列中各向异性Dicke-Ising模型的量子相变](/papers/dong2025-dicke-ising-rydberg/)** — Dong 等（2025）研究了驱动里德堡原子阵列中各向异性Dicke-Ising模型的量子相变，揭示了横场与纵场耦合竞争下的丰富相图与临界行为。
+- **[统一超辐射相变理论](/papers/peng2019-unified-superradiant/)** — Peng 等（2019）提出了统一超辐射相变的理论框架，建立了Dicke模型与各类光-物质相互作用系统中超辐射相变的普遍联系，揭示了不同模型间的对偶关系。
