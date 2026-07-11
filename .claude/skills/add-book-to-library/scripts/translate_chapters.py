@@ -63,7 +63,8 @@ SYSTEM_PROMPT = """你是专业翻译。将英文 markdown 正文翻译为中文
    - 图注 图N.N 描述 → {{< caption >}}图N.N 描述{{< /caption >}}
 8. 🔴 图片引用 100% 保留原样：![](images/xxx.webp) 这一行必须原样输出，不要删除、合并或翻译路径
 9. 不要修改 front matter（--- 之间的内容）
-10. 输出完整译文，不要加任何解释或注释"""
+10. 🔴 每个段落只输出一次中文译文，严禁保留英文原文。正确示例：输入 "Hello world" → 输出 "你好世界"。错误示例：输入 "Hello world" → 输出 "Hello world\n\n你好世界"（严禁这种双语输出）
+11. 输出完整译文，不要加任何解释或注释"""
 
 
 def build_user_prompt(body: str, glossary: dict, is_seed: bool) -> str:
@@ -311,6 +312,55 @@ def isolate_references(body: str):
     return body, "", ""
 
 
+# ── Echo stripping (deterministic safeguard against LLM echoing English originals) ─
+# Some models (DeepSeek) occasionally output the original English paragraph
+# followed by its Chinese translation, instead of replacing it. Detect and strip.
+_EN_SENTENCE_RE = re.compile(r"[A-Z][a-z].*[.?!]")  # English sentence (capital letter + period)
+_CJK_RE = re.compile(r"[一-鿿㐀-䶿]")  # CJK unified ideographs
+
+
+def strip_echoed_english(text: str) -> tuple[str, int]:
+    """Remove English paragraphs that are followed by a Chinese translation paragraph.
+
+    Pattern detected: English-only para, blank line, Chinese para with similar meaning.
+    The English para is the echoed original — remove it, keep the Chinese translation.
+
+    Returns (cleaned_text, num_stripped).
+    """
+    paras = re.split(r"\n\n+", text)
+    if len(paras) < 2:
+        return text, 0
+
+    stripped_count = 0
+    result = []
+    i = 0
+    while i < len(paras):
+        para = paras[i].strip()
+        # Check if current paragraph is English-only (no CJK) and has at least
+        # one English sentence (capital letter + period pattern)
+        is_english_only = (
+            para
+            and not _CJK_RE.search(para)
+            and bool(_EN_SENTENCE_RE.search(para))
+        )
+        # Check next paragraph for Chinese content
+        next_is_chinese = False
+        if i + 1 < len(paras):
+            next_para = paras[i + 1].strip()
+            next_is_chinese = bool(next_para and _CJK_RE.search(next_para))
+
+        if is_english_only and next_is_chinese:
+            # This is likely an echoed English original — skip it
+            stripped_count += 1
+            i += 1
+            continue
+
+        result.append(paras[i])
+        i += 1
+
+    return "\n\n".join(result), stripped_count
+
+
 # ── Image restoration (deterministic safeguard against LLM dropping images) ─
 IMG_RE = re.compile(r"!\[\]\(images/[a-f0-9]+\.webp\)")
 CAPTION_FIG_RE = re.compile(r"图\s*(\d+)")
@@ -463,7 +513,13 @@ async def translate_text(client, body: str, glossary: dict, is_seed: bool, feedb
     if ref_section:
         translated = translated.rstrip() + "\n\n" + translate_ref_heading(ref_section)
 
-    # Deterministic safeguard: restore any image refs the LLM dropped.
+    # Deterministic safeguard 1: strip echoed English originals (LLM outputs
+    # English para + Chinese para instead of replacing the English with Chinese).
+    translated, echo_stripped = strip_echoed_english(translated)
+    if echo_stripped > 0:
+        print(f"    🧹 删除 {echo_stripped} 段被回显的英文原文")
+
+    # Deterministic safeguard 2: restore any image refs the LLM dropped.
     # Compare against before+after (references section typically has no figures).
     combined_src = before + after
     src_imgs = IMG_RE.findall(combined_src)

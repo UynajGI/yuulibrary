@@ -380,6 +380,75 @@ def validate_file(path, all_files=None):
     if quote_hits:
         issues.append(issue(REVIEW, f"{len(quote_hits)} '—Author, *Book*' candidates (review → {{{{< callout type=\"quote\" >}}}})"))
 
+    # 33. Non-rectangular matrix/array (rows have inconsistent & counts)
+    non_rect = []
+    for m in re.finditer(
+        r"\\begin\{(array|pmatrix|bmatrix|Bmatrix|vmatrix|Vmatrix|matrix)\}\s*\{([^}]*)\}",
+        content,
+    ):
+        env = m.group(1)
+        colspec = m.group(2)
+        # Count expected columns
+        spec_clean = re.sub(r"\{[^}]*\}", "", colspec).replace("|", "")
+        expected = len(re.findall(r"[lcr]", spec_clean))
+        if expected < 2:
+            continue
+        # Find matching \end{env}
+        end_tag = f"\\end{{{env}}}"
+        end_m = re.search(re.escape(end_tag), content[m.end():])
+        if not end_m:
+            continue
+        body_text = content[m.end():m.end() + end_m.start()]
+        # Skip arrays containing nested arrays — inner \\ confuses row splitting
+        if re.search(r"\\begin\{(array|matrix|pmatrix|bmatrix)\}", body_text):
+            continue
+        rows = [r.strip() for r in body_text.split(r"\\") if r.strip()]
+        if len(rows) < 2:
+            continue
+        col_counts = [r.count("&") + 1 for r in rows]
+        if len(set(col_counts)) > 1:
+            line_no = content[:m.start()].count("\n") + 1
+            mode = max(set(col_counts), key=col_counts.count)
+            bad = [(i + 1, c) for i, c in enumerate(col_counts) if c != mode]
+            detail = ", ".join(f"行{i}={c}列" for i, c in bad[:3])
+            if len(bad) > 3:
+                detail += f" ... +{len(bad) - 3}"
+            non_rect.append(
+                f"L{line_no} \\begin{{{env}}}{{{colspec}}} (应为{expected}列，主流{mode}列，异常：{detail})"
+            )
+    if non_rect:
+        issues.append(issue(WARN, f"{len(non_rect)} non-rectangular matrix/array: {'; '.join(non_rect[:5])}"))
+
+    # 34. Array rows use ~ (tilde) instead of & as column separators (OCR error)
+    tilde_rows = []
+    for m in re.finditer(
+        r"\\begin\{(array|pmatrix|bmatrix|Bmatrix|vmatrix|Vmatrix|matrix)\}\s*\{([^}]*)\}",
+        content,
+    ):
+        env = m.group(1)
+        colspec = m.group(2)
+        spec_clean = re.sub(r"\{[^}]*\}", "", colspec).replace("|", "")
+        expected = len(re.findall(r"[lcr]", spec_clean))
+        if expected < 2:
+            continue
+        end_tag = f"\\end{{{env}}}"
+        end_m = re.search(re.escape(end_tag), content[m.end():])
+        if not end_m:
+            continue
+        body_text = content[m.end():m.end() + end_m.start()]
+        if re.search(r"\\begin\{array\}", body_text):
+            continue  # skip nested
+        rows = [r.strip() for r in body_text.split(r"\\") if r.strip()]
+        # Rows with 2+ ~ but zero & → OCR lost column separators
+        bad = [r[:60] for r in rows if r.count("~") >= 2 and "&" not in r]
+        if bad:
+            line_no = content[:m.start()].count("\n") + 1
+            tilde_rows.append(
+                f"L{line_no} \\begin{{{env}}}{{{colspec}}} ({len(bad)}行用~代替&: {bad[0]}...)"
+            )
+    if tilde_rows:
+        issues.append(issue(WARN, f"{len(tilde_rows)} array/matrix using ~ instead of &: {'; '.join(tilde_rows[:3])}"))
+
     return issues
 
 
