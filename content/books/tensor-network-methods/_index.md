@@ -1,5 +1,5 @@
 ---
-title: "Introduction to Tensor Network Methods"
+title: "张量网络方法导论"
 description: "张量网络方法从多体量子系统到机器学习的全面导论，涵盖 MPS、TTN、aTTN、格点规范理论与量子模拟。"
 author: "Timo Felser, Simone Montangero"
 date: 2026-07-11

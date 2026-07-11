@@ -518,6 +518,73 @@ def fix_mineru_divs(text):
     return text, stats
 
 
+def fix_html_tags(text: str):
+    """Fix MinerU HTML tag residue in running text.
+
+    Three categories:
+      1. <table>...</table> → convert to markdown pipe table
+      2. <sup>N</sup> → $^N$ (footnote/ref markers in running text)
+      3. Empty <!-- ... --> comments → remove
+    """
+    stats = {}
+
+    # 1. Simple HTML tables → markdown (no rowspan/colspan)
+    def convert_table(m):
+        html = m.group(0)
+        # Count columns from first row
+        rows = re.findall(r'<tr>(.*?)</tr>', html, re.DOTALL)
+        if not rows:
+            return html  # can't parse
+        md_rows = []
+        for ri, row in enumerate(rows):
+            cells = re.findall(r'<td>(.*?)</td>', row, re.DOTALL)
+            md_rows.append('| ' + ' | '.join(c.strip() for c in cells) + ' |')
+            if ri == 0:
+                md_rows.append('|' + '|'.join(['---'] * len(cells)) + '|')
+        return '\n'.join(md_rows)
+
+    n_tables = len(re.findall(r'<table>', text))
+    if n_tables:
+        text = re.sub(r'<table>.*?</table>', convert_table, text, flags=re.DOTALL)
+        stats["html_table"] = n_tables
+
+    # 2. <sup>N</sup> → $^N$ (digit superscripts — footnote/ref markers)
+    n_sup = len(re.findall(r'<sup>\d+</sup>', text))
+    text = re.sub(r'<sup>(\d+)</sup>', r'$^{\1}$', text)
+    # <sub>x</sub> → $x$ (subscripts in running text, not in code blocks)
+    n_sub = len(re.findall(r'<sub>([a-zA-Z]+)</sub>', text))
+    text = re.sub(r'<sub>([a-zA-Z]+)</sub>', r'$_{\1}$', text)
+
+    if n_sup:
+        stats["html_sup"] = n_sup
+    if n_sub:
+        stats["html_sub"] = n_sub
+
+    # 3. Empty HTML comments
+    n_cmts = len(re.findall(r'<!--\s*(glossary:\s*)?-->', text))
+    if n_cmts:
+        text = re.sub(r'<!--\s*(glossary:\s*)?-->\n?', '', text)
+        stats["empty_comment"] = n_cmts
+
+    return text, stats
+
+
+def fix_image_caption_spacing(text: str):
+    """Insert blank line between image references and {{< caption >}} shortcodes.
+
+    Only matches when caption is directly on next line (no blank line between).
+    [^\\S\\n]* = horizontal whitespace only (spaces, tabs), not newlines.
+    """
+    n = len(re.findall(r'!\[.*?\]\([^)]+\)[^\S\n]*\n[^\S\n]*\{\{< caption >', text))
+    text = re.sub(
+        r'(!\[.*?\]\([^)]+\))[^\S\n]*\n[^\S\n]*(\{\{< caption >)',
+        r'\1\n\n\2', text,
+    )
+    if n:
+        return text, {"img_caption_spacing": n}
+    return text, {}
+
+
 def fix_pandoc_residue(text: str):
     """Remove pandoc EPUB conversion residue and FB2 XML leftovers.
 
@@ -664,6 +731,9 @@ def clean(content):
     # Stage 1d: MinerU <div class="mineru-algorithm"> → ```matlab code blocks
     text, div_stats = fix_mineru_divs(text)
 
+    # Stage 1d2: HTML tag residue — <table>, <sup>, <sub>, empty comments
+    text, html_stats = fix_html_tags(text)
+
     # Stage 1e: pandoc EPUB residue + FB2 XML residue
     text, pandoc_stats = fix_pandoc_residue(text)
 
@@ -682,6 +752,9 @@ def clean(content):
     # Stage 4: figure caption pairing
     text, fig_stats = pair_figures(text)
 
+    # Stage 4b: blank line between image references and {{< caption >}} shortcodes
+    text, spacing_stats = fix_image_caption_spacing(text)
+
     # Stage 5: collapse 3+ blank lines
     before_blanks = len(re.findall(r"\n{4,}", text))
     text = re.sub(r"\n{4,}", "\n\n\n", text)
@@ -689,7 +762,7 @@ def clean(content):
     # Stage 6: trailing whitespace
     text = "\n".join(l.rstrip() for l in text.split("\n"))
 
-    stats = {**noise_stats, **book_stats, **div_stats, **pandoc_stats, **delim_stats, **array_stats, **heading_stats, **fig_stats}
+    stats = {**noise_stats, **book_stats, **div_stats, **html_stats, **pandoc_stats, **delim_stats, **array_stats, **heading_stats, **fig_stats, **spacing_stats}
     stats["math_regions"] = inline_before + display_before
     if before_blanks:
         stats["blank_collapse"] = before_blanks

@@ -73,7 +73,7 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
 | **clean_markdown.py** | 脚本 | 统一清洗(book+paper):噪声删除 + LaTeX 碎片修复 + 图注配对 + 标题层级 |
 | **format_theorems.py** | 脚本 | 数学教材段落级定理/定义加粗(MinerU 不标标题,幂等,Phase 4.5 前置) |
 | **generate_paper_note.py** | 脚本 | 论文结构化分析(ReAct 7 栏目)+ cross-link + 组装 `_index.md` |
-| **validate_book.py** | 脚本 | 36 项机械验证(12 Error + 19 Warning + 5 Review) |
+| **validate_book.py** | 脚本 | 38 项机械验证：非矩形矩阵(#33) + ~代替&(#34) + 12 Error + 21 Warning + 5 Review |
 | **test_translate.py** | 脚本 | 翻译脚本纯函数回归测试(34 用例,零依赖,CI 自动跑) |
 
 用法:

@@ -189,8 +189,9 @@ def validate_file(path, all_files=None):
         issues.append(issue(WARN, f"{len(html_links)} .html links (use .md)"))
 
     # 14. Naked captions
+    # Match: 图N., 图 N., 图N.M, 表N., 表 N., 表N.M
     # Exclude lines that are part of a sentence (e.g. "表4.1总结了...", "图5.2展示了...").
-    naked_cap = [m for m in re.finditer(r"^(图\d+\.\d+|表\d+\.\d+)[^\n]{0,30}$", content, re.MULTILINE)
+    naked_cap = [m for m in re.finditer(r"^(图\s*\d+\.\s*|表\s*\d+\.\s*)[^\n]{0,30}$", content, re.MULTILINE)
                  if not re.search(r"[。！？，；：]|\s*(总结|展示|说明|列出|给出|显示|提到|参见|见)[了]?", m.group(0))]
     naked_cap = [m.group(1) for m in naked_cap]
     if naked_cap:
@@ -274,6 +275,24 @@ def validate_file(path, all_files=None):
     html_tbl = len(re.findall(r"<table>.*?venv.*?</table>", content, re.DOTALL))
     if html_tbl:
         issues.append(issue(WARN, f"{html_tbl} garbage HTML tables (venv paths)"))
+    # 24.5 <table>/<tr>/<td> HTML tags (MinerU table extraction failure → convert to markdown)
+    html_tags = len(re.findall(r'<(table|/table|tr|/tr|td|/td)>', content))
+    if html_tags:
+        issues.append(issue(WARN, f"{html_tags} HTML table tags (convert to markdown table)"))
+    # 24.6. Empty HTML comments (processing residue, e.g. <!-- glossary:  -->)
+    empty_cmts = len(re.findall(r'<!--\s*(glossary:\s*)?-->', content))
+    if empty_cmts:
+        issues.append(issue(WARN, f"{empty_cmts} empty HTML comments (processing residue)"))
+    # 24.7 \(...\) or \[...\] math delimiters (KaTeX doesn't render these)
+    bad_math_delim = len(re.findall(r'\\\(', content)) + len(re.findall(r'\\\[', content))
+    if bad_math_delim:
+        issues.append(issue(WARN, f"{bad_math_delim} \\\\( or \\\\[ math delimiters (use $ or $$ instead)"))
+    # 24.8 Image followed immediately by {{< caption >}} without blank line
+    # [^\S\n]* = horizontal whitespace only (not newlines), so this only matches
+    # when caption is directly on the next line with no blank line between.
+    img_no_blank = len(re.findall(r'!\[.*?\]\([^)]+\)[^\S\n]*\n[^\S\n]*\{\{< caption >', content))
+    if img_no_blank:
+        issues.append(issue(WARN, f"{img_no_blank} image+{{{{< caption >}}}} without blank line"))
 
     # 25. mineru-algorithm div (should be {{< algorithm >}})
     mineru_div = content.count("mineru-algorithm")
