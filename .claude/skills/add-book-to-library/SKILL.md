@@ -75,17 +75,11 @@ python3 .claude/skills/add-book-to-library/scripts/extract.py book.pdf --out pdf
 
 ### Phase 0：归集 PDF + 状态文件
 
-**🛑 第一步：去重检查（强制，不可跳过）**
+**🛑 第一步：元数据去重（SHA256 去重已在强制入口完成）**
 
 ```bash
-# 用 SHA256 对比所有已有 PDF
-sha256sum /path/to/book.pdf
-sha256sum pdfs/books/*.pdf | grep <hash>
-```
-
-```bash
-# 同时检查 state 文件里是否有同书名/同作者
-grep -il "强化学习入门\|叶强" pdfs/books/*.state.json
+# 检查 state 文件里是否有同书名/同作者
+grep -il "<书名关键词>|<作者>" pdfs/books/*.state.json
 ```
 
 如果在状态文件或 `content/books/` 中发现匹配 → **立即终止，告知用户「这本书已在图书馆中：content/books/<slug>/」**，不创建新状态文件。
