@@ -6,7 +6,7 @@ date: 2026-07-10
 weight: 1
 BookCollapseSection: true
 tags: ["经济", "政治", "中国"]
-category: ["growth"]
+category: ["economics"]
 ---
 
 <section class="book-cover">
