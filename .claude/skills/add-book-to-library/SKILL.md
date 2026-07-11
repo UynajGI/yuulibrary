@@ -554,6 +554,10 @@ spot-check 随机抽查 2 章，18 点清单，发现问题直接修。
 | **大章节翻译超时，重跑跳过不翻** | 检测 `<!-- translate-partial: N/M -->` 标记，重跑会续译剩余 chunks（自动） | `--fresh` 全量重翻 |
 | **种子章 validate 报"遗漏英文长词"** | 🔴 **正常行为**——种子章故意保留英文术语建术语表，不要重试 | 无需修复 |
 | **consistency_qa 报术语漂移** | 读 `.translate_state/consistency_report.md`，全局 sed 替换统一译法 | 人工裁决冲突译法 |
+| `clean_markdown.py` crash（非标准 MD） | 检查输入文件编码（`file -bi`），确认是 UTF-8 | 手动 `iconv -f gbk -t utf-8` 转码后重跑 |
+| slug 已存在（`content/books/<slug>/` 非空） | 让用户换 slug 或确认覆盖 | 检查是否为同一本书的不同版本 |
+| `format_theorems.py` 误改正常段落 | 检查误改行上下文，确认非定理/定义 | `git checkout --` 回退该章后手动加粗 |
+| 书架不显示新书（`author` 已填） | 检查 `date` 是否超过当前 UTC 时间（Hugo 静默跳过未来页面） | 改 `date` 为当天或更早 |
 
 完整版 + OCR/表格/Mermaid 细节 → `references/cleanup-reference.md`
 
