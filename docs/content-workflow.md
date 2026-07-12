@@ -38,7 +38,7 @@ PDF/EPUB/DOCX/FB2/TXT 源
 
 ### 分类
 
-`category` 字段管书架路由(书籍自定义如 `quant`/`ml`/`physics`)。分类定义在 `data/book_categories.json`(含 `name_zh` 显示名 + `hidden` 隐藏标记)。`category` 与 `tags` 完全解耦。
+`category` 字段管书架路由(书籍自定义如 `quant`/`ml`/`physics`/`philosophy`)。分类定义在 `data/book_categories.json`(含 `name_zh` 显示名 + `hidden` 隐藏标记)。`category` 与 `tags` 完全解耦。
 
 ---
 

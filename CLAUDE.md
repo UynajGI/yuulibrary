@@ -22,7 +22,7 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
 
 完整流程见 `.claude/skills/add-book-to-library/SKILL.md`。**🔴 红线**:
 
-1. MinerU pipeline 提取 PDF / EPUB → 合并 → 清洗(**EPUB pandoc 残留必须清理**:`::: fn1` / `::: blk1` / `[]{#page}` / `{.class}` / `-----` 表格分隔符)
+1. MinerU pipeline 提取 PDF / EPUB → 合并 → 清洗(**EPUB pandoc 残留必须清理**:`::: fn1` / `::: blk1` / `[]{#page}` / `{.class}` / `{style=""}` / `<div></div>` / `^注N^` 脚注标记 / `../Images/` 路径 / `-----` 表格分隔符)
 2. `content/books/<book-slug>/` 下扁平目录(**无分类子目录**)
 3. `_index.md`:`<section class="book-cover">` + `{{< book-toc >}}`,**front matter 必填 `description` + `tags` + `author` + `date` + `category`**。`date` 写添加当天,驱动书架"入库"排序
 4. 每章 `ch01.md` 起,**front matter 含 `description`**
