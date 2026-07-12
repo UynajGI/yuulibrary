@@ -6,7 +6,7 @@
 
 Hugo + Hugo Book 主题多书站点 · 部署于 GitHub Pages
 
-[![Hugo](https://img.shields.io/badge/Hugo-0.163.3-FF4088?logo=hugo&logoColor=white)](https://gohugo.io)
+[![Hugo](https://img.shields.io/badge/Hugo-0.164.0-FF4088?logo=hugo&logoColor=white)](https://gohugo.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Deploy: GitHub Pages](https://img.shields.io/badge/Deploy-GitHub%20Pages-181717?logo=github&logoColor=white)](https://uynajgi.github.io/yuulibrary/)
 [![Theme: Hugo Book](https://img.shields.io/badge/Theme-Hugo%20Book-40C4FF)](https://github.com/alex-shpak/hugo-book)
@@ -36,7 +36,7 @@ Hugo + Hugo Book 主题多书站点 · 部署于 GitHub Pages
 
 | 依赖 | 版本 | 用途 | 必需? |
 |------|------|------|:---:|
-| [Hugo extended](https://gohugo.io/installation/) | 0.163.3+ | 站点构建（SCSS 支持） | ✅ |
+| [Hugo extended](https://gohugo.io/installation/) | 0.164.0+ | 站点构建（SCSS 支持） | ✅ |
 | Python | 3.10+ | PageIndex 索引构建、翻译脚本 | ✅ |
 | Node.js | 18+ | lefthook 的 prettier/eslint/markdownlint | ✅ |
 | [pandoc](https://pandoc.org/) | 任意 | EPUB→Markdown（加书才需要） | ➖ |
@@ -89,6 +89,7 @@ fork 后必须修改的硬编码字段：
 |------|------|--------|------|
 | `hugo.toml` | `baseURL` | `https://uynajgi.github.io/yuulibrary/` | `https://<你的用户名>.github.io/<你的仓库名>/` |
 | `hugo.toml` | `params.BookRepo` | `https://github.com/uynajgi/yuulibrary` | `https://github.com/<你的用户名>/<你的仓库名>` |
+| `layouts/_partials/docs/inject/head.html` | `YUU_CHAT_RAW_BASE` 推导里的 `main` | 写死 `main` | 若你的默认分支不是 `main`，改这里 |
 
 > 💡 **user/organization site 提示**：若你部署到 `https://<用户名>.github.io/`（根域名，非子路径），还需重新评估 `relativeurls` 和 `uglyurls`——当前配置针对 GitHub Pages project site（子路径）优化。
 

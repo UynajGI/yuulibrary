@@ -1,6 +1,6 @@
 # Yuunagi Library — AI 协作约定
 
-> 本文档是给 AI agent（Claude Code / Codex 等）看的项目约定与执行 SOP。
+> 本文档是给 AI agent(Claude Code / Codex 等)看的项目约定与执行 SOP。
 >
 > 通用项目文档(fork 者 / 贡献者)见:
 > - [README.md](README.md) — 项目介绍 + 快速开始 + Fork 部署
@@ -14,7 +14,7 @@
 ```bash
 hugo server -p 1314 --bind 127.0.0.1    # 本地预览(http://localhost:1314/yuulibrary/)
 hugo --gc --minify                        # 生产构建到 public/
-python scripts/build_pageindex.py         # 构建 PageIndex 索引(hugo 前必须跑)
+python3 scripts/build_pageindex.py        # 构建 PageIndex 索引(hugo 前必须跑)
 bash scripts/release.sh                   # 算下一个发布 tag(只读)
 ```
 
@@ -22,7 +22,7 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
 
 完整流程见 `.claude/skills/add-book-to-library/SKILL.md`。**🔴 红线**:
 
-1. MinerU VLM 提取 PDF / EPUB → 合并 → 清洗(**EPUB pandoc 残留必须清理**:`::: fn1` / `::: blk1` / `[]{#page}` / `{.class}` / `-----` 表格分隔符)
+1. MinerU pipeline 提取 PDF / EPUB → 合并 → 清洗(**EPUB pandoc 残留必须清理**:`::: fn1` / `::: blk1` / `[]{#page}` / `{.class}` / `{style=""}` / `<div></div>` / `^注N^` 脚注标记 / `../Images/` 路径 / `-----` 表格分隔符)
 2. `content/books/<book-slug>/` 下扁平目录(**无分类子目录**)
 3. `_index.md`:`<section class="book-cover">` + `{{< book-toc >}}`,**front matter 必填 `description` + `tags` + `author` + `date` + `category`**。`date` 写添加当天,驱动书架"入库"排序
 4. 每章 `ch01.md` 起,**front matter 含 `description`**
@@ -47,7 +47,7 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
    - `translate_chapters.py <file.md>` — 翻译(输出 `.zh.md`,不碰源文件;**翻译后 `restore_images()` 自动补回丢失图片**)
    - `generate_paper_note.py <file.zh.md> --slug <slug> --meta <meta.json>` — ReAct 结构化分析(7 栏目)+ cross-link + 组装 `_index.md`
 6. **🔴 LaTeX 公式 100% 原样**;图注用 `{{< caption >}}`,强调用 `{{< callout >}}`
-7. **🔴 日期陷阱**:`date` 写昨天(如 `2026-07-07`),别写「今天」——Hugo 不构建未来日期的页面且**不报错**。详见 skill
+7. **🔴 日期**:`date` 写当天带时区（如 `2026-07-09T08:00:00+08:00`），或用 `date: 2026-07-09`（仅当 UTC 已过该日）。stats.html 优先用 `.GitInfo.AuthorDate`（git commit 时间），`date` front matter 可选。详见 skill
 8. `hugo --gc` → **验证 `public/papers/<slug>/index.html` 真的生成了**
 9. 参照 `content/papers/berry-phase-solid-state-qubit/` 和 `content/papers/dissipation-driven-rabi-qpt/` 的结构
 
@@ -57,8 +57,8 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
 
 1. **输入**:已入库的书/论文 → 直接读取;外部 PDF → 先入库再做笔记
 2. **直接分析蒸馏**:LLM 通读原文后提炼核心思维框架、决策启发式、表达 DNA
-3. 笔记放 `content/notes/<slug>.md`(**扁平存放**)
-4. front matter 必须:`title`/`description`/`date`(昨天)/`author`/`source_type`/`source_title`/`tags`/`weight`
+3. 笔记放 `content/notes/<slug>.md`（无图扁平；有图用子目录 `content/notes/<slug>/_index.md` + `images/`）
+4. front matter 必须:`title`/`description`/`date`(当天带时区)/`author`/`source_type`/`source_title`/`tags`/`weight`
 5. 笔记内容:一句话概括 / 核心思维框架 / 决策启发式 / 表达 DNA / 批判性思考 / 关键引用
 6. **善用已有 JS**:rough.js 手绘图、pseudocode.js 算法、KaTeX 数学、mermaid 流程图
 7. **不手动分类**:笔记按 `date` 自动时间排序
@@ -68,12 +68,12 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
 | 工具 | 类型 | 用途 |
 |-------|------|------|
 | **spot-check** | Agent | 随机抽查 2 章,18 点清单(先机械 grep → AI 逐章审核),发现问题直接修 |
-| **translate_chapters.py** | 脚本 | 翻译英文 MD → 中文(种子章建术语表 + 并发 + validate 验证重试 + **图片引用丢失自动补回**)。book 原地写,paper 输出 `.zh.md` |
+| **translate_chapters.py** | 脚本 | 翻译英文 MD → 中文(种子章建术语表 + 并发 + validate 验证重试 + **图片引用丢失自动补回** + **断点续跑**)。book 原地写,paper 输出 `.zh.md` |
 | **convert_xrefs.py** | 脚本 | 纯 regex 交叉引用转换(「第N章」→ markdown 链接 `ch0N.md`,补零可靠) |
 | **clean_markdown.py** | 脚本 | 统一清洗(book+paper):噪声删除 + LaTeX 碎片修复 + 图注配对 + 标题层级 |
 | **format_theorems.py** | 脚本 | 数学教材段落级定理/定义加粗(MinerU 不标标题,幂等,Phase 4.5 前置) |
 | **generate_paper_note.py** | 脚本 | 论文结构化分析(ReAct 7 栏目)+ cross-link + 组装 `_index.md` |
-| **validate_book.py** | 脚本 | 36 项机械验证(12 Error + 19 Warning + 5 Review) |
+| **validate_book.py** | 脚本 | 38 项机械验证：非矩形矩阵(#33) + ~代替&(#34) + 12 Error + 21 Warning + 5 Review |
 | **test_translate.py** | 脚本 | 翻译脚本纯函数回归测试(34 用例,零依赖,CI 自动跑) |
 
 用法:
@@ -87,7 +87,7 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
 - **手绘图形**:`{{< rough-canvas >}}` 创建 rough.js 手绘风格 Canvas
 - **解答块**:`{{< solution >}}` ... `{{< /solution >}}`(绿色左边框)
 - **图注/表注**:`{{< caption >}}` 图8.1 描述 `{{< /caption >}}`
-- **数学公式**:行内 `$...$`,行间 `$$...$$` / `\[...\]` / `\(...\)`(Goldmark passthrough 原样透传 KaTeX)
+- **数学公式**:行内 `$...$`,行间 `$$...$$`(Goldmark passthrough 原样透传 KaTeX)。**不要用 `\[...\]` / `\(...\)`**——KaTeX 不渲染。
 - **算法块**:`{{< algorithm title="名称" >}}<pre class="pseudocode">...</pre>{{< /algorithm >}}`
 - **伪代码语法**:小写裸命令 `state`/`for{}`/`if{}`/`repeat`/`until{}`/`endfor`/`return{}`,不是 `\STATE`/`\FOR`
 - **跨页面链接**:章节间用 markdown 链接到 `ch0N.md`(如「第5章」→ `ch05.md`),BookPortableLinks 自动转 permalink
@@ -105,7 +105,7 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
 
 ## 技术要点
 
-- KaTeX(非 MathJax)渲染数学,处理 `$...$` / `\(...\)` / `$$...$$` / `\[...\]` 分隔符
+- KaTeX(非 MathJax)渲染数学,处理 `$...$` 和 `$$...$$` 分隔符
 - `uglyurls = true`:URL 为 `ch01.html`(与旧 mkdocs `use_directory_urls:false` 一致,旧链接不失效)
 - 书籍目录用 `_index.md`(section 列表页),章节用普通 `.md`
 - 图片全部 WebP 格式,与 `.md` 同级,用相对路径 `images/`

@@ -8,7 +8,7 @@
 
 ### 必需依赖
 
-#### Hugo extended(0.163.3+)
+#### Hugo extended(0.164.0+)
 
 必须用 **extended** 版(SCSS 编译支持)。标准版会构建失败。
 
@@ -132,7 +132,7 @@ git tag 2026.07.08.01 && git push origin 2026.07.08.01
 # CI 自动跑,约 1 分钟后部署完成
 ```
 
-CI 全步骤:Validate books + papers → Translate-chapters regression tests → Build PageIndex (incremental) → Build → Deploy。
+CI 全步骤:Validate books + papers → Translate-chapters regression tests → Build PageIndex (incremental) → Build → (Staticrypt 加密,可选) → Deploy。
 
 ---
 
@@ -168,18 +168,29 @@ concurrency:
 
 ## 环境变量
 
-### 本地(.env,gitignore)
+### 本地(.env,gitignore) — API 密钥
 
 复制 `.env.example` 为 `.env` 并填入 key。**只在加书/论文(翻译脚本)时需要**,纯部署不读。
 
 | 变量 | 默认 | 用途 |
 |------|------|------|
-| `LLM_PROVIDER` | `deepseek` | provider 选择(deepseek/glm/openai) |
-| `DEEPSEEK_API_KEY` | — | DeepSeek API key |
-| `DEEPSEEK_MODEL` | `deepseek-v4-flash` | 模型名 |
-| `DEEPSEEK_BASE_URL` | `https://api.deepseek.com` | 可选自定义 |
+| `DEEPSEEK_API_KEY` | — | DeepSeek API key(翻译流水线) |
+| `OPENAI_API_KEY` | — | OpenAI key(备用 provider) |
+| `GLM_API_KEY` | — | 智谱 GLM key(备用 provider) |
 
-详见 `.env.example`。
+### 本地(config.yaml) — 模型与流水线配置
+
+项目自带 `config.yaml`(随仓库上传,不含密钥)。配置分层模型档位(strong/cheap/fast)
+和流水线开关(review/consistency_qa/backtranslate)。需要改模型/开关时直接编辑即可;
+**无 config.yaml 时自动回退到 `.env` 的 `DEEPSEEK_MODEL` 单模型行为**。
+
+| 配置段 | 字段 | 默认 | 用途 |
+|--------|------|------|------|
+| `llm.tiers.strong` | model/base_url/max_tokens | deepseek-v4-flash | 翻译、结构化分析(创造力任务) |
+| `llm.tiers.cheap` | model/base_url/max_tokens | 同 strong | 章末审校、一致性 QA(判断任务) |
+| `llm.tiers.fast` | model/base_url/max_tokens | 同 strong | 预扫、术语抽取(机械任务) |
+| `pipeline` | review/consistency_qa/backtranslate/autofix_severe | true/true/false/true | 流水线开关 |
+| `segment` | max_chars_per_batch/max_chars_per_segment | 4500/2000 | 分块阈值 |
 
 ### CI(GitHub Secrets)
 
@@ -187,6 +198,7 @@ concurrency:
 |--------|------|--------|
 | `*_API_KEY`(任一) | PageIndex LLM 摘要 | ➖(不配则截断降级) |
 | `LLM_MODEL`(Variable) | litellm 模型路由 | 配了 key 就必配 |
+| `STATICRYPT_PASSWORD`(Secret) | 站点访问密码(Staticrypt 加密) | ➖(不配则站点公开) |
 | `GITHUB_TOKEN` | 自动提供,部署 gh-pages | ✅(自动) |
 
 ---
@@ -216,9 +228,10 @@ git commit -m "chore: update submodules"
 
 根因:front matter `date: 2026-07-08`(无时间)→ Hugo 解析成 `2026-07-08T00:00:00Z`(UTC 午夜)。若本地时区是 UTC+8,本地 7/8 凌晨对应 UTC 7/7 晚上 → 该 date 还在未来 ~7 小时 → 跳过。
 
-修复(任选):
-1. 写昨天的日期(最简单):`date: 2026-07-07`
-2. 带时区且是过去:`date: 2026-07-07T23:00:00+08:00`
+修复(推荐方案 1):
+1. 带时区写当天（推荐）:`date: 2026-07-09T08:00:00+08:00`——Hugo 按 UTC 解析后必然是过去
+2. 写当天日期:`date: 2026-07-09`（仅当 UTC 已过该日）
+3. 不写 date（依赖 git commit 时间，stats.html 已支持 `.GitInfo.AuthorDate` 回退）
 
 自检:
 
