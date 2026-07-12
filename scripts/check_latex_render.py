@@ -35,8 +35,21 @@ def main():
         with open(path, encoding="utf-8") as f:
             lines = f.read().split("\n")
 
+        # Build a set of line indices that are inside $$...$$ display math blocks.
+        # Bra-ket notation like |\phi\rangle at line start is NOT a table row.
+        in_display_set = set()
+        in_display = False
+        for i, line in enumerate(lines, 1):
+            if line.strip().startswith("$$"):
+                in_display = not in_display
+                in_display_set.add(i)  # also skip the $$ delimiter lines themselves
+            elif in_display:
+                in_display_set.add(i)
+
         # Check 1: 表格行内 inline math 里的裸 |
         for i, line in enumerate(lines, 1):
+            if i in in_display_set:
+                continue
             if not line.strip().startswith("|"):
                 continue
             for m in re.finditer(r"\$([^$]+)\$|\\\(([^)]+)\\\)", line):

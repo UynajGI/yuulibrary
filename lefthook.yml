@@ -125,7 +125,11 @@ pre-commit:
     - name: pageindex-build
       glob:
         - "content/**/*.md"
-      run: python3 scripts/build_pageindex.py --incremental
+      run: |
+        python3 scripts/build_pageindex.py --incremental
+        # Always stage pageindex changes — stage_fixed is unreliable when
+        # fingerprints were already updated by a prior hook run (e.g. pre-push).
+        git add static/pageindex/
 
     - name: markdownlint
       glob:
@@ -206,13 +210,28 @@ pre-commit:
         - "content/**/*.md"
       run: python3 scripts/check_latex_render.py
 
+    - name: translate-test
+      glob:
+        - ".claude/skills/add-book-to-library/scripts/*.py"
+      run: python3 .claude/skills/add-book-to-library/scripts/test_translate.py
+
 pre-push:
   jobs:
     - name: hugo-build
-      run: hugo --gc --minify
+      run: |
+        # Skip for tag pushes (deploy tags don't need local build check)
+        if git describe --exact-match --tags HEAD >/dev/null 2>&1; then
+          echo "Tag push detected, skipping hugo build."
+          exit 0
+        fi
+        hugo --gc --minify
 
     - name: html-check
       run: |
+        if git describe --exact-match --tags HEAD >/dev/null 2>&1; then
+          echo "Tag push detected, skipping html check."
+          exit 0
+        fi
         python3 - <<'PY'
         import os, sys, re
         public = 'public'

@@ -145,6 +145,96 @@ def remove_noise(lines):
     return result, stats
 
 
+# ── Stage 1f: MinerU array corruption repair ─────────────────────────────
+# MinerU drops "{array}" from \begin{array}{spec} → \begin{spec}
+# and corrupts \end{array} → \end\tag / \end} / bare \end
+_ARR_COLSPEC_RE = re.compile(r"^[rcl\s]+$")
+
+
+def fix_mineru_array_corruption(text: str):
+    """Repair MinerU \\begin{array} corruption patterns.
+
+    MinerU systematically drops ``{array}`` from ``\\begin{array}{spec}``,
+    producing ``\\begin{spec}`` where spec is only r/l/c/space chars.
+    It also corrupts ``\\end{array}`` into three forms:
+      - ``\\end\\tag``  (merged with following \\tag text)
+      - ``\\end}``      (lost ``{array``, kept ``}``)
+      - ``\\end`` bare  (completely lost ``{array}``)
+
+    These patterns are unambiguous — no valid LaTeX env is named with just
+    r/l/c, and ``\\end\\tag`` / ``\\end}`` / bare ``\\end`` never appear in
+    well-formed LaTeX.
+    """
+    stats = {}
+    n_begin = 0
+    n_end_tag = 0
+    n_end_brace = 0
+    n_end_bare = 0
+
+    # 1. Fix \begin{spec} → \begin{array}{spec}
+    #    where spec = only r/l/c/space (e.g. \begin{r}, \begin{r l r})
+    def fix_begin_array(m):
+        nonlocal n_begin
+        spec = m.group(1)
+        if _ARR_COLSPEC_RE.match(spec):
+            n_begin += 1
+            return f"\\begin{{array}}{{{spec}}}"
+        return m.group(0)
+    text = re.sub(r"\\begin\{([^}]+)\}", fix_begin_array, text)
+
+    # 2. Fix \end\tag → \end{array}
+    #    (MinerU merged \end{array} with following \tag text)
+    n_end_tag = len(re.findall(r"\\end\\tag", text))
+    text = re.sub(r"\\end\\tag", r"\\end{array}", text)
+
+    # 3. Fix \end} → \end{array}
+    #    Lost "{array" but kept "}": \end{array} → \end}
+    n_end_brace = len(re.findall(r"\\end\}(?!\w)", text))
+    text = re.sub(r"\\end\}(?!\w)", r"\\end{array}", text)
+
+    # 4. Fix bare \end at end of line → \end{array}
+    #    Only when preceded by LaTeX math content (not English word "end")
+    def fix_bare_end(m):
+        nonlocal n_end_bare
+        n_end_bare += 1
+        return "\\end{array}"
+    # Match \end at end of line (possibly followed by whitespace)
+    text = re.sub(r"\\end(?=\s*$)", fix_bare_end, text, flags=re.MULTILINE)
+
+    # 5. Fix mid-line bare \end + space → \end{array}
+    #    MinerU dropped {array} leaving "\end " before content (\end \boxed{A},
+    #    \end ]}^, \end .). Every bare \end is corruption — well-formed LaTeX
+    #    always has \end{env}. \end {env} (space before brace) is valid, so
+    #    require the char after the space to be non-{.
+    n_end_space = len(re.findall(r"\\end(?=\s+[^{])", text))
+    text = re.sub(r"\\end(?=\s+[^{])", r"\\end{array}", text)
+
+    # 6. Fix bare \begin + space → \begin{array}{l}
+    #    MinerU dropped the outer env name entirely (\begin \begin{array}...,
+    #    \begin = \sum...). Array is the dominant environment; default to
+    #    left-aligned colspec so nested structure stays balanced and renders.
+    n_begin_space = len(re.findall(r"\\begin(?=\s+[^{])", text))
+    text = re.sub(r"\\begin(?=\s+[^{])", r"\\begin{array}{l}", text)
+
+    # 7. Strip orphaned \tag (MinerU dropped the {N.M} equation number arg).
+    #    Bare \tag with no {...} arg is invalid → KaTeX error. Number is
+    #    unrecoverable, so remove the marker entirely.
+    n_tag = len(re.findall(r"\\tag(?![{a-zA-Z])", text))
+    text = re.sub(r"\\tag(?![{a-zA-Z])", "", text)
+
+    if n_begin or n_end_tag or n_end_brace or n_end_bare or n_end_space or n_begin_space or n_tag:
+        stats["mineru_array"] = {
+            "begin_array": n_begin,
+            "begin_space": n_begin_space,
+            "end_tag": n_end_tag,
+            "end_brace": n_end_brace,
+            "end_bare": n_end_bare,
+            "end_space": n_end_space,
+            "orphan_tag": n_tag,
+        }
+    return text, stats
+
+
 # ── Stage 2: LaTeX repair (scoped to math regions) ──────────────────────
 def fix_math_simple(m, delim):
     """Fix fragmented LaTeX inside a single math region."""
@@ -204,6 +294,17 @@ _RE_ROMAN = re.compile(r"^#+\s+(?:第)?(I{1,3}|IV|VI{0,3}|IX|XI{0,3})[\.\s章]")
 _RE_LETTER = re.compile(r"^#+\s+([A-HJ-NP-Z])\.\s")   # single letter . (skip I/V/X)
 _RE_NUMBER = re.compile(r"^#+\s+(\d+)\.\s")
 
+# Translation can produce inconsistent Roman numeral prefixes:
+#   第I章 / II. / 第III节 / 第IV章 → normalize to bare "N. Title"
+# Groups: 1=hashes, 2=Roman numeral, 3=rest of title
+_RE_NORMALIZE_ROMAN = re.compile(
+    r"^(#{1,6}\s+)"
+    r"(?:第\s*)?"
+    r"(I{1,3}|IV|VI{0,3}|IX|XI{0,3})"
+    r"(?:[章节](?:\s+)?|\.\s+)"
+    r"(.+)$"
+)
+
 
 def _heading_prefix_type(line: str) -> tuple[str, int]:
     """Return (type, current_level) for a heading line.
@@ -242,9 +343,18 @@ def fix_heading_hierarchy(text):
       Roman numeral (I., II.) → top-level (keep)
       Letter (A., B.)         → sub-section (demote 1)
       Number (1., 2.)         → sub-sub-section (demote 2)
+
+    Also normalizes inconsistent Roman numeral heading text:
+      第I章 → I. / 第III节 → III. / 第IV章 → IV.
     """
     lines = text.split("\n")
     stats = {"headings_demoted": 0}
+
+    # ── Pass 0: normalize Roman numeral heading text ──────────────────
+    for i, line in enumerate(lines):
+        m = _RE_NORMALIZE_ROMAN.match(line)
+        if m:
+            lines[i] = f"{m.group(1)}{m.group(2)}. {m.group(3)}"
 
     # ── Pass 1: detect paper-style hierarchy ─────────────────────────
     heading_indices = []
@@ -408,6 +518,182 @@ def fix_mineru_divs(text):
     return text, stats
 
 
+def fix_html_tags(text: str):
+    """Fix MinerU HTML tag residue in running text.
+
+    Three categories:
+      1. <table>...</table> → convert to markdown pipe table
+      2. <sup>N</sup> → $^N$ (footnote/ref markers in running text)
+      3. Empty <!-- ... --> comments → remove
+    """
+    stats = {}
+
+    # 1. Simple HTML tables → markdown (no rowspan/colspan)
+    def convert_table(m):
+        html = m.group(0)
+        # Count columns from first row
+        rows = re.findall(r'<tr>(.*?)</tr>', html, re.DOTALL)
+        if not rows:
+            return html  # can't parse
+        md_rows = []
+        for ri, row in enumerate(rows):
+            cells = re.findall(r'<td>(.*?)</td>', row, re.DOTALL)
+            md_rows.append('| ' + ' | '.join(c.strip() for c in cells) + ' |')
+            if ri == 0:
+                md_rows.append('|' + '|'.join(['---'] * len(cells)) + '|')
+        return '\n'.join(md_rows)
+
+    n_tables = len(re.findall(r'<table>', text))
+    if n_tables:
+        text = re.sub(r'<table>.*?</table>', convert_table, text, flags=re.DOTALL)
+        stats["html_table"] = n_tables
+
+    # 2. <sup>N</sup> → $^N$ (digit superscripts — footnote/ref markers)
+    n_sup = len(re.findall(r'<sup>\d+</sup>', text))
+    text = re.sub(r'<sup>(\d+)</sup>', r'$^{\1}$', text)
+    # <sub>x</sub> → $x$ (subscripts in running text, not in code blocks)
+    n_sub = len(re.findall(r'<sub>([a-zA-Z]+)</sub>', text))
+    text = re.sub(r'<sub>([a-zA-Z]+)</sub>', r'$_{\1}$', text)
+
+    if n_sup:
+        stats["html_sup"] = n_sup
+    if n_sub:
+        stats["html_sub"] = n_sub
+
+    # 3. Empty HTML comments
+    n_cmts = len(re.findall(r'<!--\s*(glossary:\s*)?-->', text))
+    if n_cmts:
+        text = re.sub(r'<!--\s*(glossary:\s*)?-->\n?', '', text)
+        stats["empty_comment"] = n_cmts
+
+    return text, stats
+
+
+def fix_image_caption_spacing(text: str):
+    """Insert blank line between image references and {{< caption >}} shortcodes.
+
+    Only matches when caption is directly on next line (no blank line between).
+    [^\\S\\n]* = horizontal whitespace only (spaces, tabs), not newlines.
+    """
+    n = len(re.findall(r'!\[.*?\]\([^)]+\)[^\S\n]*\n[^\S\n]*\{\{< caption >', text))
+    text = re.sub(
+        r'(!\[.*?\]\([^)]+\))[^\S\n]*\n[^\S\n]*(\{\{< caption >)',
+        r'\1\n\n\2', text,
+    )
+    if n:
+        return text, {"img_caption_spacing": n}
+    return text, {}
+
+
+def fix_pandoc_residue(text: str):
+    """Remove pandoc EPUB conversion residue and FB2 XML leftovers.
+
+    Consolidates the manual sed rules documented in SKILL.md Phase 2 step 3:
+      - ::: fn1 / ::: blk1 / :::  (pandoc div markers)
+      - []{#page_xxx} / []{#pages-xxx}  (pandoc anchor markers)
+      - {.small} / {.dropcap} / {.col}  (pandoc inline attributes)
+      - {height="100%"} etc.  (pandoc image attributes)
+      - [text](file.xhtml)  → text  (EPUB internal links)
+      - -----  table separators  → |---|  (pandoc pipe table format)
+      - <empty-line/>  → blank line  (FB2 XML residue)
+    """
+    stats = {}
+    original_len = len(text)
+
+    # ::: fn1 / ::: blk1 / :::  (pandoc div markers — whole line)
+    n_div = len(re.findall(r"^::: \w+\s*$", text, re.MULTILINE))
+    text = re.sub(r"^::: \w+\s*$\n", "", text, flags=re.MULTILINE)
+    text = re.sub(r"^:::\s*$\n", "", text, flags=re.MULTILINE)
+
+    # []{#page_xxx} / []{#pages-xxx}  (pandoc anchor markers)
+    n_anchor = len(re.findall(r"\[\]\{#pages?-?\w*\}", text))
+    text = re.sub(r"\[\]\{#pages?-?\w*\}", "", text)
+
+    # {.small} / {.dropcap} / {.col} / {.unnumbered} / {#id} etc.  (pandoc attrs)
+    # Matches {.class} {#id} {key="val"} and combinations like {.small .col}
+    # Every token MUST start with . (class) or # (id), or be a key="val" pair —
+    # a bare {array} / {r} / {1} is NEVER a pandoc attr (those are math args),
+    # and matching them destroys \mathrm{A}, \frac{1}{2}, \begin{array}{r}, etc.
+    _PANDOC_ATTR = (
+        r"\{(?:[#.][\w:-]+|\w+=\"[^\"]*\")"
+        r"(?:\s+(?:[#.][\w:-]+|\w+=\"[^\"]*\"))*\}"
+    )
+    n_attr = len(re.findall(_PANDOC_ATTR, text))
+    text = re.sub(_PANDOC_ATTR, "", text)
+
+    # {height="100%"} / {width="50%"}  (image attributes — more specific)
+    n_imgattr = len(re.findall(r'\{(height|width|id|title|align)="[^"]*"\}', text))
+    text = re.sub(r'\{(height|width|id|title|align)="[^"]*"\}', "", text)
+
+    # [text](file.xhtml)  → text  (EPUB internal links — strip .xhtml refs)
+    n_xhtml = len(re.findall(r"\]\([^)]+\.xhtml[^)]*\)", text))
+    text = re.sub(r"\[([^\]]*)\]\([^)]+\.xhtml[^)]*\)", r"\1", text)
+
+    # -----  table separators  → |---|  (pandoc line-table format)
+    n_dash = len(re.findall(r"^\s*-{5,}\s*$", text, re.MULTILINE))
+    text = re.sub(r"^(\s*)-{5,}(\s*)$", r"\1|---|\2", text, flags=re.MULTILINE)
+
+    # <empty-line/>  → blank line  (FB2 XML residue if any leaked through)
+    n_emptyline = len(re.findall(r"<empty-line/>", text))
+    text = text.replace("<empty-line/>", "")
+
+    removed = original_len - len(text)
+    if removed > 0 or n_div or n_anchor or n_attr or n_imgattr or n_xhtml or n_dash or n_emptyline:
+        stats["pandoc_residue"] = {
+            "divs": n_div, "anchors": n_anchor, "attrs": n_attr,
+            "img_attrs": n_imgattr, "xhtml_links": n_xhtml,
+            "dash_tables": n_dash, "fb2_emptyline": n_emptyline,
+        }
+    return text, stats
+
+
+def fix_math_delimiters(text: str):
+    """Repair malformed $$ delimiters that wrap Chinese prose.
+
+    Two corruption patterns from LLM translation output:
+      1. Adjacent inline math like `$_{1}$$(...)` creates a false $$ pair
+         that wraps Chinese body text between them.
+      2. Odd $$ count (orphaned delimiter) from chunking artifacts.
+
+    Strategy:
+      - For each $$...$$ block, check if the content has Chinese punctuation
+        (，。、；：？！) or >10 CJK chars after stripping LaTeX commands.
+        If so, it's prose误包 — replace the $$ delimiters with $ (inline math).
+      - If $$ count is odd, remove the last orphan $$.
+    """
+    stats = {}
+    fixes = 0
+
+    # Pattern 1: $$ blocks containing Chinese prose → demote to inline $
+    def check_and_demote(m):
+        nonlocal fixes
+        block = m.group(1)
+        # Strip LaTeX commands to see if there's raw Chinese prose
+        stripped = re.sub(r"\\[a-zA-Z]+\{[^}]*\}", "", block)
+        stripped = re.sub(r"\\[a-zA-Z]+", "", stripped)
+        has_cn_punct = bool(re.search(r"[，。、；：？！]", stripped))
+        cn_count = len(re.findall(r"[一-鿿]", stripped))
+        if has_cn_punct or cn_count > 10:
+            # This is prose误包 in math — demote $$ to $ so it renders as inline
+            fixes += 1
+            return f"${block}$"
+        return m.group(0)
+
+    text = re.sub(r"\$\$(.+?)\$\$", check_and_demote, text, flags=re.DOTALL)
+
+    # Pattern 2: odd $$ count — remove the last orphan $$
+    count = text.count("$$")
+    if count % 2 == 1:
+        # Find the last $$ and remove it
+        last_pos = text.rfind("$$")
+        text = text[:last_pos] + text[last_pos + 2:]
+        fixes += 1
+
+    if fixes:
+        stats["math_delimiter_fix"] = fixes
+    return text, stats
+
+
 # ── Main clean function ──────────────────────────────────────────────────
 def clean(content):
     """Full cleaning pipeline. Returns (cleaned_content, stats_dict)."""
@@ -433,11 +719,38 @@ def clean(content):
 
     text = "\n".join(lines)
 
-    # Stage 1b: book misc (bullets, book footnotes)
+    # Stage 1b: MinerU \begin{array} corruption repair
+    # MUST run before pandoc residue removal (Stage 1e) and math-region repair
+    # (Stage 2): the bare colspecs \begin{r} / {r l r} look like pandoc attrs
+    # and would be stripped; and the repair spans whole lines, not just math.
+    text, array_stats = fix_mineru_array_corruption(text)
+
+    # Stage 1c: book misc (bullets, book footnotes)
     text, book_stats = fix_book_misc(text)
 
-    # Stage 1c: MinerU <div class="mineru-algorithm"> → ```matlab code blocks
+    # Stage 1d: MinerU <div class="mineru-algorithm"> → ```matlab code blocks
     text, div_stats = fix_mineru_divs(text)
+
+    # Stage 1d2: HTML tag residue — <table>, <sup>, <sub>, empty comments
+    text, html_stats = fix_html_tags(text)
+
+    # Stage 1e: pandoc EPUB residue + FB2 XML residue
+    text, pandoc_stats = fix_pandoc_residue(text)
+
+    # Stage 1f: repair malformed $$ delimiters (Chinese prose误包 + orphan $$)
+    text, delim_stats = fix_math_delimiters(text)
+
+    # Stage 1g: normalize LaTeX delimiters — \(...\) → $...$, \[...\] → $$...$$
+    # KaTeX only renders $ and $$. MinerU sometimes emits \(\) / \[\] especially
+    # in appendices and supplementary material where the translator model
+    # uses different conventions for inline vs display math.
+    n_inline_delim = len(re.findall(r"\\\(|\\\)", text))
+    n_display_delim = len(re.findall(r"\\\[|\\\]", text))
+    text = re.sub(r"\\\((.*?)\\\)", r"$\1$", text, flags=re.DOTALL)
+    text = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", text, flags=re.DOTALL)
+    if n_inline_delim or n_display_delim:
+        delim_stats["fix_latex_delimiters"] = {"inline_pairs": n_inline_delim // 2,
+                                                "display_pairs": n_display_delim // 2}
 
     # Stage 2: LaTeX repair (scoped to math regions)
     inline_before = len(re.findall(r"\$[^$\n]+?\$", text))
@@ -451,6 +764,9 @@ def clean(content):
     # Stage 4: figure caption pairing
     text, fig_stats = pair_figures(text)
 
+    # Stage 4b: blank line between image references and {{< caption >}} shortcodes
+    text, spacing_stats = fix_image_caption_spacing(text)
+
     # Stage 5: collapse 3+ blank lines
     before_blanks = len(re.findall(r"\n{4,}", text))
     text = re.sub(r"\n{4,}", "\n\n\n", text)
@@ -458,7 +774,7 @@ def clean(content):
     # Stage 6: trailing whitespace
     text = "\n".join(l.rstrip() for l in text.split("\n"))
 
-    stats = {**noise_stats, **book_stats, **div_stats, **heading_stats, **fig_stats}
+    stats = {**noise_stats, **book_stats, **div_stats, **html_stats, **pandoc_stats, **delim_stats, **array_stats, **heading_stats, **fig_stats, **spacing_stats}
     stats["math_regions"] = inline_before + display_before
     if before_blanks:
         stats["blank_collapse"] = before_blanks

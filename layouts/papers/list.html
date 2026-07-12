@@ -1,12 +1,34 @@
 {{/*
   papers section 列表页。
   - /papers/（论文分类）：_index.md 含 papershelf 短代码 → 只渲染内容
+  - /papers/<slug>/（单篇论文）：渲染 header（标题/作者/DOI/标签）+ 正文
   - 无内容时回退到卡片网格
 */}}
 {{ define "main" }}
-  {{ with .Content }}
+  {{/* Individual paper section: has year param + is not /papers/ index */}}
+  {{ if and .Params.year (ne .RelPermalink "/papers/") (ne .RelPermalink "/yuulibrary/papers/") }}
+    <article class="markdown book-article post paper">
+      <header class="post-header">
+        <h1 class="post-title">{{ partial "docs/title" . }}</h1>
+        <div class="post-meta">
+          {{ with .Date }}<time datetime="{{ .Format "2006-01-02" }}">{{ .Format "2006-01-02" }}</time>{{ end }}
+          {{ with .Params.author }}<span class="meta-author">{{ . }}</span>{{ end }}
+          {{ with .Params.year }}<span class="meta-year">{{ . }}</span>{{ end }}
+          {{ range .GetTerms "tags" }}
+            <a href="{{ .RelPermalink }}" class="chip">{{ .LinkTitle }}</a>
+          {{ end }}
+        </div>
+        {{ with .Params.links }}
+          <div class="paper-links">
+            {{ range . }}<a href="{{ .url }}" target="_blank" rel="noopener" class="paper-link">{{ .name | default "链接" }} ↗</a>{{ end }}
+          </div>
+        {{ end }}
+      </header>
+      {{- .Content -}}
+    </article>
+  {{ else if .Content }}
     <article class="markdown book-article">
-      {{- . -}}
+      {{- .Content -}}
     </article>
   {{ else }}
     <div class="card-grid">

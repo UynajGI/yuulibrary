@@ -133,9 +133,22 @@ def validate_file(path, all_files=None):
         else:
             issues.append(issue(ERR, "front matter block (---) missing"))
 
+    # 9. Broken chapter cross-references ([第N章](chNN.md) → missing file)
+    book_dir = os.path.dirname(path)
+    ch_links = re.findall(r"\[([^\]]*)\]\((ch\d{2}\.md)\)", content)
+    broken = []
+    for link_text, target in ch_links:
+        if not os.path.exists(os.path.join(book_dir, target)):
+            broken.append((link_text, target))
+    if broken:
+        details = "; ".join(f"[{t}]({f})" for t, f in broken[:5])
+        if len(broken) > 5:
+            details += f" ... and {len(broken)-5} more"
+        issues.append(issue(ERR, f"{len(broken)} broken xref: {details}"))
+
     # ==================== WARNINGS ====================
 
-    # 9. Image inside $ math (likely MinerU error)
+    # 10. Image inside $ math (likely MinerU error)
     # Note: $ markers may carry <!-- validate-skip --> (e.g. stat-arb uses
     # $ ... $ as centered image containers). A $ line with the skip tag
     # must still participate in pairing so the block isn't mis-detected as math.
@@ -158,37 +171,38 @@ def validate_file(path, all_files=None):
         elif in_math and s.startswith("!["):
             issues.append(issue(WARN, f"L{i}: image inside $ math block"))
 
-    # 10. Empty $ blocks (ignore $ ... $ containers marked <!-- validate-skip -->)
+    # 11. Empty $ blocks (ignore $ ... $ containers marked <!-- validate-skip -->)
     body_ns = re.sub(r"\$\$ <!-- validate-skip -->.*?\$\$", "", content, flags=re.DOTALL)
     empty_ds = len(re.findall(r"^\$\$[ \t]*\n[ \t]*\$\$", body_ns, re.MULTILINE))
     if empty_ds:
         issues.append(issue(WARN, f"{empty_ds} empty $ blocks"))
 
-    # 11. Compound $ blocks (blank line inside; ignore skip-tagged containers)
+    # 12. Compound $ blocks (blank line inside; ignore skip-tagged containers)
     compound = sum(1 for m in re.finditer(r"^\$\$[ \t]*\n(.*?)\n[ \t]*\$\$", body_ns, re.DOTALL | re.MULTILINE)
                    if "\n\n" in m.group(1))
     if compound:
         issues.append(issue(WARN, f"{compound} compound $ blocks"))
 
-    # 12. .html links in source (should be .md for Hugo rewriting)
+    # 13. .html links in source (should be .md for Hugo rewriting)
     html_links = re.findall(r"\]\(\./[^)]*\.html\)", content)
     if html_links:
         issues.append(issue(WARN, f"{len(html_links)} .html links (use .md)"))
 
-    # 13. Naked captions
+    # 14. Naked captions
+    # Match: 图N., 图 N., 图N.M, 表N., 表 N., 表N.M
     # Exclude lines that are part of a sentence (e.g. "表4.1总结了...", "图5.2展示了...").
-    naked_cap = [m for m in re.finditer(r"^(图\d+\.\d+|表\d+\.\d+)[^\n]{0,30}$", content, re.MULTILINE)
+    naked_cap = [m for m in re.finditer(r"^(图\s*\d+\.\s*|表\s*\d+\.\s*)[^\n]{0,30}$", content, re.MULTILINE)
                  if not re.search(r"[。！？，；：]|\s*(总结|展示|说明|列出|给出|显示|提到|参见|见)[了]?", m.group(0))]
     naked_cap = [m.group(1) for m in naked_cap]
     if naked_cap:
         issues.append(issue(WARN, f"{len(naked_cap)} naked captions (wrap in {{{{< caption >}}}})"))
 
-    # 14. JPG/PNG image references (should be WebP)
+    # 15. JPG/PNG image references (should be WebP)
     jpg_png_refs = re.findall(r"\]\(\.?/images/[^)]+\.(?:jpg|png)\)", content)
     if jpg_png_refs:
-        issues.append(issue(ERROR, f"{len(jpg_png_refs)} .jpg/.png image refs (must convert to .webp)"))
+        issues.append(issue(ERR, f"{len(jpg_png_refs)} .jpg/.png image refs (must convert to .webp)"))
 
-    # 15. Backslash pseudocode commands
+    # 16. Backslash pseudocode commands
     bad_cmds = re.findall(
         r"\\(?:state|for|if|while|repeat|until|return|endfor|endif|endwhile|endprocedure|endfunction|procedure|function|label)\\b",
         content,
@@ -196,7 +210,27 @@ def validate_file(path, all_files=None):
     if bad_cmds:
         issues.append(issue(WARN, f"{len(bad_cmds)} backslash pseudocode commands"))
 
-    # 16. H1 format issues (spaces, colons)
+    # 17. OCR-garbled LaTeX tags (\tag{ðÞ} etc.)
+    garbled_tags = re.findall(r"\\tag\{[^}]*[^\x00-\x7F][^}]*\}", content)
+    if garbled_tags:
+        issues.append(issue(WARN, f"{len(garbled_tags)} garbled \\\\tag{{...}} (OCR error — contains non-ASCII)"))
+
+    # 18. Suspicious headings: duplicate ##/###, headings with code-comment patterns
+    headings = [(i, line) for i, (line, _) in enumerate(zip(lines, lines), 1)
+                if re.match(r"^#+\s", line)]
+    # 18a: duplicate headings (same text)
+    from collections import Counter
+    h_counts = Counter(h[1].strip() for h in headings)
+    dupes = {k: v for k, v in h_counts.items() if v > 1 and not k.startswith("# 参考") and not k.startswith("## 参考")}
+    if dupes:
+        issues.append(issue(WARN, f"{len(dupes)} duplicate headings: {', '.join(list(dupes.keys())[:3])}"))
+    # 18b: single-word ## headings (likely code comments misparsed, e.g. "## 预平衡")
+    for h_lineno, h_text in headings:
+        stripped = h_text.strip().lstrip("#").strip()
+        if h_text.startswith("## ") and len(stripped) <= 6 and not re.search(r"[一二三四五六七八九十\d]", stripped):
+            issues.append(issue(WARN, f"line {h_lineno}: short ## heading '{stripped}' — likely misparsed code comment"))
+
+    # 19. H1 format issues (spaces, colons)
     for h1 in h1_texts:
         if re.match(r"^(前言|符号|算法|索引|致谢|目录|附录|献词|引言)", h1):
             continue
@@ -205,7 +239,7 @@ def validate_file(path, all_files=None):
         elif "：" in h1 or (":" in h1.split("章")[-1] if "章" in h1 else False):
             issues.append(issue(WARN, f'H1 has colon: "{h1}"'))
 
-    # 17. Heading level skip (H1→H3, H2→H4)
+    # 18. Heading level skip (H1→H3, H2→H4)
     for i in range(1, len(levels)):
         jump = levels[i] - levels[i - 1]
         if jump > 1:
@@ -214,7 +248,7 @@ def validate_file(path, all_files=None):
                 f'("{texts[i-1][:20]}" → "{texts[i][:20]}")'
             ))
 
-    # 18. Code-comment-like headings
+    # 19. Code-comment-like headings
     _comment_kw = r"^(设置|获取|计算|导入|定义|创建|初始化|返回|更新|显示|删除|保存|加载|生成|转换|验证|检查|调用)"
     _term_suffix = r"(条件|规则|总结|方法|原则|标准|要求|步骤|流程|参数|选项|模式)"
     comment_h = sum(1 for m in re.finditer(r"^(#{1,2})\s+(\S.*?)\s*$", codeless, re.MULTILINE)
@@ -224,18 +258,18 @@ def validate_file(path, all_files=None):
     if comment_h:
         issues.append(issue(WARN, f"{comment_h} #/## look like code comments"))
 
-    # 19. Non-standard list markers
+    # 20. Non-standard list markers
     ns_list = re.findall(r"^(●|◆|①|②|③|④|⑤|⑥|⑦|⑧|⑨|（\d+）|\(\d+\)|\d+）)\s", content, re.MULTILINE)
     if ns_list:
         unique = sorted(set(ns_list))
         issues.append(issue(WARN, f"{len(ns_list)} non-standard list markers: {unique} (use - or 1.)"))
 
-    # 20. ### heading inside callout (should be **bold**)
+    # 21. ### heading inside callout (should be **bold**)
     callout_h = re.findall(r"\{\{< callout[^}]*>\}\}\n###\s", content)
     if callout_h:
         issues.append(issue(WARN, f"{len(callout_h)} ### inside callout (use **bold**)"))
 
-    # 21. Naked 第N章 cross-references (should be linked)
+    # 22. Naked 第N章 cross-references (should be linked)
     # Strip front matter to avoid matching title/description fields
     body = re.sub(r"^---\n.*?\n---\n", "", content, flags=re.DOTALL)
     body = strip_fences(body)
@@ -252,22 +286,40 @@ def validate_file(path, all_files=None):
     if xrefs:
         issues.append(issue(WARN, f"{len(xrefs)} unlinked 第N章 references (use [第N章](ch0N.md))"))
 
-    # 22. Copyright residue
+    # 23. Copyright residue
     cr = re.findall(r"^(ISBN|客服热|客服信箱|版权所有|侵权必究|CIP 数据|图书在版)", content, re.MULTILINE)
     if cr:
         issues.append(issue(WARN, f"{len(cr)} copyright/residue lines"))
 
-    # 23. HTML table garbage
+    # 24. HTML table garbage
     html_tbl = len(re.findall(r"<table>.*?venv.*?</table>", content, re.DOTALL))
     if html_tbl:
         issues.append(issue(WARN, f"{html_tbl} garbage HTML tables (venv paths)"))
+    # 24.5 <table>/<tr>/<td> HTML tags (MinerU table extraction failure → convert to markdown)
+    html_tags = len(re.findall(r'<(table|/table|tr|/tr|td|/td)>', content))
+    if html_tags:
+        issues.append(issue(WARN, f"{html_tags} HTML table tags (convert to markdown table)"))
+    # 24.6. Empty HTML comments (processing residue, e.g. <!-- glossary:  -->)
+    empty_cmts = len(re.findall(r'<!--\s*(glossary:\s*)?-->', content))
+    if empty_cmts:
+        issues.append(issue(WARN, f"{empty_cmts} empty HTML comments (processing residue)"))
+    # 24.7 \(...\) or \[...\] math delimiters (KaTeX doesn't render these)
+    bad_math_delim = len(re.findall(r'\\\(', content)) + len(re.findall(r'\\\[', content))
+    if bad_math_delim:
+        issues.append(issue(WARN, f"{bad_math_delim} \\\\( or \\\\[ math delimiters (use $ or $$ instead)"))
+    # 24.8 Image followed immediately by {{< caption >}} without blank line
+    # [^\S\n]* = horizontal whitespace only (not newlines), so this only matches
+    # when caption is directly on the next line with no blank line between.
+    img_no_blank = len(re.findall(r'!\[.*?\]\([^)]+\)[^\S\n]*\n[^\S\n]*\{\{< caption >', content))
+    if img_no_blank:
+        issues.append(issue(WARN, f"{img_no_blank} image+{{{{< caption >}}}} without blank line"))
 
-    # 24. mineru-algorithm div (should be {{< algorithm >}})
+    # 25. mineru-algorithm div (should be {{< algorithm >}})
     mineru_div = content.count("mineru-algorithm")
     if mineru_div:
         issues.append(issue(WARN, f"{mineru_div} mineru-algorithm divs (use {{{{< algorithm >}}}})"))
 
-    # 25. Hand-written TOC in preface (redundant with book-toc)
+    # 26. Hand-written TOC in preface (redundant with book-toc)
     if fname == "preface.md" and re.search(r"^##\s+目录\s*$", content, re.MULTILINE):
         found_toc = False
         for line in lines:
@@ -278,12 +330,12 @@ def validate_file(path, all_files=None):
                 issues.append(issue(WARN, "hand-written TOC in preface (delete, book-toc auto-generates)"))
                 break
 
-    # 26. ### inside callout quote blocks
+    # 27. ### inside callout quote blocks
     callout_heading = re.findall(r"\{\{< callout type=.quote. >\}\}\n###\s", content)
     if callout_heading:
         issues.append(issue(WARN, f"{len(callout_heading)} ### in quote callout (use **bold**)"))
 
-    # 27. Mid-sentence breaks (MinerU artifact: Chinese line → blank line → short continuation)
+    # 28. Mid-sentence breaks (MinerU artifact: Chinese line → blank line → short continuation)
     mid_breaks = 0
     if re.match(r'^(appendix|notation)', fname):
         pass  # skip code/model listings and symbol tables
@@ -366,6 +418,75 @@ def validate_file(path, all_files=None):
                   and '{{<' not in l]
     if quote_hits:
         issues.append(issue(REVIEW, f"{len(quote_hits)} '—Author, *Book*' candidates (review → {{{{< callout type=\"quote\" >}}}})"))
+
+    # 33. Non-rectangular matrix/array (rows have inconsistent & counts)
+    non_rect = []
+    for m in re.finditer(
+        r"\\begin\{(array|pmatrix|bmatrix|Bmatrix|vmatrix|Vmatrix|matrix)\}\s*\{([^}]*)\}",
+        content,
+    ):
+        env = m.group(1)
+        colspec = m.group(2)
+        # Count expected columns
+        spec_clean = re.sub(r"\{[^}]*\}", "", colspec).replace("|", "")
+        expected = len(re.findall(r"[lcr]", spec_clean))
+        if expected < 2:
+            continue
+        # Find matching \end{env}
+        end_tag = f"\\end{{{env}}}"
+        end_m = re.search(re.escape(end_tag), content[m.end():])
+        if not end_m:
+            continue
+        body_text = content[m.end():m.end() + end_m.start()]
+        # Skip arrays containing nested arrays — inner \\ confuses row splitting
+        if re.search(r"\\begin\{(array|matrix|pmatrix|bmatrix)\}", body_text):
+            continue
+        rows = [r.strip() for r in body_text.split(r"\\") if r.strip()]
+        if len(rows) < 2:
+            continue
+        col_counts = [r.count("&") + 1 for r in rows]
+        if len(set(col_counts)) > 1:
+            line_no = content[:m.start()].count("\n") + 1
+            mode = max(set(col_counts), key=col_counts.count)
+            bad = [(i + 1, c) for i, c in enumerate(col_counts) if c != mode]
+            detail = ", ".join(f"行{i}={c}列" for i, c in bad[:3])
+            if len(bad) > 3:
+                detail += f" ... +{len(bad) - 3}"
+            non_rect.append(
+                f"L{line_no} \\begin{{{env}}}{{{colspec}}} (应为{expected}列，主流{mode}列，异常：{detail})"
+            )
+    if non_rect:
+        issues.append(issue(WARN, f"{len(non_rect)} non-rectangular matrix/array: {'; '.join(non_rect[:5])}"))
+
+    # 34. Array rows use ~ (tilde) instead of & as column separators (OCR error)
+    tilde_rows = []
+    for m in re.finditer(
+        r"\\begin\{(array|pmatrix|bmatrix|Bmatrix|vmatrix|Vmatrix|matrix)\}\s*\{([^}]*)\}",
+        content,
+    ):
+        env = m.group(1)
+        colspec = m.group(2)
+        spec_clean = re.sub(r"\{[^}]*\}", "", colspec).replace("|", "")
+        expected = len(re.findall(r"[lcr]", spec_clean))
+        if expected < 2:
+            continue
+        end_tag = f"\\end{{{env}}}"
+        end_m = re.search(re.escape(end_tag), content[m.end():])
+        if not end_m:
+            continue
+        body_text = content[m.end():m.end() + end_m.start()]
+        if re.search(r"\\begin\{array\}", body_text):
+            continue  # skip nested
+        rows = [r.strip() for r in body_text.split(r"\\") if r.strip()]
+        # Rows with 2+ ~ but zero & → OCR lost column separators
+        bad = [r[:60] for r in rows if r.count("~") >= 2 and "&" not in r]
+        if bad:
+            line_no = content[:m.start()].count("\n") + 1
+            tilde_rows.append(
+                f"L{line_no} \\begin{{{env}}}{{{colspec}}} ({len(bad)}行用~代替&: {bad[0]}...)"
+            )
+    if tilde_rows:
+        issues.append(issue(WARN, f"{len(tilde_rows)} array/matrix using ~ instead of &: {'; '.join(tilde_rows[:3])}"))
 
     return issues
 
