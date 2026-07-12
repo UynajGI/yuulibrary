@@ -4,7 +4,7 @@ description: "Weber 等（2017）将定向回路 QMC 方法推广到延迟相互
 date: "2026-07-10T08:00:00+08:00"
 author: "Manuel Weber, Fakher F. Assaad, Martin Hohenadler"
 year: 2017
-category: ["cond-mat.str-el"]
+category: ["cond-mat"]
 weight: 39
 tags: ['量子蒙特卡罗', '电子-声子耦合']
 links:
