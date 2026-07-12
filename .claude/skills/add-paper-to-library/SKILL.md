@@ -87,9 +87,9 @@ grep -ril "<第一作者姓>\|<关键词>" content/papers/
 若已有同名/同作者论文 → **🛑 立即终止**，告知用户「这篇已在：content/papers/<slug>/」。
 
 ```bash
-# PDF 复制到 pdfs/papers/（文件名保持 Zotero 风格：Author 等 - YEAR - Title.pdf）
-cp /path/to/paper.pdf pdfs/papers/
-[ -f /path/to/paper_sm.pdf ] && cp /path/to/paper_sm.pdf pdfs/papers/
+# PDF 移入 pdfs/papers/（Zotero 风格命名，不保留原始副本避免重复）
+mv /path/to/paper.pdf "pdfs/papers/Author 等 - YEAR - Title.pdf"
+[ -f /path/to/paper_sm.pdf ] && mv /path/to/paper_sm.pdf "pdfs/papers/Author 等 - YEAR - Title sm.pdf"
 ```
 
 ### Phase 1：获取正文 + 图片

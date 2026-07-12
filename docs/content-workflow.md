@@ -46,7 +46,7 @@ PDF/EPUB/DOCX/FB2/TXT 源
 
 完整流程见 [`.claude/skills/add-paper-to-library/SKILL.md`](../.claude/skills/add-paper-to-library/SKILL.md)。
 
-论文比书简单(不拆章、不用 MinerU VLM 流水线、不上首页书架)。
+论文比书简单(不拆章、不上首页书架)。提取同样用 MinerU pipeline（非 VLM）。
 
 ### 流程
 
