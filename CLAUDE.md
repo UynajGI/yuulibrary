@@ -68,6 +68,8 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
 | 工具 | 类型 | 用途 |
 |-------|------|------|
 | **spot-check** | Agent | 随机抽查 2 章,18 点清单(先机械 grep → AI 逐章审核),发现问题直接修 |
+| **narrative-restructurer** | Agent | 章节脉络重构：扫描结构→追踪推导链→诊断逻辑问题→重排→编译验证，不删内容 |
+| **strict-atomic-math-engine** | Agent | 严格逐步数学推导：每相邻公式只差一步原子操作（展开/合并/代入/微积分规则等 10 种） |
 | **translate_chapters.py** | 脚本 | 翻译英文 MD → 中文(种子章建术语表 + 并发 + validate 验证重试 + **图片引用丢失自动补回** + **断点续跑**)。book 原地写,paper 输出 `.zh.md` |
 | **convert_xrefs.py** | 脚本 | 纯 regex 交叉引用转换(「第N章」→ markdown 链接 `ch0N.md`,补零可靠) |
 | **clean_markdown.py** | 脚本 | 统一清洗(book+paper):噪声删除 + LaTeX 碎片修复 + 图注配对 + 标题层级 |

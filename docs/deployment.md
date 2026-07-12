@@ -204,6 +204,7 @@ concurrency:
 | `DEEPSEEK_API_KEY` | — | DeepSeek API key(翻译流水线) |
 | `OPENAI_API_KEY` | — | OpenAI key(备用 provider) |
 | `GLM_API_KEY` | — | 智谱 GLM key(备用 provider) |
+| `MIMO_API_KEY` | — | 小米 MIMO key(备用 provider) |
 
 ### 本地(config.yaml) — 模型与流水线配置
 
