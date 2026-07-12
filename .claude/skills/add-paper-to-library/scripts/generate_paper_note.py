@@ -491,6 +491,12 @@ async def run(args):
     if related:
         print(f"cross-link：找到 {len(related)} 篇相关论文")
 
+    # Auto-generate date with timezone if not provided
+    if "date" not in meta or not meta.get("date"):
+        from datetime import datetime, timezone, timedelta
+        tz = timezone(timedelta(hours=8))
+        meta["date"] = datetime.now(tz).strftime("%Y-%m-%dT%H:%M:%S+08:00")
+
     # Build front matter
     fm = sections.get("__fm__", "")
     if not fm:

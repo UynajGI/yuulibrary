@@ -740,6 +740,18 @@ def clean(content):
     # Stage 1f: repair malformed $$ delimiters (Chinese prose误包 + orphan $$)
     text, delim_stats = fix_math_delimiters(text)
 
+    # Stage 1g: normalize LaTeX delimiters — \(...\) → $...$, \[...\] → $$...$$
+    # KaTeX only renders $ and $$. MinerU sometimes emits \(\) / \[\] especially
+    # in appendices and supplementary material where the translator model
+    # uses different conventions for inline vs display math.
+    n_inline_delim = len(re.findall(r"\\\(|\\\)", text))
+    n_display_delim = len(re.findall(r"\\\[|\\\]", text))
+    text = re.sub(r"\\\((.*?)\\\)", r"$\1$", text, flags=re.DOTALL)
+    text = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", text, flags=re.DOTALL)
+    if n_inline_delim or n_display_delim:
+        delim_stats["fix_latex_delimiters"] = {"inline_pairs": n_inline_delim // 2,
+                                                "display_pairs": n_display_delim // 2}
+
     # Stage 2: LaTeX repair (scoped to math regions)
     inline_before = len(re.findall(r"\$[^$\n]+?\$", text))
     display_before = len(re.findall(r"\$\$", text)) // 2

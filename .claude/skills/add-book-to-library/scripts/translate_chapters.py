@@ -260,7 +260,7 @@ def is_chinese_text(body: str) -> bool:
 
 
 # ── Reference section isolation ──────────────────────────────────────────
-REF_HEADING_RE = re.compile(r"^##\s+(References|参考文献|Bibliography|文献)", re.MULTILINE | re.IGNORECASE)
+REF_HEADING_RE = re.compile(r"^#+\s+(References|参考文献|Bibliography|文献)", re.MULTILINE | re.IGNORECASE)
 NEXT_H2_RE = re.compile(r"^##\s+", re.MULTILINE)
 # Bare reference entries at end of file: [N] Author, Title, Journal ...
 # MinerU sometimes fails to extract the ## References heading, leaving raw
@@ -535,7 +535,7 @@ async def translate_text(client, body: str, glossary: dict, is_seed: bool, feedb
 def translate_ref_heading(ref_section: str) -> str:
     """Translate only the heading of references section, keep entries as-is."""
     ref_section = re.sub(
-        r"^##\s+(References|Bibliography)\b",
+        r"^#+\s+(References|Bibliography)\b",
         "## 参考文献",
         ref_section,
         flags=re.IGNORECASE,
