@@ -286,41 +286,41 @@ $$
 \begin{array} {l} {{\hat{H}_{c} = \mathcal{D}_{c}^{\dagger} \hat{H} \mathcal{D}_{c} = \displaystyle \frac{\Delta} {2} \left[ \hat{\sigma}_{+} e^{- i \sum_{\beta} q_{\beta} ( \hat{a}_{\beta} - \hat{a}_{\beta}^{\dagger} )} + \hat{\sigma}_{-} e^{i \sum_{\beta} q_{\beta} ( \hat{a}_{\beta} - \hat{a}_{\beta}^{\dagger} )} \right] + \sum_{\beta} ( q_{\beta} - \omega_{\beta} q_{\beta} ) \hat{s}_{z} ( \hat{a}_{\beta} + \hat{a}_{\beta}^{\dagger} ) + \sum_{\beta} \omega_{\beta} \hat{a}_{\beta}^{\dagger} \hat{a}_{\beta}}} \\ {{{}}} \\ {{{} + \displaystyle \sum_{\beta} \frac{( q_{\beta} - \omega_{\beta} q_{\beta} )^{2}} {4 \omega_{\beta}} - \sum_{\beta} \frac{g_{\beta}^{2}} {4 \omega_{\beta}}}} \end{array}\tag{S1}
 $$
 
-现在将投影到态的其余部分，并利用 \(| \phi \rangle\) 的高斯性质，得到关于 \(q_{\beta} , \alpha_{\beta} , | \phi \rangle\) 和 \(\theta\) 的如下函数：
+现在将投影到态的其余部分，并利用 $| \phi \rangle$ 的高斯性质，得到关于 $q_{\beta} , \alpha_{\beta} , | \phi \rangle$ 和 $\theta$ 的如下函数：
 
-其中 \(\hat{x}_{\beta} = ( \hat{a}_{\beta} + \hat{a}_{\beta}^{\dagger} ) / \sqrt{2}\) 和 \(\hat{p}_{\beta} = - i ( \hat{a}_{\beta} - \hat{a}_{\beta}^{\dagger} ) / \sqrt{2}\) 为 quadrature。为简便起见，我们还定义了重正化隧穿率
+其中 $\hat{x}_{\beta} = ( \hat{a}_{\beta} + \hat{a}_{\beta}^{\dagger} ) / \sqrt{2}$ 和 $\hat{p}_{\beta} = - i ( \hat{a}_{\beta} - \hat{a}_{\beta}^{\dagger} ) / \sqrt{2}$ 为 quadrature。为简便起见，我们还定义了重正化隧穿率
 
-在约束条件 \(\langle \phi | \phi \rangle = 1\) 下对态 \(| \phi \rangle\) 进行变分，得到高斯的本征值方程
+在约束条件 $\langle \phi | \phi \rangle = 1$ 下对态 $| \phi \rangle$ 进行变分，得到高斯的本征值方程
 
-其中 \({\hat{X}} = ( {\hat{x}}_{\beta} ) , {\hat{P}} = ( {\hat{p}}_{\beta} ) , q = ( q_{\beta} )\) 是向量，\(\Omega = \mathrm{diag} ( \omega_{\beta} )\) 是对角矩阵，\(\mu\) 是拉格朗日乘子。对 \(q_{\beta}\) 和 \(\alpha_{\beta}\)（以向量形式表示 \(q_{\beta} , \alpha_{\beta}\)）进行变分得到方程
+其中 ${\hat{X}} = ( {\hat{x}}_{\beta} ) , {\hat{P}} = ( {\hat{p}}_{\beta} ) , q = ( q_{\beta} )$ 是向量，$\Omega = \mathrm{diag} ( \omega_{\beta} )$ 是对角矩阵，$\mu$ 是拉格朗日乘子。对 $q_{\beta}$ 和 $\alpha_{\beta}$（以向量形式表示 $q_{\beta} , \alpha_{\beta}$）进行变分得到方程
 
 $$
 \boxed{\begin{array} {r} {\boxed{D \cos \theta \langle \hat{P} \hat{P}^{T} \rangle q - \Omega \alpha \sin \theta + \frac{\Omega q - g} {2} = 0}} \\ {\boxed{\frac{\sin \theta ( g - \Omega q )} {2} + \Omega \alpha = 0}} \end{array}}\tag{S5}
 $$
 
-最后，对 \(\theta\) 变分得到
+最后，对 $\theta$ 变分得到
 
 ### 1. 玻色关联与位移
 
-实际上，我们可以在不使用对 \(\theta\) 变分所得方程的情况下推进求解，这与文献 [S22] 的精神高度一致，最后再添加对 \(\theta\) 变分产生的约束。由方程 (S5)，我们可以用 \(g\) 表示 \(q\)，得到
+实际上，我们可以在不使用对 $\theta$ 变分所得方程的情况下推进求解，这与文献 [S22] 的精神高度一致，最后再添加对 $\theta$ 变分产生的约束。由方程 (S5)，我们可以用 $g$ 表示 $q$，得到
 
 $$
 \left( \cos \theta \Omega + 2 D \langle \hat{P} \hat{P}^{T} \rangle \right) q = g \cos \theta\tag{S7}
 $$
 
-相关量 \(\langle \hat{P} \hat{P}^{T} \rangle\) 可以利用方程 (S4) 以矩阵形式写出：
+相关量 $\langle \hat{P} \hat{P}^{T} \rangle$ 可以利用方程 (S4) 以矩阵形式写出：
 
 $$
 \langle \hat{P} \hat{P}^{T} \rangle = \frac{1} {2} \Omega^{1 / 2} \frac{1} {\sqrt{\Omega^{2} + D \cos \theta \Omega^{1 / 2} q q^{T} \Omega^{1 / 2}}} \Omega^{1 / 2}\tag{S8}
 $$
 
-由于平方根内的矩阵是一个对角矩阵加上一个秩 1 扰动，我们可以使用预解式方法继续推导。我们实际上并不需要完整的矩阵，只需要它对向量 \(q\) 的作用，这最终会更简单。经过一些处理（详见本补充材料的后续部分）我们得到
+由于平方根内的矩阵是一个对角矩阵加上一个秩 1 扰动，我们可以使用预解式方法继续推导。我们实际上并不需要完整的矩阵，只需要它对向量 $q$ 的作用，这最终会更简单。经过一些处理（详见本补充材料的后续部分）我们得到
 
 $$
 \langle \hat{P} \hat{P}^{T} \rangle q = \frac{1} {2} \left\{\int_{\mathcal{C}} \frac{dz} {2 \pi i \sqrt{z}} \frac{\Omega} {z - \Omega^{2}} \frac{1} {1 - D \cos \theta \left[ q^{T} \left( \frac{\Omega} {z - \Omega^{2}} \right) q \right]} \right\} q ,\tag{S9}
 $$
 
-其中 \(\mathcal{C}\) 从 \(\infty + i 0^{+}\) 到 0，然后从 0 到 \(\infty - i 0^{+}\)。注意花括号内的对象可以写为矩阵函数 \(l ( \Omega )\)，其中 \(l\) 是由下式定义的函数
+其中 $\mathcal{C}$ 从 $\infty + i 0^{+}$ 到 0，然后从 0 到 $\infty - i 0^{+}$。注意花括号内的对象可以写为矩阵函数 $l ( \Omega )$，其中 $l$ 是由下式定义的函数
 
 然后，由方程 (S7) 我们得到
 
@@ -328,7 +328,7 @@ $$
 q = \left[ \frac{\cos \theta} {\Omega \cos \theta + D l ( \Omega )} \right] g\tag{S11}
 $$
 
-将这个形式代回方程 (S10)，我们得到函数 \(l\) 的自洽条件
+将这个形式代回方程 (S10)，我们得到函数 $l$ 的自洽条件
 
 在连续极限下，这变为
 
@@ -336,31 +336,31 @@ $$
 l ( x ) = \int_{\mathcal{C}} \frac{dz} {2 \pi i \sqrt{z}} \frac{x} {z - x^{2}} \left\{1 - 2 \alpha \omega_{c}^{1 - s} D ( \cos \theta )^{3} \int_{0}^{\omega_{c}} \frac{u^{s + 1} d u} {\left( z - u^{2} \right) \left[ u \cos \theta + D l ( u ) \right]^{2}} \right\}^{- 1} .\tag{S13}
 $$
 
-引入函数 \(m ( \omega \cos \theta / D ) = l ( \omega )\) 并适当改变变量（在 \(z\) 积分和 \(u\) 积分中），我们得到
+引入函数 $m ( \omega \cos \theta / D ) = l ( \omega )$ 并适当改变变量（在 $z$ 积分和 $u$ 积分中），我们得到
 
 $$
 m ( y ) = \int_{C} \frac{d \tilde{z}} {2 \pi i \sqrt{\tilde{z}}} \frac{y} {\tilde{z} - y^{2}} \left\{1 - 2 \alpha \omega_{c}^{1 - s} D^{1 - s} ( \cos \theta )^{3 - s} \int_{0}^{\omega_{c} \cos \theta / D} \frac{v^{s + 1} d v} {( \tilde{z} - v^{2} ) [ v + m ( v ) ]^{2}} \right\}^{- 1} .\tag{S14}
 $$
 
-最后，我们将积分围道从正 \(z\) 轴上的分支切割变形到负 \(z\) 轴，从而得到平方根分支切割的贡献。在将变量更改为 \(z_{*} = \sqrt{\tilde{z}}\) 并定义 \(\alpha_{D} = \alpha ( \omega_{c} / D )^{1 - s}\) 后，我们得到
+最后，我们将积分围道从正 $z$ 轴上的分支切割变形到负 $z$ 轴，从而得到平方根分支切割的贡献。在将变量更改为 $z_{*} = \sqrt{\tilde{z}}$ 并定义 $\alpha_{D} = \alpha ( \omega_{c} / D )^{1 - s}$ 后，我们得到
 
 $$
 m ( y ) = \int_{0}^{\infty} \frac{2 y d z_{*}} {\pi ( y^{2} + z_{*}^{2} )} \frac{1} {1 + 2 \alpha_{D} \cos \theta^{3 - s} \int_{0}^{\omega_{c} \cos \theta / D} \frac{v^{s + 1} d v} {\left( v^{2} + z_{*}^{2} \right) \left[ v + m ( v ) \right]^{2}}} ,\tag{S15}
 $$
 
-在定义 \(b = \alpha_{D} ( \cos \theta )^{3 - s}\) 和 \(y_{c} = \omega_{c} \cos \theta / D\) 后，这就是正文中的方程 (5)。因此我们有
+在定义 $b = \alpha_{D} ( \cos \theta )^{3 - s}$ 和 $y_{c} = \omega_{c} \cos \theta / D$ 后，这就是正文中的方程 (5)。因此我们有
 
 $$
 q = \left[ \frac{\cos \theta} {\Omega \cos \theta + D m \left( \frac{\Omega \cos \theta} {D} \right)} \right] g ,\tag{S16}
 $$
 
-如果我们定义 \(y = \Omega \cos \theta / D\)，这就是逐分量的方程 (4)。类似地，
+如果我们定义 $y = \Omega \cos \theta / D$，这就是逐分量的方程 (4)。类似地，
 
-当 \(\theta 0\) 时，\(\alpha_{\beta}\) 衰减到 0，正如预期的那样。
+当 $\theta 0$ 时，$\alpha_{\beta}$ 衰减到 0，正如预期的那样。
 
 ### a. 可观测量
 
-根据 \(D\) 的定义，我们有
+根据 $D$ 的定义，我们有
 
 在连续极限下，我们因此有
 
@@ -374,13 +374,13 @@ $$
 D = \Delta \exp \left\{- \alpha_{D} ( \cos \theta^{1 - s} ) \int_{0}^{\omega_{c} \cos \theta / D} \frac{m ( v ) v^{s} d v} {\left[ v + m ( v ) \right]^{2}} \right\} ,\tag{S20}
 $$
 
-在识别出 \(b = \alpha_{D} ( \cos \theta )^{3 - s}\) 后，再次恢复 \(\mathrm{E q . ~} ( 7 )\)。裸耦合 \(\alpha_{\Delta} = \alpha ( \omega_{c} / \Delta )^{1 - s}\) 的方程通过取其 \(( s - 1 )\) 次方幂从前一个方程得到
+在识别出 $b = \alpha_{D} ( \cos \theta )^{3 - s}$ 后，再次恢复 $\mathrm{E q . ~} ( 7 )$。裸耦合 $\alpha_{\Delta} = \alpha ( \omega_{c} / \Delta )^{1 - s}$ 的方程通过取其 $( s - 1 )$ 次方幂从前一个方程得到
 
 $$
 \alpha_{\Delta} = \alpha_{D} \exp \left\{- ( 1 - s ) \alpha_{D} ( \cos \theta^{1 - s} ) \int_{0}^{\omega_{c} \cos \theta / D} \frac{m ( v ) v^{s} d v} {\left[ v + m ( v ) \right]^{2}} \right\}\tag{S21}
 $$
 
-对于能量，我们替换 \(\alpha_{\beta}\) 的值，并将其改写为一种方便的形式
+对于能量，我们替换 $\alpha_{\beta}$ 的值，并将其改写为一种方便的形式
 
 $$
 \begin{array} {l} {\displaystyle E = - \frac{D \cos \theta} {2} + ( \cos \theta )^{2} \sum_{\beta} \frac{\left( g_{\beta} - \omega_{\beta} q_{\beta} \right)^{2}} {4 \omega_{\beta}} + \sum_{\beta} \left( \frac{\omega_{\beta}} {2} \langle \hat{x}_{\beta}^{2} \rangle + \frac{\omega_{\beta}} {2} \langle \hat{p}_{\beta}^{2} \rangle - \frac{\omega_{\beta}} {2} \right) + \frac{D \cos \theta} {2} \sum_{\beta \beta^{\prime}} q_{\beta} q_{\beta^{\prime}} \langle \hat{p}_{\beta} \hat{p}_{\beta^{\prime}} \rangle} \\ {\displaystyle ~ - \frac{D \cos \theta} {2} \sum_{\beta g^{\prime}} q_{\beta} q_{\beta^{\prime}} \langle \hat{p}_{\beta} \hat{p}_{\beta^{\prime}} \rangle - \frac{\omega_{c} \alpha} {2 s}} \end{array}\tag{S22}
@@ -932,7 +932,7 @@ $$
 | $D$ | $\Delta$ 经浴重整化后的隧穿分裂 | 有效隧穿矩阵元，由式 (7) 自洽确定 |
 | 数值网格节点数 | 8000（Gauss‑Legendre），$p=2.5$–$3.5$ | 保证小 $y,z$ 区域的积分精度 |
 | $b$ 临界扫描精度 | 2–4 轮精细化，相对误差 $0.5\%$ | 确定 $b_c$ 所在区间 |
-| 临界指数拟合值（$s=0.8$） | $3.986\pm0.001$ | $m_0\sim\lvert b-b_c\rvert ^\beta$，理论 $\beta=s/(1-s)=4$ |
+| 临界指数拟合值（$s=0.8$） | $3.986\pm0.001$ | $m_0\sim\lvert b-b_c\rvert^\beta$，理论 $\beta=s/(1-s)=4$ |
 
 ---
 
@@ -1017,7 +1017,7 @@ $$
 | 自洽积分方程 | Self-Consistent Integral Equation | 关于 $m(y)$ 的非线性积分方程，压缩极化子理论的核心 |
 | 高频截止 | Ultraviolet Cutoff | 浴谱的最大频率 $\omega_c$，提供短时间标度 |
 | 变分多极化子 | Variational Polaron Ansatz (VPA) | 用多个独立极化子叠加描述多体纠缠的变分方法 |
-| 关联长度指数 | Correlation Length Exponent $\nu$ | 描述关联长度 $\xi\sim\lvert \alpha-\alpha_c\rvert ^{-\nu}$ 的发散行为 |
+| 关联长度指数 | Correlation Length Exponent $\nu$ | 描述关联长度 $\xi\sim\lvert \alpha-\alpha_c\rvert^{-\nu}$ 的发散行为 |
 
 ---
 

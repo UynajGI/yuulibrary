@@ -559,16 +559,16 @@ $$
 
 ### 关键公式速查
 
-- \[\hat{H} = \frac{\varepsilon}{2}\sigma_z - \frac{\Delta}{2}\sigma_x + \sum_k \hbar\omega_k b_k^\dagger b_k + \sum_k[\lambda_k(b_k^\dagger\sigma_-+b_k\sigma_+) + \gamma_k(b_k^\dagger\sigma_++b_k\sigma_-)]\] — 各向异性自旋-玻色子模型哈密顿量，式 (1)
-- \[J(\omega) = 2\alpha\omega_c^{1-s}\omega^s,\quad 0<\omega<\omega_c\] — 亚欧姆谱密度（$s=0.3$，$\omega_c=1$），式 (2) 前
-- \[\eta_k^2 = \int_{\Lambda_k\omega_c}^{\Lambda_{k+1}\omega_c} dt J(t),\quad \omega_k = \eta_k^{-2}\int_{\Lambda_k\omega_c}^{\Lambda_{k+1}\omega_c} dt J(t)t\] — Wilson 对数网格离散化（$\Lambda_k=\Lambda^{k-M}$），式 (2)
-- \[\frac{\partial\mathcal{H}}{\partial x_i} - E\frac{\partial\mathcal{N}}{\partial x_i} = 0\] — 变分自洽方程（拉格朗日乘子法），式 (6)
-- \[S_{\mathrm{v-N}} = -\mathrm{Tr}[\rho_s\log_2\rho_s]\] — 冯·诺依曼熵（自旋-浴纠缠度量），式 (11)
-- \[\hat{\Pi} = \exp(i\pi\hat{N}_{\mathrm{ex}}),\quad \hat{N}_{\mathrm{ex}} = \sum_k b_k^\dagger b_k + \sigma_+\sigma_-\] — 宇称算符与总激发数，式 (13)
-- \[S_{\mathrm{v-N}} \sim b - A\nu(c/6)\ln(\alpha-\alpha_c)\] — 局域相纠缠熵对数标度（共形场论），式 (15)
-- \[|\langle\sigma_z\rangle| \sim |\alpha-\alpha_c|^\beta\] — 序参量幂律标度（临界指数 $\beta$），图 10
-- \[\alpha_c^{\mathrm{RW}}(\Delta) = \alpha_c^{\mathrm{CRW}}(-\Delta)\] — RW/CRW 相图镜像对称关系，第 IV 节
-- \[\delta E_g^{(2)} = \langle\Psi_g|\hat{H}^2|\Psi_g\rangle - \langle\Psi_g|\hat{H}|\Psi_g\rangle^2\] — 基态能量方差（NVM 收敛判据），式 (A1)
+- $$\hat{H} = \frac{\varepsilon}{2}\sigma_z - \frac{\Delta}{2}\sigma_x + \sum_k \hbar\omega_k b_k^\dagger b_k + \sum_k[\lambda_k(b_k^\dagger\sigma_-+b_k\sigma_+) + \gamma_k(b_k^\dagger\sigma_++b_k\sigma_-)]$$ — 各向异性自旋-玻色子模型哈密顿量，式 (1)
+- $$J(\omega) = 2\alpha\omega_c^{1-s}\omega^s,\quad 0<\omega<\omega_c$$ — 亚欧姆谱密度（$s=0.3$，$\omega_c=1$），式 (2) 前
+- $$\eta_k^2 = \int_{\Lambda_k\omega_c}^{\Lambda_{k+1}\omega_c} dt J(t),\quad \omega_k = \eta_k^{-2}\int_{\Lambda_k\omega_c}^{\Lambda_{k+1}\omega_c} dt J(t)t$$ — Wilson 对数网格离散化（$\Lambda_k=\Lambda^{k-M}$），式 (2)
+- $$\frac{\partial\mathcal{H}}{\partial x_i} - E\frac{\partial\mathcal{N}}{\partial x_i} = 0$$ — 变分自洽方程（拉格朗日乘子法），式 (6)
+- $$S_{\mathrm{v-N}} = -\mathrm{Tr}[\rho_s\log_2\rho_s]$$ — 冯·诺依曼熵（自旋-浴纠缠度量），式 (11)
+- $$\hat{\Pi} = \exp(i\pi\hat{N}_{\mathrm{ex}}),\quad \hat{N}_{\mathrm{ex}} = \sum_k b_k^\dagger b_k + \sigma_+\sigma_-$$ — 宇称算符与总激发数，式 (13)
+- $$S_{\mathrm{v-N}} \sim b - A\nu(c/6)\ln(\alpha-\alpha_c)$$ — 局域相纠缠熵对数标度（共形场论），式 (15)
+- $$|\langle\sigma_z\rangle| \sim |\alpha-\alpha_c|^\beta$$ — 序参量幂律标度（临界指数 $\beta$），图 10
+- $$\alpha_c^{\mathrm{RW}}(\Delta) = \alpha_c^{\mathrm{CRW}}(-\Delta)$$ — RW/CRW 相图镜像对称关系，第 IV 节
+- $$\delta E_g^{(2)} = \langle\Psi_g|\hat{H}^2|\Psi_g\rangle - \langle\Psi_g|\hat{H}|\Psi_g\rangle^2$$ — 基态能量方差（NVM 收敛判据），式 (A1)
 
 ### 术语对照
 

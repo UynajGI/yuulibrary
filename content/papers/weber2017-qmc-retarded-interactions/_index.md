@@ -93,6 +93,7 @@ $$
 而对角相互作用顶点读作
 
 ![](images/5b396907ded9ebc4c4df5765e2de8b4460c141c8a178a54b85ce0ee0494e1faa.webp)
+
 {{< caption >}}图1.1 无自旋 Holstein 模型的顶点，参见式 (8) 和 (9)。顶点 $\nu_{1}$ 是连接位点 $i ( b_{1} )$ 和 $j ( b_{1} )$ 的键 $b_{1}$ 上的一个对角顶点 $( a_{1 , 1} = a_{1 , 2} = 2 )$。它由时间 $\tau_{1 , 1}$ 处的子顶点 $\nu_{1 , 1}$ 和时间 $\tau_{1 , 2}$ 处的子顶点 $\nu_{1 , 2}$ 组成。顶点 $\nu_{2}$ 是非对角的 $( a_{2 , 1} = 1$ $a_{2 , 2} = 0 )$，作用于 $b_{2} , \tau_{2 , 1} , \tau_{2 , 2}$。空心（实心）符号表示空（占据）的晶格位点。{{< /caption >}}
 
 $$
@@ -114,6 +115,7 @@ $$
 在验证了其数值效率后，我们利用该方法获得了半满无自旋Holstein模型（2）的高精度结果。该模型为研究一维电子与量子声子耦合的Peierls相变提供了一个通用框架。根据先前的研究[45–49]，该模型展现出具有动力学指数 $z = 1$ 的Berezinskii-Kosterlitz-Thouless量子相变，在Luttinger液体和具有 $q = 2 k_{\mathrm{F}} = \pi$ 电荷密度与晶格形变调制的电荷密度波（CDW）绝缘体之间转变。由于 $z = 1$，我们保持 $\beta / L = \mathrm{const}$
 
 ![](images/756ba6f659eafe693aed95a9c849c220e442fb872601f071358f3f515bf029b8.webp)
+
 {{< caption >}}图2：通过分箱分析[44]确定的、无自旋和有自旋Holstein模型总能量的自相关时间 $\tau_{\mathrm{int}}$。此处 $L = 18 , \beta t = 2 L$。箭头指示Peierls临界值 $\lambda_{c} ( \omega_{0} )$ [18,45]。{{< /caption >}}
 
 ![](images/1ec63dd44e815c916854ba32679beb3e0b06c1178f51b4b67f6d2d930d6acc57.webp)
@@ -122,6 +124,7 @@ $$
 
 8
 ![](images/4f7ef1b96455264f1150a718a9f63c9a9ad4cb37f861fe199a6ff68cc2b719c2.webp)
+
 {{< caption >}}图3：无自旋Holstein模型 $( \omega_{0} = 0.4 t )$ 的结果。(a) 实空间密度关联函数在偶数距离上作为共形距离 $\xi = L \sin ( \pi r / L )$ [50]的函数，计算于长度长达 $L = 1282$ 个格点的链上 $( \beta t = 2 L )$。虚线表示在 $\lambda_{c}$ 处预期的 $1 / \xi$ 衰减。插图：通过使用 $L = 162 – 562$ 将 $C_{\rho} ( L / 2 )$ 拟合为 $A / r^{2 K}$ 提取的Luttinger参数 $\mathbb{K}$。(b) 距离为 $L / 2$ 处密度关联的有限尺寸标度，表明在 $\lambda_{c} = 0.68 ( 1 )$ 之后存在长程序。此处 $\beta t = 2 L$，图例与(a)相同。(c) $\beta t = 4 L$ 时的保真度磁化率。虚线指示 $\lambda_{c}$。{{< /caption >}}
 
 图3展示了实空间密度关联函数 $C_{\rho} ( r ) = \langle \hat{\rho}_{r} \hat{\rho}_{0} \rangle$（使用共形距离 $\xi$，见图3说明）和保真度磁化率 $\chi_{F}$ [41,51]，后者是量子保真度的有限温度推广，是量子相变的无偏诊断工具[52,53]。我们模拟了格点数高达 $L = 1282$、$\beta t \geq 2 L$ 的系统。先前关于实空间关联函数的结果仅报道到 $L \lesssim 50$ [23]，而其他量的DMRG结果最多到 $L = 256$ [45]。
@@ -141,11 +144,19 @@ $$
 在SSE表示中，蒙特卡罗构型的权重 $\begin{array} {r} {W ( C_{n} ) ~ = ~ \frac{1} {n !} \prod_{p = 1}^{\bar{n}} \mathcal{W}_{\nu_{p}} .} \end{array}$ 分解为单个顶点权重 $\mathcal{W}_{\nu} =$ $w ( \tau_{1} , \tau_{2} ) W [ h_{a_{1} a_{2} , b} ( \tau_{1} , \tau_{2} ) ]$ 的乘积。顶点的显式时间依赖关系体现在 $w ( \tau_{1} , \tau_{2} ) = P ( \tau_{1} - \tau_{2} ) d \tau_{1} d \tau_{2}$ 中，该因子与算子类型无关，因此仅需在对角更新过程中考虑。剩余部分 $W [ h_{a_{1} a_{2} , b} ( \tau_{1} , \tau_{2} ) ] = W_{v_{1} , v_{2}}$ 完全由顶点类型 $v_{1} , v_{2} \in \{1 , \ldots , 6 \}$ 决定，而这些顶点类型又进一步指定了每个子顶点处世界线构型的变化。图1展示了无自旋Holstein模型可能的子顶点类型，其中 $v \in \{1 , \ldots , 4 \}$ 对应单位算符和对角算符 $( a = 0 , 2 )$，而 $v \in \{5 , 6 \}$ 对应非对角算符 (a = 1)。相应的权重 $W_{v_{1} , v_{2}}$ 列于表I。
 
 表I. 无自旋Holstein模型在所有顶点类型 v₁ 和 v₂ 可能组合下的顶点权重 $W_{v_{1} , v_{2}}$。
-<table><tr><td>v2 v1</td><td>1</td><td>2</td><td>3</td><td>4</td><td></td><td>5 6</td><td></td></tr><tr><td>1</td><td>λt (C + 1)</td><td>λtC λt (C + 1) λt (C − )</td><td>λtC</td><td>—1)</td><td>λt (C − −) t/2 t/2 λtC</td><td></td><td>t/2 t/2</td></tr><tr><td>2 3</td><td>λtC λtC</td><td>λt (C − 1) λt (C +</td><td></td><td>1)</td><td>λtC</td><td></td><td>t/2 t/2</td></tr><tr><td>4</td><td>λt (C − 1)</td><td>λtC</td><td>λtC</td><td></td><td>λt (C + 1) t/2 t/2</td><td></td><td></td></tr><tr><td>5</td><td>t/2</td><td>t/2</td><td>t/2</td><td></td><td>t/2</td><td></td><td>0 0</td></tr><tr><td>6</td><td>t/2</td><td>t/2</td><td>t/2</td><td></td><td>t/2</td><td>0</td><td>0</td></tr><tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr></table>
+| v2 v1 | 1 | 2 | 3 | 4 |  | 5 6 |  |
+|---|---|---|---|---|---|---|---|
+| 1 | λt (C + 1) | λtC λt (C + 1) λt (C − ) | λtC | —1) | λt (C − −) t/2 t/2 λtC |  | t/2 t/2 |
+| 2 3 | λtC λtC | λt (C − 1) λt (C + |  | 1) | λtC |  | t/2 t/2 |
+| 4 | λt (C − 1) | λtC | λtC |  | λt (C + 1) t/2 t/2 |  |  |
+| 5 | t/2 | t/2 | t/2 |  | t/2 |  | 0 0 |
+| 6 | t/2 | t/2 | t/2 |  | t/2 | 0 | 0 |
+|  |  |  |  |  |  |  |  |
 
 {{< caption >}}图1：无自旋Holstein模型的子顶点类型。空心(实心)符号表示空(占据)晶格位点。{{< /caption >}}
 
 ![](images/67689037950db55515f9274637d1b2ea4aa1a98d57ee884b9ab9b16848158b94.webp)
+
 {{< caption >}}图2：(a) 顶点由子顶点类型 v₁ 和 v₂ 确定。有向路径仅分配给一个子顶点，并翻转对应状态的占据数。此处，我们考虑 $h_{10 , b} ( \tau_{1} , \tau_{2} ) h_{22 , b} ( \tau_{1} , \tau_{2} )$。(b) 针对类型为 v₁ 的子顶点的有向回路方程分配表示例。{{< /caption >}}
 
 ### 有向回路方程的求解
@@ -182,55 +193,55 @@ $$
 
 [2] F. Alet, S. Wessel, and M. Troyer, Phys. Rev. E 71, 036706 (2005).
 
-[1] S. White, Phys. Rev. Lett. <sup>69</sup>, 2863 (1992).
+[1] S. White, Phys. Rev. Lett. $^{69}$, 2863 (1992).
 
-[2] S. White, Phys. Rev. B <sup>48</sup>, 10345 (1993).
+[2] S. White, Phys. Rev. B $^{48}$, 10345 (1993).
 
-[3] A. W. Sandvik and J. Kurkijärvi, Phys. Rev. B <sup>43</sup>, 5950 (1991).
+[3] A. W. Sandvik and J. Kurkijärvi, Phys. Rev. B $^{43}$, 5950 (1991).
 
-[4] A. W. Sandvik, Phys. Rev. B <sup>59</sup>, R14157 (1999).
+[4] A. W. Sandvik, Phys. Rev. B $^{59}$, R14157 (1999).
 
-[5] O. F. Syljuasen and A. W. Sandvik, Phys. Rev. E <sup>66</sup>, 046701 (2002).
+[5] O. F. Syljuasen and A. W. Sandvik, Phys. Rev. E $^{66}$, 046701 (2002).
 
-[6] F. Alet, S. Wessel, and M. Troyer, Phys. Rev. E <sup>71</sup>, 036706 (2005).
+[6] F. Alet, S. Wessel, and M. Troyer, Phys. Rev. E $^{71}$, 036706 (2005).
 
-[7] A. W. Sandvik, Phys. Rev. Lett. <sup>98</sup>, 227202 (2007).
+[7] A. W. Sandvik, Phys. Rev. Lett. $^{98}$, 227202 (2007).
 
-[8] J. Carrasquilla, Z. Hao, and R. G. Melko, Nat. Commun. <sup>6</sup>, 7421 (2015).
+[8] J. Carrasquilla, Z. Hao, and R. G. Melko, Nat. Commun. $^{6}$, 7421 (2015).
 
-[9] Y. Wang, W. Guo, and A. W. Sandvik, Phys. Rev. Lett. <sup>114</sup>, 105303 (2015).
+[9] Y. Wang, W. Guo, and A. W. Sandvik, Phys. Rev. Lett. $^{114}$, 105303 (2015).
 
-[10] P. Sengupta, L. P. Pryadko, F. Alet, M. Troyer, and G. Schmid, Phys. Rev. Lett. <sup>94</sup>, 207202 (2005).
+[10] P. Sengupta, L. P. Pryadko, F. Alet, M. Troyer, and G. Schmid, Phys. Rev. Lett. $^{94}$, 207202 (2005).
 
-[11] M. Hohenadler, M. Aichhorn, S. Schmidt, and L. Pollet, Phys. Rev. A <sup>84</sup>, 041608 (2011).
+[11] M. Hohenadler, M. Aichhorn, S. Schmidt, and L. Pollet, Phys. Rev. A $^{84}$, 041608 (2011).
 
-[12] T. Holstein, Ann. Phys. (N.Y.) <sup>8</sup>, 325 (1959).
+[12] T. Holstein, Ann. Phys. (N.Y.) $^{8}$, 325 (1959).
 
-[13] W. P. Su, J. R. Schrieffer, and A. J. Heeger, Phys. Rev. Lett. <sup>42</sup>, 1698 (1979).
+[13] W. P. Su, J. R. Schrieffer, and A. J. Heeger, Phys. Rev. Lett. $^{42}$, 1698 (1979).
 
-[14] D. M. Edwards, Physica (Amsterdam) <sup>378</sup>–<sup>380B</sup>, 133 (2006).
+[14] D. M. Edwards, Physica (Amsterdam) $^{378}$–<sup>380B</sup>, 133 (2006).
 
-[15] D. C. Langreth, Phys. Rev. B <sup>1</sup>, 471 (1970).
+[15] D. C. Langreth, Phys. Rev. B $^{1}$, 471 (1970).
 
-[16] P. Werner, A. Comanac, L. de’ Medici, M. Troyer, and A. J. Millis, Phys. Rev. Lett. <sup>97</sup>, 076405 (2006).
+[16] P. Werner, A. Comanac, L. de’ Medici, M. Troyer, and A. J. Millis, Phys. Rev. Lett. $^{97}$, 076405 (2006).
 
-[17] E. Jeckelmann, C. Zhang, and S. R. White, Phys. Rev. B <sup>60</sup>, 7950 (1999).
+[17] E. Jeckelmann, C. Zhang, and S. R. White, Phys. Rev. B $^{60}$, 7950 (1999).
 
-[18] H. Fehske, G. Hager, and E. Jeckelmann, Europhys. Lett. <sup>84</sup>, 57001 (2008).
+[18] H. Fehske, G. Hager, and E. Jeckelmann, Europhys. Lett. $^{84}$, 57001 (2008).
 
-[19] M. Tezuka, R. Arita, and H. Aoki, Phys. Rev. Lett. <sup>95</sup>, 226401 (2005).
+[19] M. Tezuka, R. Arita, and H. Aoki, Phys. Rev. Lett. $^{95}$, 226401 (2005).
 
-[20] R. T. Clay and R. P. Hardikar, Phys. Rev. Lett. <sup>95</sup>, 096401 (2005).
+[20] R. T. Clay and R. P. Hardikar, Phys. Rev. Lett. $^{95}$, 096401 (2005).
 
-[21] R. P. Hardikar and R. T. Clay, Phys. Rev. B <sup>75</sup>, 245103 (2007).
+[21] R. P. Hardikar and R. T. Clay, Phys. Rev. B $^{75}$, 245103 (2007).
 
-[22] P. Sengupta, A. W. Sandvik, and D. K. Campbell, Phys. Rev. B <sup>67</sup>, 245103 (2003).
+[22] P. Sengupta, A. W. Sandvik, and D. K. Campbell, Phys. Rev. B $^{67}$, 245103 (2003).
 
-[23] J. Greitemann, S. Hesselmann, S. Wessel, F. F. Assaad, and M. Hohenadler, Phys. Rev. B <sup>92</sup>, 245132 (2015).
+[23] J. Greitemann, S. Hesselmann, S. Wessel, F. F. Assaad, and M. Hohenadler, Phys. Rev. B $^{92}$, 245132 (2015).
 
-[24] A. W. Sandvik and D. K. Campbell, Phys. Rev. Lett. <sup>83</sup>, 195 (1999).
+[24] A. W. Sandvik and D. K. Campbell, Phys. Rev. Lett. $^{83}$, 195 (1999).
 
-[25] A. W. Sandvik, R. R. P. Singh, and D. K. Campbell, Phys. Rev. B <sup>56</sup>, 14510 (1997).
+[25] A. W. Sandvik, R. R. P. Singh, and D. K. Campbell, Phys. Rev. B $^{56}$, 14510 (1997).
 
 [26] F. Michel and H. G. Evertz, arXiv:0705.0799.
 
@@ -238,31 +249,31 @@ $$
 
 [28] M. Hohenadler and T. C. Lang, in Computational Many-Particle Physics, edited by H. Fehske, R. Schneider, and A. Weiße (Springer, Berlin, Heidelberg, 2008), p. 357.
 
-[29] A. N. Rubtsov, V. V. Savkin, and A. I. Lichtenstein, Phys. Rev. B <sup>72</sup>, 035122 (2005).
+[29] A. N. Rubtsov, V. V. Savkin, and A. I. Lichtenstein, Phys. Rev. B $^{72}$, 035122 (2005).
 
-[30] F. F. Assaad and T. C. Lang, Phys. Rev. B <sup>76</sup>, 035116 (2007).
+[30] F. F. Assaad and T. C. Lang, Phys. Rev. B $^{76}$, 035116 (2007).
 
 [31] F. F. Assaad, DMFT at 25: Infinite Dimensions: Lecture Notes of the Autumn School on Correlated Electrons, (Verlag des Forschungszentrum Jülich, Jülich, 2014) Chap. 7. Continuous-time QMC Solvers for Electronic Systems in Fermionic and Bosonic Baths.
 
-[32] A. W. Sandvik, Phys. Rev. E <sup>68</sup>, 056701 (2003).
+[32] A. W. Sandvik, Phys. Rev. E $^{68}$, 056701 (2003).
 
-[33] M. Hohenadler, S. Wessel, M. Daghofer, and F. F. Assaad, Phys. Rev. B <sup>85</sup>, 195115 (2012).
+[33] M. Hohenadler, S. Wessel, M. Daghofer, and F. F. Assaad, Phys. Rev. B $^{85}$, 195115 (2012).
 
 [34] J. W. Negele and H. Orland, Quantum Many-Particle Systems (Perseus Books, Reading, MA, 1998).
 
-[35] R. P. Feynman, Phys. Rev. <sup>97</sup>, 660 (1955).
+[35] R. P. Feynman, Phys. Rev. $^{97}$, 660 (1955).
 
 [36] See Supplemental Material at <http://link.aps.org/supplemental/10.1103/PhysRevLett.119.097401> for explicit vertex weights for the spinless Holstein model, the corresponding directed-loop equations, and their solution.
 
-[37] N. Metropolis, A. W. Rosenbluth, M. N. Rosenbluth, A. H. Teller, and E. Teller, J. Chem. Phys. <sup>21</sup>, 1087 (1953).
+[37] N. Metropolis, A. W. Rosenbluth, M. N. Rosenbluth, A. H. Teller, and E. Teller, J. Chem. Phys. $^{21}$, 1087 (1953).
 
-[38] W. K. Hastings, Biometrika <sup>57</sup>, 97 (1970).
+[38] W. K. Hastings, Biometrika $^{57}$, 97 (1970).
 
 [39] M. Hohenadler and H. Fehske, arXiv:1706.00470.
 
-[40] A. W. Sandvik, J. Phys. A <sup>25</sup>, 3667 (1992).
+[40] A. W. Sandvik, J. Phys. A $^{25}$, 3667 (1992).
 
-[41] M. Weber, F. F. Assaad, and M. Hohenadler, Phys. Rev. B <sup>94</sup>, 245138 (2016).
+[41] M. Weber, F. F. Assaad, and M. Hohenadler, Phys. Rev. B $^{94}$, 245138 (2016).
 
 [42] A sweep consisted of two blocks of diagonal and directedloop updates. For each block of diagonal updates, we attempted approximately $2 \langle n_{\mathrm{diag}} \rangle$ updates. The number of loop updates was fixed by touching approximately $2 \langle n \rangle$ subvertices of type $a = 1 , 2$
 
@@ -270,37 +281,37 @@ $$
 
 [44] W. Janke, Monte Carlo Methods in Classical Statistical Physics, in Computational Many-Particle Physics, edited by H. Fehske, R. Schneider, and A. Weiße (Springer, Berlin, Heidelberg, 2008), p. 79.
 
-[45] S. Ejima and H. Fehske, Europhys. Lett. <sup>87</sup>, 27001 (2009).
+[45] S. Ejima and H. Fehske, Europhys. Lett. $^{87}$, 27001 (2009).
 
-[46] J. E. Hirsch and E. Fradkin, Phys. Rev. B <sup>27</sup>, 4302 (1983).
+[46] J. E. Hirsch and E. Fradkin, Phys. Rev. B $^{27}$, 4302 (1983).
 
-[47] R. J. Bursill, R. H. McKenzie, and C. J. Hamer, Phys. Rev. Lett. <sup>80</sup>, 5607 (1998).
+[47] R. J. Bursill, R. H. McKenzie, and C. J. Hamer, Phys. Rev. Lett. $^{80}$, 5607 (1998).
 
-[48] A. Weiße and H. Fehske, Phys. Rev. B <sup>58</sup>, 13526 (1998).
+[48] A. Weiße and H. Fehske, Phys. Rev. B $^{58}$, 13526 (1998).
 
-[49] M. Hohenadler, G. Wellein, A. R. Bishop, A. Alvermann, and H. Fehske, Phys. Rev. B <sup>73</sup>, 245120 (2006).
+[49] M. Hohenadler, G. Wellein, A. R. Bishop, A. Alvermann, and H. Fehske, Phys. Rev. B $^{73}$, 245120 (2006).
 
 [50] J. Cardy, Scaling and Renormalization in Statistical Physics (Cambridge University Press, Cambridge, England, 1996).
 
-[51] L. Wang, Y.-H. Liu, J. Imriška, P. N. Ma, and M. Troyer, Phys. Rev. X <sup>5</sup>, 031007 (2015).
+[51] L. Wang, Y.-H. Liu, J. Imriška, P. N. Ma, and M. Troyer, Phys. Rev. X $^{5}$, 031007 (2015).
 
-[52] P. Zanardi and N. Paunković, Phys. Rev. E <sup>74</sup>, 031123 (2006).
+[52] P. Zanardi and N. Paunković, Phys. Rev. E $^{74}$, 031123 (2006).
 
-[53] S.-J. Gu, Int. J. Mod. Phys. B <sup>24</sup>, 4371 (2010).
+[53] S.-J. Gu, Int. J. Mod. Phys. B $^{24}$, 4371 (2010).
 
-[54] J. Voit, Rep. Prog. Phys. <sup>58</sup>, 977 (1995).
+[54] J. Voit, Rep. Prog. Phys. $^{58}$, 977 (1995).
 
-[55] G. Sun, A. K. Kolezhuk, and T. Vekua, Phys. Rev. B <sup>91</sup>, 014418 (2015).
+[55] G. Sun, A. K. Kolezhuk, and T. Vekua, Phys. Rev. B $^{91}$, 014418 (2015).
 
-[56] A. Luther and V. J. Emery, Phys. Rev. Lett. <sup>33</sup>, 589 (1974).
+[56] A. Luther and V. J. Emery, Phys. Rev. Lett. $^{33}$, 589 (1974).
 
-[57] J. Voit, Eur. Phys. J. B <sup>5</sup>, 505 (1998).
+[57] J. Voit, Eur. Phys. J. B $^{5}$, 505 (1998).
 
-[58] Z. Cai, U. Schollwöck, and L. Pollet, Phys. Rev. Lett. <sup>113</sup>, 260403 (2014).
+[58] Z. Cai, U. Schollwöck, and L. Pollet, Phys. Rev. Lett. $^{113}$, 260403 (2014).
 
 [59] Z. Cai, Z. Yan, L. Pollet, J. Lou, X. Wang, and Y. Chen, arXiv:1704.00606.
 
-[60] Jülich Supercomputing Centre, J. Large-Scale Res. Facilities <sup>2</sup>, A62 (2016).
+[60] Jülich Supercomputing Centre, J. Large-Scale Res. Facilities $^{2}$, A62 (2016).
 
 ---
 
@@ -366,15 +377,15 @@ $$
 
 ### 关键公式速查
 
-- \[Z = \sum_{\alpha} \sum_{n=0}^{\infty} \frac{\beta^n}{n!} \sum_{S_n} \langle\alpha| \prod_{p=1}^{n} \hat{H}_{a_p,b_p} |\alpha\rangle\] — SSE 配分函数展开，式 (1)
-- \[\hat{H} = -t\sum_i (\hat{c}_i^\dagger \hat{c}_{i+1} + \mathrm{H.c.}) + \omega_0\sum_i \hat{a}_i^\dagger \hat{a}_i + \gamma\sum_i \hat{\rho}_i(\hat{a}_i^\dagger + \hat{a}_i)\] — 无自旋 Holstein 哈密顿量（$\hat{\rho}_i = \hat{n}_i - 1/2$），式 (2)
-- \[S_{\mathrm{ret}} = -2\lambda t \iint d\tau_1 d\tau_2 \sum_i \rho_i(\tau_1) P(\tau_1-\tau_2) \rho_i(\tau_2)\] — 解析积分掉玻色子后的延迟相互作用作用量，$\lambda = \gamma^2/(2\omega_0 t)$，式 (3)
-- \[P(\tau) = \frac{\omega_0 \cosh[\omega_0(\beta/2 - \tau)]}{2\sinh(\omega_0\beta/2)}\] — 自由玻色子传播子（虚时格林函数），周期 $P(\tau+\beta)=P(\tau)$，式 (3) 下文
-- \[S_1 = -\sum_{\nu} w_\nu h_\nu\] — 作用量写为顶点求和，$\nu$ 为超顶点索引，$w_\nu$ 为权重，$h_\nu$ 为 Grassmann 表示，式 (4)
-- \[Z = \sum_{n=0}^{\infty} \sum_{C_n} \frac{Z_0}{n!} w_{\nu_1}\cdots w_{\nu_n} \langle h_{\nu_1}\cdots h_{\nu_n} \rangle_0\] — 延迟相互作用的 SSE 展开，式 (5)
-- \[\mathcal{W}_\nu = w(\tau_1,\tau_2) W[h_{a_1 a_2,b}(\tau_1,\tau_2)]\] — 顶点权重分解：时间部分 $w(\tau_1,\tau_2)=P(\tau_1-\tau_2)d\tau_1 d\tau_2$ 和构型部分 $W$，正文式 (7) 附近
-- \[h_{22,b}(\tau_1,\tau_2) = \lambda t [C + \rho_{i(b)}(\tau_1)\rho_{i(b)}(\tau_2) + (i\leftrightarrow j)]\] — 对角顶点（密度-密度相互作用），$C=1/2+\delta$ 保证正定性，式 (9)
-- \[h_{10,b}(\tau_1,\tau_2) = \frac{t}{2} B_b(\tau_1) \mathbb{1}_b(\tau_2),\; h_{01,b}(\tau_1,\tau_2) = \frac{t}{2} \mathbb{1}_b(\tau_1) B_b(\tau_2)\] — 非对角顶点（跳跃 + 单位虚算符），式 (8)
+- $$Z = \sum_{\alpha} \sum_{n=0}^{\infty} \frac{\beta^n}{n!} \sum_{S_n} \langle\alpha| \prod_{p=1}^{n} \hat{H}_{a_p,b_p} |\alpha\rangle$$ — SSE 配分函数展开，式 (1)
+- $$\hat{H} = -t\sum_i (\hat{c}_i^\dagger \hat{c}_{i+1} + \mathrm{H.c.}) + \omega_0\sum_i \hat{a}_i^\dagger \hat{a}_i + \gamma\sum_i \hat{\rho}_i(\hat{a}_i^\dagger + \hat{a}_i)$$ — 无自旋 Holstein 哈密顿量（$\hat{\rho}_i = \hat{n}_i - 1/2$），式 (2)
+- $$S_{\mathrm{ret}} = -2\lambda t \iint d\tau_1 d\tau_2 \sum_i \rho_i(\tau_1) P(\tau_1-\tau_2) \rho_i(\tau_2)$$ — 解析积分掉玻色子后的延迟相互作用作用量，$\lambda = \gamma^2/(2\omega_0 t)$，式 (3)
+- $$P(\tau) = \frac{\omega_0 \cosh[\omega_0(\beta/2 - \tau)]}{2\sinh(\omega_0\beta/2)}$$ — 自由玻色子传播子（虚时格林函数），周期 $P(\tau+\beta)=P(\tau)$，式 (3) 下文
+- $$S_1 = -\sum_{\nu} w_\nu h_\nu$$ — 作用量写为顶点求和，$\nu$ 为超顶点索引，$w_\nu$ 为权重，$h_\nu$ 为 Grassmann 表示，式 (4)
+- $$Z = \sum_{n=0}^{\infty} \sum_{C_n} \frac{Z_0}{n!} w_{\nu_1}\cdots w_{\nu_n} \langle h_{\nu_1}\cdots h_{\nu_n} \rangle_0$$ — 延迟相互作用的 SSE 展开，式 (5)
+- $$\mathcal{W}_\nu = w(\tau_1,\tau_2) W[h_{a_1 a_2,b}(\tau_1,\tau_2)]$$ — 顶点权重分解：时间部分 $w(\tau_1,\tau_2)=P(\tau_1-\tau_2)d\tau_1 d\tau_2$ 和构型部分 $W$，正文式 (7) 附近
+- $$h_{22,b}(\tau_1,\tau_2) = \lambda t [C + \rho_{i(b)}(\tau_1)\rho_{i(b)}(\tau_2) + (i\leftrightarrow j)]$$ — 对角顶点（密度-密度相互作用），$C=1/2+\delta$ 保证正定性，式 (9)
+- $$h_{10,b}(\tau_1,\tau_2) = \frac{t}{2} B_b(\tau_1) \mathbb{1}_b(\tau_2),\; h_{01,b}(\tau_1,\tau_2) = \frac{t}{2} \mathbb{1}_b(\tau_1) B_b(\tau_2)$$ — 非对角顶点（跳跃 + 单位虚算符），式 (8)
 
 ### 术语对照
 

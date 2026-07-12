@@ -28,17 +28,17 @@ $$
 \begin{array} {c c} {{\mathrm{tr}_{P} \mathrm{e}^{- i S \Delta t} \rho \otimes \sigma \mathrm{e}^{i S \Delta t} = ( \cos^{2} \Delta t ) \sigma + ( \sin^{2} \Delta t ) \rho - i \sin \Delta t \cos \Delta t [ \rho , \sigma ]}} \\ {{{}}} & {{{}}} \\ {{{} = \sigma - i \Delta t [ \rho , \sigma ] + O ( \Delta t^{2} )}} & {{( 1}} \end{array}\tag{}
 $$
 
-这里 tr 表示对第一个变量的偏迹，S 是互换算符。S 是一个稀疏矩阵，其元素能够高效计算，因此 \(\mathrm{e}^{- i S \Delta t}\) 可以高效实现<sup>11–14</sup>。反复将 (1) 式应用于 n 份 \(\rho\) 的副本，可以构造出 \(\mathrm{e}^{- i \rho n \Delta t} \sigma \mathrm{e}^{i \rho n \Delta t}\)。与量子模拟的铃木–Trotter 理论<sup>11–14</sup> 的比较表明，要模拟 \(\mathrm{e}^{- i \rho t}\) 达到精度 ，需要 \(n {=} O ( t^{2} \epsilon^{- 1} | \rho - \sigma | ^{2} ) {\leq} O ( t^{2} \epsilon^{- 1} )\) 步，其中 \(t = n \Delta t\)，\(<\)sup\(>\)|\(<\)/sup\(>\) \(<\)sup\(>\)|\(<\)/sup\(>\) 表示上确界范数。因此，只需对 \(\rho ^{</sup>\otimes</sup>} \sigma\) 反复进行无穷小的互换操作，就能构造出幺正算符 \(\mathrm{e}^{- i \rho \bar{t}}\)。文献 15 中的量子矩阵求逆技术，则允许我们利用多个密度矩阵 \(\rho\) 的副本，对任意简单可计算的函数 \(g ( x )\) 高效实现 e<sup>−ig</sup> <sup>(ρ)</sup>。
+这里 tr 表示对第一个变量的偏迹，S 是互换算符。S 是一个稀疏矩阵，其元素能够高效计算，因此 $\mathrm{e}^{- i S \Delta t}$ 可以高效实现<sup>11–14</sup>。反复将 (1) 式应用于 n 份 $\rho$ 的副本，可以构造出 $\mathrm{e}^{- i \rho n \Delta t} \sigma \mathrm{e}^{i \rho n \Delta t}$。与量子模拟的铃木–Trotter 理论<sup>11–14</sup> 的比较表明，要模拟 $\mathrm{e}^{- i \rho t}$ 达到精度 ，需要 $n {=} O ( t^{2} \epsilon^{- 1} | \rho - \sigma | ^{2} ) {\leq} O ( t^{2} \epsilon^{- 1} )$ 步，其中 $t = n \Delta t$，$<$sup$>$|$<$/sup$>$ $<$sup$>$|$<$/sup$>$ 表示上确界范数。因此，只需对 $\rho^{</sup>\otimes</sup>} \sigma$ 反复进行无穷小的互换操作，就能构造出幺正算符 $\mathrm{e}^{- i \rho \bar{t}}$。文献 15 中的量子矩阵求逆技术，则允许我们利用多个密度矩阵 $\rho$ 的副本，对任意简单可计算的函数 $g ( x )$ 高效实现 e<sup>−ig</sup> <sup>(ρ)</sup>。
 
-需要注意的是，当 \(\rho\) 的某些特征值较大时，密度矩阵求幂最为有效。如果所有特征值的量级均为 \(O ( 1 \bar{/} d )\)，那么就需要时间 \(t = O ( d )\) 来分辨这些特征值$^{15}$。相反，如果密度矩阵由少数几个大特征值主导——即该矩阵能很好地由其主成分表示——那么该方法效果很好（精度将在下文分析）。在这种情况下，存在一个维度为 \(R \ll d\) 的子空间，使得 \(\rho\) 在该子空间上的投影接近 \(\rho \colon \| \rho - P \rho P \| _{1} \leq \epsilon .\)，其中 P 是该子空间的投影算符。当矩阵是低秩时，投影是精确的。目前矩阵求幂的技术在待求幂矩阵为稀疏矩阵时是高效的<sup>13,14</sup>。这里的构造表明，只要能够获得相应密度矩阵的多个副本，非稀疏但低秩的矩阵也能够被高效求幂。
+需要注意的是，当 $\rho$ 的某些特征值较大时，密度矩阵求幂最为有效。如果所有特征值的量级均为 $O ( 1 \bar{/} d )$，那么就需要时间 $t = O ( d )$ 来分辨这些特征值。相反，如果密度矩阵由少数几个大特征值主导——即该矩阵能很好地由其主成分表示——那么该方法效果很好（精度将在下文分析）。在这种情况下，存在一个维度为 $R \ll d$ 的子空间，使得 $\rho$ 在该子空间上的投影接近 $\rho \colon \| \rho - P \rho P \| _{1} \leq \epsilon .$，其中 P 是该子空间的投影算符。当矩阵是低秩时，投影是精确的。目前矩阵求幂的技术在待求幂矩阵为稀疏矩阵时是高效的<sup>13,14</sup>。这里的构造表明，只要能够获得相应密度矩阵的多个副本，非稀疏但低秩的矩阵也能够被高效求幂。
 
-密度矩阵求幂现在允许我们应用量子相位算法来找出未知密度矩阵的特征向量和特征值。如果我们有 n 份 \(\rho\) 的副本，就可以利用应用 \(\mathrm{e}^{- i \rho t}\) 的能力来执行量子相位算法$^{1}$。特别地，量子相位算法通过对不同时间 t 条件性地应用 e<sup>−iρt</sup>，将任意初始态 \(| \psi \rangle | 0 \rangle\) 转化为 \(\sum_{i} \psi_{i} | \chi_{i} \rangle | \tilde{r}_{i} \rangle\)，其中 \(<\)sup\(>\)|\(<\)/sup\(>\)χ \(<\)sup\(>\)i\(<\)/sup\(>\) 是 \(\rho\) 的特征向量，\(\tilde{r}_{i}\) 是对应特征值的估计，而 \(\psi_{i} = \langle \chi_{i} | \psi \rangle\)。文献 16,17 指出，应用未知幺正算符的能力并不能自动转化为以条件方式应用该幺正算符的能力。然而在这里，条件操作只需在上述推导中将 SWAP 算符替换为条件 SWAP 即可简单实现。更精确地说，取 \(t = n \Delta t\)，并对状态
+密度矩阵求幂现在允许我们应用量子相位算法来找出未知密度矩阵的特征向量和特征值。如果我们有 n 份 $\rho$ 的副本，就可以利用应用 $\mathrm{e}^{- i \rho t}$ 的能力来执行量子相位算法。特别地，量子相位算法通过对不同时间 t 条件性地应用 e<sup>−iρt</sup>，将任意初始态 $| \psi \rangle | 0 \rangle$ 转化为 $\sum_{i} \psi_{i} | \chi_{i} \rangle | \tilde{r}_{i} \rangle$，其中 $<$sup$>$|$<$/sup$>$χ $<$sup$>$i$<$/sup$>$ 是 $\rho$ 的特征向量，$\tilde{r}_{i}$ 是对应特征值的估计，而 $\psi_{i} = \langle \chi_{i} | \psi \rangle$。文献 16,17 指出，应用未知幺正算符的能力并不能自动转化为以条件方式应用该幺正算符的能力。然而在这里，条件操作只需在上述推导中将 SWAP 算符替换为条件 SWAP 即可简单实现。更精确地说，取 $t = n \Delta t$，并对状态
 
 $$
 | n \Delta t \rangle \langle n \Delta t | \otimes \sigma \otimes \rho \otimes \ldots \otimes \rho
 $$
 
-应用幺正算符 \(\begin{array} {r} {\sum_{n} | n \Delta t \rangle \langle n \Delta t | \otimes^{\cdot} \Pi_{j = 1}^{n} \mathrm{e}^{- i \delta_{j} \Delta t}} \end{array}\)，其中 \(\sigma = \vert \chi \rangle \langle \chi \vert\)，而 \(S_{j}\) 是将 \(\sigma\) 与第 j 份 \(\rho\) 副本进行互换的算符。取 \(\rho\) 副本上的偏迹，便得到所需的条件操作 \(| t \rangle | \chi \rangle | t \rangle \mathrm{e}^{- i \rho t} | \bar{\chi} \rangle\)。将此条件操作插入量子相位算法，并使用文献 15 中改进的相位估计技术，通过在时间 \(t = O ( \epsilon^{- 1} )\) 内应用量子相位算法，可以以精度  得到特征向量和特征值，因此需要状态 \(\rho\) 的副本数 \(\stackrel{\cdot} {n} = \bar{O ( 1 / \epsilon^{3} )}\)。使用 \(\rho\) 本身作为初始状态，量子相位算法产生状态
+应用幺正算符 $\begin{array} {r} {\sum_{n} | n \Delta t \rangle \langle n \Delta t | \otimes^{\cdot} \Pi_{j = 1}^{n} \mathrm{e}^{- i \delta_{j} \Delta t}} \end{array}$，其中 $\sigma = \vert \chi \rangle \langle \chi \vert$，而 $S_{j}$ 是将 $\sigma$ 与第 j 份 $\rho$ 副本进行互换的算符。取 $\rho$ 副本上的偏迹，便得到所需的条件操作 $| t \rangle | \chi \rangle | t \rangle \mathrm{e}^{- i \rho t} | \bar{\chi} \rangle$。将此条件操作插入量子相位算法，并使用文献 15 中改进的相位估计技术，通过在时间 $t = O ( \epsilon^{- 1} )$ 内应用量子相位算法，可以以精度  得到特征向量和特征值，因此需要状态 $\rho$ 的副本数 $\stackrel{\cdot} {n} = \bar{O ( 1 / \epsilon^{3} )}$。使用 $\rho$ 本身作为初始状态，量子相位算法产生状态
 
 $$
 \sum_{i} r_{i} | \chi_{i} \rangle \langle \chi_{i} | \otimes | \tilde{r}_{i} \rangle \langle \tilde{r}_{i} |\tag{2}
@@ -50,11 +50,11 @@ $$
 
 作为数据分析的一个应用，假设密度矩阵对应于一组数据向量 $\mathbf{a}_{i} \in C^{d}$ 的协方差矩阵，这些向量可以使用预言机在量子并行下生成。接下来将展示，qPCA使我们能够在O(log d)时间内找出并处理数据空间中方差最大的方向。定义协方差矩阵 $\Sigma{=} A A^{\dagger}$，其中 $A$ 的列向量为 ${\bf a}_{j}$，不必归一化到1。在量子力学形式下，$\begin{array} {r} {A = \sum_{i} \vert \mathbf{a}_{i} \vert \vert a_{i} \rangle \langle \bar{e}_{i} \vert} \end{array}$，其中 $\left| e_{i} \right.$ 是一组正交基，并且 <sup>|</sup>a <sup>i</sup> 已归一化到1。假设我们可以量子方式访问A的列向量 <sup>|</sup>a <sup>i</sup> 及其范数 <sup>|</sup>a <sup>|</sup>。也就是说，我们有一台量子计算机或量子随机存取存储器<sup>18–20</sup>，它接受 $| i \rangle | 0 \rangle | 0 \rangle | i \rangle | a_{i} \rangle | | {\bf a}_{i} | ;$ <sup>i</sup>。量子随机存取存储器需要O(d)的硬件资源来存储所有向量的系数，以及O(d)个开关来使其可访问，但允许在O(log d)次操作中访问数据。如参考文献21所述，对向量和范数的量子访问使我们能够构造（未归一化的）状态 $\textstyle \sum_{i} | \mathbf{a}_{i} | | e_{i} \rangle | a_{i} \rangle$：第二个寄存器的密度矩阵与Σ成正比。使用 $n = O ( t^{2} \epsilon^{- 1} )$ 个 $\Sigma / \mathrm{tr} \Sigma$ 的副本，我们可以在O(n log d)时间内以精度实现 $\mathrm{e}^{- i t \Sigma / \mathrm{tr} \Sigma}$。我们的方法允许在O(log d)时间内指数化任何低秩矩阵Σ，只要它以Gram形式 $\Sigma = A A^{\dagger}$ 呈现给我们，并且我们能够量子方式访问 $A$ 的列向量。相比之下，使用高阶Suzuki-Trotter展开<sup>11–14</sup>的现有方法需要O(d log d)次操作来指数化非稀疏哈密顿量。密度矩阵指数化将 $\mathrm{e}^{- i \Sigma t}$ 的高效实现扩展到了很大一类非稀疏但低秩的矩阵Σ。
 
-对量子态的 qPCA 可通过使用 Choi–Jamiolkowski 状态 $\textstyle ( 1 / d ) \sum_{ij} | {\dot{i}} \rangle \langle j | \otimes{\hat{S (}} | i \rangle \langle j | )$ 扩展到量子过程，这里 $s$ 是一个完全正映射（参考文献22）。关于 Choi–Jamiolkowski 同构在量子态和过程层析成像背景下的全面综述，请参见参考文献2，其中包括对各种纠缠辅助协议的详细资源分析。例如，对于量子通道层析成像，Choi–Jamiolkowski 状态是通过将一半完全纠缠的量子态沿通道发送而获得的。然后可以使用 qPCA 来构建对应于此状态主要特征值的特征向量：所得谱分解反过来封装了该通道的许多最重要属性$^{22}$。
+对量子态的 qPCA 可通过使用 Choi–Jamiolkowski 状态 $\textstyle ( 1 / d ) \sum_{ij} | {\dot{i}} \rangle \langle j | \otimes{\hat{S (}} | i \rangle \langle j | )$ 扩展到量子过程，这里 $s$ 是一个完全正映射（参考文献22）。关于 Choi–Jamiolkowski 同构在量子态和过程层析成像背景下的全面综述，请参见参考文献2，其中包括对各种纠缠辅助协议的详细资源分析。例如，对于量子通道层析成像，Choi–Jamiolkowski 状态是通过将一半完全纠缠的量子态沿通道发送而获得的。然后可以使用 qPCA 来构建对应于此状态主要特征值的特征向量：所得谱分解反过来封装了该通道的许多最重要属性。
 
-qPCA 是一种新的态和过程层析成像原语，能够揭示密度矩阵的特征向量和特征值。为了更清晰地了解 qPCA 的优缺点，将其与量子压缩感知<sup>3–5,7,8</sup>进行比较是很有用的，后者是一种用于对稀疏和低秩密度矩阵进行层析成像的强大方法。主要区别在于，qPCA 在时间 O(R log d) 内构造特征向量并将其与相应的特征值关联起来：随后这些特征向量以量子形式可用，因此可以通过测量来检验其属性，并与特征值相关联。相比之下，压缩感知<sup>3–5,7,8</sup>是一种态和过程层析成像方法，它在时间 O(Rd log d) 内重构完整密度矩阵的经典描述。仅采用单量子比特的制备和测量。qPCA 也可用于对特征向量进行态层析成像，在时间 O(Rd log d) 内揭示其分量。然后，这种特征值和特征向量的经典描述可用于在时间 O(Rd log d) 内重现完整的密度矩阵，这与量子压缩感知的时间相同，但依赖于多量子比特的无穷小交换操作。相比之下，使用压缩感知构造特征向量和特征值，必须首先重构密度矩阵，然后将其对角化，对于低秩矩阵，通过随机算法$^{6}$，这需要时间 $> O ( d^{2} \log R + \dot{d} R^{2} )$。通过信息论论证可以证明，在无先验知识的情况下通过采样寻找低秩逼近的下界是 Ω(d)（参考文献23）。qPCA 还可以与基于群表示的方法进行比较，这些方法用于估计密度矩阵的谱和特征向量<sup>24–26</sup>。这些方法在时间 O(poly(log d)) 内揭示谱<sup>24–26</sup>，但需要时间 $O ( d^{2} )$ 来重构特征向量$^{26}$。
+qPCA 是一种新的态和过程层析成像原语，能够揭示密度矩阵的特征向量和特征值。为了更清晰地了解 qPCA 的优缺点，将其与量子压缩感知<sup>3–5,7,8</sup>进行比较是很有用的，后者是一种用于对稀疏和低秩密度矩阵进行层析成像的强大方法。主要区别在于，qPCA 在时间 O(R log d) 内构造特征向量并将其与相应的特征值关联起来：随后这些特征向量以量子形式可用，因此可以通过测量来检验其属性，并与特征值相关联。相比之下，压缩感知<sup>3–5,7,8</sup>是一种态和过程层析成像方法，它在时间 O(Rd log d) 内重构完整密度矩阵的经典描述。仅采用单量子比特的制备和测量。qPCA 也可用于对特征向量进行态层析成像，在时间 O(Rd log d) 内揭示其分量。然后，这种特征值和特征向量的经典描述可用于在时间 O(Rd log d) 内重现完整的密度矩阵，这与量子压缩感知的时间相同，但依赖于多量子比特的无穷小交换操作。相比之下，使用压缩感知构造特征向量和特征值，必须首先重构密度矩阵，然后将其对角化，对于低秩矩阵，通过随机算法，这需要时间 $> O ( d^{2} \log R + \dot{d} R^{2} )$。通过信息论论证可以证明，在无先验知识的情况下通过采样寻找低秩逼近的下界是 Ω(d)（参考文献23）。qPCA 还可以与基于群表示的方法进行比较，这些方法用于估计密度矩阵的谱和特征向量<sup>24–26</sup>。这些方法在时间 O(poly(log d)) 内揭示谱<sup>24–26</sup>，但需要时间 $O ( d^{2} )$ 来重构特征向量。
 
-qPCA 在态判别和分配$^{27}$中也很有用。例如，假设我们可以从两组各 m 个态中进行采样，第一组 <sup>{|</sup>φ <sup>i}</sup> 由密度矩阵 $\rho = ( 1 / m ) \sum_{i} | \phi_{i} \rangle \langle \phi_{i} |$ 表征，第二组 <sup>{|</sup>ψ <sup>i}</sup> 由密度矩阵 $\textstyle \sigma = ( 1 / m ) \sum_{i} | \psi_{i} \rangle \langle \psi_{i} |$ 表征。现在我们得到一个新态 <sup>|</sup>χ <sup>i</sup>。我们的任务是将该态分配到其中一个集合。然后，密度矩阵指数化和量子相位估计使我们能够将 $| \chi \rangle$ 按 $\rho{-} \sigma$ 的特征向量和特征值进行分解；
+qPCA 在态判别和分配中也很有用。例如，假设我们可以从两组各 m 个态中进行采样，第一组 <sup>{|</sup>φ <sup>i}</sup> 由密度矩阵 $\rho = ( 1 / m ) \sum_{i} | \phi_{i} \rangle \langle \phi_{i} |$ 表征，第二组 <sup>{|</sup>ψ <sup>i}</sup> 由密度矩阵 $\textstyle \sigma = ( 1 / m ) \sum_{i} | \psi_{i} \rangle \langle \psi_{i} |$ 表征。现在我们得到一个新态 <sup>|</sup>χ <sup>i</sup>。我们的任务是将该态分配到其中一个集合。然后，密度矩阵指数化和量子相位估计使我们能够将 $| \chi \rangle$ 按 $\rho{-} \sigma$ 的特征向量和特征值进行分解；
 
 $$
 | \chi \rangle | 0 \rangle \sum_{j} \chi_{j} | \xi_{j} \rangle | x_{j} \rangle
@@ -64,7 +64,7 @@ $$
 
 ### 讨论
 
-密度矩阵指数化为分析未知密度矩阵的性质提供了强大工具。利用 ρ 的 n 份副本施加酉算子 $\mathrm{e}^{- i \rho t}$ 的能力，使我们能够将非稀疏 d 维矩阵指数化至精度 $\scriptstyle \epsilon = O ( t^{2} / n )$，并通过 qPCA 在 O(R log d) 时间内构造低秩矩阵 ρ 的特征向量与特征值。与量子矩阵求逆类似$^{14}$，qPCA 将传统中耗时与系统维度多项式关系的经典过程，映射为耗时与维度对数多项式关系的量子过程。这种指数级压缩意味着 qPCA 仅能揭示描述系统所需的全部信息中的一小部分。然而，正如密度矩阵指数化重构其主成分的能力所示，这一特定信息子集可能极具价值。
+密度矩阵指数化为分析未知密度矩阵的性质提供了强大工具。利用 ρ 的 n 份副本施加酉算子 $\mathrm{e}^{- i \rho t}$ 的能力，使我们能够将非稀疏 d 维矩阵指数化至精度 $\scriptstyle \epsilon = O ( t^{2} / n )$，并通过 qPCA 在 O(R log d) 时间内构造低秩矩阵 ρ 的特征向量与特征值。与量子矩阵求逆类似，qPCA 将传统中耗时与系统维度多项式关系的经典过程，映射为耗时与维度对数多项式关系的量子过程。这种指数级压缩意味着 qPCA 仅能揭示描述系统所需的全部信息中的一小部分。然而，正如密度矩阵指数化重构其主成分的能力所示，这一特定信息子集可能极具价值。
 
 我们预计 qPCA 将在多种量子算法与测量应用中发挥关键作用。如量子聚类分配示例所示，qPCA 可用于加速聚类与模式识别等机器学习问题<sup>8,9,20,26</sup>。识别矩阵最大特征值及其对应特征向量的能力，对于表示和分析大量高维数据具有潜在价值。
 
@@ -189,14 +189,14 @@ S.L.、M.M.和P.R.对本文所述的理论研究与手稿撰写均有贡献。
 - **缺少对噪声模型的鲁棒性分析**：论文假设理想量子门、无退相干，未讨论散粒噪声或门误差对特征值估计的影响。噪声可能导致特征值模糊，使低秩假设失效。
 
 ### 关键公式速查
-- \[ \operatorname{tr}_P\mathrm{e}^{-iS\Delta t}\rho\otimes\sigma\mathrm{e}^{iS\Delta t}= \sigma-i\Delta t[\rho,\sigma]+O(\Delta t^2) \] — 密度矩阵求幂核心恒等式，式 (1)
-- \[ n = O(t^2\epsilon^{-1}|\rho-\sigma|^2) \leq O(t^2\epsilon^{-1}) \] — 达到演化精度 $\epsilon$ 所需 $\rho$ 副本数，Trotter 推导
-- \[ \| \rho - P\rho P \|_1 \leq \epsilon \] — 低秩近似条件，$P$ 为秩 $R$ 投影
-- \[ \sum_i r_i |\chi_i\rangle\langle\chi_i| \otimes |\tilde{r}_i\rangle\langle\tilde{r}_i| \] — qPCA 输出纠缠态，式 (2)
-- \[ \Sigma = AA^\dagger \] — 协方差矩阵的 Gram 形式，$A$ 为数据矩阵
-- \[ \mathrm{e}^{-i\rho t} \] 可通过 $n=O(t^2/\epsilon)$ 份 $\rho$ 以精度 $\epsilon$ 实现 — 密度矩阵求幂工程实现
-- \[ \text{(Choi–Jamiolkowski 状态)} \quad \frac{1}{d}\sum_{ij}|i\rangle\langle j|\otimes\mathcal{E}(|i\rangle\langle j|) \] — 量子通道的密度矩阵表示
-- \[ \text{随机SVD复杂度} \quad O(dR\log R + R^2 d) \] — 经典低秩逼近下界（文献[6]）
+- $$ \operatorname{tr}_P\mathrm{e}^{-iS\Delta t}\rho\otimes\sigma\mathrm{e}^{iS\Delta t}= \sigma-i\Delta t[\rho,\sigma]+O(\Delta t^2) $$ — 密度矩阵求幂核心恒等式，式 (1)
+- $$ n = O(t^2\epsilon^{-1}|\rho-\sigma|^2) \leq O(t^2\epsilon^{-1}) $$ — 达到演化精度 $\epsilon$ 所需 $\rho$ 副本数，Trotter 推导
+- $$ \| \rho - P\rho P \|_1 \leq \epsilon $$ — 低秩近似条件，$P$ 为秩 $R$ 投影
+- $$ \sum_i r_i |\chi_i\rangle\langle\chi_i| \otimes |\tilde{r}_i\rangle\langle\tilde{r}_i| $$ — qPCA 输出纠缠态，式 (2)
+- $$ \Sigma = AA^\dagger $$ — 协方差矩阵的 Gram 形式，$A$ 为数据矩阵
+- $$ \mathrm{e}^{-i\rho t} $$ 可通过 $n=O(t^2/\epsilon)$ 份 $\rho$ 以精度 $\epsilon$ 实现 — 密度矩阵求幂工程实现
+- $$ \text{(Choi–Jamiolkowski 状态)} \quad \frac{1}{d}\sum_{ij}|i\rangle\langle j|\otimes\mathcal{E}(|i\rangle\langle j|) $$ — 量子通道的密度矩阵表示
+- $$ \text{随机SVD复杂度} \quad O(dR\log R + R^2 d) $$ — 经典低秩逼近下界（文献[6]）
 
 ### 术语对照
 | 中文 | 英文 | 含义 |

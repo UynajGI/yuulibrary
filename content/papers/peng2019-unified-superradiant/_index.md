@@ -14,17 +14,17 @@ tags: ['量子相变', '超辐射']
 
 ## 统一超辐射相变
 
-Jie Peng,<sup>1,</sup><sup>2</sup> Enrique Rico,<sup>2,</sup><sup>3</sup> Jianxin Zhong,<sup>1</sup> Enrique Solano,<sup>2,</sup><sup>3,</sup><sup>4</sup> 和 I˜nigo L. Egusquiza<sup>5</sup>
+Jie Peng,<sup>1,</sup>$^{2}$ Enrique Rico,<sup>2,</sup>$^{3}$ Jianxin Zhong,$^{1}$ Enrique Solano,<sup>2,</sup><sup>3,</sup>$^{4}$ 和 I˜nigo L. Egusquiza$^{5}$
 
-<sup>1</sup>湖南微纳能源材料与器件重点实验室暨物理与光电工程学院，湘潭大学，湖南 411105，中国
+$^{1}$湖南微纳能源材料与器件重点实验室暨物理与光电工程学院，湘潭大学，湖南 411105，中国
 
-<sup>2</sup>巴斯克大学物理化学系 UPV/EHU，Apartado 644，E-48080 Bilbao，西班牙
+$^{2}$巴斯克大学物理化学系 UPV/EHU，Apartado 644，E-48080 Bilbao，西班牙
 
-<sup>3</sup>IKERBASQUE，巴斯克科学基金会，Maria Diaz de Haro 3，E-48013 Bilbao，西班牙
+$^{3}$IKERBASQUE，巴斯克科学基金会，Maria Diaz de Haro 3，E-48013 Bilbao，西班牙
 
-<sup>4</sup>上海大学物理系，上海 200444，中国
+$^{4}$上海大学物理系，上海 200444，中国
 
-<sup>5</sup>巴斯克大学理论与科学史系 UPV/EHU，Apartado 644，E-48080 Bilbao，西班牙
+$^{5}$巴斯克大学理论与科学史系 UPV/EHU，Apartado 644，E-48080 Bilbao，西班牙
 
 我们通过统一处理证明，简单光-物质模型中 Dicke 模型和经典振子极限的超辐射相变确实属于同一类型。我们证明平均场近似在这两种情形下都是精确的，并计算了参数空间中相变的结构和位置。我们将这一研究扩展到更广泛的模型范围，特别关注对称性考量。我们揭示了这些模型参数空间中相结构的一般特征。
 
@@ -87,6 +87,7 @@ $$
 系统的稳定性要求$g^{\prime} / \omega \ < \ 1 / 2 [ 35 .$ 36]。在一般情况下$g , g^{\prime} \neq 0$，该哈密顿量不具有对称性。遵循现已成熟的常规方法，我们得到约化自由能作为势函数$\phi ( u ) ~ = ~ u^{2} ~ \stackrel{\sim} {-} ~$ $\begin{array} {r} {\frac{1} {\beta \Delta} \ln \left\lceil 2 \cosh \left( \beta \Delta \sqrt{1 + \left[ 2 \gamma u + 2 \gamma^{\prime} u^{2} \right]^{2}} \right) \right\rceil} \end{array}$的全局最小值，其中$\gamma =$ $\frac{g} {\sqrt{\Delta \omega}}$，$\gamma^{\prime} \overset{^{\mathrm{~ \textstyle ~ ~}}} {=} g^{\prime} / \omega \left[ 32 \right]$。对称性的缺失体现在朗道势在一般情况下不是偶函数。尽管如此，$u = 0$始终是一个极值点，并且在$\gamma$和$\gamma^{\prime}$接近0时确实是全局最小值。进一步分析发现，参数空间中存在一个临界区域，将正常相和超辐射相区分开来，该区域由$\phi ( u ) = \phi ( 0 )$和$\phi^{\prime} ( u ) = 0$同时存在非零解决定。当$\beta \Delta \to \infty$时，该方程组变为代数方程，可以确定显式临界线$2 \gamma^{2} + 4 \gamma^{\prime 2} = 1$，这与单量子比特的量子相变情况一致[33]。我们在图1(a)中给出了一般情况的相图。由于缺乏对称性，该相变必须是一级相变，并且对于$\beta \Delta \to \infty$的情况，这一点确实得到了验证，因为刚好在临界线上方，重标度光子数$\bar{u} ( \gamma_{c} , \gamma_{c}^{\prime} )_{\mathrm{min}}^{2} = ( 2 \gamma_{c}^{\prime} / \gamma_{c} )^{2} \neq 0$，如图1(b)所示。
 
 ![](images/bda032407c294c631d8147b8a88e25dc6aaa6b08a663741e21c3995b7d06389b.webp)
+
 {{< caption >}}图1. (a)热力学极限下包含单光子和双光子项的Dicke模型的相图。(b)有限温度$\omega / k_{B} T \ne 0$、$\begin{array} {r} {g^{\prime} / \omega = 0.25 , \frac{g} {\sqrt{\Delta \omega / 2}} =} \end{array}$ 0.866且$\langle a^{\dagger} a \rangle_{c} / C = 2 / 3$时经典振子极限下的重标度平均光子数。所有临界量均由解析预测得到，并与数值结果吻合。{{< /caption >}}
 
 相图的一般结构.– 现在我们给出一个具有离散对称性的模型，该模型同时存在连续和不连续的对称性保护拓扑相，并用它来说明所考虑的一族模型相图的一般性质。具体而言，我们现在研究两个自旋，除了与光子模式偶极耦合外，还存在XYZ自旋-自旋相互作用[37]，并具有$\mathbb{Z}_{2}$对称性，
@@ -98,6 +99,7 @@ $$
 我们在经典振子极限 $\Delta / \omega \to \infty$ 下研究其相图。从配分函数 $Z = \exp \left( - \beta \Delta f \right)$ 定义约化自由能 $f$，根据当前标准假设，它将在朗道势 $\phi ( u ) = u^{2} + \lambda ( u )$ 的全局最小值处确定为 $\phi ( u_{\mathrm{min}} )$，其中 $\lambda ( u )$ 是两自旋算子 $\begin{array} {r} {h ( u ) = \sum_{j = 1}^{2} [ 2 \gamma_{j} u \sigma_{jx} + \delta_{j} \sigma_{jz} ] +} \end{array}$ $\scriptstyle \sum_{\alpha = x , y , z} \epsilon_{\alpha} \sigma_{1 \alpha} \sigma_{2 \alpha}$ 的最小本征值，此处 $\Delta$ 是 $\{\Delta_{j} \}$ 的某个正广义均值，$\gamma_{j} = {g_{j}} / {\sqrt{\Delta \omega}} , \delta_{j} = \Delta_{j} / \Delta , \epsilon_{\alpha} = J^{( \alpha )} / \Delta$，而序参量 $\omega \langle a^{\dagger} \dot{a} \rangle / \Delta$ 被计算为 $u_{\mathrm{min}}^{2}$。
 
 ![](images/8a9838a40e8553632829db54b9a446e496e8e0efcfe892346a0ec192967e5d6c.webp)
+
 {{< caption >}}图2：具有 XYZ 自旋-自旋相互作用的非等同两量子比特拉比模型。${\Delta_{1}} / {\Delta} = 3 , {\Delta_{2}} / {\Delta} = 2 , {J^{x}} / {\Delta} = 3 , {J^{y}} / {\Delta} =$ 2, $J^{z} / \Delta = 1$。(a) 任意有限温度 $\omega / k_{B} T \ne 0$ 下的相图。(b) 在任意有限温度 $\omega / k_{B} T \ne 0$ 下，对于 $\begin{array} {r} {\frac{g_{2}} {\sqrt{\Delta \omega}} = 1.5} \end{array}$ 的重标光子数。{{< /caption >}}
 
 因此，感兴趣的相空间是七维的，而我们考察由偶极耦合控制的二维截面，这些耦合被组织成向量 ${\vec{\gamma}}$。在一般截面上，会出现连续和不连续相变。原点 $\vec{\gamma} = 0$ 始终处于正常相，因为有效哈密顿量 $h ( u )$ 此时与 $u$ 无关。此外，由于朗道函数呈现为 $\phi ( u ) = u^{2} + f ( u \vec{\gamma} )$，其中 $f$ 是多个（此处为两个）变量的函数，我们看到在临界点 $u_{*}$ （满足 $\phi^{\prime} ( u_{*} ) = 0$）处有 $\vec{\gamma} \cdot \nabla_{\gamma} \phi ( u_{*} ) = - 2 u_{*}^{2}$。因此，对于非零临界点，该值为负。另外，由于 $h ( u )$ 是有界算子，可以看出对于大的 k\~γk，$\phi$ 的最小值可近似位于 $| \gamma_{1} | + | \gamma_{2} |$ 处，从而预测系统将处于超辐射相。由此可知，原点周围存在一个正常相区域，并且其边界（即临界线）法向量的径向分量不为零。
@@ -385,6 +387,7 @@ $$
 均匀Dicke模型的相图如图S1所示。现在注意到$N = 1$且$\lambda = 1$对应于Rabi模型。
 
 ![](images/d435a863f4689a5d7afc6d902e6b620682e3ed8f14e705ce98dffa3d4a294a09.webp)
+
 {{< caption >}}图S1. 热力学极限$( N \to \infty )$下Dicke模型的相图{{< /caption >}}
 
 对于这些特殊情况以及一般的参数值，该哈密顿量具有$\mathbb{Z}_{2}$对称性，生成元为$\Pi = \exp \left\{i \pi \left[ a^{\dagger} a + \sum_{i = 1}^{N} ( 1 + \sigma_{iz} ) / 2 \right] \right\}$。这反映在$\phi ( u , v )$的两个对称性上：$u \to - u$和$v \to - v$。事实上，它是$u^{2}$和$v^{2}$的函数。因此，对于所有参数值，原点的Hessian矩阵都是对角的。上述识别的临界线对应于原点处Hessian行列式的首次符号变化，即当$( u , v )$空间中的原点从最小值变为鞍点时。我们在此看到$\mathbb{Z}_{2}$对称性的连续相变朗道函数的通常行为。
@@ -450,6 +453,7 @@ $$
 我们在图S2中展示了这些表达式，以及通过直接对角化得到的结果。
 
 ![](images/85369412a4ddbc121f098da427f18294c700a158785d069dcb5308200407bdfc.webp)
+
 {{< caption >}}图S2. 拉比模型基态光子分布。参数（任意单位）：$\Delta = 16 , \omega = 1 / 16 , g = 1$，对应 $\gamma = 1 , \gamma_{c} = 1 / \sqrt{2} , C = \Delta / \omega = 256 , \langle a^{\dag} a \rangle = C u_{\mathrm{min}}^{2} = C | \alpha_{\mathrm{min}} | ^{2} = 192$。红点由式(S33)得到，蓝点由哈密顿量数值对角化得到。黄点表示两者之差。{{< /caption >}}
 
 ### S4. 无对称性情况
@@ -531,6 +535,7 @@ $$
 ![](images/a8c2bc623001c931bef38cac06c7caf09879f58d44d0efec480f2a4b622c18a9.webp)
 
 ![](images/5be6f7c0858d71eb65873e6881f2aadfc60ab724b5b733f23ac5f64663cfd0d7.webp)
+
 {{< caption >}}图 S3. (a) 通过直接对角化哈密顿量式 (5) 得到的基态 (GS) 和第一激发态 (ES) 的能量，参数为 $N = 1 , \Delta / N \omega = 200$，$g^{\prime} / \omega = 0.25$，$\frac{g_{c}} {\sqrt{\Delta \omega / 2}} = 0.866$，$\langle \frac{\omega a^{\dagger} a} {N \Delta} \rangle_{c} = 2 / 3$。(b) (a) 中基态和第一激发态的光子数。$\langle a^{\dagger} a \rangle_{c} = 400 / 3$。数值结果与 $N \Delta / \omega \to \infty$ 下的精确分析吻合。{{< /caption >}}
 
 其中 $A$、$B$ 和 $D$ 是作用于有限维希尔伯特空间 $H$ 的算符。这些算符连续依赖于定义相关相空间的（约化）参数。我们在上文已经证明，只要 $\| D^{\dagger} D \| < \dot{\omega}^{2} / 4$，在（广义）热力学极限下平均场近似就是有效的，并且相结构将由如下形式的朗道势决定：
@@ -644,11 +649,13 @@ $$
 ![](images/64dc4f36d0bab451e7b73f6578a9011d84fefe2819375d0801658d2462d78084.webp)
 
 ![](images/0c2cd8d38199a3e663fa3c6e16788a9c4b28ac6b35b6aeb002e28f7047f4faac.webp)
+
 {{< caption >}}图 S4. 左图：具有偶极相互作用的相同两量子比特拉比模型在任意有限温度 $\omega / k_{B} T \ne 0$ 下的平均重标光子数和约化自由能，通过数值寻找 φ(u) 的全局最小值得到。右图：每个宇称子空间中的最低本征能级及其平均光子数，通过数值对角化哈密顿量得到。$\begin{array} {r} {( \mathrm{a} ) \epsilon_{x} = 1 . \ \gamma_{c} = 0.803 , \ \langle \frac{\omega a^{\dagger} a} {\Delta} \rangle_{c} \sim 1.308 . \ ( \mathrm{b} ) \Delta / \omega = C = 200 , \ \epsilon_{x} = 1 , \ \langle a^{\dagger} a \rangle_{c} \sim 261.6 . \ ( \mathrm{c} ) \epsilon_{x} = 0.2 ,} \end{array}$ $\gamma_{c} = 0.55387 . ( \mathrm{d} ) \Delta / \omega = 800 , \epsilon_{x} = 0.2 $。所有临界性质均通过解析方法获得，与数值结果吻合良好。{{< /caption >}}
 
 ![](images/438aad0082d2ac3693a19ef21fbe5372c0e4f0510929738461d434ef49c63851.webp)
 
 ![](images/4431000ed64bfa403225d020dc5d62b161d80661eb978cd324bf51ffc8f7a80d.webp)
+
 {{< caption >}}图 S5. 左图：具有 XYZ 海森堡相互作用的相同两量子比特拉比模型 $\epsilon_{x} = 1.1 , \epsilon_{y} = 0.3 , \epsilon_{z} = 0.5$ 在任意有限温度 $\omega / k_{B} T \neq 0$ 下的行为。$( \mathrm{a} )$ 通过数值寻找 $\phi ( u )$ 的全局最小值得到的平均重标光子数和约化自由能。$\gamma_{c} = 0.781063$，$u_{c}^{2} = 1.65378$。$( \mathrm{f}^{\prime} )$ 通过直接对角化哈密顿量得到的 $\begin{array} {r} {\frac{\Delta} {\omega} = 200 . ~ \langle a^{\dagger} a \rangle_{c} \sim 330} \end{array}$ 的最低能级。所有临界性质均通过解析获得，与数值结果吻合良好。{{< /caption >}}
 
 ![](images/9a0ad3a8f8eb77ed067dcf59a0544a15a6d56d1cd1696bce376801c4dbe3cff6.webp)
@@ -658,6 +665,7 @@ $$
 ![](images/e26f4e0ced4c92d6f4ee44d6f156f9b364e7499888fc19b77b0ff70c5cf1a943.webp)
 
 ![](images/d7b663787450d134404e260bb3d9570fe74393fde4d46ffea5d753e80827775a.webp)
+
 {{< caption >}}图 S6. 具有 XYZ 自旋-自旋相互作用的非相同两量子比特拉比模型。${\Delta_{1}} / {\Delta} = 3 , {\Delta_{2}} / {\Delta} = 2 , {J^{x}} / {\Delta} = 3 , {J^{y}} / {\Delta} = 2 ,$ $\begin{array} {r} {J^{z} / \Delta = 1 , \frac{g_{2}} {\sqrt{\Delta \omega}} = 1.5 ,} \end{array}$，在任意有限温度 $\omega / k_{B} T \neq 0$ 下。$( \mathrm{a} )$ 约化自由能。(b) 重标光子数。二阶 SPT 发生在 $\begin{array} {r} {\frac{g_{1 a}} {\sqrt{\Delta \omega}} = 0.778} \end{array}$，而一阶 SPT 发生在 $\begin{array} {r} {\frac{g_{1 b}} {\sqrt{\Delta \omega}} = 1.31 , \langle \frac{\omega a^{\dagger} a} {\Delta} \rangle_{c} \sim 6.21} \end{array}$。(c) 和 (d) 在 $\begin{array} {r} {\frac{\Delta} {\omega} = 100 . ~ \langle a^{\dagger} a \rangle_{c} \sim 6.20} \end{array}$ 处通过直接对角化哈密顿量得到的最低能级。{{< /caption >}}
 
 这应满足
@@ -751,19 +759,19 @@ $$
 
 ### 关键公式速查
 
-- \[H = \omega a^\dagger a + \sum_{i=1}^N \frac{g}{\sqrt{N}} \sigma_{ix} (a + a^\dagger) + \sum_i \Delta \sigma_{iz} \] — 统一的 DQR 模型哈密顿量（式1），涵盖 Dicke 和 Rabi 两种情形
+- $$H = \omega a^\dagger a + \sum_{i=1}^N \frac{g}{\sqrt{N}} \sigma_{ix} (a + a^\dagger) + \sum_i \Delta \sigma_{iz} $$ — 统一的 DQR 模型哈密顿量（式1），涵盖 Dicke 和 Rabi 两种情形
 
-- \[\frac{\langle a^\dagger a\rangle}{N\Delta/\omega} = u_{\min}^2\] — 序参量与朗道势最小值的关系（式3），正常相 $u_{\min}=0$，超辐射相 $u_{\min}\neq0$
+- $$\frac{\langle a^\dagger a\rangle}{N\Delta/\omega} = u_{\min}^2$$ — 序参量与朗道势最小值的关系（式3），正常相 $u_{\min}=0$，超辐射相 $u_{\min}\neq0$
 
-- \[\tanh(\beta\Delta) - \frac{1}{2\gamma_c^2} = 0\] — 有 $\mathbb{Z}_2$ 对称性时的二级相变临界线（正文推导），统一 Dicke 和 Rabi 的临界条件
+- $$\tanh(\beta\Delta) - \frac{1}{2\gamma_c^2} = 0$$ — 有 $\mathbb{Z}_2$ 对称性时的二级相变临界线（正文推导），统一 Dicke 和 Rabi 的临界条件
 
-- \[2\gamma^2 + 4\gamma'^2 = 1\] — 含双光子项时一级相变的零温临界线（S5节推导），临界处 $u_{\min}^2 = (2\gamma_c'/\gamma_c)^2 \neq 0$ 确认非连续性
+- $$2\gamma^2 + 4\gamma'^2 = 1$$ — 含双光子项时一级相变的零温临界线（S5节推导），临界处 $u_{\min}^2 = (2\gamma_c'/\gamma_c)^2 \neq 0$ 确认非连续性
 
-- \[\tilde{Z} \le Z \le e^{\beta\omega} \tilde{Z}\] — 平均场近似的 Hepp-Lieb 上下界（S2节式S3），$N\Delta/\omega \to \infty$ 时自由能误差 $<\omega/N\Delta \to 0$
+- $$\tilde{Z} \le Z \le e^{\beta\omega} \tilde{Z}$$ — 平均场近似的 Hepp-Lieb 上下界（S2节式S3），$N\Delta/\omega \to \infty$ 时自由能误差 $<\omega/N\Delta \to 0$
 
-- \[\vec{\gamma} \cdot \nabla_\gamma \phi = -2u^2\] — 偶极耦合空间径向流关系（S6节式S47），确认一旦进入超辐射相，径向增加耦合使势阱更深
+- $$\vec{\gamma} \cdot \nabla_\gamma \phi = -2u^2$$ — 偶极耦合空间径向流关系（S6节式S47），确认一旦进入超辐射相，径向增加耦合使势阱更深
 
-- \[\gamma_c^2 = \frac{N}{2\sum_i \tanh(\beta\Delta_i)/\delta_i}\] — 多模 DQR 模型临界耦合（S8节式S58），显示各模式协同效应：只要总强度 $\sum_\nu\gamma_\nu^2$ 超过此值即可发生 SPT
+- $$\gamma_c^2 = \frac{N}{2\sum_i \tanh(\beta\Delta_i)/\delta_i}$$ — 多模 DQR 模型临界耦合（S8节式S58），显示各模式协同效应：只要总强度 $\sum_\nu\gamma_\nu^2$ 超过此值即可发生 SPT
 
 ### 术语对照
 

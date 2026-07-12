@@ -144,17 +144,20 @@ $$
 (b) 总相位 $\phi_{tot} ( t_{\omega} )$ 作为 ω 的函数，固定 e = 0.01（实线）、0.10（虚线）和 0.40（点线）。
 ![](images/2f047d88b7773551aa3cd801792c312f64b4c9a30a8f8f2e6a7e6d708d7d2f90.webp)
 ![](images/a5c7a6923afbfec72b77e560f575d639188c877d2fd9935aca22d564a8523836.webp)
+
 {{< caption >}}图1：总相位作为 e 和 ω 的函数图像。{{< /caption >}}
 
 动力学相位的数值实现不如总相位直接，因为它涉及多次对时间的积分（方程 (13)）。如前所述，这些积分先通过解析方法完成，再转为数值实现。理论上动力学相位应为实数，但由于实现中的展开被截断，我们检验了动力学相位虚部是否有显著贡献。结果显示，虚部在机器精度范围内为零。动力学相位与 ω 值之间的关系具有特殊行为：当 $\omega = 1.0, 1.5, 2.0, 2.5$ 时，曲线 $\alpha_{dyn} \times \epsilon$ 近似抛物线；而对于更高的 ω 值，曲线近似线性函数。图3(a)显示了在若干固定 ω 值下动力学相位作为 e 的函数。图3(b)显示了在若干固定 e 值下曲线 $\alpha_{dyn} \times \omega$。可以看到，与图1(b)类似，e 似乎对曲线起调节作用，且存在一个使 $\alpha_{dyn}$ 最大化的 ω 值，但该值随 e 的变化而偏移。图4以三维形式展示了动力学相位作为 ω 和 e 的函数。
 
 ![](images/c1660464baeeea06eb9f98152e8af97b18158e123fee6f6451a049163ea9f897.webp)
+
 {{< caption >}}图2：总相位 $\phi_{tot}$ 作为 ω 和 e 的函数的图形表示。{{< /caption >}}
 
 (a) 动力学相位 $\alpha_{dyn} \big ( t_{\omega} \big )$ 作为 e 的函数，固定 $\omega = 2.0$（实线）、5.0（虚线）和 10.0（点线）。
 (b) 动力学相位 $\alpha_{dyn} ( t_{\omega} )$ 作为 ω 的函数，固定 e = 0.01（实线）、0.10（虚线）和 0.40（点线）。
 ![](images/1d7dd23d2bf3a4f6ff4365e4fc7ce4769c2da336e443d6ca22f175f627358b73.webp)
 ![](images/ea99bdc82c949227cc8fc66c1311bfdba59dd4d24cc6c61fca9fb91e4f678719.webp)
+
 {{< caption >}}图3：动力学相位作为 e 和 ω 的函数图像。{{< /caption >}}
 
 总相位的类似行为也在几何相位中观察到，如图5a和5b所示：几何相位的绝对值随着 e 的增加而增加，曲线 $\gamma_{geo} \times \omega$ 受到 e 的调制，并且存在一个 ω 值使得几何相位的绝对值最大化。图6展示了几何相位作为 ω 和 e 函数的图形表示。
@@ -166,14 +169,17 @@ H^{\prime} (t) = \kappa v (t) \sigma_{3}^{(a)} \otimes \sigma_{3}^{(b)},\tag{16}
 $$
 
 ![](images/870073cbee58afd4a108bd0cafd4efb5d84ad27ff3ad6c917f56d03846478531.webp)
+
 {{< caption >}}图4：动力学相位 $\alpha_{dyn}$ 作为 ω 和 e 函数的图形表示。{{< /caption >}}
 
 (a) 对于固定 $\omega = 2.0$（实线）、5.0（虚线）和 10.0（点线），几何相位 $\gamma_{geo} ( t_{\omega} )$ 作为 e 的函数。
 (b) 对于固定 e = 0.01（实线）、0.10（虚线）和 0.40（点线），几何相位 $\gamma_{geo} ( t_{\omega} )$ 作为 ω 的函数。
 ![](images/c85e0f1b283168a4a9d496bcf7268bdbf629fcc55ae3cc74f42a475ec6676981.webp)
 ![](images/bab372a09eb3d8253348d79390c1b3078bb78f4ca5a9b07cfbe71fcbd94cde0c.webp)
+
 {{< caption >}}图5：几何相位绘制为 e 和 ω 的函数。{{< /caption >}}
 ![](images/c6cc19378efa8af08fa4a32695210ef8a0b94dadfd695e63f0847bdbc5efad79.webp)
+
 {{< caption >}}图6：几何相位 $\gamma_{geo}$ 作为 ω 和 e 函数的图形表示。{{< /caption >}}
 
 其中 κ 是一个实常数，$v ( t )$ 是一个实时间函数。在旋转框架下的相应哈密顿量由下式给出：
@@ -296,6 +302,7 @@ $$
 ![](images/3c9299737208c0010a5ea83ab302690e2035e485353182e5401c9037dace16af.webp)
 ![](images/ba5069b2b96e8c3b1c80046bb2ce3bc5a2f3838396221513965fceb23653e339.webp)
 ![](images/34f13bc090398c85cfacae6600520348bb22925715aed79b47040c9b5e397ce0.webp)
+
 {{< caption >}}图7：初态00的相位因子作为参数κ函数的曲线图。粗线表示非相互作用子系统的相位因子值。虚线表示由(28)给出的相互作用。我们考虑的子系统的参数为 $\omega_{a} = 1.0 , \omega_{b} = 2.0 ,$ $\epsilon_{a} = \epsilon_{b} = 0.01$ 且 $t_{0} = 0.5$。{{< /caption >}}
 
 (a) 总相位。
@@ -304,6 +311,7 @@ $$
 ![](images/5cad98626a003a4b38f5285ff885fb2f626225b0e921468d60c50513bfe8aad1.webp)
 ![](images/ce8c82b78175166f52e96495ae397e48791d4cd52e2c8a9aab970788bec92db1.webp)
 ![](images/aed8bbdcc9bffeedc52de35314d2a6259fe0baf7a709bea66c13ca9bcb6d158b.webp)
+
 {{< caption >}}图8：初始态 00 的相位因子作为相互作用时刻 $t_{0}$ 的函数的曲线图。粗线表示无相互作用子系统的相位因子值。虚线表示由（28）式给出的相互作用。我们考虑了子系统参数 $\omega_{a} = 1.0$，$\omega_{b} = 2.0$，$\epsilon_{a} = \epsilon_{b} = 0.01$ 以及 $\kappa = 0.1$。时间以 $2 \pi / \omega$ 为单位进行测量。{{< /caption >}}
 
 ### 进一步的结果
@@ -326,7 +334,13 @@ $$
 
 {{< caption >}}图9：系统保持在初始状态的概率。从左列第一行的图形开始，按顺时针方向，图形分别对应初始态 00、01、10 和 11。实线对应无相互作用的子系统，虚线对应（28）形式的相互作用。时间以 $t_{\omega} = 2 \pi / \omega$ 为单位进行测量。系统的相关常数为 $\omega_{a} = 1.0$，$\omega_{b} = 2.0$，$\epsilon_{a} = \epsilon_{b} = 0.01$，$\kappa = 0.1$ 以及 $t_{0} = 0.16 t_{\omega}$。{{< /caption >}}
 
-<table><tr><td></td><td colspan="2"> $\omega_b = 1.0$ </td><td colspan="2"> $\omega_b = 5.0$ </td><td colspan="2"> $\omega_b = 8.0$ </td></tr><tr><td></td><td> $\phi_{tot}^{(0)}$ </td><td> $\phi_{tot}^{(\delta)}$ </td><td> $\phi_{tot}^{(0)}$ </td><td> $\phi_{tot}^{(\delta)}$ </td><td> $\phi_{tot}^{(0)}$ </td><td> $\phi_{tot}^{(\delta)}$ </td></tr><tr><td> $|00\rangle$ </td><td>0.027</td><td>-0.116</td><td>-1.816</td><td>-1.878</td><td>-2.491</td><td>-2.552</td></tr><tr><td> $|01\rangle$ </td><td>0.000</td><td>0.151</td><td>1.843</td><td>1.898</td><td>2.518</td><td>2.570</td></tr><tr><td> $|01\rangle$ </td><td>0.000</td><td>0.151</td><td>-1.843</td><td>1.790</td><td>-2.518</td><td>-2.466</td></tr><tr><td> $|00\rangle$ </td><td>-0.027</td><td>-0.116</td><td>1.816</td><td>1.752</td><td>2.491</td><td>2.429</td></tr></table>
+|  |
+|---|
+|  | $\phi_{tot}^{(0)}$ | $\phi_{tot}^{(\delta)}$ | $\phi_{tot}^{(0)}$ | $\phi_{tot}^{(\delta)}$ | $\phi_{tot}^{(0)}$ | $\phi_{tot}^{(\delta)}$ |
+| $\lvert 00\rangle$ | 0.027 | -0.116 | -1.816 | -1.878 | -2.491 | -2.552 |
+| $\lvert 01\rangle$ | 0.000 | 0.151 | 1.843 | 1.898 | 2.518 | 2.570 |
+| $\lvert 01\rangle$ | 0.000 | 0.151 | -1.843 | 1.790 | -2.518 | -2.466 |
+| $\lvert 00\rangle$ | -0.027 | -0.116 | 1.816 | 1.752 | 2.491 | 2.429 |
 
 表 I：对于计算基中的每个态，考虑不同的 $\omega_{b}$ 值和固定的 $\omega_{a} = 1.0$ 时的总相位 $\phi_{tot}$ 值。下标 $\phi_{tot}^{(0)}$ 和 $\phi_{tot}^{(\delta)}$ 分别表示无相互作用系统和由 δ 函数给出的相互作用系统。
 
@@ -412,7 +426,7 @@ $$
 | $\Omega$（拉比频率） | $0.0022$（示例值） | 由 $\epsilon$-微扰数值确定的 Rabi 振荡频率 |
 | 幺正性误差上限 | $\le 3\times10^{-3}$（$\omega=1.0,\epsilon=0.40$）；一般 $\le 10^{-5}$ | 微扰展开截断后时间演化算符的幺正性偏离量 |
 | $T_\Omega=2\pi/\Omega$ | $\cong456\,t_\omega$（示例） | 复合系统的循环演化周期 |
-| 循环周期检测 | $\epsilon=0.01,\omega=1.0,2.0$ 时 $T_\Omega\approx456$ | 通过数值搜索 $P(t)=|\langle\psi(0),U(t)\psi(0)\rangle|^2$ 的恢复点确定 |
+| 循环周期检测 | $\epsilon=0.01,\omega=1.0,2.0$ 时 $T_\Omega\approx456$ | 通过数值搜索 $P(t)=\lvert \langle\psi(0),U(t)\psi(0)\rangle\lvert ^2$ 的恢复点确定 |
 
 ### 批判性思考
 
