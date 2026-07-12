@@ -32,6 +32,9 @@ Hugo 静态站点 + Hugo Book 主题。三个 content section 各司其职:
 | `{{< recent-notes >}}` | 首页最近笔记列表 |
 | `{{< caption >}}` | 图注/表注 |
 | `{{< callout >}}` / `{{< definition >}}` / `{{< theorem >}}` ... | 元素模板(详见 `content/_reference/elements.md`) |
+| `{{< key-point >}}` | 关键点卡片（橙色） |
+| `{{< proof >}}` | 证明块（靛蓝左边框） |
+| `{{< book-toc >}}` | 书籍封面自动目录（遍历 `_index.md` 同级 `ch*.md`） |
 | `{{< solution >}}` | 解答块(绿色左边框) |
 | `{{< algorithm >}}` | pseudocode.js 算法块 |
 | `{{< rough-canvas >}}` | rough.js 手绘风格 Canvas |
@@ -137,7 +140,7 @@ Runtime:     node-index.json 首次加载(~5MB) → 匹配后按需 fetch 各 do
 pre-commit (sequential):
   trailing-whitespace → prettier → eslint → css-check → hugo-build-check
   → pageindex-build → markdownlint → image-refs → front-matter
-  → book-validate → paper-validate → latex-render
+  → book-validate → paper-validate → latex-render → translate-test
 
 pre-push:
   hugo-build → html-check(页面存在=error, broken link=warning)
@@ -145,12 +148,12 @@ pre-push:
 
 安装:`lefthook install`。手动跑:`lefthook run pre-commit`。
 
-### validate_book.py(36 项机械验证)
+### validate_book.py(38 项机械验证)
 
 | 级别 | 数量 | 内容 |
 |------|------|------|
 | `[E]` Error | 12 | shortcode 闭合、`$` 配对、裸代码、double `\tag` 等(阻断 commit) |
-| `[W]` Warning | 19 | 交叉引用、标题层级、断行等(应修复) |
+| `[W]` Warning | 21 | 交叉引用、标题层级、断行、OCR 乱码 tag、重复标题、短标题等(应修复) |
 | `[R]` Review | 5 | 元素模板候选(需人工确认) |
 
 误报标记:行末加 `<!-- validate-skip -->` 跳过。
@@ -160,6 +163,12 @@ pre-push:
 抓两种 Markdown/KaTeX 渲染坑:
 - 表格 LaTeX 里的裸 `|`(被当列分隔,用 `\lvert`/`\rvert`/`\vert`)
 - `$$` 块内行首 `+`/`-`(被当列表项,用 `\;+\;` 或单行)
+
+### KaTeX 定界符配置(`assets/katex.json`)
+
+`katex.json` 注册了 4 种定界符:`$$`(display)、`$`(inline)、`\[...\]`(display)、`\(...\)`(inline)。
+其中 `\[...\]` / `\(...\)` 是**兼容性保留**——防止旧内容中遗留的 LaTeX 原生定界符完全无法渲染。
+**新内容禁止使用 `\[...\]` / `\(...\)`**，KaTeX 对这两种定界符的渲染不稳定（部分环境不识别），统一用 `$$` / `$`。
 
 ### 翻译脚本回归测试
 
