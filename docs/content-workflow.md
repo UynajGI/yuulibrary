@@ -124,11 +124,14 @@ PDF/EPUB/DOCX/FB2/TXT 源
 
 | 脚本 | 用途 |
 |------|------|
-| `add-book-to-library/scripts/translate_chapters.py` | 翻译英文 MD → 中文(种子章建术语表 + 并发 + validate 重试 + 图片引用丢失自动补回) |
-| `add-book-to-library/scripts/clean_markdown.py` | 统一清洗(book + paper):噪声删除 + LaTeX 碎片修复 + 图注配对 + 标题层级 |
+| `add-book-to-library/scripts/extract.py` | 统一提取入口：按格式路由(PDF/DOCX→MinerU, EPUB→pandoc, FB2→XML, TXT→编码检测+切分) |
+| `add-book-to-library/scripts/translate_chapters.py` | 翻译英文 MD → 中文(种子章建术语表 + 并发 + validate 重试 + 图片引用丢失自动补回 + 断点续跑) |
+| `add-book-to-library/scripts/clean_markdown.py` | 统一清洗(book + paper):噪声删除 + LaTeX 碎片修复 + 图注配对 + 标题层级 + pandoc/FB2 残留 |
+| `add-book-to-library/scripts/consistency_qa.py` | 翻译后 LLM 一致性审查(术语统一、公式保真、无漏翻) |
+| `add-book-to-library/scripts/llm_config.py` | `config.yaml` 分层模型配置读取(strong/cheap/fast 三档 + pipeline 开关) |
 | `add-book-to-library/scripts/convert_xrefs.py` | 纯 regex 交叉引用转换(「第N章」→ markdown 链接 `ch0N.md`,补零可靠) |
 | `add-book-to-library/scripts/format_theorems.py` | 数学教材段落级定理/定义加粗(MinerU 不标标题,幂等) |
 | `add-book-to-library/scripts/convert_to_webp.sh` | 批量 JPG/PNG → WebP + 改 .md 引用 |
-| `add-book-to-library/scripts/validate_book.py` | 36 项机械验证(12 Error + 19 Warning + 5 Review) |
+| `add-book-to-library/scripts/validate_book.py` | 38 项机械验证(12 Error + 21 Warning + 5 Review) |
 | `add-book-to-library/scripts/test_translate.py` | 翻译脚本纯函数回归测试(34 用例,零依赖) |
 | `add-paper-to-library/scripts/generate_paper_note.py` | 论文结构化分析(ReAct 7 栏目)+ cross-link + 组装 `_index.md` |

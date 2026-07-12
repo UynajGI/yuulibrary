@@ -68,6 +68,33 @@ brew install lefthook
 lefthook install
 ```
 
+**pre-commit hooks**（`lefthook run pre-commit`，按顺序串行）：
+
+| Hook | 检查对象 | 做了什么 |
+|------|---------|---------|
+| `trailing-whitespace` | `.md/.yml/.yaml/.css/.scss/.js/.toml` | 自动修剪行尾空格 |
+| `prettier` | `.js/.css` | Prettier 格式化 |
+| `eslint` | `.js` | ESLint 检查 |
+| `css-check` | `.css/.scss` | 括号配对 + 空规则块检测 |
+| `hugo-build-check` | `content/`、`layouts/`、`static/chat/`、`hugo.toml`、`assets/` | `hugo --gc --minify` 验证能构建 |
+| `pageindex-build` | `content/` | 增量构建 PageIndex + stage 变更 |
+| `markdownlint` | `content/` | Markdown 规范检查 |
+| `image-refs` | `content/` | 图片引用必须指向存在的文件 |
+| `front-matter` | `content/**/_index.md` | `title` + `weight` 必填 |
+| `book-validate` | `content/books/` | `validate_book.py`（38 项） |
+| `paper-validate` | `content/papers/` | `validate_book.py`（38 项） |
+| `latex-render` | `content/` | `check_latex_render.py`（表格裸 `\|` + display math 行首 `+`/`-`） |
+| `translate-test` | `.claude/skills/add-book-to-library/scripts/*.py` | `test_translate.py` 回归测试 |
+
+**pre-push hooks**（`lefthook run pre-push`）：
+
+| Hook | 做了什么 |
+|------|---------|
+| `hugo-build` | 全量 `hugo --gc --minify`（tag push 时跳过） |
+| `html-check` | 检查关键页面生成 + 断链检测（tag push 时跳过） |
+
+> 💡 手动跑全部：`lefthook run pre-commit` / `lefthook run pre-push`。跑单个 hook：`lefthook run pre-commit --name markdownlint`。
+
 #### MinerU(加书才需要)
 
 PDF/EPUB 提取。见 [MinerU 文档](https://github.com/opendatalab/MinerU)。命令行 `magic-pdf -p paper.pdf -o out/ -m auto`。
@@ -200,6 +227,26 @@ concurrency:
 | `LLM_MODEL`(Variable) | litellm 模型路由 | 配了 key 就必配 |
 | `STATICRYPT_PASSWORD`(Secret) | 站点访问密码(Staticrypt 加密) | ➖(不配则站点公开) |
 | `GITHUB_TOKEN` | 自动提供,部署 gh-pages | ✅(自动) |
+
+### Staticrypt 站点加密（可选）
+
+Staticrypt 用 AES-256 加密整个站点，访问时需输入密码。CI 检测到 `STATICRYPT_PASSWORD` secret 不为空时自动启用。
+
+**工作原理**：CI 的 `hugo --gc --minify` 构建完成后，`npx staticrypt` 加密 `public/` 下的 HTML 文件，
+输出 `index.html`（密码输入页）和 `encrypted.html`（加密后的原站点）。用户访问时先看到密码页，
+输入正确密码后浏览器端解密渲染。
+
+**如何启用**：
+
+1. 在 GitHub repo **Settings → Secrets and variables → Actions** 添加 Secret：
+   - `STATICRYPT_PASSWORD` — 站点访问密码
+2. 打 tag 触发部署——CI 自动加密
+
+**不需要**本地安装 staticrypt CLI。`.staticrypt.json`（salt 文件，加密用）由 staticrypt 自动生成，
+可以提交到仓库保证同密码同加密结果。
+
+> ⚠️ **安全提示**：密码通过 GitHub Secret 注入 CI，不写在仓库文件里。
+> 但 staticrypt 是浏览器端加解密——密码足够强才安全（防暴力猜测），且站点 HTML 可通过浏览器 DevTools 查看源码。
 
 ---
 
