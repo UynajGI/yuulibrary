@@ -210,7 +210,27 @@ def validate_file(path, all_files=None):
     if bad_cmds:
         issues.append(issue(WARN, f"{len(bad_cmds)} backslash pseudocode commands"))
 
-    # 17. H1 format issues (spaces, colons)
+    # 17. OCR-garbled LaTeX tags (\tag{ðÞ} etc.)
+    garbled_tags = re.findall(r"\\tag\{[^}]*[^\x00-\x7F][^}]*\}", content)
+    if garbled_tags:
+        issues.append(issue(WARN, f"{len(garbled_tags)} garbled \\\\tag{{...}} (OCR error — contains non-ASCII)"))
+
+    # 18. Suspicious headings: duplicate ##/###, headings with code-comment patterns
+    headings = [(i, line) for i, (line, _) in enumerate(zip(lines, lines), 1)
+                if re.match(r"^#+\s", line)]
+    # 18a: duplicate headings (same text)
+    from collections import Counter
+    h_counts = Counter(h[1].strip() for h in headings)
+    dupes = {k: v for k, v in h_counts.items() if v > 1 and not k.startswith("# 参考") and not k.startswith("## 参考")}
+    if dupes:
+        issues.append(issue(WARN, f"{len(dupes)} duplicate headings: {', '.join(list(dupes.keys())[:3])}"))
+    # 18b: single-word ## headings (likely code comments misparsed, e.g. "## 预平衡")
+    for h_lineno, h_text in headings:
+        stripped = h_text.strip().lstrip("#").strip()
+        if h_text.startswith("## ") and len(stripped) <= 6 and not re.search(r"[一二三四五六七八九十\d]", stripped):
+            issues.append(issue(WARN, f"line {h_lineno}: short ## heading '{stripped}' — likely misparsed code comment"))
+
+    # 19. H1 format issues (spaces, colons)
     for h1 in h1_texts:
         if re.match(r"^(前言|符号|算法|索引|致谢|目录|附录|献词|引言)", h1):
             continue
