@@ -63,25 +63,25 @@ $$
 定义阈值能量 $E^{\mathrm{th}}$，更新超过该值时才会被接受。这使得我们可以基于严格界限 $\Delta E^{\mathrm{min}} \leq \Delta E$ 和 $\Delta E^{\mathrm{max}} \geq \Delta E$ 做出决策。如果 $\Delta E^{\mathrm{min}}$ 大于 $E^{\mathrm{th}}$，则拒绝更新；如果 $\Delta E^{\mathrm{max}}$ 小于 $E^{\mathrm{th}}$，则接受更新。根据具体情况，这些决策可以在计算量极度减少的情况下做出。在文献 [15] 中，我们基于这一思想，为晶格和非晶格系统建立了一个通用算法。这是通过利用模拟域层次空间分解的树结构实现的。在此，我们提出一个非常简化的框架，它基于部分求和与预决策方案。为了实现这一点，我们首先在 (4) 中引入一个排列 $\pi ( j )$，这允许我们重新排列求和顺序，以最好地适应我们的算法目的（在大多数情况下，这是通过将 $J_{i , j}$ 按幅度降序排序来实现的）。其次，我们将求和分为两部分，
 
 $$
-\begin{array} {r l} & {\displaystyle \Delta E = \underbrace{- \Delta \mathbf{s}_{i} \sum_{j = 1}^{n} J_{i , \pi ( j )} \mathbf{s}_{\pi ( j )}}_{K \equiv \mathrm{已知部分}} \underbrace{- \Delta \mathbf{s}_{i} \sum_{j = n + 1}^{N - 1} J_{i , \pi ( j )} \mathbf{s}_{\pi ( j )}}_{R \equiv \mathrm{剩余部分}}} \\ & {\displaystyle = K ( n ) + R ( n ) ,} \end{array}\tag{ðÞ}
+\begin{array} {r l} & {\displaystyle \Delta E = \underbrace{- \Delta \mathbf{s}_{i} \sum_{j = 1}^{n} J_{i , \pi ( j )} \mathbf{s}_{\pi ( j )}}_{K \equiv \mathrm{已知部分}} \underbrace{- \Delta \mathbf{s}_{i} \sum_{j = n + 1}^{N - 1} J_{i , \pi ( j )} \mathbf{s}_{\pi ( j )}}_{R \equiv \mathrm{剩余部分}}} \\ & {\displaystyle = K ( n ) + R ( n ) ,} \end{array}\tag{}
 $$
 
 其中只有第一个求和 $K ( n )$ 会被显式处理，因此是精确已知的。对于 $R ( n )$ 的处理，我们引入一个额外的量
 
 $$
-U ( n ) = | \Delta \mathbf{s}_{i} | \sum_{j = n + 1}^{N - 1} | J_{i , \pi ( j )} | = | \Delta \mathbf{s}_{i} | \left[ J_{i}^{\mathrm{int}} - \sum_{j = 1}^{n} | J_{i , \pi ( j )} | \right] ,\tag{ðÞ}
+U ( n ) = | \Delta \mathbf{s}_{i} | \sum_{j = n + 1}^{N - 1} | J_{i , \pi ( j )} | = | \Delta \mathbf{s}_{i} | \left[ J_{i}^{\mathrm{int}} - \sum_{j = 1}^{n} | J_{i , \pi ( j )} | \right] ,\tag{}
 $$
 
 其中
 
 $$
-J_{i}^{\mathrm{int}} = \sum_{j \neq i} \bigl | J_{i , j} \bigr | ,\tag{ðÞ}
+J_{i}^{\mathrm{int}} = \sum_{j \neq i} \bigl | J_{i , j} \bigr | ,\tag{}
 $$
 
 是 $\mathbf{s}_{i}$ 与系统中所有其他自旋之间耦合的总和。由于 $J_{i}^{\mathrm{int}}$ 在模拟开始时被计算一次（事实上，对于具有周期性边界条件和平移不变性的系统，所有 $J_{i}^{\mathrm{int}}$ 都相同，因此我们只需计算一次，并简记为 $J^{\mathrm{int}} )$，因此 $U ( n )$ 可以在求和过程中与 $K ( n )$ 一起计算。我们注意到，对于 $R ( n )$ 中的每一项，有 $\mathrm{\mathbf{\tau} -} | \Delta \mathbf{s}_{i} J_{i , k} | \leq - \Delta \mathbf{s_{i}} J_{i , k} \mathbf{s}_{k} \leq | \Delta \mathbf{s}_{i} J_{i , k} |$（因为自旋是单位向量），因此
 
 $$
-\;-\; U ( n ) \leq R ( n ) \leq U ( n ) .\tag{ðÞ}
+\;-\; U ( n ) \leq R ( n ) \leq U ( n ) .\tag{}
 $$
 
 现在，我们可以很容易地建立 (6) 的严格下界和上界
@@ -109,13 +109,13 @@ $$
 由此得到的标度分析如图2所示。分别在其转变温度下对二维 LRIM 和 LRXYM 进行基准测试，而对于二维 LREAM，我们在 LRIM 的 $0.5 T_{c} ( \sigma )$ 温度下进行模拟。我们已经验证，模拟温度的选择不影响渐近算法标度，因此模拟温度的选择对我们的分析是次要的。对于所有三种模型（LRIM、LRXYM 和 LREAM），当 $\sigma \neq 2$ 时，数据均可以拟合为如下幂律依赖关系：
 
 $$
-\langle n_{0} \rangle ( N ) = C + A N^{b} ,\tag{ðÞ}
+\langle n_{0} \rangle ( N ) = C + A N^{b} ,\tag{}
 $$
 
 得到的指数为
 
 $$
-b = 1 - \sigma / 2 .\tag{ðÞ}
+b = 1 - \sigma / 2 .\tag{}
 $$
 
 通过深入分析算法性能，并考虑概率密度 $f ( n_{0} )$ 及其一阶矩 $\begin{array} {r} {\left. n_{0} \right. = \sum_{n_{0} = 0}^{N - 1} n_{0} f ( n_{0} )} \end{array}$，我们在补充材料 [20] 中给出了理论论证，指出 (12) 式中的 2 应更一般地替换为维度 $d$。这些论证与附录中 $d = 1$ 的标度行为一致。因此，对于 $\sigma = d$，我们预期存在对数发散，这一点由图2(a)–2(c)中对 $\sigma = 2$ 的三个模型所用的对数拟合 $\langle n_{0} \rangle ( N ) = C + A \ln N$ 对数据的良好描述所支持。对于 $\sigma > 2$，$\langle n_{0} \rangle$ 在大 $N$ 下趋近于常数，即在此短程类似区间内，指数 $b$ 仅起到次主导修正的作用。每个拟合的区间均单独选取，使得自由度对应的 $\chi^2$ 接近于1。所有模型及 $\sigma$ 值在所选拟合区间内的拟合结果以黑色实线显示，虚线则表示其向排除在拟合范围之外的较小 $N$ 的外推。因此我们发现，计算复杂度在很大程度上与模型无关，而前置因子则依赖于模型，变化因子小于2。对于 $\sigma \ge 1.5$，与完全计算能量差的模拟相比，即使对于 $L = 1024$，我们也观察到所需求和步数减少了3000到50000倍，由于更优的标度行为，该减少幅度会随系统尺寸增大而进一步增加。因此，在该区间内（$\mathrm{O}(n)$ 模型的平衡临界性质从短程区间交叉到长程区间 [21–28]），该算法可在数天内完成模拟，而使用朴素实现则需要数十年时间。
@@ -204,9 +204,7 @@ $$
 
 [36] G. Ódor，非平衡晶格系统中的普适类，Rev. Mod. Phys. 76, 663 (2004).
 
-### 附录
-
-附录：$d = 1$维度的算法标度——在正文中我们指出(12)式中的分母2实际上应为$d$。为了证实这一说法，我们额外对$d = 1$维LRIM的$\left. n_{0} \right.$进行了标度分析。与$d = 2$维LRIM类似，模拟同样在$T_{c} ( \sigma )$下进行。由于$\sigma > 1$时转变温度为零，系统平衡时始终处于基态，模拟变得平凡。因此，此处我们将$\sigma$限制在$\sigma \leq 1$范围内。如图3所示，标度假设(11)式中的指数满足关系$b = 1 - \sigma$，这证实了$b$的一般表达式应为$b = 1 - \sigma / d$。
+**附录：** $d = 1$维度的算法标度——在正文中我们指出(12)式中的分母2实际上应为$d$。为了证实这一说法，我们额外对$d = 1$维LRIM的$\left. n_{0} \right.$进行了标度分析。与$d = 2$维LRIM类似，模拟同样在$T_{c} ( \sigma )$下进行。由于$\sigma > 1$时转变温度为零，系统平衡时始终处于基态，模拟变得平凡。因此，此处我们将$\sigma$限制在$\sigma \leq 1$范围内。如图3所示，标度假设(11)式中的指数满足关系$b = 1 - \sigma$，这证实了$b$的一般表达式应为$b = 1 - \sigma / d$。
 
 ![](images/ea315843f73649c10cdf31bae13e20bf763c52965b1494eb85eea7f9b9744573.webp)
 
@@ -214,9 +212,7 @@ $$
 
 {{< caption >}}图3：$d = 1$维LRIM所需平均求和步数$\left. n_{0} \right.$的标度分析。实线表示对$\langle n_{0} \rangle ( N ) = C + A N^{b}$的拟合，此处拟合范围涵盖全部系统尺寸。下方面板显示了描述$\left. n_{0} \right.$渐近增长的幂律假设中的指数$b$。对于$\sigma = 1 = d$的情况，我们预期$b = 0$，因此采用对数形式假设。{{< /caption >}}
 
-### 附录：补充材料
-
-## 补充材料：长程相互作用晶格系统Metropolis蒙特卡洛模拟的高效预决策方案
+## 附录：补充材料
 
 Fabio Müller<sup>a)</sup> 和 Wolfhard Janke<sup>b)</sup>
 
@@ -346,19 +342,19 @@ function perform_updates!(spins, L, number_of_updates,
 ```julia
 unknown = integrated_coupling
 index = 1
-## 步骤 1：
+#### 步骤 1
 spin = rand(rng, 0:L^2-1) # 随机选取自旋 s_i
 x_i = 1+spin÷L # 计算其坐标
 y_i = 1+spin%L
 s_i = spins[x_i,y_i] # 获取其值
-## 步骤 2：
+#### 步骤 2
 new_s_i = -s_i # 对于 XY 自旋，需要抽取新的随机方向
 ds = new_s_i - s_i
 abs_ds = abs(ds) # 对于伊辛自旋，该值始终为 2
-## 步骤 3：
+#### 步骤 3
 e_th = -log(rand(rng))/beta # 计算自旋翻转的阈值能量，公式(5)
 for sc in sorted_couplings
-## 步骤 4/5
+#### 步骤 4/5
 if known + unknown*abs_ds < e_th # 检查是否接受
 accept = true
 break
@@ -366,15 +362,15 @@ end
 if known - unknown*abs_ds > e_th # 检查是否拒绝
 break
 end
-## 步骤 5
+#### 步骤 5
 summation_steps += 1
-## 确定 s_j 的坐标，考虑周期性边界条件
+#### 确定 s_j 的坐标，考虑周期性边界条件
 J_ij = sc.J
 x_j = x_i + sc.dx
 x_j = x_j > L ? x_j - L : x_j
 y_j = y_i + sc.dy
 y_j = y_j > L ? y_j - L : y_j
-## 根据公式(10)优化边界
+#### 根据公式(10)优化边界
 known -= ds * spins[x_j,y_j] * J_ij
 unknown -= J_ij
 end
@@ -395,16 +391,16 @@ rng = Random.Xoshiro(seed)
 spins = ones(Int8, L, L) # 初始化完全有序的起始构型
 couplings = init_couplings_simple(L, sigma)
 sorted_couplings, J_int = create_sorted_couplings(couplings, L)
-## 预平衡
+#### 预平衡
 perform_updates!(spins, L, updates_per_bin, beta, J_int, sorted_couplings, rng)
-## 生产阶段
+#### 生产阶段
 num_updates = zeros(Int64, num_bins)
 for i = 1:num_bins
 print("步骤 ", i,'/', num_bins, '\r')
 num_updates[i] = perform_updates!(spins, L, updates_per_bin, beta, J_int,
 sorted_couplings, rng)
 end
-## 分箱分析
+#### 分箱分析
 num_updates = num_updates/updates_per_bin
 average = sum(num_updates)/num_bins
 print('\n',average, " ± ")
