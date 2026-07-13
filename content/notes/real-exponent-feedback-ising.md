@@ -1758,3 +1758,522 @@ $$
 3. R. J. Glauber, “Time-dependent statistics of the Ising model,” *Journal of Mathematical Physics* **4**, 294 (1963).
 4. L. D. Landau, “On the theory of phase transitions,” *Zh. Eksp. Teor. Fiz.* **7**, 19 (1937).
 5. H. Nishimori and G. Ortiz, *Elements of Phase Transitions and Critical Phenomena*, Oxford University Press (2010).
+
+## 附录：严格原子化推导
+
+> 以下推导由 strict-atomic-math-engine 生成。每相邻两行之间恰好相差一次原子操作（展开/合并/代入/求导/移项），行末标注了本步唯一的操作类型。
+
+### A.1 平均场能量密度（§2）
+
+从 Hamiltonian 出发推导 $\varepsilon_{\mathrm A}(m)$：
+
+$$
+\begin{aligned}
+\varepsilon_{\mathrm A}(m)
+&= \lim_{N\to\infty} \frac{1}{N}H_N(\mathbf s)
+\quad \text{(仅定义能量密度：Hamiltonian 除以自旋数 $N$)}\\[4pt]
+&= \lim_{N\to\infty} \frac{1}{N}\!\left[-h\sum_{i=1}^{N}s_i - \frac{J}{N}[1+\kappa\Phi_p(m)]\sum_{i<j}s_i s_j\right]
+\quad \text{(仅代入 $H_N(\mathbf s)$ 的显式表达式)}\\[4pt]
+&= \lim_{N\to\infty} \left[-\frac{h}{N}\sum_{i=1}^{N}s_i - \frac{J}{N^{2}}[1+\kappa\Phi_p(m)]\sum_{i<j}s_i s_j\right]
+\quad \text{(仅将 $1/N$ 乘入方括号内的每一项)}\\[4pt]
+&= \lim_{N\to\infty} \left[-\frac{h}{N}\cdot Nm - \frac{J}{N^{2}}[1+\kappa\Phi_p(m)]\sum_{i<j}s_i s_j\right]
+\quad \text{(仅代入 $\sum_{i=1}^{N}s_i = Nm$)}\\[4pt]
+&= \lim_{N\to\infty} \left[-hm - \frac{J}{N^{2}}[1+\kappa\Phi_p(m)]\sum_{i<j}s_i s_j\right]
+\quad \text{(仅化简系数：$h/N \cdot Nm = hm$)}\\[4pt]
+&= \lim_{N\to\infty} \left[-hm - \frac{J}{N^{2}}[1+\kappa\Phi_p(m)]\cdot\frac{1}{2}(N^{2}m^{2}-N)\right]
+\quad \text{(仅代入 $\sum_{i<j}s_i s_j = \tfrac12(N^{2}m^{2}-N)$)}\\[4pt]
+&= \lim_{N\to\infty} \left[-hm - \frac{J}{2}[1+\kappa\Phi_p(m)]\!\left(m^{2}-\frac{1}{N}\right)\right]
+\quad \text{(仅将 $(N^{2}m^{2}-N)$ 逐项除以 $N^{2}$)}\\[4pt]
+&= -hm - \frac{J}{2}[1+\kappa\Phi_p(m)]\,m^{2}
+\quad \text{(仅取热力学极限 $N\to\infty$，$1/N\to 0$ 项消失)}\\[4pt]
+&= -hm - \frac{J}{2}\!\left[m^{2} + \kappa\operatorname{sgn}(m)|m|^{p}\,m^{2}\right]
+\quad \text{(仅代入 $\Phi_p^{\mathrm A}(m)=\operatorname{sgn}(m)|m|^{p}$)}\\[4pt]
+&= -hm - \frac{J}{2}\!\left[m^{2} + \kappa\,m|m|^{p+1}\right]
+\quad \text{(仅使用恒等式 $\operatorname{sgn}(m)|m|^{p}m^{2}=m|m|^{p+1}$)}
+\end{aligned}
+$$
+
+### A.2 非对称反馈：导数、内部支与折叠点（§4.1）
+
+**A.2.1 能量导数**
+
+$$
+\begin{aligned}
+\varepsilon'_{\mathrm A}(m)
+&= \frac{d}{dm}\!\left[-hm - \frac{J}{2}\!\left(m^{2} + \kappa\,m|m|^{p+1}\right)\right]
+\quad \text{(仅对 $\varepsilon_{\mathrm A}(m)$ 表达式求导)}\\[4pt]
+&= \frac{d}{dm}(-hm) + \frac{d}{dm}\!\left[-\frac{J}{2}m^{2}\right] + \frac{d}{dm}\!\left[-\frac{J\kappa}{2}\,m|m|^{p+1}\right]
+\quad \text{(仅应用导数线性性：和的导数 $=$ 导数的和)}\\[4pt]
+&= -h - \frac{J}{2}\cdot 2m - \frac{J\kappa}{2}\cdot\frac{d}{dm}\!\left(m|m|^{p+1}\right)
+\quad \text{(仅逐项求导：$\frac{d}{dm}(-hm)=-h$，$\frac{d}{dm}m^{2}=2m$)}\\[4pt]
+&= -h - Jm - \frac{J\kappa}{2}\cdot(p+2)|m|^{p+1}
+\quad \text{(仅使用恒等式 $\frac{d}{dm}[m|m|^{p+1}]=(p+2)|m|^{p+1}$)}
+\end{aligned}
+$$
+
+**A.2.2 内部混合支 $g_{\mathrm A}(m)$**
+
+$$
+\begin{aligned}
+\varepsilon'_{\mathrm A}(m) &= 0
+\quad \text{(仅令导数等于零，求极值点)}\\[4pt]
+-h - Jm - \frac{J\kappa}{2}(p+2)|m|^{p+1} &= 0
+\quad \text{(仅代入 $\varepsilon'_{\mathrm A}(m)$ 的显式结果)}\\[4pt]
+h &= -Jm - \frac{J\kappa}{2}(p+2)|m|^{p+1}
+\quad \text{(仅将 $-h$ 移到等号右边)}\\[4pt]
+h &= -J\!\left[m + A_{p}\,\kappa\,|m|^{p+1}\right]
+\quad \text{(仅提取公因子 $-J$，代入 $A_{p} \equiv \frac{p+2}{2}$)}
+\end{aligned}
+$$
+
+**A.2.3 稳定性斜率 $g'_{\mathrm A}(m)$**
+
+$$
+\begin{aligned}
+g'_{\mathrm A}(m)
+&= \frac{d}{dm}\!\left[-J\!\left(m + A_{p}\kappa|m|^{p+1}\right)\right]
+\quad \text{(仅对 $g_{\mathrm A}(m)$ 求导)}\\[4pt]
+&= -J\!\left[1 + A_{p}\kappa\cdot\frac{d}{dm}\!\left(|m|^{p+1}\right)\right]
+\quad \text{(仅提取常数因子 $-J$，$\frac{d}{dm}m=1$)}\\[4pt]
+&= -J\!\left[1 + A_{p}\kappa\cdot(p+1)\operatorname{sgn}(m)|m|^{p}\right]
+\quad \text{(仅使用 $\frac{d}{dm}|m|^{p+1}=(p+1)\operatorname{sgn}(m)|m|^{p}$)}\\[4pt]
+&= -J\!\left[1 + C_{p}\,\kappa\operatorname{sgn}(m)|m|^{p}\right]
+\quad \text{(仅代入 $C_{p}\equiv A_{p}(p+1)=\frac{(p+1)(p+2)}{2}$)}
+\end{aligned}
+$$
+
+**A.2.4 折叠点 $m_f$**
+
+$$
+\begin{aligned}
+g'_{\mathrm A}(m_f) &= 0
+\quad \text{(仅令导数等于零，求折叠点)}\\[4pt]
+-J\!\left[1 + C_{p}\,\kappa\operatorname{sgn}(m_f)|m_f|^{p}\right] &= 0
+\quad \text{(仅代入 $g'_{\mathrm A}(m_f)$ 的显式结果)}\\[4pt]
+1 + C_{p}\,\kappa\operatorname{sgn}(m_f)|m_f|^{p} &= 0
+\quad \text{(仅两边同除以 $-J \neq 0$)}\\[4pt]
+C_{p}\,\kappa\operatorname{sgn}(m_f)|m_f|^{p} &= -1
+\quad \text{(仅将 $1$ 移到等号右边)}\\[4pt]
+-|m_f|^{p} &= -\frac{1}{C_{p}\kappa}
+\quad \text{(仅在负支 $m_f<0$ 代入 $\operatorname{sgn}(m_f)=-1$，再两边同除 $C_{p}\kappa$)}\\[4pt]
+m_f &= -\left(\frac{1}{C_{p}\kappa}\right)^{1/p}
+\quad \text{(仅两边取 $1/p$ 次幂，恢复符号)}
+\end{aligned}
+$$
+
+**A.2.5 稳定阈值 $\kappa_{\mathrm s}(p)$**
+
+$$
+\begin{aligned}
+|m_f| &< 1
+\quad \text{(仅写出物理约束：折叠点磁化强度绝对值小于 $1$)}\\[4pt]
+\left(\frac{1}{C_{p}\kappa}\right)^{1/p} &< 1
+\quad \text{(仅代入 $|m_f|$ 的显式表达式)}\\[4pt]
+C_{p}\kappa &> 1
+\quad \text{(仅两边取 $p$ 次幂后取倒数，不等号反向)}\\[4pt]
+\kappa &> \frac{1}{C_{p}} = \frac{2}{(p+1)(p+2)}
+\quad \text{(仅代入 $C_{p}=(p+1)(p+2)/2$)}
+\end{aligned}
+$$
+
+### A.3 Maxwell 构造与混合基态阈值（§4.2-4.3）
+
+**A.3.1 与 $m=+1$ 的能量差 $\Delta_{+}(x)$**
+
+$$
+\begin{aligned}
+\Delta_{+}(x)
+&= \varepsilon_{\mathrm A}(-x) - \varepsilon_{\mathrm A}(1)
+\quad \text{(仅定义能量差)}\\[4pt]
+&= \left[\frac{J}{2}x^{2} - \frac{J}{2}(p+1)\kappa x^{p+2}\right] - \left[-h - \frac{J}{2}(1+\kappa)\right]
+\quad \text{(仅代入两态能量)}\\[4pt]
+&= \frac{J}{2}x^{2} - \frac{J}{2}(p+1)\kappa x^{p+2} + h + \frac{J}{2} + \frac{J}{2}\kappa
+\quad \text{(仅去掉减号括号，逐项变号)}\\[4pt]
+&= \frac{J}{2}x^{2} - \frac{J}{2}(p+1)\kappa x^{p+2} + J[x - A_{p}\kappa x^{p+1}] + \frac{J}{2} + \frac{J}{2}\kappa
+\quad \text{(仅代入 $h = h_{x} = J[x - A_{p}\kappa x^{p+1}]$)}\\[4pt]
+&= \frac{J}{2}(x^{2} + 2x + 1) + \frac{J}{2}\kappa\!\left(1 - (p+1)x^{p+2} - 2A_{p}x^{p+1}\right)
+\quad \text{(仅按是否含 $\kappa$ 分组并提取公因子)}\\[4pt]
+&= \frac{J}{2}\!\left[(1+x)^{2} + \kappa\!\left(1 - (p+2)x^{p+1} - (p+1)x^{p+2}\right)\right]
+\quad \text{(仅代入 $2A_{p}=p+2$，写 $(x+1)^{2}$)}
+\end{aligned}
+$$
+
+**A.3.2 Maxwell 曲线 $\kappa_M(x)$**
+
+令 $\Delta_{+}(x)=0$：
+
+$$
+\begin{aligned}
+(1+x)^{2} + \kappa\!\left(1 - (p+2)x^{p+1} - (p+1)x^{p+2}\right) &= 0
+\quad \text{(仅两边同除以 $J/2 \neq 0$)}\\[4pt]
+\kappa_M(x) &= \frac{(1+x)^{2}}{(p+2)x^{p+1} + (p+1)x^{p+2} - 1}
+\quad \text{(仅移项解出 $\kappa$)}
+\end{aligned}
+$$
+
+**A.3.3 $\kappa_M(x)$ 的单调性**
+
+定义 $N(x)=(1+x)^{2}$，$D(x)=(p+2)x^{p+1}+(p+1)x^{p+2}-1$：
+
+$$
+\begin{aligned}
+N'(x) &= 2(1+x)
+\quad \text{(仅对分子求导)}\\[4pt]
+D'(x) &= (p+2)(p+1)x^{p} + (p+1)(p+2)x^{p+1}
+\quad \text{(仅对分母逐项求导)}\\[4pt]
+&= (p+1)(p+2)\,x^{p}(1+x)
+\quad \text{(仅提取公因子)}\\[4pt]
+\kappa'_M(x) &= \frac{2(1+x)D(x) - (1+x)^{3}(p+1)(p+2)x^{p}}{[D(x)]^{2}}
+\quad \text{(仅应用商的求导法则并代入)}\\[4pt]
+&= -\frac{2(1+x)\,Q_{p}(x)}{x\,[D(x)]^{2}} < 0
+\quad \text{(仅代入 $Q_{p}(x)=x^{p}[p^{2}(1+x)^{2}+p(x+1)(x+3)+2]+2>0$)}
+\end{aligned}
+$$
+
+**A.3.4 混合基态阈值 $\kappa_{\mathrm g}(p)$**
+
+$$
+\begin{aligned}
+\kappa_{\mathrm g}(p)
+&= \lim_{x\to 1^{-}} \kappa_M(x)
+\quad \text{(仅定义 $\kappa_{\mathrm g}$ 为 Maxwell 曲线在 $x\to 1^{-}$ 的极限)}\\[4pt]
+&= \frac{(1+1)^{2}}{(p+2)\cdot 1^{p+1} + (p+1)\cdot 1^{p+2} - 1}
+\quad \text{(仅代入 $x=1$，分母非零可直接求值)}\\[4pt]
+&= \frac{4}{2p+2}
+\quad \text{(仅计算：分子 $=4$，分母 $=p+2+p+1-1=2p+2$)}\\[4pt]
+&= \frac{2}{p+1}
+\quad \text{(仅分子分母同除以 $2$)}
+\end{aligned}
+$$
+
+**A.3.5 比值 $\kappa_{\mathrm g}/\kappa_{\mathrm s}$**
+
+$$
+\begin{aligned}
+\frac{\kappa_{\mathrm g}(p)}{\kappa_{\mathrm s}(p)}
+&= \frac{2/(p+1)}{2/[(p+1)(p+2)]}
+\quad \text{(仅代入两阈值的显式结果)}\\[4pt]
+&= \frac{2}{p+1} \cdot \frac{(p+1)(p+2)}{2}
+\quad \text{(仅将"除以分数"变为"乘以倒数")}\\[4pt]
+&= p+2
+\quad \text{(仅约去公共因子 $2$ 和 $(p+1)$)}
+\end{aligned}
+$$
+
+**A.3.6 与 $m=-1$ 的能量差 $\Delta_{-}(x)$ 及其单调性**
+
+$$
+\begin{aligned}
+\Delta_{-}(x)
+&= \varepsilon_{\mathrm A}(-x) - \varepsilon_{\mathrm A}(-1)
+\quad \text{(仅定义能量差)}\\[4pt]
+&= \left[\frac{J}{2}x^{2} - \frac{J}{2}(p+1)\kappa x^{p+2}\right] - \left[h - \frac{J}{2}(1-\kappa)\right]
+\quad \text{(仅代入两态能量)}\\[4pt]
+&= \frac{J}{2}\!\left[(1-x)^{2} + \kappa\!\left((p+2)x^{p+1} - (p+1)x^{p+2} - 1\right)\right]
+\quad \text{(仅按 $\kappa$ 分组、提取公因子、代入 $2A_{p}=p+2$)}\\[4pt]
+\frac{d\Delta_{-}}{dx}
+&= -J(1-x) + \frac{J}{2}\kappa\,(p+1)(p+2)\,x^{p}(1-x)
+\quad \text{(仅逐项求导并化简)}\\[4pt]
+&= J(1-x)(C_{p}\kappa x^{p} - 1)
+\quad \text{(仅提取公因子 $J(1-x)$，代入 $C_{p}=\frac{(p+1)(p+2)}{2}$)}\\[4pt]
+&> 0 \quad (\forall\,x<1\text{ 在稳定支上})
+\quad \text{(仅在稳定支上 $C_{p}\kappa x^{p}>1$，故乘积为正)}\\[4pt]
+\therefore\; \Delta_{-}(x) &< \Delta_{-}(1) = 0
+\quad \text{(仅由 $\Delta_{-}$ 严格递增且 $\Delta_{-}(1)=0$)}
+\end{aligned}
+$$
+
+### A.4 对称反馈（§5）
+
+**A.4.1 内部支 $g_{\mathrm S}(m)$ 与稳定性**
+
+$$
+\begin{aligned}
+\varepsilon_{\mathrm S}(m) &= -hm - \frac{J}{2}m^{2} - \frac{J\kappa}{2}|m|^{p+2}
+\quad \text{(仅展开 $\varepsilon_{\mathrm S}$ 的括号)}\\[4pt]
+\frac{\partial\varepsilon_{\mathrm S}}{\partial m}
+&= -h - Jm - \frac{J\kappa}{2}(p+2)\operatorname{sgn}(m)|m|^{p+1}
+\quad \text{(仅逐项求导)}\\[4pt]
+&= -h - J[m + A_{p}\kappa\operatorname{sgn}(m)|m|^{p+1}]
+\quad \text{(仅提取公因子 $J$，代入 $A_{p}=\frac{p+2}{2}$)}
+\end{aligned}
+$$
+
+令 $\partial\varepsilon_{\mathrm S}/\partial m = 0$ 得 $h = g_{\mathrm S}(m) = -J[m + A_{p}\kappa\operatorname{sgn}(m)|m|^{p+1}]$。
+
+$$
+\begin{aligned}
+g'_{\mathrm S}(m)
+&= -J[1 + A_{p}\kappa(p+1)|m|^{p}]
+\quad \text{(仅对 $g_{\mathrm S}$ 求导，使用 $\frac{d}{dm}[\operatorname{sgn}(m)|m|^{p+1}]=(p+1)|m|^{p}$)}\\[4pt]
+&= -J[1 + C_{p}\kappa|m|^{p}]
+\quad \text{(仅代入 $C_{p}=A_{p}(p+1)$)}
+\end{aligned}
+$$
+
+当 $\kappa=-a<0$ 时，稳定条件 $g'_{\mathrm S}(m)>0$ 变为 $C_{p}a|m|^{p}>1$。
+
+**A.4.2 对称负反馈零场混合基态**
+
+$$
+\begin{aligned}
+\varepsilon_{\mathrm S}(x) &= -\frac{J}{2}x^{2} + \frac{Ja}{2}x^{p+2}
+\quad \text{(仅代入 $h=0$, $\kappa=-a$, $x=|m|$)}\\[4pt]
+\frac{d\varepsilon_{\mathrm S}}{dx} &= -Jx + \frac{Ja}{2}(p+2)x^{p+1}
+\quad \text{(仅逐项求导)}\\[4pt]
+&= x[-J + \frac{Ja}{2}(p+2)x^{p}]
+\quad \text{(仅提取公因子 $x$)}
+\end{aligned}
+$$
+
+非零解 $x\neq 0$：
+
+$$
+\begin{aligned}
+\frac{Ja}{2}(p+2)x^{p} &= J
+\quad \text{(仅令方括号内为零并移项)}\\[4pt]
+x_{0} &= \left[\frac{2}{a(p+2)}\right]^{1/p}
+\quad \text{(仅解出 $x$)}
+\end{aligned}
+$$
+
+$x_{0}<1$ 等价于 $a > \frac{2}{p+2}$。
+
+### A.5 有限温度平均场（§6.1-6.2）
+
+**A.5.1 对称模型方程状态**
+
+$$
+\begin{aligned}
+\mathcal F_{\mathrm S}(m) &= -hm - \frac{J}{2}[m^{2}+\kappa|m|^{p+2}] + TI(m)
+\quad \text{(原式)}\\[4pt]
+\frac{\partial\mathcal F_{\mathrm S}}{\partial m}
+&= -h - J[m + A_{p}\kappa\operatorname{sgn}(m)|m|^{p+1}] + T\operatorname{arctanh}m
+\quad \text{(仅逐项求导，代入 $I'(m)=\operatorname{arctanh}m$)}
+\end{aligned}
+$$
+
+令 $\partial\mathcal F_{\mathrm S}/\partial m = 0$ 得方程状态 $h = T\operatorname{arctanh}m - J[m + A_{p}\kappa\operatorname{sgn}(m)|m|^{p+1}]$。
+
+**A.5.2 自旋odal温度**
+
+自旋odal由 $\partial h/\partial m = 0$ 定义：
+
+$$
+\begin{aligned}
+\frac{\partial h}{\partial m}
+&= \frac{T}{1-m^{2}} - J[1 + C_{p}\kappa|m|^{p}]
+\quad \text{(仅对方程状态求导，$\frac{d}{dm}\operatorname{arctanh}m=\frac{1}{1-m^{2}}$)}\\[4pt]
+\frac{T_{\mathrm{sp}}^{\mathrm S}}{J}
+&= (1-m^{2})[1 + C_{p}\kappa|m|^{p}]
+\quad \text{(仅令导数为零，解出 $T$)}
+\end{aligned}
+$$
+
+**A.5.3 Landau 展开**
+
+$$
+\begin{aligned}
+\mathcal F_{\mathrm S}(m)
+&= -hm - \frac{J}{2}m^{2} - \frac{J\kappa}{2}|m|^{p+2} + T[- \ln 2 + \tfrac12 m^{2} + \tfrac{1}{12}m^{4} + \tfrac{1}{30}m^{6} + O(m^{8})]
+\quad \text{(仅代入 $I(m)$ 的小 $m$ 展开)}\\[4pt]
+&= -T\ln 2 + \frac{T-J}{2}m^{2} + \frac{T}{12}m^{4} + \frac{T}{30}m^{6} - \frac{J\kappa}{2}|m|^{p+2} + \cdots
+\quad \text{(仅合并 $m^{2}$ 项：$-\frac{J}{2}m^{2}+\frac{T}{2}m^{2}=\frac{T-J}{2}m^{2}$，令 $h=0$)}
+\end{aligned}
+$$
+
+### A.6 临界指数（§6.3）
+
+**A.6.1 $0<p<2$ 负反馈：$\beta_{\mathrm{MF}} = 1/p$**
+
+近临界处（$T<J$，$\kappa=-|\kappa|<0$）：
+
+$$
+\begin{aligned}
+\mathcal F_{\mathrm S} &\simeq \frac{T-J}{2}m^{2} + \frac{J|\kappa|}{2}|m|^{p+2}
+\quad \text{(仅保留主导项)}\\[4pt]
+\frac{\partial\mathcal F_{\mathrm S}}{\partial m}
+&\simeq (T-J)m + \frac{J|\kappa|}{2}(p+2)\operatorname{sgn}(m)|m|^{p+1}
+\quad \text{(仅逐项求导)}
+\end{aligned}
+$$
+
+令导数为零（取 $m>0$）：
+
+$$
+\begin{aligned}
+(J-T)m &= \frac{J|\kappa|}{2}(p+2)m^{p+1}
+\quad \text{(仅将 $(T-J)m = -(J-T)m$ 移项)}\\[4pt]
+|m|^{p} &= \frac{2(J-T)}{J|\kappa|(p+2)}
+\quad \text{(仅两边同除 $m\cdot J|\kappa|(p+2)/2$)}\\[4pt]
+|m| &\propto (J-T)^{1/p}
+\quad \text{(仅取 $1/p$ 次幂并写比例关系)}
+\end{aligned}
+$$
+
+故 $\beta_{\mathrm{MF}} = 1/p$。
+
+**A.6.2 Rushbrooke 等式验证**
+
+$\mathcal F_{\mathrm{min}} \propto (J-T)^{(p+2)/p}$，两次求导得 $C \propto (J-T)^{(2-p)/p}$，故 $\alpha_{\mathrm{MF}} = 1 - 2/p$。
+代入 $\gamma_{\mathrm{MF}} = 1$：
+
+$$
+\begin{aligned}
+\alpha_{\mathrm{MF}} + 2\beta_{\mathrm{MF}} + \gamma_{\mathrm{MF}}
+&= \left(1 - \frac{2}{p}\right) + 2\left(\frac{1}{p}\right) + 1
+\quad \text{(仅代入三个临界指数)}\\[4pt]
+&= 1 - \frac{2}{p} + \frac{2}{p} + 1
+\quad \text{(仅计算 $2\cdot\frac{1}{p} = \frac{2}{p}$)}\\[4pt]
+&= 2
+\quad \text{(仅合并 $-\frac{2}{p} + \frac{2}{p} = 0$，$1+1=2$)}
+\end{aligned}
+$$
+
+**A.6.3 正反馈弱极限下一级跳变**
+
+$$
+\begin{aligned}
+\kappa_{\mathrm{coex}} &= \frac{1}{3p}m_{\mathrm j}^{2-p}
+\quad \text{(仅取主导项)}\\[4pt]
+m_{\mathrm j} &\sim (3p\kappa)^{1/(2-p)}
+\quad \text{(仅反解 $m_{\mathrm j}$)}\\[4pt]
+\frac{T_{\mathrm{coex}}-J}{J} &\sim \frac{2-p}{6p}(3p\kappa)^{2/(2-p)}
+\quad \text{(仅代入 $\tau_{\mathrm{coex}}-1 \simeq \frac{2-p}{6}m_{\mathrm j}^{2}$)}
+\end{aligned}
+$$
+
+### A.7 三临界点 $p=2$（§6.4）
+
+$$
+\begin{aligned}
+\mathcal F_{\mathrm S}
+&= \frac{T-J}{2}m^{2} + \left(\frac{T}{12} - \frac{J\kappa}{2}\right)m^{4} + \frac{T}{30}m^{6} + \cdots
+\quad \text{(仅代入 $p=2$，$|m|^{p+2}=m^{4}$)}\\[4pt]
+T_{\mathrm{TCP}} &= J
+\quad \text{(仅令二次系数 $\frac{T-J}{2}=0$)}\\[4pt]
+\kappa_{\mathrm{TCP}} &= \frac{1}{6}
+\quad \text{(仅令四次系数 $\frac{J}{12}-\frac{J\kappa}{2}=0$，代入 $T=J$)}\\[4pt]
+\left.\frac{T}{30}\right|_{T=J} &= \frac{J}{30} > 0
+\quad \text{(仅验证六次系数为正，TCP 稳定)}
+\end{aligned}
+$$
+
+### A.8 共存参数式（§6.5）
+
+从零场非零定态条件（$m>0$，$\tau = T/J$）：
+
+$$
+\begin{aligned}
+\tau L(m) &= m + A_{p}\kappa\, m^{p+1}
+\quad \text{(方程状态除以 $J$，$h=0$)}\\[4pt]
+\tau\mathcal I(m) &= \tfrac12 m^{2} + \tfrac12\kappa\, m^{p+2}
+\quad \text{(积分形式)}
+\end{aligned}
+$$
+
+从第一式解出 $\kappa = \frac{\tau L(m) - m}{A_{p} m^{p+1}}$，代入第二式：
+
+$$
+\begin{aligned}
+\tau\mathcal I(m) &= \tfrac12 m^{2} + \frac{\tau L(m) - m}{2A_{p}}m
+\quad \text{(仅化简 $m^{p+2}/m^{p+1}=m$)}\\[4pt]
+\tau\left[\mathcal I(m) - \frac{m L(m)}{2A_{p}}\right] &= \frac{m^{2}}{2}\left(1 - \frac{1}{A_{p}}\right)
+\quad \text{(仅分离含 $\tau$ 与不含 $\tau$ 的项)}
+\end{aligned}
+$$
+
+代入 $A_{p} = \frac{p+2}{2}$，计算 $1 - 1/A_{p} = \frac{p}{p+2}$：
+
+$$
+\begin{aligned}
+\tau_{\mathrm{coex}}(m) &= \frac{p\,m^{2}}{2[(p+2)\mathcal I(m) - m L(m)]}
+\quad \text{(仅通分化简)}\\[4pt]
+\kappa_{\mathrm{coex}}(m) &= \frac{2[\tau_{\mathrm{coex}}(m) L(m) - m]}{(p+2)m^{p+1}}
+\quad \text{(仅回代得 $\kappa$)}
+\end{aligned}
+$$
+
+### A.9 一维精确模型（§7）
+
+**A.9.1 磁化关系反解**
+
+$$
+\begin{aligned}
+m &= \frac{\sinh H_u}{\sqrt{\sinh^{2} H_u + e^{-4K}}}
+\quad \text{(一维 Ising 磁化关系)}\\[4pt]
+m^{2} &= \frac{\sinh^{2} H_u}{\sinh^{2} H_u + e^{-4K}}
+\quad \text{(仅两边平方，化简根号)}\\[4pt]
+m^{2}(S + e^{-4K}) &= S
+\quad \text{(仅代入 $S = \sinh^{2} H_u$，两边乘分母)}\\[4pt]
+S &= \frac{m^{2} e^{-4K}}{1 - m^{2}}
+\quad \text{(仅移项解出 $S$)}\\[4pt]
+H_*(m;K) &= \operatorname{arsinh}\!\left(\frac{m\,e^{-2K}}{\sqrt{1 - m^{2}}}\right)
+\quad \text{(仅取正平方根，两边取反双曲正弦)}
+\end{aligned}
+$$
+
+**A.9.2 受限自由能（Legendre 变换）**
+
+$$
+\begin{aligned}
+\beta\phi(m;J) &= \sup_{u}\{m u - \ln\lambda_{+}(K, u)\}
+\quad \text{(仅写出 Legendre 变换定义)}\\[4pt]
+&= m H_*(m;K) - \ln\lambda_{+}(K, H_*(m;K))
+\quad \text{(仅在驻点 $u=H_*$ 处取值)}
+\end{aligned}
+$$
+
+**A.9.3 小 $m$ 展开**
+
+记 $a = e^{-2K}$：
+
+$$
+\begin{aligned}
+\beta[\phi(m;J) - \phi(0;J)]
+&= \frac{a}{2}m^{2} + \frac{3a - a^{3}}{24}m^{4} + O(m^{6})
+\quad \text{(仅展开 $\operatorname{arsinh}$, $\cosh$, $\sqrt{\cdot}$ 到 $m^{4}$ 并合并)}\\[4pt]
+&= \frac{e^{-2K}}{2}m^{2} + \frac{3e^{4K} - 1}{24e^{6K}}m^{4} + O(m^{6})
+\quad \text{(仅回代 $a = e^{-2K}$)}
+\end{aligned}
+$$
+
+**A.9.4 零磁化背景自由能的 $|m|^{p}$ 项**
+
+$$
+\begin{aligned}
+K(m) &= K_{0}(1 + \kappa|m|^{p})
+\quad \text{(仅代入 $J(m)=J_{0}(1+\kappa|m|^{p})$)}\\[4pt]
+f(K) &= -\ln(2\cosh K)
+\quad \text{(仅定义 $f(K)$)}\\[4pt]
+f(K(m)) &= f(K_{0}) + f'(K_{0})(K(m)-K_{0}) + \cdots
+\quad \text{(仅在 $K_{0}$ 处做一阶 Taylor 展开)}\\[4pt]
+&= -\ln(2\cosh K_{0}) - \tanh K_{0}\cdot K_{0}\kappa|m|^{p} + \cdots
+\quad \text{(仅代入 $f'(K)=-\tanh K$，$K(m)-K_{0}=K_{0}\kappa|m|^{p}$)}
+\end{aligned}
+$$
+
+这表明一维自由能中反馈首先在 $|m|^{p}$ 阶进入——与平均场中反馈只在 $|m|^{p+2}$ 阶进入有本质区别。
+
+### A.10 有限维 Monte Carlo 精确能量差（§8）
+
+翻转第 $k$ 个自旋：$s'_{k} = -s_{k}$，$M' = M - 2s_{k}$，$m' = m - \frac{2s_{k}}{N}$，$B' = B - 2b_{k}$。
+
+$$
+\begin{aligned}
+\Delta E &= H' - H
+\quad \text{(仅定义能量差)}\\[4pt]
+&= [-J(m')B' - hM'] - [-J(m)B - hM]
+\quad \text{(仅代入翻转前后的 Hamiltonian)}\\[4pt]
+&= -J(m')B' + J(m)B - h(M' - M)
+\quad \text{(仅去括号)}\\[4pt]
+&= -J(m')(B - 2b_{k}) + J(m)B + 2h s_{k}
+\quad \text{(仅代入 $B'=B-2b_{k}$，$M'-M=-2s_{k}$)}\\[4pt]
+&= -J(m')B + 2J(m')b_{k} + J(m)B + 2h s_{k}
+\quad \text{(仅分配 $-J(m')$ 于 $(B-2b_{k})$)}\\[4pt]
+&= [J(m) - J(m')]B + 2J(m')b_{k} + 2h s_{k}
+\quad \text{(仅将 $J(m)B - J(m')B$ 合并)}
+\end{aligned}
+$$
+
+第一项 $[J(m)-J(m')]B$ 虽然 $J(m)-J(m') = O(1/N)$，但 $B = O(N)$，乘积为 $O(1)$，不可忽略——这反映了全局反馈的实质：单次翻转通过改变 $m$ 进而改变所有键的耦合强度。
