@@ -78,8 +78,7 @@ $$
 为了避免把平均场模型和有限维模型混在一起，先定义严格的 Curie–Weiss 型反馈模型：
 
 $$
-H_N(\mathbf s)
-=
+H_N(\mathbf s) =
 -h\sum_{i=1}^N s_i
 -\frac{J}{N}
 \left[1+\kappa\Phi_p(m)\right]
@@ -89,16 +88,14 @@ $$
 利用
 
 $$
-\sum_{i<j}s_i s_j
-=
+\sum_{i<j}s_i s_j =
 \frac12\left(N^2m^2-N\right),
 $$
 
 在热力学极限中能量密度为
 
 $$
-\varepsilon(m)
-=
+\varepsilon(m) =
 -hm-\frac{J}{2}
 \left[1+\kappa\Phi_p(m)\right]m^2.
 $$
@@ -107,8 +104,7 @@ $$
 
 $$
 \boxed{
-\varepsilon_{\mathrm A}(m)
-=
+\varepsilon_{\mathrm A}(m) =
 -hm-\frac J2
 \left[m^2+\kappa m|m|^{p+1}\right]
 }
@@ -118,8 +114,7 @@ $$
 
 $$
 \boxed{
-\varepsilon_{\mathrm S}(m)
-=
+\varepsilon_{\mathrm S}(m) =
 -hm-\frac J2
 \left[m^2+\kappa |m|^{p+2}\right].
 }
@@ -130,8 +125,7 @@ $$
 有限温度下，磁化为 $m$ 的构型数给出标准 Ising 混合熵
 
 $$
-I(m)
-=
+I(m) =
 \frac{1+m}{2}\ln\frac{1+m}{2}
 +
 \frac{1-m}{2}\ln\frac{1-m}{2}.
@@ -158,8 +152,7 @@ $$
 定义
 
 $$
-g(m)
-=
+g(m) =
 -J\left[
 m f(m)+\frac12m^2f'(m)
 \right],
@@ -175,8 +168,7 @@ $$
 
 $$
 \boxed{
-\dot m
-=
+\dot m =
 -m+\operatorname{sgn}[h-g(m)].
 }
 $$
@@ -252,8 +244,7 @@ $$
 对
 
 $$
-\varepsilon_{\mathrm A}(m)
-=
+\varepsilon_{\mathrm A}(m) =
 -hm-\frac J2
 \left[m^2+\kappa m|m|^{p+1}\right],
 $$
@@ -261,16 +252,14 @@ $$
 使用
 
 $$
-\frac{d}{dm}\left[m|m|^{p+1}\right]
-=
+\frac{d}{dm}\left[m|m|^{p+1}\right] =
 (p+2)|m|^{p+1},
 $$
 
 得到
 
 $$
-\varepsilon'_{\mathrm A}(m)
-=
+\varepsilon'_{\mathrm A}(m) =
 -h-Jm-\frac{J\kappa}{2}(p+2)|m|^{p+1}.
 $$
 
@@ -287,8 +276,7 @@ $$
 
 $$
 \boxed{
-h=g_{\mathrm A}(m)
-=
+h=g_{\mathrm A}(m) =
 -J\left[
 m+A_p\kappa |m|^{p+1}
 \right].
@@ -299,8 +287,7 @@ $$
 
 $$
 \boxed{
-g_{\mathrm A}'(m)
-=
+g_{\mathrm A}'(m) =
 -J\left[
 1+C_p\kappa\operatorname{sgn}(m)|m|^p
 \right].
@@ -317,8 +304,7 @@ $$
 
 $$
 \boxed{
-m_f
-=
+m_f =
 -\left(\frac1{C_p\kappa}\right)^{1/p},
 }
 $$
@@ -327,10 +313,8 @@ $$
 
 $$
 \boxed{
-\kappa>\kappa_{\mathrm s}(p)
-=
-\frac{1}{C_p}
-=
+\kappa>\kappa_{\mathrm s}(p) =
+\frac{1}{C_p} =
 \frac{2}{(p+1)(p+2)}.
 }
 $$
@@ -341,8 +325,7 @@ $$
 
 $$
 \boxed{
-h_f
-=
+h_f =
 J\frac{p}{p+1}
 \left(
 \frac1{C_p\kappa}
@@ -354,16 +337,14 @@ $$
 
 $$
 \boxed{
-h_+=g_{\mathrm A}(1)
-=
+h_+=g_{\mathrm A}(1) =
 -J(1+A_p\kappa),
 }
 $$
 
 $$
 \boxed{
-h_-=g_{\mathrm A}(-1)
-=
+h_-=g_{\mathrm A}(-1) =
 J(1-A_p\kappa).
 }
 $$
@@ -412,8 +393,7 @@ $$
 
 $$
 \boxed{
-h_x
-=
+h_x =
 J\left[
 x-A_p\kappa x^{p+1}
 \right].
@@ -423,8 +403,7 @@ $$
 内部定态的能量为
 
 $$
-\varepsilon_{\mathrm A}(-x)
-=
+\varepsilon_{\mathrm A}(-x) =
 \frac J2x^2
 -\frac J2(p+1)\kappa x^{p+2}.
 $$
@@ -433,10 +412,8 @@ $$
 
 $$
 \boxed{
-\Delta_+(x)
-=
-\varepsilon_{\mathrm A}(-x)-\varepsilon_{\mathrm A}(1)
-=
+\Delta_+(x) =
+\varepsilon_{\mathrm A}(-x)-\varepsilon_{\mathrm A}(1) =
 \frac J2
 \left[
 (1+x)^2
@@ -453,8 +430,7 @@ $$
 
 $$
 \boxed{
-\kappa_M(x)
-=
+\kappa_M(x) =
 \frac{(1+x)^2}
 {
 (p+2)x^{p+1}
@@ -476,10 +452,8 @@ $$
 
 $$
 \boxed{
-\Delta_-(x)
-=
-\varepsilon_{\mathrm A}(-x)-\varepsilon_{\mathrm A}(-1)
-=
+\Delta_-(x) =
+\varepsilon_{\mathrm A}(-x)-\varepsilon_{\mathrm A}(-1) =
 \frac J2
 \left[
 (1-x)^2
@@ -497,8 +471,7 @@ $$
 其导数可以写成
 
 $$
-\frac{d\Delta_-}{dx}
-=
+\frac{d\Delta_-}{dx} =
 J(1-x)\left(C_p\kappa x^p-1\right).
 $$
 
@@ -525,8 +498,7 @@ $$
 对 $\kappa_M(x)$ 直接求导可得
 
 $$
-\kappa_M'(x)
-=
+\kappa_M'(x) =
 -\frac{(1+x)Q_p(x)}
 {
 \left[
@@ -540,8 +512,7 @@ $$
 其中
 
 $$
-Q_p(x)
-=
+Q_p(x) =
 x^p
 \left[
 p^2(1+x)^2
@@ -561,10 +532,8 @@ $$
 
 $$
 \boxed{
-\kappa_{\mathrm g}(p)
-=
-\lim_{x\to1^-}\kappa_M(x)
-=
+\kappa_{\mathrm g}(p) =
+\lim_{x\to1^-}\kappa_M(x) =
 \frac{2}{p+1}.
 }
 $$
@@ -621,8 +590,7 @@ $$
 非对称反馈的瞬时二体前因子为
 
 $$
-f_{\mathrm A}(m)
-=
+f_{\mathrm A}(m) =
 1+\kappa\operatorname{sgn}(m)|m|^p.
 $$
 
@@ -683,8 +651,7 @@ $$
 对称模型为
 
 $$
-\varepsilon_{\mathrm S}(m)
-=
+\varepsilon_{\mathrm S}(m) =
 -hm-\frac J2
 \left[m^2+\kappa|m|^{p+2}\right].
 $$
@@ -693,8 +660,7 @@ $$
 
 $$
 \boxed{
-h=g_{\mathrm S}(m)
-=
+h=g_{\mathrm S}(m) =
 -J\left[
 m+A_p\kappa\operatorname{sgn}(m)|m|^{p+1}
 \right],
@@ -705,8 +671,7 @@ $$
 
 $$
 \boxed{
-g_{\mathrm S}'(m)
-=
+g_{\mathrm S}'(m) =
 -J\left[
 1+C_p\kappa|m|^p
 \right].
@@ -740,8 +705,7 @@ $$
 更进一步，在 $h=0$ 时可直接求出对称负反馈的混合基态。令 $x=|m|$，则
 
 $$
-\varepsilon_{\mathrm S}(x)
-=
+\varepsilon_{\mathrm S}(x) =
 -\frac J2\left(x^2-a x^{p+2}\right).
 $$
 
@@ -755,8 +719,7 @@ $$
 
 $$
 \boxed{
-x_0
-=
+x_0 =
 \left[
 \frac{2}{a(p+2)}
 \right]^{1/p}.
@@ -807,8 +770,7 @@ $$
 
 $$
 \boxed{
-\mathcal F_{\mathrm A}(m)
-=
+\mathcal F_{\mathrm A}(m) =
 -hm
 -\frac J2\left[m^2+\kappa m|m|^{p+1}\right]
 +TI(m).
@@ -819,8 +781,7 @@ $$
 
 $$
 \boxed{
-h
-=
+h =
 T\operatorname{arctanh}m
 -J\left[
 m+A_p\kappa|m|^{p+1}
@@ -832,8 +793,7 @@ $$
 
 $$
 \boxed{
-\mathcal F_{\mathrm A}''(m)
-=
+\mathcal F_{\mathrm A}''(m) =
 \frac{T}{1-m^2}
 -J\left[
 1+C_p\kappa\operatorname{sgn}(m)|m|^p
@@ -846,8 +806,7 @@ $$
 
 $$
 \boxed{
-\frac{T_{\mathrm{sp}}^{\mathrm A}}{J}
-=
+\frac{T_{\mathrm{sp}}^{\mathrm A}}{J} =
 (1-m^2)
 \left[
 1+C_p\kappa\operatorname{sgn}(m)|m|^p
@@ -859,8 +818,7 @@ $$
 
 $$
 \boxed{
-\mathcal F_{\mathrm S}(m)
-=
+\mathcal F_{\mathrm S}(m) =
 -hm
 -\frac J2\left[m^2+\kappa|m|^{p+2}\right]
 +TI(m),
@@ -869,8 +827,7 @@ $$
 
 $$
 \boxed{
-h
-=
+h =
 T\operatorname{arctanh}m
 -J\left[
 m+A_p\kappa\operatorname{sgn}(m)|m|^{p+1}
@@ -880,8 +837,7 @@ $$
 
 $$
 \boxed{
-\mathcal F_{\mathrm S}''(m)
-=
+\mathcal F_{\mathrm S}''(m) =
 \frac{T}{1-m^2}
 -J\left[
 1+C_p\kappa|m|^p
@@ -893,8 +849,7 @@ $$
 
 $$
 \boxed{
-\frac{T_{\mathrm{sp}}^{\mathrm S}}{J}
-=
+\frac{T_{\mathrm{sp}}^{\mathrm S}}{J} =
 (1-m^2)
 \left[
 1+C_p\kappa|m|^p
@@ -917,8 +872,7 @@ $$
 在 $h=0$ 附近，
 
 $$
-TI(m)
-=
+TI(m) =
 -T\ln2
 +\frac T2m^2
 +\frac T{12}m^4
@@ -930,8 +884,7 @@ $$
 
 $$
 \boxed{
-\mathcal F_{\mathrm S}(m)
-=
+\mathcal F_{\mathrm S}(m) =
 -T\ln2
 +\frac{T-J}{2}m^2
 +\frac T{12}m^4
@@ -976,8 +929,7 @@ $$
 在 $T<J$ 时，非零极小值满足
 
 $$
-|m|^p
-=
+|m|^p =
 \frac{2(J-T)}
 {J|\kappa|(p+2)}.
 $$
@@ -1048,15 +1000,13 @@ $$
 利用后面的共存参数式，在弱反馈极限可得
 
 $$
-\kappa_{\mathrm{coex}}
-=
+\kappa_{\mathrm{coex}} =
 \frac{1}{3p}m_{\mathrm j}^{\,2-p}
 +O(m_{\mathrm j}^{\,4-p}),
 $$
 
 $$
-\frac{T_{\mathrm{coex}}}{J}
-=
+\frac{T_{\mathrm{coex}}}{J} =
 1+\frac{2-p}{6p}m_{\mathrm j}^{\,2}
 +O(m_{\mathrm j}^{\,4}),
 $$
@@ -1095,8 +1045,7 @@ $$
 四次系数为
 
 $$
-b_4(T,\kappa)
-=
+b_4(T,\kappa) =
 \frac T{12}-\frac{J\kappa}{2}.
 $$
 
@@ -1173,10 +1122,8 @@ L(m)=\operatorname{arctanh}m,
 $$
 
 $$
-\mathcal I(m)
-=
-I(m)-I(0)
-=
+\mathcal I(m) =
+I(m)-I(0) =
 \frac12
 \left[
 (1+m)\ln(1+m)
@@ -1188,14 +1135,12 @@ $$
 零场下，非零定态与 $m=0$ 共存需满足
 
 $$
-\tau L(m)
-=
+\tau L(m) =
 m+A_p\kappa m^{p+1},
 $$
 
 $$
-\tau\mathcal I(m)
-=
+\tau\mathcal I(m) =
 \frac12m^2+\frac12\kappa m^{p+2}.
 $$
 
@@ -1203,8 +1148,7 @@ $$
 
 $$
 \boxed{
-\tau_{\mathrm{coex}}(m)
-=
+\tau_{\mathrm{coex}}(m) =
 \frac{p\,m^2}
 {
 2\left[(p+2)\mathcal I(m)-mL(m)\right]
@@ -1214,8 +1158,7 @@ $$
 
 $$
 \boxed{
-\kappa_{\mathrm{coex}}(m)
-=
+\kappa_{\mathrm{coex}}(m) =
 \frac{
 2\left[\tau_{\mathrm{coex}}(m)L(m)-m\right]
 }
@@ -1226,14 +1169,12 @@ $$
 小 $m$ 展开给出
 
 $$
-\tau_{\mathrm{coex}}
-=
+\tau_{\mathrm{coex}} =
 1-\frac{p-2}{6p}m^2+O(m^4),
 $$
 
 $$
-\kappa_{\mathrm{coex}}
-=
+\kappa_{\mathrm{coex}} =
 \frac1{3p}m^{2-p}
 +O(m^{4-p}).
 $$
@@ -1245,8 +1186,7 @@ $$
 2\left[
 (p+2)\mathcal I(m_{\mathrm{CE}})
 -m_{\mathrm{CE}}L(m_{\mathrm{CE}})
-\right]
-=
+\right] =
 p\,m_{\mathrm{CE}}^2,
 }
 $$
@@ -1255,8 +1195,7 @@ $$
 
 $$
 \boxed{
-\kappa_{\mathrm{CE}}
-=
+\kappa_{\mathrm{CE}} =
 \frac{
 2\left[L(m_{\mathrm{CE}})-m_{\mathrm{CE}}\right]
 }
@@ -1295,8 +1234,7 @@ $$
 考虑一维周期链
 
 $$
-H
-=
+H =
 -J(m)\sum_{i=1}^N s_i s_{i+1}
 -h\sum_{i=1}^N s_i.
 $$
@@ -1314,8 +1252,7 @@ $$
 最大转移矩阵本征值为
 
 $$
-\lambda_+(K,H_u)
-=
+\lambda_+(K,H_u) =
 e^K\cosh H_u
 +
 \sqrt{
@@ -1326,8 +1263,7 @@ $$
 普通一维 Ising 模型的磁化关系为
 
 $$
-m
-=
+m =
 \frac{\sinh H_u}
 {
 \sqrt{\sinh^2H_u+e^{-4K}}
@@ -1338,8 +1274,7 @@ $$
 
 $$
 \boxed{
-H_*(m;K)
-=
+H_*(m;K) =
 \operatorname{arsinh}
 \left[
 \frac{m e^{-2K}}
@@ -1352,8 +1287,7 @@ $$
 
 $$
 \boxed{
-\beta\phi(m;J)
-=
+\beta\phi(m;J) =
 mH_*(m;K)
 -
 \ln\lambda_+\!\left(K,H_*(m;K)\right).
@@ -1370,8 +1304,7 @@ $$
 
 $$
 \boxed{
-\Phi(m;T,h)
-=
+\Phi(m;T,h) =
 \phi\!\left(m;J(m)\right)-hm.
 }
 $$
@@ -1379,8 +1312,7 @@ $$
 平衡磁化由
 
 $$
-m_{\mathrm{eq}}
-=
+m_{\mathrm{eq}} =
 \arg\min_{m\in[-1,1]}\Phi(m;T,h)
 $$
 
@@ -1391,8 +1323,7 @@ $$
 更重要的是，一维精确模型的 Landau 阶数不能照搬平均场结果。固定 $J$ 时，
 
 $$
-\beta[\phi(m;J)-\phi(0;J)]
-=
+\beta[\phi(m;J)-\phi(0;J)] =
 \frac{e^{-2K}}2m^2
 +
 \frac{3e^{4K}-1}{24e^{6K}}m^4
@@ -1445,8 +1376,7 @@ $$
 对最近邻格点模型定义
 
 $$
-H
-=
+H =
 -J(m)B-hM,
 $$
 
@@ -1482,8 +1412,7 @@ $$
 
 $$
 \boxed{
-\Delta E
-=
+\Delta E =
 -J(m')\left(B-2b_k\right)
 +J(m)B
 +2hs_k.
@@ -1494,8 +1423,7 @@ $$
 
 $$
 \boxed{
-\Delta E
-=
+\Delta E =
 \left[J(m)-J(m')\right]B
 +
 2J(m')b_k
@@ -1533,8 +1461,7 @@ $$
 Metropolis 接受率应为
 
 $$
-P_{\mathrm{acc}}
-=
+P_{\mathrm{acc}} =
 \min\left(1,e^{-\beta\Delta E}\right).
 $$
 
@@ -1567,8 +1494,7 @@ $$
 再用小温度正则化
 
 $$
-\dot m
-=
+\dot m =
 -m+\tanh\{\beta[h(t)-g(m)]\},
 \qquad
 \beta\gg1,
@@ -1581,15 +1507,13 @@ $$
 第三层是有限维 Monte Carlo。仅用比热峰位置不足以确定相变阶数。建议至少同时测量：
 
 $$
-U_4
-=
+U_4 =
 1-\frac{\langle m^4\rangle}
 {3\langle m^2\rangle^2},
 $$
 
 $$
-\chi
-=
+\chi =
 \frac{N}{T}
 \left(
 \langle m^2\rangle-\langle |m|\rangle^2
@@ -1686,8 +1610,7 @@ $$
 
 $$
 \boxed{
-\kappa_{\mathrm s}(p)
-=
+\kappa_{\mathrm s}(p) =
 \frac{2}{(p+1)(p+2)}
 }
 $$
@@ -1696,8 +1619,7 @@ $$
 
 $$
 \boxed{
-\kappa_{\mathrm g}(p)
-=
+\kappa_{\mathrm g}(p) =
 \frac{2}{p+1}
 }
 $$
