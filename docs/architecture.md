@@ -39,7 +39,7 @@ Hugo 静态站点 + Hugo Book 主题。三个 content section 各司其职:
 | `{{< algorithm >}}` | pseudocode.js 算法块 |
 | `{{< rough-canvas >}}` | rough.js 手绘风格 Canvas |
 
-**书架机制**:`category`(书籍自定义如 `quant`/`ml`/`physics`/`philosophy`,论文用 arXiv 一级如 `quant-ph`)管书架路由;`tags` 管 `/tags/` 浏览。两者完全解耦。新增内容只需填好 front matter,无需手动编辑 shortcode。
+**书架机制**:`category`(书籍自定义如 `quant`/`ml`/`physics`/`philosophy`,论文用 arXiv 分类（一级或子类，如 `quant-ph`、`physics.chem-ph`）管书架路由;`tags` 管 `/tags/` 浏览。两者完全解耦。新增内容只需填好 front matter,无需手动编辑 shortcode。
 
 ### 主题切换(三态)
 

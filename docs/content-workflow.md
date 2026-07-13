@@ -64,7 +64,7 @@ PDF/EPUB/DOCX/FB2/TXT 源
 ### 关键约定
 
 - **`_index.md`**(不是普通 `.md`):单篇论文一个 section
-- **`category` 是 arXiv 一级分类数组**(如 `["quant-ph"]`、`["quant-ph", "cond-mat"]`),查 `data/arxiv_categories.json`。多归属
+- **`category` 是 arXiv 分类数组（一级或子类，查 `data/arxiv_categories.json`）**(如 `["quant-ph"]`、`["quant-ph", "cond-mat"]`),查 `data/arxiv_categories.json`。多归属
 - **全部图片带上**:论文全文翻译了,图片是正文一部分
 - **LaTeX 公式 100% 原样**:翻译时不动 `$...$` / `$$...$$` / `\tag{N}`。**不要用 `\[...\]` / `\(...\)`**——KaTeX 不渲染
 - **🔴 日期**:同书,`date` 写当天带时区
