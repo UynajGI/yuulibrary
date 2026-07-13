@@ -82,13 +82,13 @@ H_N(\mathbf s) =
 -h\sum_{i=1}^N s_i
 -\frac{J}{N}
 \left[1+\kappa\Phi_p(m)\right]
-\sum_{i<j}s_i s_j.
+\sum_{i\lt j}s_i s_j.
 $$
 
 利用
 
 $$
-\sum_{i<j}s_i s_j =
+\sum_{i\lt j}s_i s_j =
 \frac12\left(N^2m^2-N\right),
 $$
 
@@ -179,7 +179,7 @@ $$
 \dot m=
 \begin{cases}
 1-m,&h>g(m),\\[1mm]
--1-m,&h<g(m).
+-1-m,&h\lt g(m).
 \end{cases}
 $$
 
@@ -386,7 +386,7 @@ $$
 在稳定内部支上，
 
 $$
-m=-x,\qquad 0<x<1,
+m=-x,\qquad 0\lt x<1,
 $$
 
 对应外场
@@ -744,7 +744,7 @@ $$
 
 $$
 \boxed{
-\frac{2}{p+2}<a\le1
+\frac{2}{p+2}\lt a\le1
 }
 $$
 
@@ -797,9 +797,7 @@ $$
 \frac{T}{1-m^2}
 -J\left[
 1+C_p\kappa\operatorname{sgn}(m)|m|^p
-\right]
->0.
-}
+\right] >0.}
 $$
 
 对应自旋odal温度可参数化为
@@ -909,7 +907,7 @@ $$
 此时
 
 $$
-2<q<4,
+2\lt q<4,
 $$
 
 反馈项位于二次项与四次项之间，因而在足够靠近临界点时压过普通 $m^4$ 项。
@@ -1288,9 +1286,7 @@ $$
 $$
 \boxed{
 \beta\phi(m;J) =
-mH_*(m;K)
--
-\ln\lambda_+\!\left(K,H_*(m;K)\right).
+mH_*(m;K) -\ln\lambda_+\!\left(K,H_*(m;K)\right).
 }
 $$
 
@@ -1345,9 +1341,7 @@ $$
 本身就展开为
 
 $$
--\ln[2\cosh K_0]
--
-K_0\kappa\tanh K_0\,|m|^p
+-\ln[2\cosh K_0] -K_0\kappa\tanh K_0\,|m|^p
 +\cdots.
 $$
 
@@ -1572,7 +1566,7 @@ $$
 它控制对称平均场自由能中反馈项相对于普通四次项的位置：
 
 $$
-0<p<2:
+0\lt p<2:
 \quad
 |m|^{p+2}\text{ 先于 }m^4,
 $$
@@ -1643,7 +1637,7 @@ $$
 在有限温度 Curie–Weiss 理论中，$p$ 将相变分成三类：
 
 $$
-0<p<2:
+0\lt p<2:
 \quad
 \text{非解析临界或非解析一级转变},
 $$
@@ -1694,16 +1688,16 @@ $$
 \varepsilon_{\mathrm A}(m)
 &= \lim_{N\to\infty} \frac{1}{N}H_N(\mathbf s)
 \quad \text{(仅定义能量密度：Hamiltonian 除以自旋数 $N$)}\\[4pt]
-&= \lim_{N\to\infty} \frac{1}{N}\!\left[-h\sum_{i=1}^{N}s_i - \frac{J}{N}[1+\kappa\Phi_p(m)]\sum_{i<j}s_i s_j\right]
+&= \lim_{N\to\infty} \frac{1}{N}\!\left[-h\sum_{i=1}^{N}s_i - \frac{J}{N}[1+\kappa\Phi_p(m)]\sum_{i\lt j}s_i s_j\right]
 \quad \text{(仅代入 $H_N(\mathbf s)$ 的显式表达式)}\\[4pt]
-&= \lim_{N\to\infty} \left[-\frac{h}{N}\sum_{i=1}^{N}s_i - \frac{J}{N^{2}}[1+\kappa\Phi_p(m)]\sum_{i<j}s_i s_j\right]
+&= \lim_{N\to\infty} \left[-\frac{h}{N}\sum_{i=1}^{N}s_i - \frac{J}{N^{2}}[1+\kappa\Phi_p(m)]\sum_{i\lt j}s_i s_j\right]
 \quad \text{(仅将 $1/N$ 乘入方括号内的每一项)}\\[4pt]
-&= \lim_{N\to\infty} \left[-\frac{h}{N}\cdot Nm - \frac{J}{N^{2}}[1+\kappa\Phi_p(m)]\sum_{i<j}s_i s_j\right]
+&= \lim_{N\to\infty} \left[-\frac{h}{N}\cdot Nm - \frac{J}{N^{2}}[1+\kappa\Phi_p(m)]\sum_{i\lt j}s_i s_j\right]
 \quad \text{(仅代入 $\sum_{i=1}^{N}s_i = Nm$)}\\[4pt]
-&= \lim_{N\to\infty} \left[-hm - \frac{J}{N^{2}}[1+\kappa\Phi_p(m)]\sum_{i<j}s_i s_j\right]
+&= \lim_{N\to\infty} \left[-hm - \frac{J}{N^{2}}[1+\kappa\Phi_p(m)]\sum_{i\lt j}s_i s_j\right]
 \quad \text{(仅化简系数：$h/N \cdot Nm = hm$)}\\[4pt]
 &= \lim_{N\to\infty} \left[-hm - \frac{J}{N^{2}}[1+\kappa\Phi_p(m)]\cdot\frac{1}{2}(N^{2}m^{2}-N)\right]
-\quad \text{(仅代入 $\sum_{i<j}s_i s_j = \tfrac12(N^{2}m^{2}-N)$)}\\[4pt]
+\quad \text{(仅代入 $\sum_{i\lt j}s_i s_j = \tfrac12(N^{2}m^{2}-N)$)}\\[4pt]
 &= \lim_{N\to\infty} \left[-hm - \frac{J}{2}[1+\kappa\Phi_p(m)]\!\left(m^{2}-\frac{1}{N}\right)\right]
 \quad \text{(仅将 $(N^{2}m^{2}-N)$ 逐项除以 $N^{2}$)}\\[4pt]
 &= -hm - \frac{J}{2}[1+\kappa\Phi_p(m)]\,m^{2}
