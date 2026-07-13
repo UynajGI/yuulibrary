@@ -4,7 +4,7 @@ description: "Bigi 等（2026）提出学习数据驱动的保结构（辛和时
 date: "2026-07-13T11:37:47+08:00"
 author: "Filippo Bigi, Johannes Spies, Michele Ceriotti"
 year: 2026
-category: ["physics.chem-ph", "cond-mat.mtrl-sci", "stat.ML"]
+category: ["physics", "cond-mat", "stat"]
 weight: 46
 tags: ['分子动力学', '机器学习', '辛积分']
 links:
