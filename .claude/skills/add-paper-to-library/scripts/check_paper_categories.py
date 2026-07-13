@@ -10,7 +10,8 @@ Exit 0 on pass, 1 on violation.
 
 import os, sys, json, yaml
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Script is in .claude/skills/add-paper-to-library/scripts/ → ROOT is 4 levels up
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 
 # Load known categories
 cat_path = os.path.join(ROOT, "data", "arxiv_categories.json")

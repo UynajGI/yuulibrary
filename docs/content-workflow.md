@@ -135,3 +135,4 @@ PDF/EPUB/DOCX/FB2/TXT 源
 | `add-book-to-library/scripts/validate_book.py` | 38 项机械验证(12 Error + 21 Warning + 5 Review) |
 | `add-book-to-library/scripts/test_translate.py` | 翻译脚本纯函数回归测试(34 用例,零依赖) |
 | `add-paper-to-library/scripts/generate_paper_note.py` | 论文结构化分析(ReAct 7 栏目)+ cross-link + 组装 `_index.md` |
+| `add-paper-to-library/scripts/check_paper_categories.py` | 论文分类校验：确保 `category` 值为 arXiv 一级（不含 `.`），lefthook paper-validate 自动运行 |
