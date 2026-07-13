@@ -41,7 +41,7 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
 1. 去重(`grep -ril "<作者>" content/papers/`)→ PDF 归档到 `pdfs/papers/`
 2. **优先复用已有 MinerU 提取**(`find ~ -name "*.md" | xargs grep "<标题>"`),没有再提取
 3. **全部图片带上** → `content/papers/<slug>/images/`,`convert_to_webp.sh` 批量转 WebP
-4. `content/papers/<slug>/_index.md`(**必须 `_index.md`**),front matter 全齐:`title`(中文)/`description`/`date`/`author`/`year`/`category`(数组)/`tags`/`links`/`weight`。**`category` 是 arXiv 一级分类数组**(查 `data/arxiv_categories.json`)
+4. `content/papers/<slug>/_index.md`(**必须 `_index.md`**),front matter 全齐:`title`(中文)/`description`/`date`/`author`/`year`/`category`(数组)/`tags`/`links`/`weight`。**`category` 是 arXiv 一级分类数组**(查 `data/arxiv_categories.json`)。**🔴 子类必须映射到父类**：arXiv API 返回 `physics.chem-ph` → 写 `physics`，`cond-mat.mtrl-sci` → 写 `cond-mat`，`stat.ML` → 写 `stat`。取 `.` 前面的部分。绝对不要在 `data/arxiv_categories.json` 或 `papershelf.html` 中添加子类条目
 5. **翻译 + 结构化分析用 workflow 脚本**(不召唤 subagent):
    - `clean_markdown.py` — 统一清洗
    - `translate_chapters.py <file.md>` — 翻译(输出 `.zh.md`,不碰源文件;**翻译后 `restore_images()` 自动补回丢失图片**)
