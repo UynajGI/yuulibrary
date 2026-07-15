@@ -13,6 +13,9 @@
   let globalIndex = null,
     nodeIndex = null,
     indexReady = false;
+  let invertedIndex = null, // 阶段 1：正文倒排 postings（可选，加载失败则回退线性）
+    chunkStats = null,
+    invertedReady = false;
   const docCache = {};
   const mdCache = {}; // source_md URL → 按行 split 的数组（fetch md 原文缓存）
   const CHAT_SESSION_KEY = "yuu_chat_session";
@@ -295,6 +298,25 @@
     globalIndex = gi;
     nodeIndex = ni;
     indexReady = true;
+    // 阶段 1：后台加载倒排索引（正文全文检索）。失败/不存在则回退线性 BM25。
+    // 不阻塞首次问答——node-index 足够启动；倒排就绪后自动切换。
+    loadInvertedIndex().catch(() => {});
+  }
+
+  // 倒排索引较大（gzip ~16MB），延迟加载并在就绪后切换检索路径。
+  async function loadInvertedIndex() {
+    if (invertedReady) return;
+    try {
+      const [inv, chunks] = await Promise.all([
+        fetch(`${PAGEINDEX}/inverted-index.json`).then((r) => r.json()),
+        fetch(`${PAGEINDEX}/chunks.json`).then((r) => r.json()),
+      ]);
+      invertedIndex = inv.postings || {};
+      chunkStats = R.buildChunkStats(chunks);
+      invertedReady = true;
+    } catch (_) {
+      invertedReady = true; // 标记已尝试，避免重试
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -327,6 +349,10 @@
   }
 
   function search(query, topK = 50) {
+    // 阶段 1：倒排索引就绪时走正文全文检索（命中正文深处事实），否则回退线性 BM25
+    if (invertedReady && invertedIndex && chunkStats) {
+      return R.searchInverted(query, invertedIndex, chunkStats, topK);
+    }
     if (!nodeIndex) return [];
     buildBM25Stats();
     // 复用 retrieval.js 的纯函数 search（传入缓存的 stats）

@@ -189,6 +189,139 @@
   }
 
   // ══════════════════════════════════════════════════════════════════════════
+  // 正文 chunk 倒排检索（阶段 1）
+  // query token → postings → 只对含这些 token 的 chunk 打分，不再全量遍历。
+  // 让正文深处的事实可被第一阶段命中（修复 summary 截断导致正文不可搜）。
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // buildChunkStats：从 chunks 构建统计（avgBodyLen / df / N）。
+  // chunks: [{chunk_id, body, title, breadcrumb, ...}]
+  function buildChunkStats(chunks) {
+    if (!chunks) return null;
+    const list = chunks.chunks || chunks;
+    const df = new Map();
+    let totalLen = 0;
+    for (const ch of list) {
+      // DF 按 chunk（合并 title+breadcrumb+body 去重后）
+      const combined = `${ch.title || ""} ${(ch.breadcrumb || []).join(" ")} ${ch.body || ""}`;
+      const toks = tokenize(combined);
+      for (const t of new Set(toks)) df.set(t, (df.get(t) || 0) + 1);
+      totalLen += toks.length;
+    }
+    const N = list.length || 1;
+    return { df, N, avgLen: totalLen / N, chunks: list };
+  }
+
+  // chunk 的 BM25（单字段近似：title+breadcrumb+body 合并，标题权重靠 build 时已并入）
+  // 注：阶段 2 会引入真正的多字段 BM25F；此处先让正文可搜，字段加权暂简化。
+  function bm25ScoreChunk(queryTokens, chunk, stats) {
+    const combined = `${chunk.title || ""} ${(chunk.breadcrumb || []).join(" ")} ${chunk.body || ""}`;
+    const docTokens = tokenize(combined);
+    const docLen = docTokens.length;
+    const tfMap = new Map();
+    for (const t of docTokens) tfMap.set(t, (tfMap.get(t) || 0) + 1);
+    let total = 0;
+    for (const qt of queryTokens) {
+      const tf = tfMap.get(qt) || 0;
+      if (!tf) continue;
+      const df = stats.df.get(qt) || 0;
+      const idf = Math.log(1 + (stats.N - df + 0.5) / (df + 0.5));
+      const norm = 1 - BM25_B + BM25_B * (docLen / (stats.avgLen || 1));
+      total += idf * ((tf * (BM25_K + 1)) / (tf + BM25_K * norm));
+    }
+    return total;
+  }
+
+  // searchInverted：用倒排 postings 检索，只遍历含 query token 的 chunk。
+  // postings: {token: [[cid_num, tf], ...]}
+  // chunkStats: buildChunkStats() 的返回（含 chunks 数组，按 cid_num 索引）
+  // 返回与 search() 兼容的 [{node, score, tokens, positions, chunk}] 结构，
+  // node 字段从 chunk 元数据合成（供 lexicalRerank / 上层复用）。
+  function searchInverted(query, postings, chunkStats, topK = 50) {
+    if (!postings || !chunkStats) return [];
+    let tokens = tokenize(query);
+    if (!tokens.length) return [];
+    tokens = expandQuery(tokens, query);
+
+    // 收集候选 chunk_id → 命中 token 数
+    const candIds = new Map(); // cid_num → hitCount
+    for (const qt of tokens) {
+      const plist = postings[qt];
+      if (!plist) continue;
+      for (const [cidNum] of plist) {
+        candIds.set(cidNum, (candIds.get(cidNum) || 0) + 1);
+      }
+    }
+    if (!candIds.size) return [];
+
+    // cid_num → chunk 索引表（chunk_id 形如 c000001，cid_num = parseInt(slice)）
+    // 预建一次：cidMap[num] = chunk
+    if (!chunkStats._cidMap) {
+      const m = new Map();
+      for (const ch of chunkStats.chunks) {
+        const cid = ch.chunk_id || "";
+        if (cid.startsWith("c")) {
+          const num = parseInt(cid.slice(1), 10);
+          if (!isNaN(num)) m.set(num, ch);
+        }
+      }
+      chunkStats._cidMap = m;
+    }
+    const cidMap = chunkStats._cidMap;
+
+    const scored = [];
+    for (const cidNum of candIds.keys()) {
+      const chunk = cidMap.get(cidNum);
+      if (!chunk) continue;
+      const s = bm25ScoreChunk(tokens, chunk, chunkStats);
+      if (s > 0) {
+        const score = Math.round(s * 100) / 100;
+        // 合成 node（供上层 lexicalRerank / doc_id 聚合复用）
+        const node = {
+          doc_id: chunk.doc_id,
+          node_id: chunk.node_id,
+          title: chunk.title,
+          breadcrumb: chunk.breadcrumb,
+          url: "",
+          terms: [],
+          summary: chunk.body.slice(0, 200), // chunk body 首段作 summary 兜底
+          line_num: chunk.line_num,
+        };
+        // positions：token 在 title/breadcrumb/body 中的首次位置
+        const positions = {};
+        const titleToks = tokenize(chunk.title || "");
+        const bcToks = tokenize((chunk.breadcrumb || []).join(" "));
+        const bodyToks = tokenize(chunk.body || "");
+        for (const qt of tokens) {
+          const ti = titleToks.indexOf(qt),
+            bi = bcToks.indexOf(qt),
+            si = bodyToks.indexOf(qt);
+          if (ti >= 0 || bi >= 0 || si >= 0) {
+            positions[qt] = {};
+            if (ti >= 0) positions[qt].title = ti;
+            if (bi >= 0) positions[qt].breadcrumb = bi;
+            if (si >= 0) positions[qt].summary = si; // 复用 summary 字段位
+          }
+        }
+        scored.push({ node, score, tokens, positions, chunk });
+      }
+    }
+    scored.sort((a, b) => b.score - a.score);
+    // per-doc 截断（与 search() 一致：每 doc 最多 3 个）
+    const docCount = new Map(),
+      results = [];
+    for (const item of scored) {
+      const c = docCount.get(item.node.doc_id) || 0;
+      if (c < 3) {
+        results.push(item);
+        docCount.set(item.node.doc_id, c + 1);
+      }
+      if (results.length >= topK * 2) break;
+    }
+    return results.slice(0, topK);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
   // RM3 伪相关反馈 + 词法精排 + MMR 去冗余 + token budget
   // ══════════════════════════════════════════════════════════════════════════
 
@@ -365,6 +498,9 @@
     buildBM25Stats,
     bm25Score,
     search,
+    buildChunkStats,
+    bm25ScoreChunk,
+    searchInverted,
     rm3Expand,
     lexicalRerank,
     RERANK_WEIGHTS,

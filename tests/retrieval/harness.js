@@ -29,6 +29,19 @@ const nodeIndex = JSON.parse(
 const golden = JSON.parse(fs.readFileSync(path.join(__dirname, "golden.json"), "utf8"));
 const stats = R.buildBM25Stats(nodeIndex);
 
+// 阶段 1：优先用倒排索引（正文 chunk 全文检索）。若 inverted-index.json 不存在则回退。
+let invertedIndex = null;
+let chunkStats = null;
+const invPath = path.join(ROOT, "static", "pageindex", "inverted-index.json");
+const chunksPath = path.join(ROOT, "static", "pageindex", "chunks.json");
+const USE_INVERTED = process.env.NO_INVERTED !== "1";
+if (USE_INVERTED && fs.existsSync(invPath) && fs.existsSync(chunksPath)) {
+  const invData = JSON.parse(fs.readFileSync(invPath, "utf8"));
+  const chunksData = JSON.parse(fs.readFileSync(chunksPath, "utf8"));
+  invertedIndex = invData.postings;
+  chunkStats = R.buildChunkStats(chunksData);
+}
+
 // ── 参数 ──────────────────────────────────────────────────────────────────
 const argv = process.argv.slice(2);
 const VERBOSE = argv.includes("--verbose");
@@ -36,10 +49,15 @@ const filterArg = argv[argv.indexOf("--filter") + 1];
 const topkIdx = argv.indexOf("--topk");
 const TOPK = topkIdx >= 0 ? parseInt(argv[topkIdx + 1], 10) : 10;
 
-// ── 检索管线：复刻 chat.js retrieveContext 的前段（无 fetch / 无 MMR） ─────
+// ── 检索管线：优先倒排索引（正文全文），回退线性 BM25 ──────────────────────
 // 返回重排后的 hits（含 rerankScore），与浏览器端一致的排序结果。
 function runPipeline(query) {
-  let hits = R.search(query, nodeIndex, stats, 50);
+  let hits;
+  if (invertedIndex && chunkStats) {
+    hits = R.searchInverted(query, invertedIndex, chunkStats, 50);
+  } else {
+    hits = R.search(query, nodeIndex, stats, 50);
+  }
   if (!hits.length) return [];
   const origTokens = R.tokenize(query);
   const expandedTokens = R.rm3Expand(origTokens, hits);

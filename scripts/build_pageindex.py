@@ -374,6 +374,36 @@ def flatten_tree(tree: list[dict], doc_id: str, breadcrumb: list[str],
     return result
 
 
+def flatten_tree_with_text(tree: list[dict], doc_id: str,
+                           breadcrumb: list[str]) -> list[dict]:
+    """Flatten tree 保留正文 text + source_md（供 chunk 切分）。
+
+    在 clean_tree 剥离 text 之前调用。只取叶子节点（有正文的），
+    容器节点（text 仅是 description）不参与正文 chunk。
+    """
+    result = []
+    for node in tree:
+        crumb = breadcrumb + [node["title"]]
+        children = node.get("nodes") or []
+        # 只为有实际正文的节点生成 chunk 节点（容器节点 text 太短，跳过）
+        text = node.get("text", "")
+        if text and len(text) > 30:
+            result.append({
+                "doc_id": doc_id,
+                "node_id": node["node_id"],
+                "title": node["title"],
+                "breadcrumb": crumb,
+                "summary": node.get("summary") or text[:200].replace("\n", " ").strip(),
+                "text": text,
+                "source_md": node.get("source_md", ""),
+                "line_num": node.get("line_num", 0),
+            })
+        if children:
+            result.extend(flatten_tree_with_text(children, doc_id, crumb))
+    return result
+
+
+
 def extract_terms(title: str) -> list[str]:
     """Extract searchable terms from a title string."""
     # Split on common separators, keep words >= 2 chars
@@ -384,6 +414,180 @@ def extract_terms(title: str) -> list[str]:
         if len(p) >= 2:
             terms.append(p)
     return list(dict.fromkeys(terms))  # dedup, preserve order
+
+
+# ── tokenizer（与 chat.js / retrieval.js 的 tokenize() 行为对齐） ──────────────
+# 关键：构建期 postings 的 token 必须与运行期查询 token 完全一致，否则查不到。
+# JS 逻辑：英文 [a-zA-Z][a-zA-Z0-9]{1,} lower + 数字 \d{2,} + CJK 2-gram，末尾去重。
+_EN_RE = re.compile(r"[a-zA-Z][a-zA-Z0-9]{1,}")
+_NUM_RE = re.compile(r"\d{2,}")
+_CJK_RE = re.compile(r"[一-鿿]+")
+
+
+def tokenize(text: str) -> list[str]:
+    """与 retrieval.js tokenize() 对齐的 token 化。末尾去重（保持序）。"""
+    if not text:
+        return []
+    tokens: list[str] = []
+    tokens.extend(w.lower() for w in _EN_RE.findall(text))
+    tokens.extend(_NUM_RE.findall(text))
+    for seg in _CJK_RE.findall(text):
+        for i in range(len(seg) - 1):
+            tokens.append(seg[i:i + 2])  # 2-gram
+    # 去重保持序（与 JS [...new Set(tokens)] 一致）
+    seen: set[str] = set()
+    out = []
+    for t in tokens:
+        if t not in seen:
+            seen.add(t)
+            out.append(t)
+    return out
+
+
+# ── 正文 chunk 切分 + 倒排 postings 构建 ──────────────────────────────────────
+# 让正文深处的事实可被第一阶段检索命中（修复 summary 截断导致正文大部分不可搜索）。
+# chunk 粒度：中文 ~500 字符，重叠 ~100，优先段落边界。
+
+CHUNK_TARGET_CHARS = 500
+CHUNK_OVERLAP_CHARS = 100
+# 停用词阈值：DF 超过此比例的 token 视为停用词（IDF 极低，占体积不区分），写入时丢弃。
+STOPWORD_DF_RATIO = 0.35
+_CHUNK_COUNTER = [0]  # 全局 chunk_id 计数器（进程级）
+
+
+def _next_chunk_id() -> str:
+    _CHUNK_COUNTER[0] += 1
+    return f"c{_CHUNK_COUNTER[0]:06d}"
+
+
+def reset_chunk_counter() -> None:
+    """每个全量/增量构建开始前重置（保证可复现的 chunk_id）。"""
+    _CHUNK_COUNTER[0] = 0
+
+
+def split_into_chunks(text: str, target: int = CHUNK_TARGET_CHARS,
+                      overlap: int = CHUNK_OVERLAP_CHARS) -> list[tuple[str, int, int]]:
+    """把正文切成 ~target 字符的 chunk，重叠 overlap 字符。
+
+    优先段落边界（空行切分），单段超长再按 target 硬切。
+    返回 [(chunk_text, start_char, end_char), ...]，char 偏移相对于 text。
+    """
+    if not text or not text.strip():
+        return []
+    paragraphs = [p for p in re.split(r"\n\s*\n", text) if p.strip()]
+    if not paragraphs:
+        return []
+    chunks: list[tuple[str, int, int]] = []
+    buf = ""
+    buf_start = 0
+    pos = 0  # 当前在 text 中的字符游标
+
+    def flush(end_pos: int) -> None:
+        nonlocal buf, buf_start
+        if buf.strip():
+            chunks.append((buf.strip(), buf_start, end_pos))
+        # 重叠：保留末尾 overlap 字符作为下一段起点
+        if overlap > 0 and len(buf) > overlap:
+            tail = buf[-overlap:]
+            buf = tail
+            buf_start = end_pos - overlap
+        else:
+            buf = ""
+            buf_start = end_pos
+
+    for para in paragraphs:
+        # 单段超长 → 直接按 target 切（不再等累加）
+        if len(para) >= target:
+            if buf.strip():
+                flush(pos)
+            i = 0
+            while i < len(para):
+                piece = para[i:i + target]
+                chunks.append((piece.strip(), pos + i, pos + i + len(piece)))
+                i += target - overlap if (target - overlap) > 0 else target
+            # 段后游标推进（para 末尾 + 原段间分隔）
+            pos += len(para) + 2  # \n\n 近似
+            continue
+        # 累加段落
+        if len(buf) + len(para) + 2 > target and buf:
+            flush(pos)
+        if not buf:
+            buf_start = pos
+        buf = (buf + "\n\n" + para) if buf else para
+        pos += len(para) + 2  # 段间 \n\n
+    flush(pos)
+    return chunks
+
+
+def build_chunks_and_postings(flat_nodes: list[dict], doc_meta: dict) -> tuple[list[dict], dict]:
+    """为 flat_nodes 生成正文 chunk + 倒排 postings。
+
+    flat_nodes: node-index 风格的节点（含 title/breadcrumb/summary/source_md/line_num）。
+        注意此处正文 text 不在 node-index 里——调用方需先把正文塞进 node["text"]。
+    doc_meta: {doc_id, doc_title, doc_type, ...} 用于 chunk 元数据。
+
+    返回 (chunks, postings)：
+      chunks: [{chunk_id, doc_id, node_id, title, breadcrumb, body, summary,
+                source_md, line_num, line_end}, ...]
+      postings: {token: [{c: chunk_id, tf: int}, ...]}
+    """
+    chunks: list[dict] = []
+    postings: dict[str, list[dict]] = {}
+    doc_id = doc_meta.get("doc_id", "")
+    doc_title = doc_meta.get("title", "")
+    doc_type = doc_meta.get("type", "")
+    for node in flat_nodes:
+        body = node.get("text", "") or ""
+        title = node.get("title", "")
+        breadcrumb = node.get("breadcrumb", [])
+        source_md = node.get("source_md", "")
+        line_num = node.get("line_num", 0)
+        node_id = node.get("node_id", "")
+        # 短正文不切，整段一个 chunk
+        if len(body) <= CHUNK_TARGET_CHARS:
+            pieces = [(body, 0, len(body))] if body.strip() else []
+        else:
+            pieces = split_into_chunks(body)
+        for ci, (piece, _cstart, cend) in enumerate(pieces):
+            chunk_id = _next_chunk_id()
+            chunk = {
+                "chunk_id": chunk_id,
+                "doc_id": doc_id,
+                "node_id": node_id,
+                # summary 不存——node-index.json 已有，运行期按 node_id 关联，省 ~8MB
+                "title": title,
+                "breadcrumb": breadcrumb,
+                "body": piece,
+                "source_md": source_md,
+                "line_num": line_num,
+            }
+            chunks.append(chunk)
+            # postings：body + title + breadcrumb 一起 token 化（标题权重在运行期 BM25F 加）
+            combined = f"{title} {' '.join(breadcrumb)} {piece}"
+            toks = tokenize(combined)
+            # chunk 内 TF（保留重复——这是阶段 2 正确 BM25 的基础）
+            tf_map: dict[str, int] = {}
+            for t in toks:
+                tf_map[t] = tf_map.get(t, 0) + 1
+            # 紧凑格式：posting = [cid_num, tf]（cid_num 为整数，运行期拼回 c000001）
+            cid_num = _CHUNK_COUNTER[0]
+            for t, tf in tf_map.items():
+                postings.setdefault(t, []).append([cid_num, tf])
+    return chunks, postings
+
+
+def merge_postings(all_postings: list[dict]) -> dict:
+    """合并多个文档的 postings dict → 全局 postings。
+
+    all_postings: [{token: [{c, tf}, ...]}, ...]
+    同 token 的 posting list 合并（chunk_id 全局唯一，无需再去重）。
+    """
+    merged: dict[str, list[dict]] = {}
+    for p in all_postings:
+        for tok, lst in p.items():
+            merged.setdefault(tok, []).extend(lst)
+    return merged
+
 
 
 # ── document processing ─────────────────────────────────────────────────────
@@ -493,10 +697,17 @@ def process_book(slug: str, book_dir: str) -> tuple[dict | None, list[dict]]:
         flat_nodes.extend(child_flat)
         ch_idx += 1
 
-    # Clean tree
+    # 在 clean_tree 剥离 text 之前，先抽出带正文的扁平节点（供 chunk 切分）
+    chunk_nodes = []
+    for ch_node in book_root["nodes"]:
+        chunk_nodes.extend(
+            flatten_tree_with_text(ch_node.get("nodes", []), slug, [book_title, ch_node["title"]])
+        )
+
+    # Clean tree（修复：clean_tree 返回新列表，必须赋回，否则书树 JSON 仍保留完整 text）
     book_root["node_id"] = "0000"
     for ch_node in book_root["nodes"]:
-        clean_tree(ch_node.get("nodes", []))
+        ch_node["nodes"] = clean_tree(ch_node.get("nodes", []))
 
     doc_tree = {
         "doc_name": slug,
@@ -507,14 +718,15 @@ def process_book(slug: str, book_dir: str) -> tuple[dict | None, list[dict]]:
         "tags": meta.get("tags", []),
         "structure": book_root["nodes"],
     }
-    return doc_tree, flat_nodes
+    return doc_tree, flat_nodes, chunk_nodes
 
 
-def process_paper(slug: str, paper_dir: str) -> tuple[dict | None, list[dict]]:
-    """Build PageIndex tree for a paper from its _index.md."""
+def process_paper(slug: str, paper_dir: str) -> tuple[dict | None, list[dict], list[dict]]:
+    """Build PageIndex tree for a paper from its _index.md.
+    Returns (doc_tree, flat_nodes_for_index, chunk_nodes_with_text)."""
     index_path = os.path.join(paper_dir, "_index.md")
     if not os.path.exists(index_path):
-        return None, []
+        return None, [], []
 
     with open(index_path, "r") as f:
         content = f.read()
@@ -523,7 +735,7 @@ def process_paper(slug: str, paper_dir: str) -> tuple[dict | None, list[dict]]:
     body_lines = body.split("\n")
     headings = extract_headings(body, 0)
     if not headings:
-        return None, []
+        return None, [], []
 
     attach_text(headings, body_lines, len(body_lines))
     tree = build_tree(headings)
@@ -545,6 +757,8 @@ def process_paper(slug: str, paper_dir: str) -> tuple[dict | None, list[dict]]:
     inject_summaries(tree, f"paper/{slug}")
 
     flat = flatten_tree(tree, slug, [doc_title], doc_url)
+    # clean_tree 前先抽带正文的扁平节点（供 chunk 切分）
+    chunk_nodes = flatten_tree_with_text(tree, slug, [doc_title])
 
     doc_tree = {
         "doc_name": slug,
@@ -556,11 +770,12 @@ def process_paper(slug: str, paper_dir: str) -> tuple[dict | None, list[dict]]:
         "tags": meta.get("tags", []),
         "structure": clean_tree(tree),
     }
-    return doc_tree, flat
+    return doc_tree, flat, chunk_nodes
 
 
-def process_note(slug: str, note_path: str) -> tuple[dict | None, list[dict]]:
-    """Build PageIndex tree for a standalone note .md file."""
+def process_note(slug: str, note_path: str) -> tuple[dict | None, list[dict], list[dict]]:
+    """Build PageIndex tree for a standalone note .md file.
+    Returns (doc_tree, flat_nodes_for_index, chunk_nodes_with_text)."""
     with open(note_path, "r") as f:
         content = f.read()
     meta, body, body_offset = parse_front_matter(content)
@@ -568,7 +783,7 @@ def process_note(slug: str, note_path: str) -> tuple[dict | None, list[dict]]:
     body_lines = body.split("\n")
     headings = extract_headings(body, 0)
     if not headings:
-        return None, []
+        return None, [], []
 
     attach_text(headings, body_lines, len(body_lines))
     tree = build_tree(headings)
@@ -590,6 +805,8 @@ def process_note(slug: str, note_path: str) -> tuple[dict | None, list[dict]]:
     inject_summaries(tree, f"note/{slug}")
 
     flat = flatten_tree(tree, slug, [doc_title], doc_url)
+    # clean_tree 前先抽带正文的扁平节点（供 chunk 切分）
+    chunk_nodes = flatten_tree_with_text(tree, slug, [doc_title])
 
     doc_tree = {
         "doc_name": slug,
@@ -603,7 +820,7 @@ def process_note(slug: str, note_path: str) -> tuple[dict | None, list[dict]]:
         "source_title": meta.get("source_title", ""),
         "structure": clean_tree(tree),
     }
-    return doc_tree, flat
+    return doc_tree, flat, chunk_nodes
 
 
 # ── main ────────────────────────────────────────────────────────────────────
@@ -615,6 +832,8 @@ def main():
 
     global_docs: list[dict] = []
     all_nodes: list[dict] = []
+    all_chunk_nodes: list[dict] = []  # 带正文的扁平节点（供 chunk 倒排索引）
+    reset_chunk_counter()
 
     # ── books ──
     books_dir = os.path.join(CONTENT_DIR, "books")
@@ -623,7 +842,7 @@ def main():
             book_dir = os.path.join(books_dir, slug)
             if not os.path.isdir(book_dir) or slug.startswith("_"):
                 continue
-            doc_tree, flat = process_book(slug, book_dir)
+            doc_tree, flat, chunk_nodes = process_book(slug, book_dir)
             if doc_tree is None:
                 continue
 
@@ -643,6 +862,7 @@ def main():
                 "url": f"/books/{slug}.html",
             })
             all_nodes.extend(flat)
+            all_chunk_nodes.extend(chunk_nodes)
 
     # ── papers ──
     papers_dir = os.path.join(CONTENT_DIR, "papers")
@@ -651,7 +871,7 @@ def main():
             paper_dir = os.path.join(papers_dir, slug)
             if not os.path.isdir(paper_dir) or slug.startswith("_"):
                 continue
-            doc_tree, flat = process_paper(slug, paper_dir)
+            doc_tree, flat, chunk_nodes = process_paper(slug, paper_dir)
             if doc_tree is None:
                 continue
 
@@ -672,6 +892,7 @@ def main():
                 "url": f"/papers/{slug}.html",
             })
             all_nodes.extend(flat)
+            all_chunk_nodes.extend(chunk_nodes)
 
     # ── notes ──
     notes_dir = os.path.join(CONTENT_DIR, "notes")
@@ -681,7 +902,7 @@ def main():
                 continue
             slug = os.path.splitext(fname)[0]
             note_path = os.path.join(notes_dir, fname)
-            doc_tree, flat = process_note(slug, note_path)
+            doc_tree, flat, chunk_nodes = process_note(slug, note_path)
             if doc_tree is None:
                 continue
 
@@ -704,6 +925,7 @@ def main():
                 "url": f"/notes/{slug}.html",
             })
             all_nodes.extend(flat)
+            all_chunk_nodes.extend(chunk_nodes)
 
     # ── write global-index.json ──
     global_path = os.path.join(STATIC_DIR, "global-index.json")
@@ -717,6 +939,9 @@ def main():
         json.dump({"nodes": all_nodes}, f, indent=2, ensure_ascii=False)
     print(f"  node-index:   {len(all_nodes)} nodes")
 
+    # ── build + write inverted index (正文 chunk 倒排索引) ──
+    write_inverted_index(all_chunk_nodes, global_docs)
+
     # ── size summary ──
     total_kb = 0
     for root, _, files in os.walk(STATIC_DIR):
@@ -726,6 +951,58 @@ def main():
 
     # 全量重建后也写 fingerprints，否则下次 --incremental 会再次全量
     update_fingerprints()
+
+
+def write_inverted_index(all_chunk_nodes: list[dict], global_docs: list[dict]) -> None:
+    """构建全局 chunks.json + inverted-index.json。
+
+    all_chunk_nodes: 所有文档的带正文扁平节点（doc_id 分组无序，这里按 doc 重建 chunk）。
+    global_docs: 用于 doc_meta（doc_title / type）。
+    """
+    doc_meta = {d["id"]: d for d in global_docs}
+    # 按 doc 分组构建 chunk + postings（每文档独立 postings，最后 merge）
+    by_doc: dict[str, list[dict]] = {}
+    for n in all_chunk_nodes:
+        by_doc.setdefault(n["doc_id"], []).append(n)
+
+    all_chunks: list[dict] = []
+    all_postings: list[dict] = []
+    for doc_id, nodes in by_doc.items():
+        meta = doc_meta.get(doc_id, {})
+        doc_meta_for_chunk = {
+            "doc_id": doc_id,
+            "title": meta.get("title", doc_id),
+            "type": meta.get("type", ""),
+        }
+        chunks, postings = build_chunks_and_postings(nodes, doc_meta_for_chunk)
+        all_chunks.extend(chunks)
+        all_postings.append(postings)
+
+    merged_postings = merge_postings(all_postings)
+    # 停用词截断：DF 过高的 token（出现在 >STOPWORD_DF_RATIO 比例 chunk 里）IDF 极低，
+    # 不参与有效区分，却占用最大 posting list。写入时丢弃以控体积。
+    n_chunks = len(all_chunks) or 1
+    stopword_cap = int(n_chunks * STOPWORD_DF_RATIO)
+    kept_tokens = 0
+    dropped_tokens = 0
+    filtered: dict[str, list] = {}
+    for tok, lst in merged_postings.items():
+        if len(lst) > stopword_cap:
+            dropped_tokens += 1
+            continue
+        filtered[tok] = lst
+        kept_tokens += 1
+
+    chunks_path = os.path.join(STATIC_DIR, "chunks.json")
+    with open(chunks_path, "w", encoding="utf-8") as f:
+        # 紧凑 JSON（无 indent）——大文件省 20-30% 体积
+        json.dump({"chunks": all_chunks}, f, ensure_ascii=False, separators=(",", ":"))
+    postings_path = os.path.join(STATIC_DIR, "inverted-index.json")
+    with open(postings_path, "w", encoding="utf-8") as f:
+        json.dump({"postings": filtered, "num_chunks": n_chunks}, f,
+                  ensure_ascii=False, separators=(",", ":"))
+    print(f"  chunks:       {n_chunks} chunks, "
+          f"{kept_tokens} tokens (dropped {dropped_tokens} stopwords, cap={stopword_cap})")
 
 
 def changed_docs(file_paths: list[str]) -> set[tuple[str, str]]:
@@ -744,8 +1021,8 @@ def changed_docs(file_paths: list[str]) -> set[tuple[str, str]]:
     return docs
 
 
-def process_one_doc(doc_type: str, slug: str) -> tuple[dict | None, list[dict]]:
-    """Process a single document and return (doc_tree, flat_nodes)."""
+def process_one_doc(doc_type: str, slug: str) -> tuple[dict | None, list[dict], list[dict]]:
+    """Process a single document and return (doc_tree, flat_nodes, chunk_nodes)."""
     if doc_type == "book":
         book_dir = os.path.join(CONTENT_DIR, "books", slug)
         if os.path.isdir(book_dir):
@@ -758,11 +1035,13 @@ def process_one_doc(doc_type: str, slug: str) -> tuple[dict | None, list[dict]]:
         note_path = os.path.join(CONTENT_DIR, "notes", f"{slug}.md")
         if os.path.isfile(note_path):
             return process_note(slug, note_path)
-    return None, []
+    return None, [], []
 
 
-def patch_indexes(doc_type: str, slug: str, doc_tree: dict | None, flat: list[dict]) -> None:
-    """Insert/update or remove entries for a single doc in global-index + node-index."""
+def patch_indexes(doc_type: str, slug: str, doc_tree: dict | None, flat: list[dict],
+                  chunk_nodes: list[dict] | None = None) -> None:
+    """Insert/update or remove entries for a single doc in global-index + node-index
+    + chunks/inverted-index."""
     gi_path = os.path.join(STATIC_DIR, "global-index.json")
     ni_path = os.path.join(STATIC_DIR, "node-index.json")
 
@@ -809,6 +1088,88 @@ def patch_indexes(doc_type: str, slug: str, doc_tree: dict | None, flat: list[di
     with open(ni_path, "w", encoding="utf-8") as f:
         json.dump(ni, f, indent=2, ensure_ascii=False)
 
+    # 同步更新倒排索引（chunks + postings）
+    if chunk_nodes is not None:
+        patch_inverted_index(slug, doc_tree, chunk_nodes)
+
+
+def patch_inverted_index(slug: str, doc_tree: dict | None, chunk_nodes: list[dict]) -> None:
+    """增量更新单文档在 chunks.json + inverted-index.json 中的条目。
+
+    策略：先移除该 doc 的旧 chunk，再为新 chunk 重新分配全局唯一 chunk_id
+    （取现有最大 chunk_id 之后继续编号），重建该 doc 的 postings 并合并。
+    posting 格式为 [cid_num, tf]（与 build_chunks_and_postings 一致）。
+    """
+    chunks_path = os.path.join(STATIC_DIR, "chunks.json")
+    postings_path = os.path.join(STATIC_DIR, "inverted-index.json")
+
+    data = {"chunks": []}
+    if os.path.exists(chunks_path):
+        with open(chunks_path, "r") as f:
+            data = json.load(f)
+    pidx = {"postings": {}, "num_chunks": 0}
+    if os.path.exists(postings_path):
+        with open(postings_path, "r") as f:
+            pidx = json.load(f)
+
+    chunks: list[dict] = data.get("chunks", [])
+    postings: dict = pidx.get("postings", {})
+
+    # 推进 chunk_id 计数器到现有最大值之后（保证增量分配的 id 不冲突）
+    max_num = 0
+    for c in chunks:
+        cid = c.get("chunk_id", "")
+        if cid.startswith("c"):
+            try:
+                max_num = max(max_num, int(cid[1:]))
+            except ValueError:
+                pass
+    # 移除该 doc 的旧 chunk，记录旧 chunk 的数值 id（用于 postings 清理）
+    old_nums = set()
+    kept = []
+    for c in chunks:
+        if c.get("doc_id") == slug:
+            cid = c.get("chunk_id", "")
+            if cid.startswith("c"):
+                try:
+                    old_nums.add(int(cid[1:]))
+                except ValueError:
+                    pass
+        else:
+            kept.append(c)
+    chunks = kept
+    # 从 postings 中清掉旧 chunk 的 posting（posting = [cid_num, tf]）
+    if old_nums:
+        empty_tokens = []
+        for tok, lst in postings.items():
+            postings[tok] = [p for p in lst if p[0] not in old_nums]
+            if not postings[tok]:
+                empty_tokens.append(tok)
+        for t in empty_tokens:
+            del postings[t]
+
+    # 为新 chunk 分配 id 并重建 postings
+    if doc_tree is not None and chunk_nodes:
+        _CHUNK_COUNTER[0] = max_num
+        doc_meta = {"doc_id": slug, "title": doc_tree.get("title", slug),
+                    "type": doc_tree.get("type", "")}
+        new_chunks, new_postings = build_chunks_and_postings(chunk_nodes, doc_meta)
+        chunks.extend(new_chunks)
+        for tok, lst in new_postings.items():
+            postings.setdefault(tok, []).extend(lst)
+
+    # 增量也应用停用词截断（与全量一致）
+    n_chunks = len(chunks) or 1
+    stopword_cap = int(n_chunks * STOPWORD_DF_RATIO)
+    filtered = {tok: lst for tok, lst in postings.items() if len(lst) <= stopword_cap}
+
+    data["chunks"] = chunks
+    pidx = {"postings": filtered, "num_chunks": n_chunks}
+    with open(chunks_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+    with open(postings_path, "w", encoding="utf-8") as f:
+        json.dump(pidx, f, ensure_ascii=False, separators=(",", ":"))
+
 
 if __name__ == "__main__":
     incremental = "--incremental" in sys.argv
@@ -824,10 +1185,10 @@ if __name__ == "__main__":
         os.makedirs(os.path.join(STATIC_DIR, "papers"), exist_ok=True)
         os.makedirs(os.path.join(STATIC_DIR, "notes"), exist_ok=True)
         for doc_type, slug in sorted(docs):
-            doc_tree, flat = process_one_doc(doc_type, slug)
+            doc_tree, flat, chunk_nodes = process_one_doc(doc_type, slug)
             if doc_tree is None:
                 print(f"  [skip]  {doc_type}/{slug} (no content)")
-                patch_indexes(doc_type, slug, None, [])
+                patch_indexes(doc_type, slug, None, [], [])
                 # Also remove the JSON file
                 jpath = os.path.join(STATIC_DIR, f"{doc_type}s", f"{slug}.json")
                 if os.path.exists(jpath):
@@ -836,7 +1197,7 @@ if __name__ == "__main__":
             out_path = os.path.join(STATIC_DIR, f"{doc_type}s", f"{slug}.json")
             with open(out_path, "w", encoding="utf-8") as f:
                 json.dump(doc_tree, f, indent=2, ensure_ascii=False)
-            patch_indexes(doc_type, slug, doc_tree, flat)
+            patch_indexes(doc_type, slug, doc_tree, flat, chunk_nodes)
             print(f"  [{doc_type}] {slug}  ({len(flat)} nodes)")
         update_fingerprints()
         print(f"PageIndex: incremental build done.")
