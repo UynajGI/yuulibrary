@@ -26,6 +26,9 @@ const R = require(path.join(ROOT, "static", "chat", "retrieval.js"));
 const nodeIndex = JSON.parse(
   fs.readFileSync(path.join(ROOT, "static", "pageindex", "node-index.json"), "utf8")
 );
+const globalIndex = JSON.parse(
+  fs.readFileSync(path.join(ROOT, "static", "pageindex", "global-index.json"), "utf8")
+);
 const golden = JSON.parse(fs.readFileSync(path.join(__dirname, "golden.json"), "utf8"));
 const stats = R.buildBM25Stats(nodeIndex);
 
@@ -49,12 +52,12 @@ const filterArg = argv[argv.indexOf("--filter") + 1];
 const topkIdx = argv.indexOf("--topk");
 const TOPK = topkIdx >= 0 ? parseInt(argv[topkIdx + 1], 10) : 10;
 
-// ── 检索管线：优先倒排索引（正文全文），回退线性 BM25 ──────────────────────
+// ── 检索管线：多路召回 + RRF（倒排就绪时），回退线性 BM25 ───────────────────
 // 返回重排后的 hits（含 rerankScore），与浏览器端一致的排序结果。
 function runPipeline(query) {
   let hits;
   if (invertedIndex && chunkStats) {
-    hits = R.searchInverted(query, invertedIndex, chunkStats, 50);
+    hits = R.searchMultiPath(query, invertedIndex, chunkStats, globalIndex, 50);
   } else {
     hits = R.search(query, nodeIndex, stats, 50);
   }

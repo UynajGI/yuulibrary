@@ -433,6 +433,151 @@
   }
 
   // ══════════════════════════════════════════════════════════════════════════
+  // 多路召回 + Reciprocal Rank Fusion（阶段 4）
+  // 无向量也可做 hybrid sparse：多路独立召回 → RRF 融合 → 重排。
+  // 比单路 BM25 + 假 RM3 稳定，解主题消歧（如"双精度条件数"同时命中
+  // numerical-computation 与 qmc-lattice-models，title 路给后者加权）。
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // 路 A：title exact / phrase 匹配。rawQuery 的连续片段在 title/breadcrumb 出现 → 高 boost。
+  // 复用 searchInverted 的候选，但只保留 title/breadcrumb 命中的，按 phrase 覆盖率排序。
+  function searchTitlePhrase(query, postings, chunkStats, topK = 20) {
+    if (!postings || !chunkStats) return [];
+    const all = searchInverted(query, postings, chunkStats, topK * 3);
+    const raw = (query || "").toLowerCase();
+    const cjkPart = (raw.match(/[一-鿿]+/g) || []).join("");
+    const enTokens = raw.match(/[a-z][a-z0-9]{1,}/g) || [];
+    const out = [];
+    for (const h of all) {
+      const titleText = (
+        (h.chunk.title || "") +
+        " " +
+        (h.chunk.breadcrumb || []).join(" ")
+      ).toLowerCase();
+      let phraseHits = 0,
+        phraseTotal = 0;
+      for (let i = 0; i <= cjkPart.length - 2; i++) {
+        phraseTotal++;
+        if (titleText.includes(cjkPart.slice(i, i + 2))) phraseHits++;
+      }
+      for (let i = 0; i < enTokens.length - 1; i++) {
+        phraseTotal++;
+        if (titleText.includes(enTokens[i] + " " + enTokens[i + 1])) phraseHits++;
+      }
+      // 单 token 也算（英文术语）
+      for (const t of enTokens) {
+        phraseTotal++;
+        if (titleText.includes(t)) phraseHits++;
+      }
+      const phraseScore = phraseTotal ? phraseHits / phraseTotal : 0;
+      if (phraseScore > 0.3) {
+        // 标题命中分高的优先；保留原 BM25 分作次序参考
+        out.push({ ...h, score: Math.round(phraseScore * 100) / 100 });
+      }
+    }
+    return out.sort((a, b) => b.score - a.score).slice(0, topK);
+  }
+
+  // 路 E：doc title / TOC 路由。匹配 globalIndex 的文档标题（整书/整篇层面定位）。
+  // 返回该文档的所有 chunk（按 BM25 排），供后续融合时整文档加权。
+  function searchDocRoute(query, globalIndex, postings, chunkStats, topK = 20) {
+    if (!globalIndex?.docs || !chunkStats) return [];
+    const raw = (query || "").toLowerCase();
+    const qToks = tokenizeUnique(query);
+    const docScores = [];
+    for (const doc of globalIndex.docs) {
+      const titleText = (doc.title || "").toLowerCase();
+      const descText = (doc.description || "").toLowerCase();
+      const titleToks = tokenizeUnique(doc.title || "");
+      // 整标题子串命中 或 token 重叠
+      let overlap = 0;
+      for (const t of qToks) if (titleToks.includes(t)) overlap++;
+      const cjkHit = (raw.match(/[一-鿿]+/g) || []).some((seg) => titleText.includes(seg));
+      const enHit = (raw.match(/[a-z][a-z0-9]{1,}/g) || []).some((t) => titleText.includes(t));
+      const score = overlap + (cjkHit ? 2 : 0) + (enHit ? 2 : 0) + (descText.includes(raw) ? 1 : 0);
+      if (score > 0) docScores.push({ doc, score });
+    }
+    docScores.sort((a, b) => b.score - a.score);
+    // 取 top 文档的 chunk（从 chunkStats 里筛）
+    const topDocs = new Set(docScores.slice(0, 5).map((d) => d.doc.id));
+    if (!topDocs.size) return [];
+    const out = [];
+    for (const ch of chunkStats.chunks) {
+      if (topDocs.has(ch.doc_id)) {
+        out.push({
+          node: {
+            doc_id: ch.doc_id,
+            node_id: ch.node_id,
+            title: ch.title,
+            breadcrumb: ch.breadcrumb,
+            url: "",
+            terms: [],
+            summary: (ch.body || "").slice(0, 200),
+            line_num: ch.line_num,
+          },
+          score: 0.1,
+          tokens: qToks,
+          positions: {},
+          chunk: ch,
+        });
+      }
+      if (out.length >= topK * 3) break;
+    }
+    return out.slice(0, topK);
+  }
+
+  // RRF 融合：多路结果按 Reciprocal Rank Fusion 合并。
+  // score(d) = Σ 1/(k + rank_i(d))，k=60（标准 RRF 常数）。
+  // hits 识别键：doc_id + node_id（同节点不同 chunk 视为同一证据）。
+  function rrfFuse(paths, k = 60) {
+    const scores = new Map(); // key → {item, rrf}
+    for (const hits of paths) {
+      if (!hits) continue;
+      hits.forEach((h, i) => {
+        const key = `${h.node.doc_id}:${h.node.node_id}`;
+        const rrf = 1 / (k + i + 1);
+        const entry = scores.get(key);
+        if (entry) {
+          entry.rrf += rrf;
+          // 保留最高 BM25 分 + chunk 信息（来自任意一路）
+          if ((h.score || 0) > (entry.item.score || 0)) entry.item = h;
+        } else {
+          scores.set(key, { item: h, rrf });
+        }
+      });
+    }
+    return [...scores.values()]
+      .map((e) => ({ ...e.item, score: Math.round(e.rrf * 1000) / 1000, rrfScore: e.rrf }))
+      .sort((a, b) => b.rrfScore - a.rrfScore);
+  }
+
+  // searchMultiPath：协调多路召回 + RRF。
+  // 返回 RRF 融合后的 hits（含 rrfScore），与 search/searchInverted 兼容结构。
+  function searchMultiPath(query, postings, chunkStats, globalIndex, topK = 50) {
+    if (!postings || !chunkStats) return [];
+    // 路 B：BM25F body（主路，含同义词扩展 + 加权）
+    const pathB = searchInverted(query, postings, chunkStats, Math.max(topK, 50));
+    // 路 A：title phrase
+    const pathA = searchTitlePhrase(query, postings, chunkStats, 20);
+    // 路 E：doc title / TOC 路由
+    const pathE = searchDocRoute(query, globalIndex, postings, chunkStats, 20);
+    // RRF 融合（B 权重最高，A/E 补充）
+    const fused = rrfFuse([pathA, pathB, pathE]);
+    // per-doc 截断
+    const docCount = new Map(),
+      results = [];
+    for (const item of fused) {
+      const c = docCount.get(item.node.doc_id) || 0;
+      if (c < 3) {
+        results.push(item);
+        docCount.set(item.node.doc_id, c + 1);
+      }
+      if (results.length >= topK * 2) break;
+    }
+    return results.slice(0, topK);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
   // RM3 伪相关反馈 + 词法精排 + MMR 去冗余 + token budget
   // ══════════════════════════════════════════════════════════════════════════
 
@@ -616,6 +761,10 @@
     buildChunkStats,
     bm25ScoreChunk,
     searchInverted,
+    searchTitlePhrase,
+    searchDocRoute,
+    rrfFuse,
+    searchMultiPath,
     CHUNK_FIELD_BOOST,
     rm3Expand,
     lexicalRerank,

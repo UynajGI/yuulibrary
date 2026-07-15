@@ -349,9 +349,9 @@
   }
 
   function search(query, topK = 50) {
-    // 阶段 1：倒排索引就绪时走正文全文检索（命中正文深处事实），否则回退线性 BM25
+    // 阶段 4：倒排就绪时走多路召回 + RRF（title phrase + BM25F body + doc route）
     if (invertedReady && invertedIndex && chunkStats) {
-      return R.searchInverted(query, invertedIndex, chunkStats, topK);
+      return R.searchMultiPath(query, invertedIndex, chunkStats, globalIndex, topK);
     }
     if (!nodeIndex) return [];
     buildBM25Stats();
