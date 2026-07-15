@@ -11,3 +11,4 @@
 | 阶段 3 | 统一同义词 tokenizer（多词短语拆 token）+ 加权 token（原始 1.0/同义 0.6）+ 扩充词表 | 0.797 | 0.582 | 0.000 | synonym_rewrite 0.500→0.750，cross_language MRR 0.282→0.317，`久保公式`→linear-response-theory 召回成功。加权防同义词稀释精确匹配 |
 | 阶段 4 | 多路召回 + RRF（title phrase + BM25F body + doc/TOC route，RRF k=60 融合）| 0.811 | 0.598 | 0.000 | **R@10 首次超基线 +0.047**。cross_language 0.615→0.692（TOC 路由助跨语言），deep_body 0.714→0.857（title phrase 路提升深层召回），multi_hop MRR 0.571→0.667。`双精度` 题目标 qmc-lattice-models 经 RRF 稳定进 top10 |
 | 阶段 5 | 多信号 confidence（coverage+rrfScore+titleHit+margin）+ LLM rerank 改进（400 字窗口+命中词片段+top8）| 0.858 | 0.598 | **1.000** | **no_answer 0.000→1.000（7/7 全对）**。coverage 是最强鉴别信号（good~1.0 vs no_answer 0.25-0.57）。LLM rerank 上下文从固定前 200 字改为命中词附近 ±150 字 400 字窗口，重排候选 6→8 |
+| 阶段 7 | 确定性 bug 收尾 + 性能 | 0.858 | 0.598 | 1.000 | MMR shingle 序列保持（阶段 2 tokenize 改 raw 已隐式修复，验证通过）；build_pageindex Semaphore 提到外层全局（修无限流）；bm25ScoreChunk 预计算每 chunk 字段 TF map（避免查询期重复 tokenize 42k chunk），延迟 417→223ms/query（1.9x） |

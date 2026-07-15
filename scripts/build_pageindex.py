@@ -143,8 +143,12 @@ async def add_summaries_to_tree(nodes: list[dict], model: str, doc_label: str = 
         done_count = [0]  # mutable counter for closure
         label = f"{doc_label} " if doc_label else ""
 
+        # 修复：Semaphore 必须在 limited 外层创建一次，否则每次调用都新建
+        # 一个 Semaphore(10)，每个任务拥有自己的 10 个许可 → 实际无全局并发上限。
+        semaphore = asyncio.Semaphore(10)
+
         async def limited(idx, task):
-            async with asyncio.Semaphore(10):
+            async with semaphore:
                 result = await task
                 done_count[0] += 1
                 if done_count[0] % 5 == 0 or done_count[0] == total:

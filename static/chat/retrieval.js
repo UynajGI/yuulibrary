@@ -277,7 +277,8 @@
   // 让正文深处的事实可被第一阶段命中（修复 summary 截断导致正文不可搜）。
   // ══════════════════════════════════════════════════════════════════════════
 
-  // buildChunkStats：从 chunks 构建统计（per-field avgLen / df / N）。
+  // buildChunkStats：从 chunks 构建统计（per-field avgLen / df / N）+ 预计算每 chunk 的
+  // 字段 TF map（避免查询时重复 tokenize——这是性能关键，42k chunk × 3 字段）。
   // chunks: [{chunk_id, body, title, breadcrumb, ...}]
   function buildChunkStats(chunks) {
     if (!chunks) return null;
@@ -292,6 +293,17 @@
       fieldLen.title += titleToks.length;
       fieldLen.breadcrumb += bcToks.length;
       fieldLen.body += bodyToks.length;
+      // 预计算每字段的 TF map（查询期 bm25ScoreChunk 直接查表，不再 tokenize）
+      const tfMap = (map, toks) => {
+        for (const t of toks) map.set(t, (map.get(t) || 0) + 1);
+        return map;
+      };
+      ch._tf = {
+        title: tfMap(new Map(), titleToks),
+        breadcrumb: tfMap(new Map(), bcToks),
+        body: tfMap(new Map(), bodyToks),
+        _len: { title: titleToks.length, breadcrumb: bcToks.length, body: bodyToks.length },
+      };
       // 合并去重后算 DF（一个 chunk 内某 token 只算 1 次，无论在几个字段出现）
       const allToks = new Set([...titleToks, ...bcToks, ...bodyToks]);
       for (const t of allToks) df.set(t, (df.get(t) || 0) + 1);
@@ -317,26 +329,23 @@
   const CHUNK_FIELD_BOOST = { title: 6, breadcrumb: 3, body: 1 };
 
   function bm25ScoreChunk(queryTokens, chunk, stats, weights) {
-    const fields = {
-      title: chunk.title || "",
-      breadcrumb: (chunk.breadcrumb || []).join(" "),
-      body: chunk.body || "",
-    };
+    // 阶段 7：用 buildChunkStats 预计算的 _tf map（避免每次查询重复 tokenize 42k chunk）
+    const tf = chunk._tf;
     let total = 0;
     for (const f of ["title", "breadcrumb", "body"]) {
-      const docTokens = tokenize(fields[f]); // 保留重复 → 真实 TF
-      const docLen = docTokens.length;
+      const tfMap = tf?.[f];
+      if (!tfMap) continue; // 无预计算时跳过（不应发生）
+      const docLen = tf._len[f];
       const avgLen = stats.fieldAvgLen?.[f] || stats.avgLen || 1;
-      const tfMap = new Map();
-      for (const t of docTokens) tfMap.set(t, (tfMap.get(t) || 0) + 1);
       for (const qt of queryTokens) {
-        const tf = tfMap.get(qt) || 0;
-        if (!tf) continue;
+        const tfreq = tfMap.get(qt) || 0;
+        if (!tfreq) continue;
         const df = stats.df.get(qt) || 0;
         const idf = Math.log(1 + (stats.N - df + 0.5) / (df + 0.5));
         const norm = 1 - BM25_B + BM25_B * (docLen / (avgLen || 1));
         const w = weights ? weights.get(qt) || 0 : 1;
-        total += idf * ((tf * (BM25_K + 1)) / (tf + BM25_K * norm)) * CHUNK_FIELD_BOOST[f] * w;
+        total +=
+          idf * ((tfreq * (BM25_K + 1)) / (tfreq + BM25_K * norm)) * CHUNK_FIELD_BOOST[f] * w;
       }
     }
     return total;
