@@ -771,7 +771,9 @@ ${blocks.join("\n\n---\n\n")}
 
   // retrieveContext 返回结构化 contexts，这里转成给模型的纯文本（agent 模式）
   // budgetCtx: 可选 {historyTokens, systemTokens}，提供时启用 token budget packing
-  async function retrieveContextAsText(query, budgetCtx) {
+  // sourceCtx: 阶段 6 可选 {registry: Map<sourceId,num>, counter: [n]}，
+  //   传入时用稳定全局编号（跨轮复用），修复多次搜索 [N] 错位。
+  async function retrieveContextAsText(query, budgetCtx, sourceCtx) {
     const result = await retrieveContext(query);
     const { confidence } = result;
     let { contexts } = result;
@@ -784,21 +786,34 @@ ${blocks.join("\n\n---\n\n")}
         budgetCtx.systemTokens || 0
       );
     }
-    const blocks = contexts.map(
-      (c, i) =>
-        `### [${i + 1}] ${c.breadcrumb.join(" > ")}\n*来源: ${c.docTitle} | source_id: ${c.sourceId}*\n\n${truncateAtBoundary(
-          c.text,
-          MAX_SECTION_CHARS
-        )}`
-    );
+    // 阶段 6：分配稳定显示编号（跨轮全局递增，同 sourceId 复用）
+    const blocks = contexts.map((c) => {
+      let num;
+      if (sourceCtx?.registry) {
+        if (sourceCtx.registry.has(c.sourceId)) {
+          num = sourceCtx.registry.get(c.sourceId);
+        } else {
+          sourceCtx.counter[0] += 1;
+          num = sourceCtx.counter[0];
+          sourceCtx.registry.set(c.sourceId, num);
+        }
+        c.displayNum = num;
+      } else {
+        num = contexts.indexOf(c) + 1; // 无 registry 时退化为本地编号
+      }
+      return `### [${num}] ${c.breadcrumb.join(" > ")}\n*来源: ${c.docTitle} | source_id: ${c.sourceId}*\n\n${truncateAtBoundary(
+        c.text,
+        MAX_SECTION_CHARS
+      )}`;
+    });
     const text = `${blocks.join("\n\n---\n\n")}\n\n检索置信度: ${confidence}`;
     return { text, contexts, confidence };
   }
 
-  // 执行工具调用，返回字符串结果。budgetCtx 透传给 retrieveContextAsText
-  async function executeTool(name, args, budgetCtx) {
+  // 执行工具调用，返回字符串结果。budgetCtx / sourceCtx 透传给 retrieveContextAsText
+  async function executeTool(name, args, budgetCtx, sourceCtx) {
     if (name === "search_library") {
-      const r = await retrieveContextAsText(args.query, budgetCtx);
+      const r = await retrieveContextAsText(args.query, budgetCtx, sourceCtx);
       // 把 contexts 挂到返回值上，供 agent loop 累积引用
       r.__contexts = r.contexts;
       return r;
@@ -1596,9 +1611,15 @@ ${toc.text}
 
     let finalText = "";
     let finalThinking = "";
+    let didSearch = false; // 阶段 6：首轮硬约束——未检索则强制默认查询
     const allContexts = []; // 累积所有轮检索到的 context，供最终引用注入
     const seenSourceIds = new Set(); // 跨轮去重（按 sourceId）
     const toolTrail = []; // UI 工具调用轨迹 HTML 片段
+    // 阶段 6：稳定引用编号。sourceRegistry 记录每个 sourceId 的全局显示编号，
+    // 跨轮复用——模型看到的 [N] 与最终 refMap 的 [N] 严格一一对应。
+    // （修复原 bug：每次 search_library 从 [1] 重编号，与最终累计重编号错位）
+    const sourceRegistry = new Map(); // sourceId → displayNum
+    const nextSourceNum = [0]; // 已分配的最大编号（mutable）
 
     try {
       for (let loop = 0; loop < MAX_LOOPS; loop++) {
@@ -1661,9 +1682,16 @@ ${toc.text}
             `<div class="yuu-tool-step">🔍 检索: <code>${escHtml(args.query || tc.arguments)}</code></div>`
           );
           contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
+          if (tc.name === "search_library") didSearch = true;
 
-          const toolResult = await executeTool(tc.name, args, budgetCtx);
-          // 累积 context 供最终引用注入（跨轮按 sourceId 去重）
+          const toolResult = await executeTool(
+            tc.name,
+            args,
+            budgetCtx,
+            // 阶段 6：传 sourceCtx 让 retrieveContextAsText 分配稳定编号
+            { registry: sourceRegistry, counter: nextSourceNum }
+          );
+          // 累积 context 供最终引用注入（跨轮按 sourceId 去重，编号已在 retrieveContextAsText 分配）
           if (toolResult.__contexts) {
             for (const c of toolResult.__contexts) {
               if (!seenSourceIds.has(c.sourceId)) {
@@ -1688,17 +1716,38 @@ ${toc.text}
         finalText = "";
       }
 
-      // 引用注入：用所有轮累积的 allContexts 构建 refMap
+      // 阶段 6：首轮硬约束——模型若未调 search_library 就直接回答，强制默认检索
+      // （能力弱的模型可能跳过工具直接凭记忆答，违反"必须基于检索"原则）
+      if (!didSearch) {
+        const forced = await retrieveContextAsText(query, budgetCtx, {
+          registry: sourceRegistry,
+          counter: nextSourceNum,
+        });
+        if (forced.__contexts) {
+          // retrieveContextAsText 已分配稳定编号，这里只需累积
+          const r = forced;
+          r.__contexts = r.contexts;
+          if (r.__contexts) {
+            for (const c of r.__contexts) {
+              if (!seenSourceIds.has(c.sourceId)) {
+                allContexts.push(c);
+                seenSourceIds.add(c.sourceId);
+              }
+            }
+          }
+        }
+        toolTrail.push(
+          `<div class="yuu-tool-step">🔍 检索(强制): <code>${escHtml(query)}</code></div>`
+        );
+      }
+
+      // 引用注入：用稳定 displayNum 构建 refMap（与模型看到的 [N] 严格对应）
       if (allContexts.length) {
         const refMap = {};
-        const seen = new Set();
-        let n = 0;
         for (const c of allContexts) {
-          const hash = c.text.slice(0, 80);
-          if (seen.has(hash)) continue;
-          seen.add(hash);
-          n++;
-          if (c.url) refMap[n] = { title: c.docTitle, breadcrumb: c.breadcrumb, url: c.url };
+          // displayNum 由 retrieveContextAsText 分配（跨轮稳定）；兜底用累计序
+          const num = c.displayNum || allContexts.indexOf(c) + 1;
+          if (c.url) refMap[num] = { title: c.docTitle, breadcrumb: c.breadcrumb, url: c.url };
         }
         if (Object.keys(refMap).length > 0) {
           finalText = injectReferenceLinks(finalText, refMap);
