@@ -80,19 +80,19 @@ function evaluate(q) {
   const hits = runPipeline(q.query);
   const top = hits.slice(0, TOPK);
   const hitDocIds = new Set(top.map((h) => h.node.doc_id));
+  // 阶段 5：多信号 confidence（绝对分，修归一化虚高）
+  const signals = R.computeConfidenceSignals(q.query, hits);
+  const confidence = R.classifyConfidenceMulti(signals);
 
   if (q.expect_doc_ids.length === 0) {
     // 无答案题：无命中（或仅 confidence=low）算正确
-    const topRerank = hits[0]?.rerankScore || 0;
-    const sourceCount = new Set(hits.map((h) => h.node.doc_id)).size;
-    const conf = R.classifyConfidence(topRerank, sourceCount);
-    const correct = hits.length === 0 || conf === "low";
+    const correct = hits.length === 0 || confidence === "low";
     return {
       correct,
       recall: correct ? 1 : 0,
       mrr: 0,
       hits: top,
-      confidence: conf,
+      confidence,
       kind: "no_answer",
     };
   }
@@ -109,10 +109,6 @@ function evaluate(q) {
       break;
     }
   }
-
-  const topRerank = hits[0]?.rerankScore || 0;
-  const sourceCount = new Set(hits.map((h) => h.node.doc_id)).size;
-  const confidence = R.classifyConfidence(topRerank, sourceCount);
 
   return { correct: recall === 1, recall, mrr, hits: top, confidence, kind: "answerable" };
 }

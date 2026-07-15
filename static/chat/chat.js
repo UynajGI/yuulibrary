@@ -544,10 +544,10 @@
     // ── 第 4 步：MMR 去冗余（4-gram shingle Jaccard，λ=0.6）──
     const contexts = mmrSelect(candidates, 0.6, 8);
 
-    // ── 置信度分级（基于精排后的 rerankScore，尺度已归一化到 [0,1]）──
-    const topRerank = hits[0]?.rerankScore || 0;
+    // ── 置信度分级（阶段 5：多信号绝对分，修归一化虚高）──
     const sourceCount = uniqueDocs.length;
-    const confidence = R.classifyConfidence(topRerank, sourceCount);
+    const signals = R.computeConfidenceSignals(query, hits);
+    const confidence = R.classifyConfidenceMulti(signals);
 
     // ── LLM 重排：confidence=low 时触发，批量评分重排 top 候选 ──
     let finalContexts = contexts;
@@ -565,15 +565,30 @@
   }
 
   // LLM 批量评分重排（confidence=low 时触发，一次调用评所有候选）
+  // 阶段 5 改进：扩大上下文窗口（200→400）+ 含 breadcrumb + 命中词附近片段，
+  // 让 LLM 看到更有判别力的内容（不再只喂正文前 200 字）。
   async function llmRerank(query, contexts) {
     const cfg = Settings.resolve();
     if (!cfg.apiKey) return contexts; // BYOK 无 key 跳过
-    const top = contexts.slice(0, 6); // 只重排 top6，省 token
+    const top = contexts.slice(0, 8); // 重排 top8（阶段 5：从 6 扩到 8，减少正确节点被截断）
+    const qToks = tokenize(query);
     const docs = top
-      .map(
-        (c, i) =>
-          `[${i + 1}] 标题：${c.title || c.breadcrumb?.join(" > ") || ""}\n摘要：${(c.text || "").slice(0, 200)}`
-      )
+      .map((c, i) => {
+        const crumb = (c.breadcrumb || []).join(" > ");
+        const fullText = c.text || "";
+        // 找命中词附近 ±150 字符的片段（比固定前 200 字更有判别力）
+        let snippet = "";
+        const lower = fullText.toLowerCase();
+        const hitTok = qToks.find((t) => lower.includes(t));
+        if (hitTok) {
+          const idx = lower.indexOf(hitTok);
+          const start = Math.max(0, idx - 150);
+          snippet = (start > 0 ? "…" : "") + fullText.slice(start, start + 400);
+        } else {
+          snippet = fullText.slice(0, 400);
+        }
+        return `[${i + 1}] ${crumb}\n片段：${snippet}`;
+      })
       .join("\n---\n");
     const userPrompt = `查询：${query}\n\n候选文档：\n${docs}\n\n为每个文档打 0-10 分（10 最相关），格式"[编号] 分数"，每行一个。只返回评分。`;
     try {
@@ -592,7 +607,7 @@
       // 按分数重排
       const scored = top.map((c, i) => ({ c, score: scores.get(i) ?? 0 }));
       scored.sort((a, b) => b.score - a.score);
-      return [...scored.map((s) => s.c), ...contexts.slice(6)];
+      return [...scored.map((s) => s.c), ...contexts.slice(8)];
     } catch (_) {
       return contexts; // 失败回退原顺序
     }

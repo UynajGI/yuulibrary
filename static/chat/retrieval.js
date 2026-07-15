@@ -739,12 +739,62 @@
     return Math.ceil(cjk / 1.5 + other / 4);
   }
 
-  // ── Confidence 分级（与原 chat.js retrieveContext 末段一致） ──────────────
-  // 输入：rerankScore 已归一化的 top1、uniqueDocs 命中数。
+  // ── Confidence 分级（阶段 5：多信号绝对分，修 min-max 归一化虚高） ──────────
+  // 旧 classifyConfidence 基于 min-max 归一化 rerankScore（相对分），导致弱匹配也显 high。
+  // 新版用绝对信号：query token 覆盖率（最强鉴别）+ rrfScore + title 命中。
   function classifyConfidence(topRerank, sourceCount) {
+    // 兼容旧签名（已废弃，保留以防外部调用）。建议用 classifyConfidenceMulti。
     if (topRerank >= 0.6 && sourceCount >= 2) return "high";
     if (topRerank >= 0.3 || (topRerank >= 0.15 && sourceCount >= 2)) return "medium";
     return "low";
+  }
+
+  // 多信号 confidence（阶段 5 核心）。
+  // 信号（实测鉴别力排序）：
+  //   coverage  最强：good 查询 ~1.0，no_answer 0.25-0.57
+  //   rrfScore  次强：good ≥0.06，no_answer ≤0.047
+  //   titleHit   补充：top1 标题命中 query 核心词
+  //   margin     补充：top1-top2 rrfScore 差（明显领先更可信）
+  function classifyConfidenceMulti(signals) {
+    const { coverage = 0, rrfScore = 0, titleHit = false, margin = 0, sourceCount = 1 } = signals;
+    // 低覆盖直接 low（大量 query 词未命中 → 很可能无答案）
+    if (coverage < 0.5) return "low";
+    // 高覆盖 + 强 rrf + (标题命中或多源) → high
+    if (coverage >= 0.7 && rrfScore >= 0.05 && (titleHit || sourceCount >= 2 || margin >= 0.01)) {
+      return "high";
+    }
+    // 中等覆盖 或 中等 rrf → medium
+    if (coverage >= 0.5 || rrfScore >= 0.04) return "medium";
+    return "low";
+  }
+
+  // 计算 confidence 信号（从 rerank 后的 hits + query 提取）。
+  function computeConfidenceSignals(query, hits) {
+    if (!hits || !hits.length) {
+      return { coverage: 0, rrfScore: 0, titleHit: false, margin: 0, sourceCount: 0 };
+    }
+    const qToks = tokenizeUnique(query);
+    const top5 = hits.slice(0, 5);
+    // coverage：top5 里命中了多少 query token
+    const hitTk = new Set();
+    for (const h of top5) {
+      for (const qt of qToks) {
+        if (h.positions?.[qt]) hitTk.add(qt);
+      }
+    }
+    const coverage = qToks.length ? hitTk.size / qToks.length : 0;
+    const rrfScore = hits[0].rrfScore || 0;
+    const margin = (hits[0].rrfScore || 0) - (hits[1]?.rrfScore || 0);
+    // titleHit：top1 标题/breadcrumb 含 query 的任一核心词
+    const top1 = hits[0];
+    const titleText = (
+      (top1.node.title || "") +
+      " " +
+      (top1.node.breadcrumb || []).join(" ")
+    ).toLowerCase();
+    const titleHit = qToks.some((t) => titleText.includes(t));
+    const sourceCount = new Set(hits.slice(0, 10).map((h) => h.node.doc_id)).size;
+    return { coverage, rrfScore, titleHit, margin, sourceCount };
   }
 
   const Retrieval = {
@@ -776,6 +826,8 @@
     mmrSelect,
     estimateTokens,
     classifyConfidence,
+    classifyConfidenceMulti,
+    computeConfidenceSignals,
   };
 
   if (typeof module !== "undefined" && module.exports) module.exports = Retrieval;
