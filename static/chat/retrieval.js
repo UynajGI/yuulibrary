@@ -16,9 +16,9 @@
   // ══════════════════════════════════════════════════════════════════════════
   // Tokenizer：中文 2-gram + 英文单词。不保留中文单字（噪声太大、IDF 失效）。
   // ══════════════════════════════════════════════════════════════════════════
-  // 注意：末尾去重（与原实现一致）——这是阶段 2 要修的 BM25 TF 失真来源，
-  // 阶段 0 保持原样以建立可对比基线。
-  function tokenize(text) {
+  // tokenizeUnique：去重（DF / coverage / postings 用）——与索引构建期一致。
+  // tokenize：保留重复（BM25 TF 用）——阶段 2 修复 TF 恒为 1 的失真。
+  function tokenizeRaw(text) {
     if (!text) return [];
     const tokens = [];
     // 英文单词（长度 ≥2，含术语缩写如 SPT/Rabi）+ 纯数字 ≥2
@@ -29,6 +29,15 @@
     for (const seg of cjk) {
       for (let i = 0; i < seg.length - 1; i++) tokens.push(seg.slice(i, i + 2)); // 2-gram
     }
+    return tokens;
+  }
+
+  // tokenize：保留重复（BM25 真实 TF 用）。别名 tokenizeWithFrequency。
+  const tokenize = tokenizeRaw;
+
+  // tokenizeUnique：去重保持序（DF / coverage / postings 候选收集用）。
+  function tokenizeUnique(text) {
+    const tokens = tokenizeRaw(text);
     return [...new Set(tokens)];
   }
 
@@ -146,7 +155,8 @@
   function search(query, nodeIndex, stats, topK = 50) {
     if (!nodeIndex) return [];
     if (!stats) stats = buildBM25Stats(nodeIndex);
-    let tokens = tokenize(query);
+    // 候选收集用 unique（成员关系即可）；bm25Score 内部用带频次 tokenize（真实 TF）
+    let tokens = tokenizeUnique(query);
     if (!tokens.length) return [];
     tokens = expandQuery(tokens, query);
     const scored = [];
@@ -194,40 +204,65 @@
   // 让正文深处的事实可被第一阶段命中（修复 summary 截断导致正文不可搜）。
   // ══════════════════════════════════════════════════════════════════════════
 
-  // buildChunkStats：从 chunks 构建统计（avgBodyLen / df / N）。
+  // buildChunkStats：从 chunks 构建统计（per-field avgLen / df / N）。
   // chunks: [{chunk_id, body, title, breadcrumb, ...}]
   function buildChunkStats(chunks) {
     if (!chunks) return null;
     const list = chunks.chunks || chunks;
     const df = new Map();
-    let totalLen = 0;
+    const fieldLen = { title: 0, breadcrumb: 0, body: 0 };
     for (const ch of list) {
-      // DF 按 chunk（合并 title+breadcrumb+body 去重后）
-      const combined = `${ch.title || ""} ${(ch.breadcrumb || []).join(" ")} ${ch.body || ""}`;
-      const toks = tokenize(combined);
-      for (const t of new Set(toks)) df.set(t, (df.get(t) || 0) + 1);
-      totalLen += toks.length;
+      // DF 按 chunk（合并 title+breadcrumb+body 去重后）——正确 DF 语义
+      const titleToks = tokenize(ch.title || "");
+      const bcToks = tokenize((ch.breadcrumb || []).join(" "));
+      const bodyToks = tokenize(ch.body || "");
+      fieldLen.title += titleToks.length;
+      fieldLen.breadcrumb += bcToks.length;
+      fieldLen.body += bodyToks.length;
+      // 合并去重后算 DF（一个 chunk 内某 token 只算 1 次，无论在几个字段出现）
+      const allToks = new Set([...titleToks, ...bcToks, ...bodyToks]);
+      for (const t of allToks) df.set(t, (df.get(t) || 0) + 1);
     }
     const N = list.length || 1;
-    return { df, N, avgLen: totalLen / N, chunks: list };
+    return {
+      df,
+      N,
+      avgLen: (fieldLen.title + fieldLen.breadcrumb + fieldLen.body) / N,
+      fieldAvgLen: {
+        title: fieldLen.title / N,
+        breadcrumb: fieldLen.breadcrumb / N,
+        body: fieldLen.body / N,
+      },
+      chunks: list,
+    };
   }
 
-  // chunk 的 BM25（单字段近似：title+breadcrumb+body 合并，标题权重靠 build 时已并入）
-  // 注：阶段 2 会引入真正的多字段 BM25F；此处先让正文可搜，字段加权暂简化。
+  // chunk 多字段 BM25F（阶段 2）：title/breadcrumb/body 分字段打分 + 字段权重。
+  // 标题命中权重最高（恢复阶段 1 丢失的字段加权）。
+  // CHUNK_FIELD_BOOST：title 6 / breadcrumb 3 / body 1（与 node-index BM25F 对齐）。
+  const CHUNK_FIELD_BOOST = { title: 6, breadcrumb: 3, body: 1 };
+
   function bm25ScoreChunk(queryTokens, chunk, stats) {
-    const combined = `${chunk.title || ""} ${(chunk.breadcrumb || []).join(" ")} ${chunk.body || ""}`;
-    const docTokens = tokenize(combined);
-    const docLen = docTokens.length;
-    const tfMap = new Map();
-    for (const t of docTokens) tfMap.set(t, (tfMap.get(t) || 0) + 1);
+    const fields = {
+      title: chunk.title || "",
+      breadcrumb: (chunk.breadcrumb || []).join(" "),
+      body: chunk.body || "",
+    };
     let total = 0;
-    for (const qt of queryTokens) {
-      const tf = tfMap.get(qt) || 0;
-      if (!tf) continue;
-      const df = stats.df.get(qt) || 0;
-      const idf = Math.log(1 + (stats.N - df + 0.5) / (df + 0.5));
-      const norm = 1 - BM25_B + BM25_B * (docLen / (stats.avgLen || 1));
-      total += idf * ((tf * (BM25_K + 1)) / (tf + BM25_K * norm));
+    for (const f of ["title", "breadcrumb", "body"]) {
+      const docTokens = tokenize(fields[f]); // 保留重复 → 真实 TF
+      const docLen = docTokens.length;
+      const avgLen = stats.fieldAvgLen?.[f] || stats.avgLen || 1;
+      const tfMap = new Map();
+      for (const t of docTokens) tfMap.set(t, (tfMap.get(t) || 0) + 1);
+      for (const qt of queryTokens) {
+        const tf = tfMap.get(qt) || 0;
+        if (!tf) continue;
+        const df = stats.df.get(qt) || 0;
+        const idf = Math.log(1 + (stats.N - df + 0.5) / (df + 0.5));
+        const norm = 1 - BM25_B + BM25_B * (docLen / (avgLen || 1));
+        total += idf * ((tf * (BM25_K + 1)) / (tf + BM25_K * norm)) * CHUNK_FIELD_BOOST[f];
+      }
     }
     return total;
   }
@@ -239,7 +274,8 @@
   // node 字段从 chunk 元数据合成（供 lexicalRerank / 上层复用）。
   function searchInverted(query, postings, chunkStats, topK = 50) {
     if (!postings || !chunkStats) return [];
-    let tokens = tokenize(query);
+    // 候选收集用 unique（成员关系即可）；打分用带频次 tokenize（真实 TF）
+    let tokens = tokenizeUnique(query);
     if (!tokens.length) return [];
     tokens = expandQuery(tokens, query);
 
@@ -493,6 +529,8 @@
 
   const Retrieval = {
     tokenize,
+    tokenizeRaw,
+    tokenizeUnique,
     SYNONYMS,
     expandQuery,
     buildBM25Stats,
@@ -501,6 +539,7 @@
     buildChunkStats,
     bm25ScoreChunk,
     searchInverted,
+    CHUNK_FIELD_BOOST,
     rm3Expand,
     lexicalRerank,
     RERANK_WEIGHTS,

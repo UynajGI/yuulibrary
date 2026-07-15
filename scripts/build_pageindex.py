@@ -418,14 +418,14 @@ def extract_terms(title: str) -> list[str]:
 
 # ── tokenizer（与 chat.js / retrieval.js 的 tokenize() 行为对齐） ──────────────
 # 关键：构建期 postings 的 token 必须与运行期查询 token 完全一致，否则查不到。
-# JS 逻辑：英文 [a-zA-Z][a-zA-Z0-9]{1,} lower + 数字 \d{2,} + CJK 2-gram，末尾去重。
+# JS 逻辑：英文 [a-zA-Z][a-zA-Z0-9]{1,} lower + 数字 \d{2,} + CJK 2-gram。
 _EN_RE = re.compile(r"[a-zA-Z][a-zA-Z0-9]{1,}")
 _NUM_RE = re.compile(r"\d{2,}")
 _CJK_RE = re.compile(r"[一-鿿]+")
 
 
-def tokenize(text: str) -> list[str]:
-    """与 retrieval.js tokenize() 对齐的 token 化。末尾去重（保持序）。"""
+def tokenize_raw(text: str) -> list[str]:
+    """保留重复（BM25 真实 TF 用）。与 retrieval.js tokenizeRaw 对齐。"""
     if not text:
         return []
     tokens: list[str] = []
@@ -434,14 +434,25 @@ def tokenize(text: str) -> list[str]:
     for seg in _CJK_RE.findall(text):
         for i in range(len(seg) - 1):
             tokens.append(seg[i:i + 2])  # 2-gram
-    # 去重保持序（与 JS [...new Set(tokens)] 一致）
+    return tokens
+
+
+def tokenize_unique(text: str) -> list[str]:
+    """去重保持序（DF / postings 候选用）。与 retrieval.js tokenizeUnique 对齐。"""
     seen: set[str] = set()
     out = []
-    for t in tokens:
+    for t in tokenize_raw(text):
         if t not in seen:
             seen.add(t)
             out.append(t)
     return out
+
+
+def tokenize(text: str) -> list[str]:
+    """保留重复（BM25 TF 用）——与 retrieval.js tokenize 对齐。
+    历史 API：旧代码用此名，阶段 2 改为保留重复以修 TF 失真。
+    """
+    return tokenize_raw(text)
 
 
 # ── 正文 chunk 切分 + 倒排 postings 构建 ──────────────────────────────────────
