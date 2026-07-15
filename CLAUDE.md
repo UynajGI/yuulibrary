@@ -16,7 +16,17 @@ hugo server -p 1314 --bind 127.0.0.1    # 本地预览(http://localhost:1314/yuu
 hugo --gc --minify                        # 生产构建到 public/
 python3 scripts/build_pageindex.py        # 构建 PageIndex 索引(hugo 前必须跑)
 bash scripts/release.sh                   # 算下一个发布 tag(只读)
+node tests/retrieval/harness.js           # 跑检索 golden benchmark(148 题,零依赖)
 ```
+
+## 检索 benchmark
+
+`tests/retrieval/` 是 RAG 检索核心的 golden 评测集(148 题 × 12 类)。改 `retrieval.js` / `build_pageindex.py` 的检索逻辑后必须重跑,对比 `RESULTS.md` 的分数趋势。
+
+- `node tests/retrieval/harness.js` — 全量,打印 Recall@10 / MRR@10 / no_answer 准确率
+- `node tests/retrieval/harness.js --filter cross_language --verbose` — 只跑某类 + 逐题详情
+- `NO_INVERTED=1 node tests/retrieval/harness.js` — 回退线性 BM25(对比倒排 vs 线性)
+- 加题:编辑 `golden.json`,字段 `id/category/query/expect_doc_ids/confidence(hard|soft)`
 
 ## 添加新书
 
