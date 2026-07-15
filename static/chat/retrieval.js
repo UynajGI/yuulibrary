@@ -59,21 +59,93 @@
     路径积分: ["path integral", "feynman"],
     机器学习: ["machine learning", "ML", "deep learning"],
     神经网络: ["neural network", "NN", "deep learning"],
+    量子蒙特卡洛: ["quantum monte carlo", "QMC"],
+    蒙特卡洛: ["monte carlo", "MC"],
+    密度矩阵重整化群: ["density matrix renormalization group", "DMRG"],
+    张量网络: ["tensor network", "MPS", "MPO"],
+    矩阵乘积态: ["matrix product state", "MPS"],
+    贝里相位: ["berry phase", "geometric phase"],
+    几何相位: ["geometric phase", "berry phase", "贝里相位"],
+    耗散: ["dissipation", "dissipative"],
+    相干态: ["coherent state"],
+    压缩态: ["squeezed state"],
+    自旋: ["spin"],
+    玻色: ["boson", "bose"],
+    玻色子: ["boson", "bose"],
+    费米: ["fermi", "fermion"],
+    费米子: ["fermi", "fermion"],
+    哈密顿: ["hamiltonian", "hamilton"],
+    拉格朗日: ["lagrangian"],
+    配分函数: ["partition function"],
+    基态: ["ground state"],
+    激发态: ["excited state"],
+    绝热: ["adiabatic"],
+    厄米: ["hermitian"],
+    幺正: ["unitary"],
+    统计力学: ["statistical mechanics"],
+    量子场论: ["quantum field theory", "QFT"],
+    规范场: ["gauge field"],
+    对称性: ["symmetry"],
+    拓扑: ["topological", "topology"],
+    纠缠: ["entanglement", "entangled"],
+    退相干: ["decoherence"],
+    量子比特: ["qubit", "quantum bit"],
+    量子门: ["quantum gate"],
+    量子算法: ["quantum algorithm"],
+    变分: ["variational"],
+    微扰: ["perturbation", "perturbative"],
+    关联函数: ["correlation function"],
+    谱函数: ["spectral function"],
+    响应函数: ["response function"],
+    极化率: ["polarizability", "susceptibility"],
+    磁化率: ["susceptibility", "magnetic susceptibility"],
+    期权: ["option"],
+    期货: ["future", "futures"],
+    对冲: ["hedge", "hedging"],
+    波动率: ["volatility"],
+    套利: ["arbitrage", "arb"],
+    回撤: ["drawdown"],
+    动量: ["momentum"],
+    均值回复: ["mean reversion"],
+    协整: ["cointegration"],
+    交叉验证: ["cross validation"],
+    过拟合: ["overfitting", "overfit"],
+    正则化: ["regularization"],
+    梯度: ["gradient"],
+    反向传播: ["backpropagation", "backprop"],
+    激活函数: ["activation function"],
+    损失函数: ["loss function"],
+    优化器: ["optimizer"],
   };
 
-  // expandQuery 同时接受原始 query（用于多字短语匹配）和 tokens（用于单 token 匹配）
+  // expandQuery：同义词扩展必须先过统一 tokenizer（修复"linear response"当单 token 的 bug）。
+  // 多词同义词（如 "linear response"）会被 tokenize 成 ["linear","response"]，
+  // 与索引中的 token 一致，才能真正匹配。
+  // 返回 [tokens]。权重版见 expandQueryWeighted（原始 token 1.0，同义词 0.6）。
   function expandQuery(tokens, rawQuery) {
-    const expanded = new Set(tokens);
+    return expandQueryWeighted(tokens, rawQuery).tokens;
+  }
+
+  // 权重配置：原始 token 1.0，同义词扩展 0.6（避免同义词稀释精确匹配）。
+  const SYNONYM_WEIGHT = 0.6;
+
+  function expandQueryWeighted(tokens, rawQuery) {
+    const weights = new Map(); // token → weight（取最大值，原始优先）
+    for (const t of tokens) weights.set(t, 1.0);
     const raw = (rawQuery || "").toLowerCase();
     for (const key of Object.keys(SYNONYMS)) {
       const lk = key.toLowerCase();
-      // 匹配方式 1: 原始 query 包含该短语（如"超辐射相变"包含"相变"）
-      // 匹配方式 2: tokens 已含该短语作为 token（如英文 "rabi"）
       if (raw.includes(lk) || tokens.includes(lk)) {
-        SYNONYMS[key].forEach((s) => expanded.add(s.toLowerCase()));
+        for (const s of SYNONYMS[key]) {
+          // 关键修复：同义词也走 tokenizer，多词短语拆成可匹配的 token
+          for (const t of tokenizeUnique(s)) {
+            // 原始 token 权重保留（不被同义词稀释）；新 token 给 SYNONYM_WEIGHT
+            if (!weights.has(t)) weights.set(t, SYNONYM_WEIGHT);
+          }
+        }
       }
     }
-    return [...expanded];
+    return { tokens: [...weights.keys()], weights };
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -123,7 +195,7 @@
     };
   }
 
-  function bm25Score(queryTokens, node, stats) {
+  function bm25Score(queryTokens, node, stats, weights) {
     let total = 0;
     const fieldText = {
       title: node.title || "",
@@ -144,7 +216,8 @@
         const idf = Math.log(1 + (stats.N - df + 0.5) / (df + 0.5));
         const norm = 1 - BM25_B + BM25_B * (docLen / (avgLen || 1));
         const score = idf * ((tf * (BM25_K + 1)) / (tf + BM25_K * norm));
-        total += score * FIELD_BOOST[f];
+        const w = weights ? weights.get(qt) || 0 : 1;
+        total += score * FIELD_BOOST[f] * w;
       }
     }
     return total;
@@ -240,9 +313,10 @@
   // chunk 多字段 BM25F（阶段 2）：title/breadcrumb/body 分字段打分 + 字段权重。
   // 标题命中权重最高（恢复阶段 1 丢失的字段加权）。
   // CHUNK_FIELD_BOOST：title 6 / breadcrumb 3 / body 1（与 node-index BM25F 对齐）。
+  // weights（阶段 3）：可选 Map<token, weight>，同义词 token 权重低，避免稀释精确匹配。
   const CHUNK_FIELD_BOOST = { title: 6, breadcrumb: 3, body: 1 };
 
-  function bm25ScoreChunk(queryTokens, chunk, stats) {
+  function bm25ScoreChunk(queryTokens, chunk, stats, weights) {
     const fields = {
       title: chunk.title || "",
       breadcrumb: (chunk.breadcrumb || []).join(" "),
@@ -261,7 +335,8 @@
         const df = stats.df.get(qt) || 0;
         const idf = Math.log(1 + (stats.N - df + 0.5) / (df + 0.5));
         const norm = 1 - BM25_B + BM25_B * (docLen / (avgLen || 1));
-        total += idf * ((tf * (BM25_K + 1)) / (tf + BM25_K * norm)) * CHUNK_FIELD_BOOST[f];
+        const w = weights ? weights.get(qt) || 0 : 1;
+        total += idf * ((tf * (BM25_K + 1)) / (tf + BM25_K * norm)) * CHUNK_FIELD_BOOST[f] * w;
       }
     }
     return total;
@@ -275,9 +350,9 @@
   function searchInverted(query, postings, chunkStats, topK = 50) {
     if (!postings || !chunkStats) return [];
     // 候选收集用 unique（成员关系即可）；打分用带频次 tokenize（真实 TF）
-    let tokens = tokenizeUnique(query);
-    if (!tokens.length) return [];
-    tokens = expandQuery(tokens, query);
+    const origTokens = tokenizeUnique(query);
+    if (!origTokens.length) return [];
+    const { tokens, weights } = expandQueryWeighted(origTokens, query);
 
     // 收集候选 chunk_id → 命中 token 数
     const candIds = new Map(); // cid_num → hitCount
@@ -309,7 +384,7 @@
     for (const cidNum of candIds.keys()) {
       const chunk = cidMap.get(cidNum);
       if (!chunk) continue;
-      const s = bm25ScoreChunk(tokens, chunk, chunkStats);
+      const s = bm25ScoreChunk(tokens, chunk, chunkStats, weights);
       if (s > 0) {
         const score = Math.round(s * 100) / 100;
         // 合成 node（供上层 lexicalRerank / doc_id 聚合复用）
@@ -533,6 +608,8 @@
     tokenizeUnique,
     SYNONYMS,
     expandQuery,
+    expandQueryWeighted,
+    SYNONYM_WEIGHT,
     buildBM25Stats,
     bm25Score,
     search,
