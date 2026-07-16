@@ -1741,25 +1741,43 @@ ${toc.text}
         );
       }
 
-      // 循环用满（MAX_LOOPS）但模型没输出最终文本（全用来调工具了）：
+      // 循环用满（MAX_LOOPS）或模型没输出最终文本（只调工具）：
       // 再给一轮无工具的收尾调用，让模型基于已检索内容综合回答。
-      // 否则用户只看到一串检索步骤，没有答案。
+      // 关键：不能复用含 tool_calls/tool 角色消息的 messages（OpenAI 协议要求
+      // tool 消息后跟 assistant 消费；tools:undefined 时某些 provider 会报错或空返）。
+      // 构造干净对话：system + 原始 query + 一条合并所有检索结果的 user 消息。
       if (!finalText.trim() && allContexts.length) {
         contentEl.innerHTML = renderThinkingAndText(
           finalThinking,
           "<em>检索完成，正在综合回答……</em>",
           toolTrail
         );
-        const summarySystem = buildAgentSystemPrompt();
+        // 合并所有检索结果为一条文本（复用稳定编号）
+        const ctxBlocks = allContexts
+          .map((c) => {
+            const num = c.displayNum || allContexts.indexOf(c) + 1;
+            return `### [${num}] ${c.breadcrumb.join(" > ")}\n*来源: ${c.docTitle}*\n\n${truncateAtBoundary(
+              c.text,
+              MAX_SECTION_CHARS
+            )}`;
+          })
+          .join("\n\n---\n\n");
+        const summaryMessages = [
+          { role: "user", content: query },
+          {
+            role: "user",
+            content: `基于以下检索到的图书馆内容，回答上面的问题。用 [N] 标注来源。\n\n${ctxBlocks}`,
+          },
+        ];
         let summaryText = "";
         for await (const chunk of streamText({
           provider: cfg.provider,
           model: cfg.model,
           baseUrl: cfg.baseUrl,
           apiKey: cfg.apiKey,
-          system: summarySystem,
-          messages, // 含全部检索结果
-          tools: undefined, // 不带工具，强制输出文本
+          system: systemPrompt,
+          messages: summaryMessages,
+          tools: undefined,
           thinking: false,
           maxTokens: 4096,
         })) {
