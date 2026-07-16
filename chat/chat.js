@@ -1741,6 +1741,37 @@ ${toc.text}
         );
       }
 
+      // 循环用满（MAX_LOOPS）但模型没输出最终文本（全用来调工具了）：
+      // 再给一轮无工具的收尾调用，让模型基于已检索内容综合回答。
+      // 否则用户只看到一串检索步骤，没有答案。
+      if (!finalText.trim() && allContexts.length) {
+        contentEl.innerHTML = renderThinkingAndText(
+          finalThinking,
+          "<em>检索完成，正在综合回答……</em>",
+          toolTrail
+        );
+        const summarySystem = buildAgentSystemPrompt();
+        let summaryText = "";
+        for await (const chunk of streamText({
+          provider: cfg.provider,
+          model: cfg.model,
+          baseUrl: cfg.baseUrl,
+          apiKey: cfg.apiKey,
+          system: summarySystem,
+          messages, // 含全部检索结果
+          tools: undefined, // 不带工具，强制输出文本
+          thinking: false,
+          maxTokens: 4096,
+        })) {
+          if (chunk.type === "text") {
+            summaryText += chunk.text;
+            finalText = summaryText;
+            contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
+            reRenderKatex(contentEl);
+          }
+        }
+      }
+
       // 引用注入：用稳定 displayNum 构建 refMap（与模型看到的 [N] 严格对应）
       if (allContexts.length) {
         const refMap = {};
