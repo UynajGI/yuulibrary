@@ -206,15 +206,24 @@
       maxTokens: 1024,
     };
     const req = buildRequest(opts);
-    // 非流式：读完整 response body
-    const resp = await fetch(req.url, {
-      method: "POST",
-      headers: { ...req.headers, Accept: "application/json" },
-    });
-    if (!resp.ok) return "";
-    // OpenAI 兼容格式（DeepSeek/OpenAI 等）
-    const data = await resp.json().catch(() => null);
-    return data?.choices?.[0]?.message?.content || data?.content?.[0]?.text || "";
+    // 非流式：读完整 response body。AbortController 防止永久挂起。
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 30000);
+    try {
+      const resp = await fetch(req.url, {
+        method: "POST",
+        headers: { ...req.headers, Accept: "application/json" },
+        signal: ctrl.signal,
+      });
+      if (!resp.ok) return "";
+      // OpenAI 兼容格式（DeepSeek/OpenAI 等）
+      const data = await resp.json().catch(() => null);
+      return data?.choices?.[0]?.message?.content || data?.content?.[0]?.text || "";
+    } catch (_) {
+      return ""; // 超时或网络错误，返回空（调用方有兜底）
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -1622,12 +1631,21 @@ ${toc.text}
     const nextSourceNum = [0]; // 已分配的最大编号（mutable）
 
     try {
+      const agentStart = Date.now();
       for (let loop = 0; loop < MAX_LOOPS; loop++) {
+        // 总时间预算：超过 120 秒强制跳出（防 LLM/网络挂起永久卡死 UI）
+        if (Date.now() - agentStart > 120000) {
+          contentEl.innerHTML = renderThinkingAndText(
+            finalThinking,
+            "<em>检索超时，正在用已获取的内容生成回答……</em>",
+            toolTrail
+          );
+          break;
+        }
         let roundText = "";
         let roundThinking = "";
         let toolCalls = null;
         let stopReason = null;
-
         // 流式渲染本轮
         for await (const chunk of streamText({
           provider: cfg.provider,
@@ -1780,24 +1798,49 @@ ${ctxBlocks}`,
           },
         ];
         let summaryText = "";
-        for await (const chunk of streamText({
-          provider: cfg.provider,
-          model: cfg.model,
-          baseUrl: cfg.baseUrl,
-          apiKey: cfg.apiKey,
-          system: systemPrompt,
-          messages: summaryMessages,
-          tools: undefined,
-          thinking: false,
-          maxTokens: 4096,
-        })) {
-          if (chunk.type === "text") {
-            summaryText += chunk.text;
-            finalText = summaryText;
+        // 超时保护：收尾调用最多等 30 秒，避免永久卡住 UI
+        const summaryTimeout = setTimeout(() => {
+          if (!finalText.trim()) {
+            finalText =
+              "已检索到相关内容，但生成回答超时。请尝试换个问法，或直接在书架中浏览相关章节。";
             contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
             reRenderKatex(contentEl);
           }
+        }, 30000);
+        try {
+          for await (const chunk of streamText({
+            provider: cfg.provider,
+            model: cfg.model,
+            baseUrl: cfg.baseUrl,
+            apiKey: cfg.apiKey,
+            system: systemPrompt,
+            messages: summaryMessages,
+            tools: undefined,
+            thinking: false,
+            maxTokens: 4096,
+          })) {
+            if (chunk.type === "text") {
+              summaryText += chunk.text;
+              finalText = summaryText;
+              contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
+              reRenderKatex(contentEl);
+            }
+          }
+        } catch (_) {
+          /* 收尾失败不影响主流程，下面有兜底 */
         }
+        clearTimeout(summaryTimeout);
+      }
+
+      // 最终兜底：如果所有路径都没产出文本，给用户明确提示（不能卡在空白）
+      if (!finalText.trim()) {
+        if (allContexts.length) {
+          finalText = "已检索到相关内容，但未能生成回答。请尝试换个问法重试。";
+        } else {
+          finalText = "未找到相关内容。可以在书架中浏览，或换关键词重试。";
+        }
+        contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
+        reRenderKatex(contentEl);
       }
 
       // 引用注入：用稳定 displayNum 构建 refMap（与模型看到的 [N] 严格对应）
