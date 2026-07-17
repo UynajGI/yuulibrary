@@ -26,14 +26,20 @@
   function loadSession() {
     try {
       const r = sessionStorage.getItem(CHAT_SESSION_KEY);
-      return r ? JSON.parse(r) : [];
+      if (r) return JSON.parse(r);
+      // 页面刷新后 sessionStorage 清空，从 localStorage 恢复
+      const ls = localStorage.getItem(CHAT_SESSION_KEY);
+      return ls ? JSON.parse(ls) : [];
     } catch (_) {
       return [];
     }
   }
   function saveSession() {
     try {
-      sessionStorage.setItem(CHAT_SESSION_KEY, JSON.stringify(chatHistory));
+      const data = JSON.stringify(chatHistory);
+      sessionStorage.setItem(CHAT_SESSION_KEY, data);
+      // 同步到 localStorage：页面刷新/关闭后恢复当前会话（不等"新对话"才存档）
+      localStorage.setItem(CHAT_SESSION_KEY, data);
     } catch (_) {
       /* ignore */
     }
@@ -1510,6 +1516,31 @@ ${toc.text}
     }
   }
 
+  // 节流版 KaTeX：流式输出期间每 300ms 最多渲染一次，避免每个 token 都重渲染导致卡顿。
+  let _katexTimer = null,
+    _katexPending = null;
+  function reRenderKatexThrottled(el) {
+    _katexPending = el;
+    if (!_katexTimer) {
+      _katexTimer = setTimeout(() => {
+        _katexTimer = null;
+        if (_katexPending) reRenderKatex(_katexPending);
+        _katexPending = null;
+      }, 300);
+    }
+  }
+  // 冲刷待渲染的 KaTeX（流式结束时调用）
+  function reRenderKatexFlush() {
+    if (_katexTimer) {
+      clearTimeout(_katexTimer);
+      _katexTimer = null;
+    }
+    if (_katexPending) {
+      reRenderKatex(_katexPending);
+      _katexPending = null;
+    }
+  }
+
   // ══════════════════════════════════════════════════════════════════════════
   // Debug card
   // ══════════════════════════════════════════════════════════════════════════
@@ -1668,7 +1699,7 @@ ${toc.text}
             roundText += chunk.text;
             finalText = roundText;
             contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
-            reRenderKatex(contentEl);
+            reRenderKatexThrottled(contentEl);
           } else if (chunk.type === "tool_calls") {
             toolCalls = chunk.calls;
           } else if (chunk.type === "stop") {
@@ -1676,6 +1707,7 @@ ${toc.text}
           }
           messagesEl.scrollTop = messagesEl.scrollHeight;
         }
+        reRenderKatexFlush();
 
         // 没有工具调用 → 本轮是最终回答，退出循环
         if (stopReason !== "tool_calls" || !toolCalls?.length) break;
@@ -1825,13 +1857,14 @@ ${ctxBlocks}`,
               summaryText += chunk.text;
               finalText = summaryText;
               contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
-              reRenderKatex(contentEl);
+              reRenderKatexThrottled(contentEl);
             }
           }
         } catch (_) {
           /* 收尾失败不影响主流程，下面有兜底 */
         }
         clearTimeout(summaryTimeout);
+        reRenderKatexFlush();
       }
 
       // 最终兜底：如果所有路径都没产出文本，给用户明确提示（不能卡在空白）
@@ -1842,7 +1875,7 @@ ${ctxBlocks}`,
           finalText = "未找到相关内容。可以在书架中浏览，或换关键词重试。";
         }
         contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
-        reRenderKatex(contentEl);
+        reRenderKatexFlush();
       }
 
       // 引用注入：用稳定 displayNum 构建 refMap（与模型看到的 [N] 严格对应）
@@ -1870,7 +1903,7 @@ ${ctxBlocks}`,
       } else {
         contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
       }
-      reRenderKatex(contentEl);
+      reRenderKatexFlush();
 
       chatHistory.push({ role: "assistant", content: finalText });
       if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
