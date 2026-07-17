@@ -709,7 +709,7 @@ ${blocks.join("\n\n---\n\n")}
 - 只能根据 Context 回答，不要使用外部知识
 - 每个关键论断标注来源编号
 - 回答末尾列出参考来源：参考来源：\n[1] 《文档名》 > 章节 > 节名
-- 回答使用中文，专业术语保留原文。公式用 KaTeX：行内 $...$，行间 $$...$`;
+- 回答使用中文，专业术语保留原文。公式用 KaTeX：行内 $...$（仅短符号如 $\\alpha$、$\\hbar$），复杂/多行公式用行间 $$...$$。**禁止把长公式塞进行内 $...$**`;
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -989,19 +989,21 @@ ${toc.text}
     work = work.replace(/`[^`\n]*`/g, (m) => (stash.push(m) - 1 + "", PH(stash.length - 1)));
 
     // 2) 逐行处理。不再要求 [N] 前必须是标点——中文紧贴（如"文献[1]所示"）也要能命中。
+    // 拼接 url 时去重复斜杠（base 结尾 / + ref.url 开头 / → 单 /）。
+    const joinUrl = (u) => `${base.replace(/\/+$/, "")}/${String(u).replace(/^\/+/, "")}`;
     const lines = work.split("\n");
     const result = lines.map((line) => {
       // 参考来源列表行：[N] 在行首后接标题文字
       const refMatch = line.match(/^\[(\d+)\]\s+(.+)$/);
       if (refMatch) {
         const ref = refMap[parseInt(refMatch[1])];
-        if (ref && ref.url) return `[${refMatch[1]}] [${refMatch[2]}](${base}${ref.url})`;
+        if (ref && ref.url) return `[${refMatch[1]}] [${refMatch[2]}](${joinUrl(ref.url)})`;
         return line;
       }
-      // 行内引用：匹配 [N]，但跳过已是 markdown 链接的情况（[文字](url) 形式）。
-      return line.replace(/\[(\d+)\](?!\()/g, (m, num) => {
+      // 行内引用：替换 [N]，包括模型自编了 [N](url) 的情况——用 refMap 的正确 url 覆盖。
+      return line.replace(/\[(\d+)\](?:\([^)]*\))?/g, (m, num) => {
         const ref = refMap[parseInt(num)];
-        if (ref && ref.url) return `[${num}](${base}${ref.url})`;
+        if (ref && ref.url) return `[${num}](${joinUrl(ref.url)})`;
         return m;
       });
     });
@@ -1790,7 +1792,7 @@ ${toc.text}
 - 每个关键论断用 [N] 标注来源编号（对应下方的 [N]，**只写编号，不要自己写 url 或链接**）
 - 回答末尾列出参考来源，格式：[N] 文档名 > 章节
 - 只基于 Context 回答，不要编造
-- 回答使用中文，公式用 LaTeX：行内 $...$，行间 $$...$$
+- 回答使用中文，公式用 KaTeX：行内 $...$（仅短符号），复杂/多行公式用行间 $$...$$。禁止长公式塞进行内
 
 ## Context（按相关度排序）
 
