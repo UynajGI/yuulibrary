@@ -1766,7 +1766,17 @@ ${toc.text}
           { role: "user", content: query },
           {
             role: "user",
-            content: `基于以下检索到的图书馆内容，回答上面的问题。用 [N] 标注来源。\n\n${ctxBlocks}`,
+            content: `基于以下检索到的图书馆内容，回答上面的问题。
+
+## 回答规则
+- 每个关键论断用 [N] 标注来源编号（对应下方的 [N]，**只写编号，不要自己写 url 或链接**）
+- 回答末尾列出参考来源，格式：[N] 文档名 > 章节
+- 只基于 Context 回答，不要编造
+- 回答使用中文，公式用 LaTeX：行内 $...$，行间 $$...$$
+
+## Context（按相关度排序）
+
+${ctxBlocks}`,
           },
         ];
         let summaryText = "";
