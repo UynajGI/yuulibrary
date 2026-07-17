@@ -229,13 +229,13 @@ description: "纳瓦尔的推荐读物与生命公式"
 
 ⼀些很棒的博客：
 
-@KevinSimler——Melting Asphalt，https://meltingasphalt.com/
+@KevinSimler——Melting Asphalt，<https://meltingasphalt.com/>
 
-@farnamstreet——Farnam Street，A Signal in a World Full of Noise，https://fs.blog/
+@farnamstreet——Farnam Street，A Signal in a World Full of Noise，<https://fs.blog/>
 
-@benthompson——Stratcher y，https://stratechery.com/
+@benthompson——Stratcher y，<https://stratechery.com/>
 
-@baconmeteor——Idle Words，https://idlewords.com/<sup>[4]</sup>
+@baconmeteor——Idle Words，<https://idlewords.com/><sup>[4]</sup>
 
 “The Munger Operating System:How to Live a Life That Really Works”by @FarnamStreet
 
@@ -259,7 +259,7 @@ description: "纳瓦尔的推荐读物与生命公式"
 
 必读博客：Lazy Leadership，推特账号：Awilkinson
 
-博主Edlatimore⽹站的所有内容对所有想取得更⾼成就的⼈来说都值得⼀读：https://edlatimore.com/。作为⼀个⽩⼿起家的⼈，博主毫⽆保留地分享了⾃⼰的智慧。
+博主Edlatimore⽹站的所有内容对所有想取得更⾼成就的⼈来说都值得⼀读：<https://edlatimore.com/>。作为⼀个⽩⼿起家的⼈，博主毫⽆保留地分享了⾃⼰的智慧。
 
 如果按照“新闻”所倡导的⽅式吃饭、投资、思考，你最终会变得营养不良、两⼿空空、道德败坏。
 
@@ -379,7 +379,7 @@ Art De Vany（脸书账⼾）
 
 →播客：Naval
 
-→个⼈⽹站：https://nav.al/
+→个⼈⽹站：<https://nav.al/>
 
 当编撰本书时，纳⽡尔最受欢迎的内容是：
 
