@@ -1,0 +1,545 @@
+<!doctype html><html lang=zh-CN dir=ltr><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="第6章 · 有限温度量子自旋算法# 有限温度下量子自旋系统的模拟是一个非常活跃的研究领域，这不仅是因为所模拟问题的重要性，还因为对于许多感兴趣的问题，存在高效的蒙特卡洛方法，例如环/团簇算法（loop/cluster algorithm）和虫算法（worm algorithm）。我们在第4章和第5章预览了这些算法。在本章及其相关附录中，我们将提供更完整和形式化的推导与讨论。我们还将讨论在低温但有限温度下进行模拟以研究基态性质和量子临界现象的条件。虽然我们主要详述这些算法在量子自旋系统中的应用，但最后也会讨论它们（经过微小修改）在模拟玻色子晶格模型（Bosonic lattice model）中的应用。
+6.1 费曼路径积分# 在5.2.5节中，我们使用路径积分形式（path-integral formalism）给出了一个量子自旋模型环/团簇算法的简单例子。在此，我们用更一般和形式化的语言重新阐述同一形式，为更详细地讨论环/团簇更新做准备。
+我们考虑哈密顿量
+$$ H = \sum_{l = 1}^{N_{l}} H_{l} ,\tag{6.1} $$其中 $H_{l}$ 是定义在某小格点集合 $b_{l}$ 上的局部哈密顿量。一个典型的局部哈密顿量是 ${H_{l}} = - J {S_{i_{l}}} \cdot{S_{j_{l}}}$，其中 $S_{i_{l}} = ( S_{i_{l}}^{x} , S_{i_{l}}^{y} , S_{i_{l}}^{z} )$ 是一个自旋算符，在适当基 $( S = 1 / 2 , 1 , 3 / 2 , \cdots )$ 下具有标准归一化 $S_{i_{l}} \cdot S_{i_{l}} = S ( S + 1 )$。在这种情况下，局部格点集合是一对最近邻位点，即 $b_{l} = \{i_{l} , j_{l} \}$。然而，$b_{l}$ 也可以是包含两个以上位点的集合，或者仅仅是单个位点。
+"><meta name=theme-color media="(prefers-color-scheme: light)" content="#ffffff"><meta name=theme-color media="(prefers-color-scheme: dark)" content="#2e3440"><meta name=color-scheme content="light dark"><meta property="og:url" content="https://uynajgi.github.io/yuulibrary/books/qmc-lattice-models/ch06.html"><meta property="og:site_name" content="Yuunagi Library"><meta property="og:title" content="第6章 · 有限温度量子自旋算法"><meta property="og:description" content="第6章 · 有限温度量子自旋算法# 有限温度下量子自旋系统的模拟是一个非常活跃的研究领域，这不仅是因为所模拟问题的重要性，还因为对于许多感兴趣的问题，存在高效的蒙特卡洛方法，例如环/团簇算法（loop/cluster algorithm）和虫算法（worm algorithm）。我们在第4章和第5章预览了这些算法。在本章及其相关附录中，我们将提供更完整和形式化的推导与讨论。我们还将讨论在低温但有限温度下进行模拟以研究基态性质和量子临界现象的条件。虽然我们主要详述这些算法在量子自旋系统中的应用，但最后也会讨论它们（经过微小修改）在模拟玻色子晶格模型（Bosonic lattice model）中的应用。
+6.1 费曼路径积分# 在5.2.5节中，我们使用路径积分形式（path-integral formalism）给出了一个量子自旋模型环/团簇算法的简单例子。在此，我们用更一般和形式化的语言重新阐述同一形式，为更详细地讨论环/团簇更新做准备。
+我们考虑哈密顿量
+$$ H = \sum_{l = 1}^{N_{l}} H_{l} ,\tag{6.1} $$其中 $H_{l}$ 是定义在某小格点集合 $b_{l}$ 上的局部哈密顿量。一个典型的局部哈密顿量是 ${H_{l}} = - J {S_{i_{l}}} \cdot{S_{j_{l}}}$，其中 $S_{i_{l}} = ( S_{i_{l}}^{x} , S_{i_{l}}^{y} , S_{i_{l}}^{z} )$ 是一个自旋算符，在适当基 $( S = 1 / 2 , 1 , 3 / 2 , \cdots )$ 下具有标准归一化 $S_{i_{l}} \cdot S_{i_{l}} = S ( S + 1 )$。在这种情况下，局部格点集合是一对最近邻位点，即 $b_{l} = \{i_{l} , j_{l} \}$。然而，$b_{l}$ 也可以是包含两个以上位点的集合，或者仅仅是单个位点。"><meta property="og:locale" content="zh_CN"><meta property="og:type" content="article"><meta property="article:section" content="books"><meta property="article:modified_time" content="2026-07-08T13:25:45+08:00"><meta itemprop=name content="第6章 · 有限温度量子自旋算法"><meta itemprop=description content="第6章 · 有限温度量子自旋算法# 有限温度下量子自旋系统的模拟是一个非常活跃的研究领域，这不仅是因为所模拟问题的重要性，还因为对于许多感兴趣的问题，存在高效的蒙特卡洛方法，例如环/团簇算法（loop/cluster algorithm）和虫算法（worm algorithm）。我们在第4章和第5章预览了这些算法。在本章及其相关附录中，我们将提供更完整和形式化的推导与讨论。我们还将讨论在低温但有限温度下进行模拟以研究基态性质和量子临界现象的条件。虽然我们主要详述这些算法在量子自旋系统中的应用，但最后也会讨论它们（经过微小修改）在模拟玻色子晶格模型（Bosonic lattice model）中的应用。
+6.1 费曼路径积分# 在5.2.5节中，我们使用路径积分形式（path-integral formalism）给出了一个量子自旋模型环/团簇算法的简单例子。在此，我们用更一般和形式化的语言重新阐述同一形式，为更详细地讨论环/团簇更新做准备。
+我们考虑哈密顿量
+$$ H = \sum_{l = 1}^{N_{l}} H_{l} ,\tag{6.1} $$其中 $H_{l}$ 是定义在某小格点集合 $b_{l}$ 上的局部哈密顿量。一个典型的局部哈密顿量是 ${H_{l}} = - J {S_{i_{l}}} \cdot{S_{j_{l}}}$，其中 $S_{i_{l}} = ( S_{i_{l}}^{x} , S_{i_{l}}^{y} , S_{i_{l}}^{z} )$ 是一个自旋算符，在适当基 $( S = 1 / 2 , 1 , 3 / 2 , \cdots )$ 下具有标准归一化 $S_{i_{l}} \cdot S_{i_{l}} = S ( S + 1 )$。在这种情况下，局部格点集合是一对最近邻位点，即 $b_{l} = \{i_{l} , j_{l} \}$。然而，$b_{l}$ 也可以是包含两个以上位点的集合，或者仅仅是单个位点。"><meta itemprop=dateModified content="2026-07-08T13:25:45+08:00"><meta itemprop=wordCount content="10049"><title>第6章 · 有限温度量子自旋算法 • Yuunagi Library</title><link rel=icon href=/yuulibrary/favicon.png><link rel=manifest href=/yuulibrary/manifest.json><link rel=canonical href=https://uynajgi.github.io/yuulibrary/books/qmc-lattice-models/ch06.html><link rel=stylesheet href=/yuulibrary/book.min.9591e6797eaf952a58d7aeda76c6a266fc5e15b640e5bcdd6e7c2e3fc2ef45ae.css integrity="sha256-lZHmeX6vlSpY167adsaiZvxeFbZA5bzdbnwuP8LvRa4=" crossorigin=anonymous><script defer type=module src=/yuulibrary/zh.search.min.1c6ff0cb7f03368b56abb5e74bcbd83955bac0c9428bd7fd577652dbf64b1dbc.js integrity="sha256-HG/wy38DNotWq7XnS8vYOVW6wMlCi9f9V3ZS2/ZLHbw=" crossorigin=anonymous></script><script>(function(){var t,e=localStorage.getItem("book-theme")||"auto",e=e==="light"||e==="dark"?e:"auto";document.documentElement.setAttribute("data-theme",e),t=e,e==="auto"&&(t=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"),document.documentElement.setAttribute("data-effective-theme",t)})()</script><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap"><link rel=stylesheet href=/yuulibrary/syntax.min.css><link rel=stylesheet href=/yuulibrary/katex/katex.min.css><script defer src=/yuulibrary/katex/katex.min.js></script><script defer src=/yuulibrary/katex/auto-render.min.js></script><link rel=stylesheet href=/yuulibrary/pseudocode.min.css><script defer src=/yuulibrary/pseudocode.min.js></script><script defer src=/yuulibrary/rough.min.js></script><script>document.addEventListener("DOMContentLoaded",function(){window.renderMathInElement&&renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"\\[",right:"\\]",display:!0},{left:"\\(",right:"\\)",display:!1},{left:"$",right:"$",display:!1}],ignoredTags:["script","noscript","style","textarea","pre","code"],ignoredClasses:["pseudocode"],throwOnError:!1}),window.pseudocode&&document.querySelectorAll("pre.pseudocode").forEach(function(e){try{pseudocode.renderElement(e,{lineNumber:!1})}catch(t){console.error("pseudocode error:",t,e)}})})</script><link rel=stylesheet href=/yuulibrary/chat/chat.css><script>window.YUU_CHAT_BASE="/yuulibrary/",window.YUU_CHAT_RAW_BASE="https://raw.githubusercontent.com/uynajgi/yuulibrary/personal/"</script><script defer src=/yuulibrary/chat/retrieval.js></script><script defer src=/yuulibrary/chat/chat.js></script></head><body dir=ltr class="book-kind-page book-type-books"><input type=checkbox class="hidden toggle" id=menu-control>
+<input type=checkbox class="hidden toggle" id=toc-control><main class="container flex"><aside class=book-menu><div class=book-menu-content><nav><h2 class=book-brand><a class="flex align-center" href=/yuulibrary/index.html><span>Yuunagi Library</span></a></h2><div class="book-search hidden"><input id=book-search-input type=text placeholder=搜索 aria-label=搜索 maxlength=64>
+<kbd class=book-search-kbd>⌘K</kbd><div class="book-search-spinner hidden"></div><ul id=book-search-results></ul></div><script>document.querySelector(".book-search").classList.remove("hidden")</script><ul><li><a href=/yuulibrary/books/index.html>书架</a></li><li><input type=checkbox id=section-9df96d69202984e38a342749712f3fbb class=toggle checked>
+<label for=section-9df96d69202984e38a342749712f3fbb class=flex><a href=/yuulibrary/books/qmc-lattice-models/index.html>量子蒙特卡洛方法：晶格模型算法</a>
+<img src=/yuulibrary/icons/chevron-right.svg class=book-icon alt=Expand></label><ul><li><a href=/yuulibrary/books/qmc-lattice-models/preface.html>前言</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/part-1.html>第一部分 · 蒙特卡洛基础</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/ch01.html>第1章 · 引言</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/ch02.html>第2章 · 蒙特卡洛基础</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/ch03.html>第3章 · 数据分析</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/ch04.html>第4章 · 经典多体问题的蒙特卡洛方法</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/ch05.html>第5章 · 量子蒙特卡洛入门</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/part-2.html>第二部分 · 有限温度</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/ch06.html class=active>第6章 · 有限温度量子自旋算法</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/ch07.html>第7章 · 行列式方法</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/ch08.html>第8章 · 连续时间杂质求解器</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/part-3.html>第三部分 · 零温度</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/ch09.html>第9章 · 变分蒙特卡洛</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/ch10.html>第10章 · 幂方法</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/ch11.html>第11章 · 费米子基态方法</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/part-4.html>第四部分 · 其他主题</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/ch12.html>第12章 · 解析延拓</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/ch13.html>第13章 · 并行化</a></li><li><input type=checkbox id=section-00e1a0867987ab982eb895fb2b0e30f3 class=toggle>
+<label for=section-00e1a0867987ab982eb895fb2b0e30f3 class=flex><a href=/yuulibrary/books/qmc-lattice-models/appendix.html>附录</a>
+<img src=/yuulibrary/icons/chevron-right.svg class=book-icon alt=Expand></label></li><li><a href=/yuulibrary/books/qmc-lattice-models/references.html>参考文献</a></li><li><a href=/yuulibrary/books/qmc-lattice-models/index_term.html>索引</a></li></ul></li><li><a href=/yuulibrary/notes/index.html>笔记</a></li><li><a href=/yuulibrary/papers/index.html>论文</a></li><li><a href=/yuulibrary/tags/index.html>标签</a></li></ul><div class=menu-about><a href=/yuulibrary/about.html>关于</a></div><div class=menu-social><a href=mailto:yuunagi.cn@outlook.com title=Email class=menu-social-link><svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M20 4H4c-1.1.0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1.0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+</a><a href=https://github.com/uynajgi/yuulibrary title=GitHub class=menu-social-link><svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 0C5.37.0.0 5.37.0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57.0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925.0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18.0.0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225.0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22.0 1.605-.015 2.895-.015 3.3.0.315.225.69.825.57A12.02 12.02.0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a></div><div class=menu-theme role=group aria-label=主题切换><button type=button class=theme-btn data-theme=light title=日间>
+<span class=theme-btn-icon>☀️</span><span>日</span>
+</button>
+<button type=button class=theme-btn data-theme=dark title=夜间>
+<span class=theme-btn-icon>🌙</span><span>夜</span>
+</button>
+<button type=button class=theme-btn data-theme=auto title=跟随系统>
+<span class=theme-btn-icon>🖥️</span><span>自动</span></button></div><script defer src=/yuulibrary/js/theme-toggle.js></script></nav><script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script></div></aside><div class=book-page><header class="book-header hidden"><div class="flex align-center justify-between"><label for=menu-control><img src=/yuulibrary/icons/menu.svg class=book-icon alt=Menu></label><h3>第6章 · 有限温度量子自旋算法</h3><label for=toc-control><img src=/yuulibrary/icons/toc.svg class=book-icon alt="Table of Contents"></label></div><aside class=hidden><nav id=TableOfContents><ul><li><a href=#61-费曼路径积分>6.1 费曼路径积分</a><ul><li><a href=#611-路径积分表示中的世界线>6.1.1 路径积分表示中的世界线</a></li></ul></li><li><a href=#62-环团簇更新>6.2 环/团簇更新</a><ul><li><a href=#621-从伊辛模型到量子模型>6.2.1 从伊辛模型到量子模型</a></li><li><a href=#622-局部算法-vs-环团簇算法>6.2.2 局部算法 vs. 环/团簇算法</a></li><li><a href=#623-连续虚时环算法>6.2.3 连续虚时环算法</a></li></ul></li><li><a href=#63-低温模拟与基态性质>6.3 低温模拟与基态性质</a><ul><li><a href=#631-基态投影方法>6.3.1 基态投影方法</a></li><li><a href=#632-量子临界点附近的行为>6.3.2 量子临界点附近的行为</a></li></ul></li><li><a href=#64-worm更新>6.4 Worm更新</a><ul><li><a href=#641-虫算法的基本思想>6.4.1 虫算法的基本思想</a></li><li><a href=#642-自旋-自旋关联函数的测量>6.4.2 自旋-自旋关联函数的测量</a></li><li><a href=#643-与环团簇算法的关系>6.4.3 与环/团簇算法的关系</a></li></ul></li><li><a href=#65-玻色子晶格模型>6.5 玻色子晶格模型</a><ul><li><a href=#651-从自旋到玻色子>6.5.1 从自旋到玻色子</a></li><li><a href=#652-环团簇算法在玻色子系统中的应用>6.5.2 环/团簇算法在玻色子系统中的应用</a></li><li><a href=#653-主要应用示例>6.5.3 主要应用示例</a></li></ul></li><li><a href=#附录>附录</a></li><li><a href=#62-环团簇更新-1>6.2 环/团簇更新</a><ul><li><a href=#621-一般框架>6.2.1 一般框架</a></li><li><a href=#622-连续时间环团簇更新>6.2.2 连续时间环/团簇更新</a></li><li><a href=#623-xxz模型>6.2.3 XXZ模型</a></li><li><a href=#624-关联函数>6.2.4 关联函数</a></li><li><a href=#625-磁场>6.2.5 磁场</a></li><li><a href=#626-大自旋>6.2.6 大自旋 $S > \frac{1} {2}$</a></li></ul></li><li><a href=#63-高温级数展开>6.3 高温级数展开</a><ul><li><a href=#631-随机级数展开>6.3.1 随机级数展开</a></li><li><a href=#632-连续时间极限>6.3.2 “连续时间”极限</a></li></ul></li><li><a href=#64-虫洞更新-worm-update>6.4 虫洞更新 (Worm update)</a><ul><li><a href=#641-冻结问题-freezing-problem>6.4.1 冻结问题 (Freezing problem)</a></li><li><a href=#642-定向环算法directed-loop-algorithm>6.4.2 定向环算法（Directed-loop algorithm）</a></li><li><a href=#643-细致平衡条件的违反>6.4.3 细致平衡条件的违反</a></li><li><a href=#644-关联函数correlation-functions>6.4.4 关联函数（Correlation functions）</a></li><li><a href=#645-xxz-模型>6.4.5 XXZ 模型</a></li><li><a href=#646-即时顶点生成>6.4.6 即时顶点生成</a></li></ul></li><li><a href=#65-趋向零温>6.5 趋向零温</a><ul><li><a href=#651-外推至零温>6.5.1 外推至零温</a></li><li><a href=#652-量子相变>6.5.2 量子相变</a></li><li><a href=#653-有限尺寸标度>6.5.3 有限尺寸标度</a></li></ul></li><li><a href=#66-应用于玻色子系统>6.6 应用于玻色子系统</a></li><li><a href=#延伸阅读>延伸阅读</a></li><li><a href=#习题>习题</a></li></ul></nav></aside></header><article class="markdown book-article"><h1 id=第6章--有限温度量子自旋算法>第6章 · 有限温度量子自旋算法<a class=anchor href=#%e7%ac%ac6%e7%ab%a0--%e6%9c%89%e9%99%90%e6%b8%a9%e5%ba%a6%e9%87%8f%e5%ad%90%e8%87%aa%e6%97%8b%e7%ae%97%e6%b3%95>#</a></h1><p>有限温度下量子自旋系统的模拟是一个非常活跃的研究领域，这不仅是因为所模拟问题的重要性，还因为对于许多感兴趣的问题，存在高效的蒙特卡洛方法，例如环/团簇算法（loop/cluster algorithm）和虫算法（worm algorithm）。我们在<a href=/yuulibrary/books/qmc-lattice-models/ch04.html>第4章</a>和<a href=/yuulibrary/books/qmc-lattice-models/ch05.html>第5章</a>预览了这些算法。在本章及其相关附录中，我们将提供更完整和形式化的推导与讨论。我们还将讨论在低温但有限温度下进行模拟以研究基态性质和量子临界现象的条件。虽然我们主要详述这些算法在量子自旋系统中的应用，但最后也会讨论它们（经过微小修改）在模拟玻色子晶格模型（Bosonic lattice model）中的应用。</p><h2 id=61-费曼路径积分>6.1 费曼路径积分<a class=anchor href=#61-%e8%b4%b9%e6%9b%bc%e8%b7%af%e5%be%84%e7%a7%af%e5%88%86>#</a></h2><p>在5.2.5节中，我们使用路径积分形式（path-integral formalism）给出了一个量子自旋模型环/团簇算法的简单例子。在此，我们用更一般和形式化的语言重新阐述同一形式，为更详细地讨论环/团簇更新做准备。</p><p>我们考虑哈密顿量</p>$$
+H = \sum_{l = 1}^{N_{l}} H_{l} ,\tag{6.1}
+$$<p>其中 $H_{l}$ 是定义在某小格点集合 $b_{l}$ 上的局部哈密顿量。一个典型的局部哈密顿量是 ${H_{l}} = - J {S_{i_{l}}} \cdot{S_{j_{l}}}$，其中 $S_{i_{l}} = ( S_{i_{l}}^{x} , S_{i_{l}}^{y} , S_{i_{l}}^{z} )$ 是一个自旋算符，在适当基 $( S = 1 / 2 , 1 , 3 / 2 , \cdots )$ 下具有标准归一化 $S_{i_{l}} \cdot S_{i_{l}} = S ( S + 1 )$。在这种情况下，局部格点集合是一对最近邻位点，即 $b_{l} = \{i_{l} , j_{l} \}$。然而，$b_{l}$ 也可以是包含两个以上位点的集合，或者仅仅是单个位点。</p><p>在离散虚时（discrete imaginary time）中，路径积分（5.10）对应于近似</p>$$
+Z = \mathrm{Tr} e^{- \beta H} = \mathrm{Tr} e^{- \beta \sum_{l} H_{l}} \approx \mathrm{Tr} \prod_{k = 1}^{M} \prod_{l = 1}^{N_{l}} e^{- \Delta \tau H_{l}} ,\tag{6.2}
+$$<p>其中 M 是某个正整数，且 $\Delta \tau = \beta / M$。虽然右侧表达式是近似的，但其误差与 $( \Delta \tau )^{2}$ 成正比，因此在极限 $M \to \infty$ 下消失。因为我们最终会取此极限以获得连续虚时中的算法，所以这一近似导致的误差可以忽略。</p><p>我们使用（5.5）中引入的乘积态作为完备正交基，</p>$$
+| \psi \rangle \equiv | s_{1} \rangle \otimes | s_{2} \rangle \otimes \cdot \cdot \cdot \otimes | s_{N} \rangle ,
+$$<p>其中 $s_{i}$ 指定位点 i 上的局部状态。通过在（6.2）中的 $e^{- \Delta \tau H_{l}}$ 算符之间插入恒等算符</p>$$
+1 = \sum_{\psi = \{s_{1} , . . . , s_{N} \}} | \psi \rangle \langle \psi |
+$$<p>我们得到了仅包含 c 数的配分函数表示，</p>$$
+Z \approx \sum_{C = \{\psi ( k , l ) \}} \prod_{k = 1}^{M} \prod_{l = 1}^{N_{l}} \left. \psi ( k , l + 1 ) \left| e^{- \Delta \tau H_{l}} \right| \psi ( k , l ) \right. .\tag{6.3}
+$$<p>这是用世界线（world line）表示的“经典化”表示</p>$$
+{\cal C} \equiv \{\psi ( 1 , 1 ) , \psi ( 1 , 2 ) , \ldots , \psi ( M , N_{l} ) \}
+$$<p>其中自旋构型 $\psi ( k , l ) \equiv \{s_{1} ( k , l ) , s_{2} ( k , l ) , . . . , s_{N} ( k , l ) \}$，并满足虚时中的周期性边界条件</p>$$
+\psi ( M + 1 , l ) \equiv \psi ( 1 , l )
+$$<p>我们还采用记号</p>$$
+\psi ( k , N_{l} + 1 ) \equiv \psi ( k + 1 , 1 ) .
+$$<p>进一步分解（6.3），我们写作</p>$$
+\begin{array} {l} {\left. \psi ( k , l + 1 ) \left| e^{- \Delta \tau H_{l}} \right| \psi ( k , l ) \right. = \left( \displaystyle \prod_{\scriptstyle i \notin b_{l} \atop{\scriptstyle \varepsilon}} \delta_{s_{i} ( k , l + 1 ) , s_{i} ( k , l )} \right)} \\ {\times \left. \psi_{b_{l}} ( k , l + 1 ) \left| e^{- \Delta \tau H_{l}} \right| \psi_{b_{l}} ( k , l ) \right. ,} \end{array}
+\tag{6.5}
+$$<p>其中 $\psi_{b_{l}}$ 表示 $\psi$ 在子集 $b_{l}$ 上的限制。因此，配分函数变成</p>$$
+Z \approx \sum_{C} \prod_{k=1}^{M} \prod_{l=1}^{N_{l}} W_{l} \big[ \psi_{b_{l}}(k,l), \psi_{b_{l}}(k,l+1) \big], \tag{6.6}
+$$<p>其中权重 $W_{l}$ 定义为</p>$$
+W_{l} \big[ \psi_{b_{l}}(k,l), \psi_{b_{l}}(k,l+1) \big] \equiv \left\langle \psi_{b_{l}}(k,l+1) \left| e^{-\Delta \tau H_{l}} \right| \psi_{b_{l}}(k,l) \right\rangle. \tag{6.7}
+$$<p>这些权重对于每个局部哈密顿量 $H_{l}$ 和每个离散时间层是可计算的。当 $M \to \infty$（即 $\Delta \tau \to 0$）时，我们可以将所有算符理解为以连续虚时作用。在这种连续极限下，构型由虚时中连续的世界线描述，而 $W_{l}$ 成为虚时中某些过程的概率密度。对于海森堡模型等常见量子自旋模型，这些权重可在连续极限下精确处理，从而避免了离散化误差。</p><p>然而，在构造环/团簇算法时，使用离散虚时表示通常是方便的，然后通过外推 $\Delta \tau \to 0$ 来恢复连续极限。或者，也可以直接在连续虚时中构造算法，这通常导致更有效的实现，但需要对权重进行更精确的处理。在附录中，我们将展示如何在这两种框架中实现环/团簇更新。</p><h3 id=611-路径积分表示中的世界线>6.1.1 路径积分表示中的世界线<a class=anchor href=#611-%e8%b7%af%e5%be%84%e7%a7%af%e5%88%86%e8%a1%a8%e7%a4%ba%e4%b8%ad%e7%9a%84%e4%b8%96%e7%95%8c%e7%ba%bf>#</a></h3><p>世界线表示（world-line representation）提供了对路径积分的直观几何图像。在离散虚时中，每个自旋 $i$ 在 $M$ 个虚时层上的状态 $s_i(k,l)$ 形成一条世界线。对于自旋-1/2 系统，每个局部状态是 $s_i = \pm 1/2$，世界线由一系列在虚时层间跳变的自旋值组成。</p><p>当局部哈密顿量 $H_l$ 包含横向场项或交换项（如 $S_i^x S_j^x$ 或 $S_i^+ S_j^-$）时，世界线会在某些虚时位置发生分叉或合并——即一个自旋翻转事件。这些事件对应于虚时中的“顶点”，它们将世界线连接成一组相互关联的回路。在经典伊辛模型中，这些回路是平凡的；但在量子模型中，回路结构是动力学相关性的来源。</p><p>环/团簇算法的核心思想是：将这些回路视为独立的图元，并通过更新这些回路来遍历构型空间。由于回路可能跨越多个虚时层和空间位点，这种更新可以产生全局的、非局部的构型改变，从而克服临界慢化（critical slowing down）问题。</p><h2 id=62-环团簇更新>6.2 环/团簇更新<a class=anchor href=#62-%e7%8e%af%e5%9b%a2%e7%b0%87%e6%9b%b4%e6%96%b0>#</a></h2><p>环/团簇更新（loop/cluster update）是一类基于世界线表示中几何结构的蒙特卡洛更新方法。其基本策略是：从当前的世界线构型出发，识别出由虚时顶点连接而成的回路或团簇，然后以一定的概率翻转整个回路（即同时改变回路上所有自旋的状态）。由于这种翻转保持了局部 Boltzmann 权重的平衡条件，它构成了一个合法的蒙特卡洛更新。</p><h3 id=621-从伊辛模型到量子模型>6.2.1 从伊辛模型到量子模型<a class=anchor href=#621-%e4%bb%8e%e4%bc%8a%e8%be%9b%e6%a8%a1%e5%9e%8b%e5%88%b0%e9%87%8f%e5%ad%90%e6%a8%a1%e5%9e%8b>#</a></h3><p>在经典伊辛模型中，团簇更新（如 Swendsen-Wang 算法）通过连接相同符号的自旋形成团簇，然后翻转整个团簇。这种算法在临界点附近显著减少了自相关时间。</p><p>在量子模型中，路径积分将量子系统转化为一个等效的经典系统，其中虚时方向扮演了一个额外的维度。由于哈密顿量中的非对易项，世界线可能在虚时中产生复杂的拓扑结构。环/团簇算法将这些拓扑结构（如“环”或“回路”）视为基本更新单元。</p><h3 id=622-局部算法-vs-环团簇算法>6.2.2 局部算法 vs. 环/团簇算法<a class=anchor href=#622-%e5%b1%80%e9%83%a8%e7%ae%97%e6%b3%95-vs-%e7%8e%af%e5%9b%a2%e7%b0%87%e7%ae%97%e6%b3%95>#</a></h3><ul><li><strong>局部算法</strong>（如 Metropolis 或热浴算法）一次只更新一个自旋或一个局部顶点。它们在每个蒙特卡洛步骤中只产生局部变化，因此在临界系统中遭受指数慢化。</li><li><strong>环/团簇算法</strong>通过更新整个回路来克服这一限制。一个回路可能涉及多个空间位点和多个虚时层，因此一次更新可以改变系统的全局构型。这使得算法即使在临界点附近仍保持高效率。</li></ul><h3 id=623-连续虚时环算法>6.2.3 连续虚时环算法<a class=anchor href=#623-%e8%bf%9e%e7%bb%ad%e8%99%9a%e6%97%b6%e7%8e%af%e7%ae%97%e6%b3%95>#</a></h3><p>在连续虚时极限下，环算法变得更加优雅。此时，顶点成为虚时中的事件点，而回路由事件点之间的“线段”组成。这些线段可以通过适当的概率进行翻转。连续虚时环算法通常比离散版本更有效率，因为它避免了离散化误差，并且更自然地处理了顶点间的相互作用。</p><p>附录中提供了环/团簇算法在多种量子自旋模型中的具体实现细节，包括：</p><ul><li>自旋-1/2 海森堡模型</li><li>横向场伊辛模型</li><li>量子 XYZ 模型</li></ul><h2 id=63-低温模拟与基态性质>6.3 低温模拟与基态性质<a class=anchor href=#63-%e4%bd%8e%e6%b8%a9%e6%a8%a1%e6%8b%9f%e4%b8%8e%e5%9f%ba%e6%80%81%e6%80%a7%e8%b4%a8>#</a></h2><p>有限温度的量子蒙特卡洛模拟通常可以外推到足够低的温度以研究基态性质。当温度远低于能隙时，系统的热涨落被抑制，模拟结果趋近于基态行为。然而，由于量子蒙特卡洛方法在低温下可能遭遇“符号问题”（sign problem），以及低温导致虚时延伸（$\beta$ 很大）带来的计算负担，实际模拟只能在有限低温下进行。</p><h3 id=631-基态投影方法>6.3.1 基态投影方法<a class=anchor href=#631-%e5%9f%ba%e6%80%81%e6%8a%95%e5%bd%b1%e6%96%b9%e6%b3%95>#</a></h3><p>另一种研究基态性质的方法是基态投影量子蒙特卡洛方法，例如：</p><ul><li><strong>扩散蒙特卡洛</strong>（diffusion Monte Carlo）</li><li><strong>格林函数蒙特卡洛</strong>（Green's function Monte Carlo）</li></ul><p>这些方法直接模拟虚时演化算符 $e^{-\tau H}$ 对试探态的作用，并外推 $\tau \to \infty$ 以投影到基态。它们在原理上与有限温度方法相关，但专注于零温极限。环/团簇算法也可以推广到基态投影形式。</p><h3 id=632-量子临界点附近的行为>6.3.2 量子临界点附近的行为<a class=anchor href=#632-%e9%87%8f%e5%ad%90%e4%b8%b4%e7%95%8c%e7%82%b9%e9%99%84%e8%bf%91%e7%9a%84%e8%a1%8c%e4%b8%ba>#</a></h3><p>在量子临界点（quantum critical point）附近，系统表现出标度行为（scaling behavior）。有限温度的模拟可以揭示量子临界现象，因为温度作为一个相关参数，其标度行为可以用动态标度（dynamical scaling）理论描述。环/团簇算法因其在临界点附近的低自相关时间，特别适合研究量子临界现象。</p><h2 id=64-worm更新>6.4 Worm更新<a class=anchor href=#64-worm%e6%9b%b4%e6%96%b0>#</a></h2><p>虫算法（worm algorithm）是另一种基于路径积分的量子蒙特卡洛方法，它在环/团簇算法的基础上引入了一种“虫”进行非局域更新。在虫算法中，路径积分的构型被扩展，允许存在一个“断开的”世界线片段——即一条“虫”。虫在构型空间中游走，通过创建和湮灭事件来更新世界线。</p><h3 id=641-虫算法的基本思想>6.4.1 虫算法的基本思想<a class=anchor href=#641-%e8%99%ab%e7%ae%97%e6%b3%95%e7%9a%84%e5%9f%ba%e6%9c%ac%e6%80%9d%e6%83%b3>#</a></h3><p>在标准的世界线表示中，所有自旋世界线在虚时中从 $\tau=0$ 到 $\tau=\beta$ 是连续的（满足周期性边界条件）。虫算法通过引入一个“缺陷”来打破这种连续性：在世界线中允许存在一对端点，这对端点对应于空间中同一个位点但虚时不同的两个位置。这对端点之间的世界线段就是“虫”。</p><p>更新过程是：</p><ol><li>随机选择一个虫的端点。</li><li>以一定的概率在虚时或空间中移动该端点。</li><li>当两个端点相遇时，虫被湮灭，构型恢复到闭合的世界线状态。</li></ol><p>虫算法的优势在于：</p><ul><li>它可以自然地处理格林函数和关联函数的计算。</li><li>在某些模型中，它的效率高于环/团簇算法。</li><li>它易于推广到多体量子系统和玻色子系统。</li></ul><h3 id=642-自旋-自旋关联函数的测量>6.4.2 自旋-自旋关联函数的测量<a class=anchor href=#642-%e8%87%aa%e6%97%8b-%e8%87%aa%e6%97%8b%e5%85%b3%e8%81%94%e5%87%bd%e6%95%b0%e7%9a%84%e6%b5%8b%e9%87%8f>#</a></h3><p>虫算法的端点在构型空间中游走，这一过程直接给出了自旋-自旋关联函数的信息。通过统计虫端点的位置分布，可以高效地测量关联函数和响应函数。</p><h3 id=643-与环团簇算法的关系>6.4.3 与环/团簇算法的关系<a class=anchor href=#643-%e4%b8%8e%e7%8e%af%e5%9b%a2%e7%b0%87%e7%ae%97%e6%b3%95%e7%9a%84%e5%85%b3%e7%b3%bb>#</a></h3><p>环/团簇算法和虫算法并不是互斥的，而是可以结合使用。在某些实现中，环/团簇更新用于生成全局翻转，而虫更新用于测量关联函数和处理特定类型的相互作用。实际算法通常混合使用这两种更新方式以获得最佳效率。</p><h2 id=65-玻色子晶格模型>6.5 玻色子晶格模型<a class=anchor href=#65-%e7%8e%bb%e8%89%b2%e5%ad%90%e6%99%b6%e6%a0%bc%e6%a8%a1%e5%9e%8b>#</a></h2><p>虽然本章主要关注量子自旋系统，但环/团簇算法和虫算法也可直接应用于玻色子晶格模型（Bosonic lattice model）。玻色子模型在以下方面与自旋模型相似：</p><ul><li>它们可以用占据数基描述，对应于自旋模型中的 $S_z$ 基。</li><li>虚时世界线表示同样适用。</li><li>相互作用项（如玻色子间的排斥）对应于自旋模型中的 Ising 耦合。</li></ul><h3 id=651-从自旋到玻色子>6.5.1 从自旋到玻色子<a class=anchor href=#651-%e4%bb%8e%e8%87%aa%e6%97%8b%e5%88%b0%e7%8e%bb%e8%89%b2%e5%ad%90>#</a></h3><p>将自旋模型映射为玻色子模型的一种常见方法是利用自旋-玻色子映射（spin-boson mapping），例如：</p><ul><li>对于自旋-1/2，占据数 $n_i = 0, 1$ 对应于 $S_i^z = \pm 1/2$。</li><li>对于硬核玻色子（hard-core bosons），占据数被限制为 0 或 1，这种模型可以直接映射为自旋-1/2 模型。</li><li>对于软核玻色子，占据数可大于 1，但可以利用自旋 S 表示（$S > 1/2$）来近似。</li></ul><h3 id=652-环团簇算法在玻色子系统中的应用>6.5.2 环/团簇算法在玻色子系统中的应用<a class=anchor href=#652-%e7%8e%af%e5%9b%a2%e7%b0%87%e7%ae%97%e6%b3%95%e5%9c%a8%e7%8e%bb%e8%89%b2%e5%ad%90%e7%b3%bb%e7%bb%9f%e4%b8%ad%e7%9a%84%e5%ba%94%e7%94%a8>#</a></h3><p>在玻色子系统中，环/团簇算法通过更新“粒子世界线”的拓扑结构来模拟粒子数的涨落。虫算法在玻色子系统中尤为有效，因为它自然处理了粒子数的产生和湮灭，并允许通过虚时传播直接计算单粒子格林函数。</p><h3 id=653-主要应用示例>6.5.3 主要应用示例<a class=anchor href=#653-%e4%b8%bb%e8%a6%81%e5%ba%94%e7%94%a8%e7%a4%ba%e4%be%8b>#</a></h3><p>环/团簇算法和虫算法在以下玻色子问题中已有广泛应用：</p><ul><li><strong>玻色-爱因斯坦凝聚</strong>（Bose-Einstein condensation）的临界行为</li><li><strong>超流-绝缘体相变</strong>（superfluid-insulator transition）的量子临界点</li><li><strong>光学晶格中的玻色子</strong>（Bose-Hubbard模型）</li><li><strong>自旋-1/2 链与一维玻色子系统的等价性</strong></li></ul><h2 id=附录>附录<a class=anchor href=#%e9%99%84%e5%bd%95>#</a></h2><p>附录 A 提供了离散虚时环/团簇算法的详细伪代码和实现要点。
+附录 B 给出了连续虚时环算法的推导和实现。
+附录 C 提供了虫算法在典型量子自旋模型和玻色子模型中的实现示例。</p><p>这些附录与本章内容紧密结合，旨在为读者提供可直接应用的算法框架。</p><p>其中 $| \psi_{b_{l}} \rangle$ 是 $| \psi \rangle$ 在格点集合 $b_{l}$ 上的限制$^{1}$。例如，当 $b = \{i , j \}$ 时，$| \psi_{b} \rangle = \left| s_{i} , s_{j} \right.$</p><p><img src=images/d83fbbed036d347071c6cf2cbca3dfb816387f731166e7bb74e195289b9d7b7f.webp alt><p class=caption>图6.1 离散化路径积分。每个阴影小平片代表单个键算符在时间区间 $\Delta \tau$ 内的作用。对于给定 $k$，连续的 $N_{l}$ 个小片对应虚时演化算符 $\exp ( - \Delta \tau H )$</p></p><p>我们将单次散射事件所涉及的时空点的最小集合称为一个平片（plaquette）。也就是说，平片是空间上对应 $b_{l}$、时间上对应 $( k , l )$ 和 $( k , l + 1 )$ 的点集，例如当 $b_{l}$ 表示一对格点时，其包含四个时空点。定义 $C_{p} \equiv \{\psi_{b_{l}} ( k , l + 1 ) , \psi_{b_{l}} ( k , l ) \}$，其中 $p$ 代表一个平片，则整个时空构型的权重可写为</p>$$
+W ( C ) \equiv \prod_{p = ( k , l )} w_{p} ( C_{p} ) ,\tag{6.4}
+$$$$
+w_{p} ( C_{p} ) \equiv \psi_{b l} ( k , l + 1 ) \vphantom{\int_{0}^{0}} | e^{- \Delta \tau H_{l}} | \psi_{b l} ( k , l ) \vphantom{\int_{0}^{0}} , \quad [ p = ( k , l ) ] .\tag{6.5}
+$$<p>于是，配分函数的路径积分表达式变为</p>$$
+Z \approx \sum_{C : \Delta ( C ) = 1} W ( C ) ,\tag{6.6}
+$$<p>其中</p>$$
+\Delta ( C ) \equiv \prod_{k , l , i \notin b_{l}} \delta_{s_{i} ( k , l + 1 ) , s_{i} ( k , l )}
+$$<p>对世界线构型 C 施加约束：在虚时上相邻的两个态 $\psi(k, l)$ 和 $\psi ( k , l + 1 )$ 仅能在平片上不同（图6.1）。</p><p>我们注意到，(6.4)、(6.5) 和 (6.6) 对应配分函数的经典局域表达式。之所以说是经典的，是因为所有变量 $s_{i} ( k , l )$ 都是 c-数；之所以说是局域的，是因为所有 $w_{p} ( C_{p} )$ 因子都定义在一小组时空格点上。<sup>2</sup></p><h2 id=62-环团簇更新-1>6.2 环/团簇更新<a class=anchor href=#62-%e7%8e%af%e5%9b%a2%e7%b0%87%e6%9b%b4%e6%96%b0-1>#</a></h2><h3 id=621-一般框架>6.2.1 一般框架<a class=anchor href=#621-%e4%b8%80%e8%88%ac%e6%a1%86%e6%9e%b6>#</a></h3><p>现在讨论经典和量子模型的环/团簇更新算法的框架。在第6.2.3节和附录D、E中，我们将给出几个重要且具代表性的量子情形的详细公式。借助此框架，我们超越了伊辛模型的 Swendsen-Wang 算法（<a href=/yuulibrary/books/qmc-lattice-models/ch04.html>第4.4节</a>）和 $S = \frac{1} {2}$ XY 模型的量子环/团簇更新（第5.2.5节）。</p><p>这个一般框架最容易通过类比之前讨论的环/团簇更新来理解。首先，设构型空间为 Σ。在 Σ 上定义了目标权重 $W ( C )$，并且应以该权重生成构型 $C \in \Sigma$。现在，回顾 Swendsen-Wang 算法允许仅平行自旋的图，以及 XY 模型的环/团簇更新允许仅特定局域世界线构型的图元，我们引入一组图 $\Gamma$，使得 $G \in \Gamma$ 是指定构型 C 上一组特定限制的说明符。仿照 Swendsen-Wang 算法，我们在联合相空间 $\Sigma \times \Gamma$ 上定义一个新权重 $W ( C , G )$，使得</p>$$
+W ( C ) = \sum_{G \in \Gamma} W ( C , G ) ,\tag{6.7}
+$$<p>并构造一个对 $W ( C , G )$ 采样的马尔可夫链。方程 (6.7) 告诉我们，在对 $G$ 进行边缘化后，我们的马尔可夫过程生成的状态序列 C 的频率与 $W ( C )$ 成正比。</p><p>马尔可夫过程的每一步包含两个部分。第一部分，我们以概率 $P ( G | C )$ 为当前构型 C 随机生成一个图 $G$；第二部分，以概率 $P ( C^{\prime} | G )$ 生成新构型 $C^{\prime}$。条件概率为</p>$$
+P ( G | C ) \equiv \frac{W ( C , G )} {W ( C )} , \quad P ( C | G ) \equiv \frac{W ( C , G )} {W ( G )} ,\tag{6.8}
+$$<p>以及</p>$$
+W ( G ) \equiv \sum_{C \in \Sigma} W ( C , G ) .
+$$<p>当将这一组合过程视为一步时，从当前状态 C 到下一状态 $C^{\prime}$ 的转移概率是所有从 C 到 $C^{\prime}$ 的路径的概率之和</p>$$
+P ( C^{\prime} | C ) = \sum_{G \in \Gamma} P ( C^{\prime} | G ) P ( G | C ) .\tag{6.9}
+$$<p>利用 (6.9) 和 (6.8)，接下来我们计算从 C 到 $C^{\prime}$ 的概率流，</p>$$
+P ( C^{\prime} | C ) W ( C ) = \sum_{G \in \Gamma} \frac{W ( C^{\prime} , G )} {W ( G )} \frac{W ( C , G )} {W ( C )} W ( C ) = \sum_{G \in \Gamma} \frac{W ( C^{\prime} , G ) W ( C , G )} {W ( G )} .
+$$<p>由于最右侧表达式在交换 C 和 $C^{\prime}$ 时是对称的，因此细致平衡条件 $P ( C^{\prime} | C ) W ( C ) = P ( C | C^{\prime} ) W ( C^{\prime} )$ 成立。因此，只要采样是遍历的，我们新构建的马尔可夫过程就会收敛到正确的目标分布 $W ( C )$。遍历性是否成立需要我们根据具体情形检查。这里我们仅假设它成立。</p><p>将此过程视为联合相空间 $\Sigma \times \Gamma$ 中从 $( C , G )$ 到 $( C^{\prime} , G^{\prime} )$ 的单个马尔可夫步骤，其转移概率即为</p>$$
+P \left( ( C^{\prime} , G^{\prime} ) \vert ( C , G ) \right) = P ( C^{\prime} | G^{\prime} ) P ( G^{\prime} | C ) .
+$$<p>对于这个转移概率，细致平衡条件通常不成立（练习6.1）。然而，该马尔可夫过程仍然收敛到目标分布 $W ( C , G )$。为了证明这一点，我们利用刚刚在上面证明的事实，即关于 $\Gamma$ 的马尔可夫过程收敛到目标分布。因此，经过足够多的步骤后，例如 $n$ 步，$P^{( n )} ( C ) \propto W ( C )$ 具有任意高的精度。联合相空间中马尔可夫过程的收敛性随之而来：</p>$$
+\begin{array} {r} {P^{( n )} ( C , G ) = P ( C | G ) P^{( n )} ( G ) = P ( C | G ) \displaystyle \sum_{C^{\prime}} P ( G | C^{\prime} ) P^{( n - 1 )} ( C^{\prime} )} \\ {\propto P ( C | G ) \displaystyle \sum_{C^{\prime}} P ( G | C^{\prime} ) W ( C^{\prime} ) = W ( C , G ) .} \end{array}\tag{6.10}
+$$<p>因此，构建环/团簇更新算法等价于寻找一个合适的图集合 $\Gamma$ 和一个满足 (6.7) 的函数 $W ( C , G )$。回忆一下，权重的局部定义使得生成的转移过程特别易于使用。因此，我们假设如下分解：</p>$$
+W ( C , G ) = \prod_{p} w_{p} ( C_{p} , G_{p} ) ,\tag{6.11}
+$$<p>其中 $p$ 表示定义相互作用项的一个小区间格点集合。在经典模型中，这个集合通常是一对近邻自旋 $( p = \{i , j \} )$。在量子模型中，它通常是路径积分表示中的一组四个变量。$C$ 代表整个系统的构型，而 $C_{p}$ 是其一部分，即单元 $p$ 上的“局部”状态。子图 $G_{p}$ 类似定义。</p><p>为了满足 (6.7) 和 (6.11)，我们现在要求</p>$$
+w_{p} ( C_{p} ) = \sum_{G_{p}} w_{p} ( C_{p} , G_{p} ) .\tag{6.12}
+$$<p>因为 $\textstyle \sum_{G} = \prod_{p} \sum_{G_{p}}$ ，(6.7) 得以满足。<sup>3</sup> 进一步地，为了通过“抛硬币”过程来更新 C，我们要求对于固定的 $G_{p}$，所有可能的 $C_{p}$ 具有相同的权重，即我们要求</p>$$
+w_{p} ( C_{p} , G_{p} ) = \nu_{p} ( G_{p} ) \Delta ( C_{p} , G_{p} ) ,\tag{6.13}
+$$<p>其中 $\Delta ( C_{p} , G_{p} ) = 0 \quad$ , 1 表示了图元素 $G_{p}$ 对 $C_{p}$ 施加的局部约束。</p><p>利用 (6.11), (6.12) 和 (6.13)，我们的转移概率 (6.8) 最终变为</p>$$
+\begin{array} {l} {{\displaystyle P ( G | C ) = \frac{W ( C , G )} {W ( C )} = \frac{\prod_{p} w_{p} ( C_{p} , G_{p} )} {\prod_{p} w_{p} ( C_{p} )} = \prod_{p} \frac{w_{p} ( C_{p} , G_{p} )} {w_{p} ( C_{p} )}}} \\ {{\displaystyle ~ = \prod_{p} P_{p} ( G_{p} | C_{p} ) ,}} \end{array}\tag{6.14}
+$$<p>其中</p>$$
+P_{p} ( G_{p} | C_{p} ) \equiv \frac{w_{p} ( C_{p} , G_{p} )} {w_{p} ( C_{p} )} = \Delta ( C_{p} , G_{p} ) \frac{\nu_{p} ( G_{p} )} {w_{p} ( C_{p} )} .\tag{6.15}
+$$<p>这些方程告诉我们如何构造一个新图：对于每个 $p$，我们需要从与 $C_{p}$ 相容的图中选择一个图 $G_{p}$，其相对权重为 $\nu_{p} ( G_{p} )$。于是，整个图 $G$ 就是这些局部图的简单并集。对于自旋构型更新过程，我们得到<sup>4</sup></p>$$
+\begin{array} {l} {P ( C | G ) = \displaystyle \frac{W ( C , G )} {W ( G )} = \displaystyle \frac{\prod_{p} w_{p} ( C_{p} , G_{p} )} {\prod_{p} \sum_{C_{p}} w_{p} ( C_{p} , G_{p} )}} \\ {\displaystyle = \frac{\prod_{p} \nu_{p} ( G_{p} ) \Delta ( C_{p} , G_{p} )} {\prod_{p} \sum_{C_{p}} \nu_{p} ( G_{p} ) \Delta ( C_{p} , G_{p} )} = \frac{\prod_{p} \Delta ( C_{p} , G_{p} )} {\prod_{p} \sum_{C_{p}} \Delta ( C_{p} , G_{p} )} = \frac{\Delta ( C , G )} {\sum_{C} \Delta ( C , G )} .} \end{array}
+$$$$
+P ( C | G ) = \frac{\Delta ( C , G )} {\sum_{C} \Delta ( C , G )} ,\tag{6.16}
+$$<p>其中</p>$$
+\Delta ( C , G ) \equiv \prod_{p} \Delta ( C_{p} , G_{p} ) .
+$$<p>方程 (6.16) 意味着我们可以通过一次简单的抛硬币来更新状态，即从满足 $G$ 施加的约束的那些状态中，以等概率选择一个。注意，一个局部自由度 $s_{i}$ 通常可能取两个以上的值。在这种情况下，“抛硬币”意味着以等权重从 $n \left( > 2 \right)$ 个值中进行选择。</p><h3 id=622-连续时间环团簇更新>6.2.2 连续时间环/团簇更新<a class=anchor href=#622-%e8%bf%9e%e7%bb%ad%e6%97%b6%e9%97%b4%e7%8e%af%e5%9b%a2%e7%b0%87%e6%9b%b4%e6%96%b0>#</a></h3><p>我们现在聚焦于量子晶格问题，并讨论转移概率的一般公式 (6.14)（连同 (6.15)）和 (6.16) 在连续虚时极限下会产生怎样的算法。在此过程中，我们的关键任务是具体化 (6.15)。</p><p>让我们从图形分解 (6.12) 和 (6.13) 开始。在量子情形下，局部权重就是局部时间演化算符 (6.5) 的矩阵元。正如我们在第 5.2.5 节中对 $S = {\textstyle{\frac{1} {2}}} \ X Y$ 模型所做的那样，我们将局部哈密顿量 $H_{l}$ 展开为算符的和，并将和中的每一项用一个图元表示，</p>$$
+H_{l} = - \sum_{g} a_{l} ( g ) D_{l} ( g ) .\tag{6.17}
+$$<p>于是，局部虚时演化算符变为算符</p>$$
+e^{- \Delta \tau H_{l}} \approx 1 + \Delta \tau \sum_{g} a_{l} ( g ) D_{l} ( g ) ,
+$$<p>其矩阵元为</p>$$
+w_{p} ( C_{p} ) \approx \Delta ( C_{p} , g = 0 ) + \Delta \tau \sum_{g} a_{l} ( g ) \Delta ( C_{p} , g ) .\tag{6.18}
+$$<p>符号 $\Delta ( C_{p} , g )$ 表示 $D_{l} ( g )$ 的矩阵元，</p>$$
+\Delta ( C_{p} , g ) \equiv \left. \psi_{b_{l}} ( k , l + 1 ) | D_{l} ( g ) | \psi_{b_{l}} ( k , l ) \right. .
+$$<p>$g = 0$ 项对应于单位算符，</p>$$
+\Delta ( C_{p} , g = 0 ) = \prod_{i \in b_{l}} \delta_{s_{i} ( k , l + 1 ) , s_{i} ( k , l )} ,
+$$<p>它由连接 $s_{i} ( k , l )$ 和 $s_{i} ( k , l + 1 )$ 的竖直线段构成的“平凡”图来表示。类似地，其他 $\Delta ( C_{p} , g \neq 0 )$ 项是克罗内克δ函数的乘积，这些函数固定了 $g$ 中绑定的局部变量的相对值。</p><p>通过将 (6.18) 与一般公式 (6.12) 比较并利用 (6.13)，我们识别出</p>$$
+\nu_{p} ( g ) = \left\{\begin{array} {c c} {1 + \mathcal{O} ( \Delta \tau )} & {( g = 0 )} \\ {\Delta \tau a_{l} ( g ) + \mathcal{O} ( ( \Delta \tau )^{2} )} & {( g \neq 0 ) .} \end{array} \right.\tag{6.19}
+$$<p>注意，我们可以忽略 $g = 0$ 情形中的 $\mathcal{O} ( \Delta \tau )$ 项，因为它给权重增加了一个常数乘性因子；并且可以忽略 $g \neq 0$ 情形中的 $\mathcal{O} ( ( \Delta \tau )^{2} )$ 项，因为在 $\Delta \tau \to 0$ 极限下它对权重完全没有贡献。<sup>5</sup> 然后，将 (6.18) 和 (6.19) 代入 (6.15)，我们得到图分配概率：对于 $C_{p}$ 不是扭结的情况，即初始和最终状态相同且 $g ( \neq 0 )$ 与 $C_{p}$ 相容时</p>$$
+P_{p} \left( g | C_{p} \right) = \Delta \tau a_{l} ( g ) + \mathcal{O} ( \Delta \tau^{2} ) .\tag{6.20}
+$$<p>如果 $C_{p}$ 是一个扭结且 $g$ 与 $C_{p}$ 相容，<sup>6</sup></p>$$
+P_{p} \left( g | C_{p} \right) = \frac{a_{l} ( g )} {\sum_{g^{\prime}} a_{l} ( g^{\prime} ) \Delta ( C_{p} , g^{\prime} )} + \mathcal{O} ( \Delta \tau ) .\tag{6.21}
+$$<p>第一个公式（6.20）告诉我们如何处理没有纽结的小方块：对于每个小方块，我们必须以概率 $\nu_{p} ( g ) ~ = ~ \Delta \tau a_{l} ( g )$ 赋予一个与当前状态兼容的图元 $g$。第二个公式（6.21）告诉我们如何更新带有纽结的小方块上的图元：我们必须以正比于 $a_{l} ( g )$ 的概率，在与当前状态兼容的图元 $g$ 中选取一个，并用它替换当前的图元。</p><p>现在我们外推至连续虚时。对于纽结上的操作，我们采取上述步骤，即根据权重 $a_{l} ( g )$ 切换图元。对非纽结的操作则具有一个不那么平凡的极限。我们将离散化公式中的第 $k$ 个虚时层视为对应于虚时间隔 $I_{k} \equiv \{\tau | k \Delta \tau \ : \leq \ : \tau \ : < \ : ( k + 1 ) \Delta \tau ) \}$。换句话说，我们将 $\psi ( k , l )$ 替换为 $\psi ( \tau )$，其中 $\tau = k \Delta \tau$。如果我们考虑一个不包含任何纽结的长度为 $I$ 的有限虚时间隔，那么每个相互作用项 $H_{b_{l}}$ 对应 $I / \Delta \tau$ 个小方块。我们对每个小方块所做的操作是以概率 $\nu_{p} ( g ) ~ = ~ \Delta \tau a_{l} ( g )$ 赋予一个类型为 $g$ 的图元。小方块的数量与 $\Delta \tau$ 成反比，而概率与 $\Delta \tau$ 成正比。因此，在 $\Delta \tau \to 0$ 极限下，我们得到一个具有明确概率的过程，即，以密度 $a_{l} ( g )$ 赋予类型 $g$ 的图元（其他所有位置都赋予平凡图元）。算法17总结了这一过程。</p><p>算法17 量子环/团簇算法的一个马尔可夫步骤。
+输入：一个世界线构型；
+对于每个不带纽结的图元执行
+删除它；
+结束
+对于每个纽结执行
+从与当前局部状态兼容的图元中以正比于 $a_{l} ( g )$ 的概率选取一个；
+将当前图元替换为它；
+结束
+对于每个相互作用项 $l$ 执行
+对于每种类型的图元 $g$ 执行
+以密度 $a_{l} ( g )$ 选取虚时点 $\tau \in [ 0 , \beta )$；
+对于每个选定的虚时 $\tau$ 执行
+如果局部状态与 $g$ 兼容，则
+在那里放置一个类型为 $g$ 的图元；
+结束如果
+结束
+结束
+结束
+用垂直线连接相邻图元的开口端；
+识别环/团簇；
+对于每个环/团簇执行
+翻转该环/团簇（在环/团簇上选取一点，以等概率选取其可能的局部状态之一，并根据约束条件为环/团簇上的所有点分配局部状态）；
+结束
+返回更新后的世界线构型。</p><h3 id=623-xxz模型>6.2.3 XXZ模型<a class=anchor href=#623-xxz%e6%a8%a1%e5%9e%8b>#</a></h3><p>在上一小节中，我们假设哈密顿量可以分解为图元项（式(6.17)）。虽然这并非普遍成立，但对于许多哈密顿量来说是可实现的。一个例子是 $S = \frac{1}{2}$ XXZ模型：$H = \sum_{\langle i j \rangle} H_{i j}$，其中 $\langle ij \rangle$ 表示最近邻，并且</p>$$
+H_{i j} = - J^{x y} ( S_{i}^{x} S_{j}^{x} + S_{i}^{y} S_{j}^{y} ) - J^{z} S_{i}^{z} S_{j}^{z} .\tag{6.22}
+$$<p>最常研究的 $S = \frac{1}{2}$ 哈密顿量，如XY模型、铁磁和反铁磁海森堡模型，都是该模型的特殊情况。甚至经典伊辛模型也是它的一个特例，事实上我们可以证明，当在 $J^{x y} \to 0$ 的极限下将量子团簇更新应用于(6.22)时，它就等价于伊辛模型的Swendsen-Wang算法（练习6.3）。然而，自旋相互作用的不同各向异性会产生各种类型的环和团簇（Evertz等人，1993；Evertz和Marcu，1994；Kawashima，1996）。（在附录D中，我们详细介绍了其他重要哈密顿量的环/团簇推导，这些哈密顿量可以应用环/团簇算法：SU(N)模型和SU(N) J-Q模型。）</p><p>当 $J^{x y} < 0$ 时，$e^{- \Delta \tau H_{i j}}$ 的某些非对角矩阵元为负。如果晶格包含奇环，如三角晶格，我们无法避免符号问题（<a href=/yuulibrary/books/qmc-lattice-models/ch05.html>第5.4节</a>）。另一方面，如果晶格没有奇环，如二分晶格，我们可以通过对一个子格中的所有格点进行酉变换（Marshall变换，第5.2.4节）$( S_{i}^{x} , S_{i}^{y} , S_{i}^{z} ) \to ( - S_{i}^{x} , - S_{i}^{y} , S_{i}^{z} )$ 来改变 $J^{x y}$ 的符号，从而改变负非对角矩阵元的符号。因此，我们不失一般性地假设在二分晶格上 $J^{x y} \geq 0$。</p><p>对偶哈密顿量(6.22)在基 $\left\{{\left| {\frac{1}{2}} , {\frac{1}{2}} \right.} , {\left| {\frac{1}{2}} , - {\frac{1}{2}} \right.} \right.$ $\begin{array}{r}{| - \frac{1}{2} , \frac{1}{2} , | - \frac{1}{2} , - \frac{1}{2} \{} \end{array}$ 下的矩阵元为</p>$$
+\left \langle \psi_{b}^{\prime} \left| - H_{i j} \right| \psi_{b} \right\rangle = \left( \begin{array}{cccc} {{\frac{J^{z}}{4}}} & {{0}} & {{0}} & {{0}} \\ {{0}} & {{- \frac{J^{z}}{4}}} & {{\frac{J^{x y}}{2}}} & {{0}} \\ {{0}} & {{\frac{J^{x y}}{2}}} & {{- \frac{J^{z}}{4}}} & {{0}} \\ {{0}} & {{0}} & {{0}} & {{\frac{J^{z}}{4}}} \end{array} \right) .
+$$<p>我们考虑四种不同的图元（graph element）（对应于恒等算符的平凡图元除外）：对角元（$g_{\mathrm{d}}$）、水平元（$g_{\mathrm{h}}$）、结合元（$g_{\mathrm{b}}$）和反结合元（$g_{\mathrm{ab}}$）。我们在图6.2中展示了这些图元以及相应算符的矩阵元。利用这四个图元，局域哈密顿量可以表达为三种不同的形式：</p>$$
+\begin{array}{r} {\small \left\{ \begin{array}{ll} {- \frac{J^{z}}{4} + \frac{J^{x y}}{2} D_{i j} ( g_{\mathrm{d}} ) + \frac{J^{z} - J^{x y}}{2} D_{i j} ( g_{\mathrm{b}} )} \end{array} \right.} \end{array}\tag{I}
+$$$$
+\begin{array}{r} {- H_{i j} = \left\{ \begin{array}{ll} {- \frac{J^{x y}}{4} + \frac{J^{x y} + J^{z}}{4} D_{i j} ( g_{\mathrm{d}} ) + \frac{J^{x y} - J^{z}}{4} D_{i j} ( g_{\mathrm{h}} )} \end{array} \right.} \end{array}\tag{II}
+$$<p>(6.23)</p>$$
+\begin{array}{rl} {\lfloor} & {{} \frac{J^{z}}{4} + \frac{J^{x y}}{2} D_{i j} ( g_{\mathrm{h}} ) + \frac{- J^{x y} - J^{z}}{2} D_{i j} ( g_{\mathrm{ab}} )} \end{array}\tag{III).
+$$<p>| 符号 | 图元 | $\left. s_{i}^{\prime} s_{j}^{\prime} \left| D_{i j} ( g ) \right| s_{i} s_{j} \right.$ |
+|---|---|---|
+| gd | 一 | 1 0 0 0 0 0 1 0 0 1 0 0 0 0 0 1 |
+| gh | l_- ---1 -1 「⁻ | 0 0 0 0 0 1 1 0 0 1 1 0 0 0 0 0 |
+| gb | | 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 |
+| gab | | 0 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 |</p><p class=caption>图6.2 每种图元类型对应的图元及算子 $D_{i j} ( g )$ 的矩阵元。双自旋希尔伯特空间的基矢为 $| \frac{1} {2} , \frac{1} {2} \rangle , | \frac{1} {2} , - \frac{\top} {2} \rangle , \top - \frac{1} {2} , \frac{1} {2} \rangle$ 和 $\bigl | \mathrm{~ - ~} \frac{1} {2} , \mathrm{~ - ~} \frac{1} {2} \bigr \rangle$。为强调约束的差异，连接的自旋必须反平行时使用虚线，必须平行时使用实线。</p><p>$a_{l} ( g )$ 为正的要求从以下三种情况中选一：</p><p>(I) 易轴铁磁模型 $( 0 < J^{x y} \leq J^{z} )$</p><p>(II) 易平面模型 $( 0 \leq | J^{z} | < J^{x y} )$</p><p>(III) 易轴反铁磁模型 $( 0 < J^{x y} \leq - J^{z} )$</p><p>在情况(I)中，团簇由对角图元 $g_{\mathrm{d}}$、结合图元 $g_{\mathrm{b}}$ 以及所有连接这些图元开放端的竖直直线组成。一个结合图元连接一个方格上的四个自旋，并迫使它们对齐在相同方向。结果，同一团簇中的所有自旋指向相同方向。所得图形不仅仅是环的集合，而是团簇的集合（即绑在一起的环）。情况(III)的算法与情况(I)相同，只是不同子晶格上的自旋被反平行绑定，而同一子晶格上的自旋被平行绑定。团簇与 XY 模型一样是简单环。</p><h3 id=624-关联函数>6.2.4 关联函数<a class=anchor href=#624-%e5%85%b3%e8%81%94%e5%87%bd%e6%95%b0>#</a></h3><p>环/团簇算法通常比局部更新算法收敛快得多的最佳解释，在于讨论我们在算法中测量自旋-自旋关联函数的方式。我们根据两个时空点出现在同一环或团簇中的频率来估计这些函数在这些点上的值。这一估计意味着关联的范围，即关联长度，对应于环或团簇的典型尺寸。</p><p>考虑一个可表示为局部算子之和的量 $Q$：</p>$$
+Q = \sum_{l} {Q_{l}} .
+$$<p>那么</p>$$
+\langle Q \rangle \equiv \frac{1} {\beta} [ \frac{1} {Z ( \eta )} \frac{d} {d \eta} Z ( \eta ) ]_{\eta 0} ,\tag{6.24}
+$$<p>其中</p>$$
+Z ( \eta ) \equiv \mathrm{Tr} \left[ e^{- \beta ( H - \eta Q )} \right] .\tag{6.25}
+$$<p>相应地，利用(6.5)和简化记号 $\psi_{b_{l}} ( k , l ) \psi_{p} , \psi_{b_{l}} ( k , l + 1 ) $ $\psi_{p}^{\prime} , l , b_{l} b$ 等，权重(6.4)变为</p>$$
+W^{\prime} ( C ) \equiv \prod_{p = ( k , b )} \left. \psi_{p}^{\prime} \right| 1 - \Delta \tau ( H_{b} - \eta Q_{b} ) \left| \psi_{p} \right. .\tag{6.26}
+$$<p>将(6.26)代入(6.6)，再将(6.6)代入(6.24)，$Q$ 的热力学平均就等价于 $Q ( C )$ 的蒙特卡洛平均：</p>$$
+\langle Q \rangle = \langle Q ( C ) \rangle_{\mathrm{MC}} ,\tag{6.27}
+$$<p>其中</p>$$
+\begin{array} {r l} & {\displaystyle Q ( C ) \equiv \frac{1} {\beta} \sum_{p = ( k , b )} Q ( C_{p} ) ,} \\ & {\displaystyle Q ( C_{p} ) \equiv \frac{\left. \psi_{p}^{\prime} \mid \Delta \tau Q_{b} \mid \psi_{p} \right.} {\left. \psi_{p}^{\prime} \mid 1 - \Delta \tau \mathcal{H}_{b} \mid \psi_{p} \right.} \approx \left\{\begin{array} {l l} {\Delta \tau \left. \psi_{p} \mid Q_{b} \mid \psi_{p} \right.} & {( \psi_{p}^{\prime} = \psi_{p} )} \\ {\displaystyle \left. \psi_{p}^{\prime} \mid Q_{b} \mid \psi_{p} \right.} & {( \psi_{p}^{\prime} \neq \psi_{p} ) .} \end{array} \right.} \end{array}\tag{6.28}
+$$<p>取连续时间极限后，</p>$$
+Q ( C ) = \frac{1} {\beta} \int_{0}^{\beta} d \tau Q ( \psi ( \tau ) ) + \frac{1} {\beta} \sum_{( b , \tau ) : \mathrm{kink}} Q ( \psi_{b} ( \tau^{+} ) , \psi_{b} ( \tau^{-} ) ) ,\tag{6.29}
+$$<p>其中</p>$$
+Q ( \psi ( \tau ) ) \equiv \left. \psi ( \tau ) \left| Q \right| \psi ( \tau ) \right.\tag{6.30}
+$$<p>以及</p>$$
+Q ( \psi_{b} ( \tau^{+} ) , \psi_{b} ( \tau^{-} ) ) \equiv \frac{\Bigl \langle \psi_{b} ( \tau^{+} ) \left| Q_{b} \right| \psi_{b} ( \tau^{-} ) \Bigl \rangle} {\Bigl \langle \psi_{b} ( \tau^{+} ) \left| ( - H_{b} ) \right| \psi_{b} ( \tau^{-} ) \Bigl \rangle} .\tag{6.31}
+$$<p>其中 $\tau^{+}$ 和 $\tau^{-}$ 分别是τ之后和之前的无穷小虚时。当 $Q$ 是对角算符时，(6.29) 中的第二项消失。例如，在通常的 $S^{z}$ 基下估计磁化强度 $\boldsymbol{Q} \equiv \sum_{i} S_{i}^{z}$ 时，它就会消失。一般来说，我们无法忽略来自扭结的第二项贡献。</p><p>环回/团簇算法是图空间上的马尔可夫过程，这一事实提示我们可以定义一个基于图而非基于态的可观测量估计子。回顾第4.4.3节，我们曾能够从图中测量磁化率的关联函数。</p><p>为了在当前情形下看清这一点，我们将 $Q$ 的热力学平均写作</p>$$
+\begin{array} {c l c r} {{\langle Q \rangle = \displaystyle \frac{\sum_{C} W ( C ) Q ( C )} {\sum_{C} W ( C )} = \displaystyle \frac{\sum_{C , G} W ( C , G ) Q ( C )} {\sum_{C , G} W ( C , G )}}} \\ {{\displaystyle{= \frac{\sum_{G} W ( G ) Q ( G )} {\sum_{G} W ( G )} = \langle Q ( G ) \rangle ,}}} \end{array}
+$$<p>其中 $Q ( G )$ 是 $Q(C)$ 的固定图平均，即 $Q$ 的图形估计子（graphical estimator）：</p>$$
+Q ( G ) \equiv \frac{\sum_{C} W ( C , G ) Q ( C )} {W ( G )} .\tag{6.32}
+$$<p>这些公式以及类似于第4.4.2节的论证，给出了此类情况下图形估计子的具体形式。例如，交错磁化率定义为</p>$$
+\chi_{z z} ( q ) \equiv \langle Q \rangle , \quad Q \equiv N^{- 1} \int_{0}^{\beta} d \tau M_{q}^{\dagger} ( \tau ) M_{q} ( 0 ) ,
+$$<p>其中 $\begin{array} {r} {M_{q} \equiv \sum_{i} e^{i q r_{i}} S_{i}^{z}} \end{array}$ ，$M_{q} ( \tau ) \equiv e^{\tau H} M_{q} e^{- \tau H}$ 。当取 $q = 0$ 时，我们得到均匀磁化率。该量的普通估计子为</p>$$
+Q ( C ) = ( N \beta )^{- 1} \left| \int d X e^{i q r_{i}} S^{z} ( X ) \right| ^{2} ,\tag{6.33}
+$$<p>其中 $X \equiv ( i , \tau )$ ，积分 $\scriptstyle \int d X$ 表示 $\textstyle \sum_{i} \int d \tau$ 。产生完全相同平均值的图形估计子是</p>$$
+\mathcal{Q} ( G ) = \frac{1} {N \beta} \sum_{c \in G} | M_{c} | ^{2}\tag{6.34}
+$$<p>其中</p>$$
+M_{c} \equiv \int_{c} d X e^{i q r_{i}} S^{z} ( X ) ,
+$$<p>积分遍及图 $G$ 中连通团簇 $c$ 所覆盖的时空区域。在易面XXZ模型的情况下，团簇是环，而 $M_{c} ( q = 0 )$ 就是环的总长度。图形估计子通常比普通估计子提供更精确的估计。</p><p>在某些情况下，两种估计子之间的差异不仅仅体现在精度上。我们注意到，(6.33) 这样的表达式仅在算符是对角的情况下成立。相反，假设所涉及的算符具有非零的非对角矩阵元，但哈密顿量的相应矩阵元为零。测量横向磁化率时，XXZ模型就会出现这种情况：</p>$$
+\chi_{x x} \equiv N^{- 1} \int_{0}^{\beta} d \tau \langle{\cal M}^{x} ( \tau ) {\cal M}^{x} ( 0 ) \rangle ,
+$$<p>其中总磁化强度 $M^{x}$ 沿 $x$ 方向。在这种情况下，我们无法用“普通”方式估计该量。正如我们接下来要展示的，利用环回算法，这种非对角量是可以测量的（Brower 等人，1998年）。</p><p>令 $X = ( i , \tau )$ 和 $Y = ( j , \tau^{\prime} )$ 指定两个时空点，$\tau$ 表示编时乘积，我们通过将 $Q$ 的热力学平均表示为</p>$$
+\begin{array} {l} {{\displaystyle \chi_{x x} \equiv \langle Q \rangle = \frac{1} {N \beta} \int d X d Y \frac{1} {Z} {et {} {'} {\sum}} W ( C )}} \\ {{\displaystyle ~ \times ~ \langle s_{i} ( \tau^{+} ) | S^{x} ( X ) | s_{i} ( \tau^{-} ) \rangle \langle s_{j} ( \tau^{+} ) | S^{x} ( Y ) | s_{j} ( \tau^{-} ) \rangle .}} \end{array}
+$$<p>来估计</p>$$
+Q = ( N \beta )^{- 1} T \int d X d Y S^{x} ( X ) S^{x} ( Y )
+$$<p>的期望值。</p><p>请注意，我们扩展了构型空间，在世界线构型中加入了两个不连续点。求和符号上的撇号表示求和针对所有在世界线上 X 和 Y 处有不连续点的状态。图 6.3 展示了这样一个状态。显然，这种类型的构型永远不会在环/团簇模拟中出现。因此，无法通过简单推广目前讨论的方法来测量这个量。</p><p><img src=images/e2fe34582c0ab2b36f0d670474b13945e667a02b65425534a9808c319a100123.webp alt><p class=caption>图 6.3 非对角关联函数的测量。在 X 和 Y 两点存在不连续点的世界线构型（如 $^{66} C^{9} $）和图形（如 $^{66} G^{3} $）有贡献。</p></p><p>因此，我们考虑图形估计子（graphical estimator），</p>$$
+\chi_{x x} = \frac{1} {N \beta} \int d X d Y \frac{1} {Z} {\sum_{C , G}^{'}} V ( G ) \Delta ( C , G ) \frac{1} {4} \delta_{s_{i} ( \tau^{+} ) , - s_{i} ( \tau^{-} )} \delta_{s_{j} ( \tau^{+} ) , - s_{j} ( \tau^{-} )} .
+$$<p>首先注意到，在该模型中，如果环上只有一个不连续点，则无法沿线分配局部自旋值。因此，除非 X 和 Y 两点位于 $G$ 中的同一个环上，否则求和为零。结果为</p>$$
+\begin{array} {l} {\displaystyle \chi_{x x} = ( N \beta )^{- 1} \int d X d Y \frac{1} {4} \frac{\sum_{G} 2^{n_{\mathrm{C}} ( G )} V ( G ) \delta_{c ( X ) , c ( Y )}} {\sum_{G} 2^{n_{\mathrm{C}} ( G )} V ( G )}} \\ {\displaystyle \quad = \frac{1} {4 N \beta} \bigg \langle \sum_{c} V_{c}^{2} \bigg \rangle ,} \end{array}
+$$<p>其中 $c ( \boldsymbol{X} )$ 和 $c ( Y )$ 指明了 X 和 Y 归属的团簇（环）。因此我们得到了 $\chi_{x x}$ 的图形估计子：</p>$$
+Q ( G ) \equiv \frac{1} {4 N \beta} \sum_{c \in G} V_{c}^{2} .
+$$<p>得出这一结果的关键观察是，分子中的求和与分母中的求和针对的是同一组图。</p><p>对于 $q = 0$ 情形，最终结果与 (6.34) 形式上完全相同，尽管所讨论的物理量是横向磁化率而非纵向磁化率。但这并不矛盾，因为 $M_{c}$ 和 $V_{c}$ 之间差了一个自旋符号。对于易平面 XXZ 模型，自旋的符号沿回路交替变化，而 $M_{c}$ 的定义中包含了这种交替符号。$V_{c}$ 则仅仅是回路的长度。因此，$| V_{c} | \ge | M_{c} |$，从而得到 $\chi_{x x} \geq \chi_{z z}$。对于易轴铁磁 XXZ 模型，自旋的符号不交替，$M_{c}$ 基本上就是团簇的大小。另一方面，在上述模型中，横向磁化率的图形估计子不再有效。为了使其有效，我们将 $\delta_{c ( X ) , c ( Y )}$ 替换为一个函数，该函数仅当我们可以通过在 X 和 Y 点切割团簇将其分成两个不相交的团簇时才取值为 1。换言之，如果 X 和 Y 在 G 中是多连通的，那么即使 X 和 Y 在同一个团簇上，该函数的值也为 0。因此，$\chi_{x x}$ 通常小于平均团簇大小，从而得到 $\chi_{x x} \leq \chi_{z z}$。这同样没有矛盾。在各向同性点 $( J^{x y} = J^{z} )$，这两个估计子都有效且相互一致，反映了该点处 $\chi_{x x}$ 和 $\chi_{z z}$ 的相等性。我们注意到，在这两种情形下（易轴情形下的纵向磁化率和易平面情形下的横向磁化率），相关的磁化率都对应于平均团簇大小。因此，系统更新的“单位”是团簇，其大小大致与关联长度相当。这就是在这些情形下环/团簇算法能够非常高效地使系统达到平衡的原因。</p><h3 id=625-磁场>6.2.5 磁场<a class=anchor href=#625-%e7%a3%81%e5%9c%ba>#</a></h3><p>到目前为止所研究的量子自旋模型均未涉及外磁场。鉴于第 6.2.1 节和 6.2.2 节中发展的框架相当通用，我们可以通过简单地将磁场视为总相互作用中的一项单体相互作用来轻松地包含外磁场。</p><p>我们将塞曼项 $- H^{z} S_{i}^{z}$ 添加到 $\begin{array} {r} {S = \frac{1} {2}} \end{array}$ 自旋模型中。那么图形分解为：</p>$$
+\begin{array} {r} {\langle s_{i} ( \tau^{+} ) | H^{z} S_{i}^{z} | s_{i} ( \tau^{-} ) \rangle = H^{z} \delta_{s_{i} ( \tau^{+} ) , \frac{1} {2}} \delta_{s_{i} ( \tau^{-} ) , \frac{1} {2}} - \frac{1} {2} H^{z} \delta_{s_{i} ( \tau^{+} ) , s_{i} ( \tau^{-} )} .} \end{array}
+$$<p>我们可以忽略右边第二项，因为它只是将能量移动一个常数。第一项是一种图形算子。这个算子或图元素施加的约束显然是，包含位置 (i, τ) 的团簇上的变量固定为 $\frac{1} {2}$。根据一般的规则，我们要在自旋与磁场对齐的区域生成这些“固定”图元素。对于铁磁 XXZ 模型，其中每个团簇内的自旋彼此对齐，假设团簇已经与磁场对齐，则体积为 V 的团簇内某处至少有一个固定图的概率为 $1 - e^{- H^{z} V}$。这意味着我们以概率 $\frac{1} {2} e^{- \dot{H}^{z} V}$ 翻转该团簇。因子 $\frac{1} {2}$ 来源于：如果没有固定元素，我们就以 $\frac{1} {2}$ 的概率翻转团簇。</p><p>我们可以通过另一种方式找到相同的翻转概率；也就是说，不是在构建图形时计入塞曼权重，而是在翻转概率中计入它。在这种方法中，我们在构建团簇时忽略塞曼权重。当翻转它们时，我们不是简单地以概率 $\frac{1} {2}$ 翻转，而是调整翻转概率，使得相对于塞曼权重满足细致平衡条件。当体积为 V 的团簇中的自旋平行于磁场时，反向磁场翻转团簇会使塞曼权重从 $e^{{\frac{1} {2}} H^{z} V}$ 减少到 $e^{- {\frac{1} {2}} H^{z} V}$。因此，如果我们遵循 Metropolis 算法的标准规则，团簇翻转概率为 $e^{- H^{z} V}$。由于将转移概率 $P_{i j}$ 和 $P_{j i}$ 乘以相同的因子仍保持细致平衡条件，我们可以使反向外部磁场翻转的概率为 $\frac{1} {2} e^{- H^{z} V}$，并使相反过程的概率为 $\frac{1} {2}$。这个结果与第一种方法推导出的翻转概率完全相同。</p><p>虽然这两种方法在铁磁 XXZ 模型的情况下得到相同的结果，但一般来说，当团簇内的自旋不均匀（如反铁磁 XXZ 模型的情况）时，它们不会得到相同的结果。对于这种情况，第二种方法更好，尽管它可能仍不足以避免第 6.4.1 节讨论的冻结问题。</p><h3 id=626-大自旋>6.2.6 大自旋 $S > \frac{1} {2}$<a class=anchor href=#626-%e5%a4%a7%e8%87%aa%e6%97%8b>#</a></h3><p>环回算法仅针对 $S = \frac{1} {2}$ 量子自旋模型进行了讨论，但第 6.2.1 节和第 6.2.2 节中提出的框架更为通用。如果我们将此框架应用于 $S > \frac{1} {2}$ 模型，则所得算法中的每个世界线段将取 $2S + 1$ 个可能值，而不是 $S = \frac{1} {2}$ 情况下的仅两个值。然而，图形分解通常不是唯一的，所得算法的效率可能取决于它。不幸的是，不能保证存在一个“好的”分解。适用于 $S > \frac{1} {2}$ 自旋模型且符合此通用框架的高效算法仅在极少数特殊情况下才为人所知。一个例子是具有基础表示的 SU(N) 对称模型，它本身是 $S = ( N - 1 ) / 2$ 自旋模型的一个特例。我们在附录 D 中讨论这个模型。在这里，我们考虑另一种策略。</p><p>这个问题可以通过将每个自旋算符替换为 $2S$ 个自旋之和来解决，每个自旋携带 $S = \frac{1} {2}$（Kawashima and Gubernatis, 1994）。<sup>7</sup> 让我们将大小为 S 的自旋“分裂”为 $2S$ 个自旋，每个自旋携带 $S = \frac{1} {2}$：</p>$$
+S_{i}^{\alpha} \Rightarrow \tilde{S}_{i}^{\alpha} \equiv \sum_{\mu = 1}^{2 S} \sigma_{i \mu}^{\alpha} \qquad ( \alpha = x , y , z ) ,\tag{6.35}
+$$<p>其中 $\textstyle \sum_{\alpha = x , y , z} ( \sigma_{i \mu}^{\alpha} )^{2} = 3 / 4$ 。通过这种替换，我们也扩展了希尔伯特空间，使其维度变为 $2^{2 S N}$，远大于原始空间的 $( 2 S + 1 )^{N}$。为了得到与原问题精确对应的表述，我们必须消除许多状态。投影算符 $\hat{P}$（Kawashima and Gubernatis, 1994; Harada et al., 1998; Todo and Kato, 2001）完成了这项工作，</p>$$
+Z = \mathrm{Tr} \left[ e^{- \beta H ( \{S_{i} \} )} \right] = \mathrm{Tr} \left[ \hat{P} e^{- \beta H \left( \left\{\tilde{S}_{i} \right\} \right)} \right] .
+$$<p>该算符将扩展的希尔伯特空间投影回原始空间，在此空间中所有局部自旋态都具有最高的 $S_{z}$ 值，即 $( \tilde{S}_{i} )^{2} = S ( S + 1 )$ 。$\hat{P}$ 是局部投影算符 $\hat{P}_{i}$ 的乘积。</p>$$
+\hat{P} = \prod_{i} \hat{P}_{i} .
+$$<p>由于最高自旋态是对称态，每个局部投影算符都是对称化算符：</p>$$
+\hat{P}_{i} = \frac{1} {( 2 S ) !} \sum_{\pi} D_{i} ( \pi ) ,
+$$<p>其中算符 $D_{i} ( \pi )$ 表示一个将 $\{1 , 2 , \ldots , 2 S \}$ 映射到自身的排列 $\pi$。具体地，</p>$$
+D_{i} ( \pi ) \left| s_{i , 1} , s_{i , 2} , \ldots , s_{i , 2 S} \right. = \left| s_{i , \pi ( 1 )} , s_{i , \pi ( 2 )} , \ldots , s_{i , \pi ( 2 S )} \right. .
+$$<p>利用分裂自旋，对哈密顿量（6.22）现在可以表示为：</p>$$
+H_{i j} = \sum_{\mu = 1}^{2 S} \sum_{\nu = 1}^{2 S} H_{i \mu , j \nu} ,
+$$<p>其中 $H_{i \mu , j \nu}$ 表示格点 i 上第 μ 个分裂自旋与格点 j 上第 ν 个分裂自旋之间的相互作用。每个配对哈密顿量 $H_{i \mu , j \nu}$ 只不过是一个 $S = {\frac{1}{2}}$ 模型的哈密顿量。因此，我们可以直接将前面讨论过的通用规则（第6.2.3节）应用于这个新问题<sup>8</sup>。在得到的方法中，每个格点 i 由 2S 条竖直线表示（图6.4）。我们必须对 $(2S)^2$ 对指标 μ 和 ν 中的每一对重复图分配过程。除了这种针对分裂自旋指标的重复之外，该算法与 $S = {\frac{1}{2}}$ 算法完全相同。具体来说，我们使用与 $S = {\frac{1}{2}}$ 算法完全相同的图类型和相同的图分配密度。</p><p>剩下的任务是将投影算符纳入一般环/团簇算法的框架。这个任务很容易，因为置换算符是一种图算符。例如，对于 $S = 1$ 的情况，算符 $D_i(\pi)$，其中 $\pi$ 是恒等置换，对应于图6.4顶部的左图，由两条垂直的世界线段组成；而如果 $\pi$ 是交换两个自旋的置换，则对应于中间和右边的图，由两条交叉的线段组成。因此，如图6.4所示，插入投影算符相当于为边界 $\tau = 0, \beta$ 上的每个格点 i，选择一个与分裂自旋当前状态相容的置换图，并将 $\tau = \beta$ 处格点 i 上的分裂自旋连接到 $\tau = 0$ 处的分裂自旋。</p><p><img src=images/b15f619b0557a52e931c339d29375455b7cff63f9b34408d32985bbb264a75ab.webp alt><p class=caption>图6.4 分裂自旋表示中 $S=1$ 量子自旋系统的世界线构型。</p></p><p>我们现在简要提及对于不同 S 计算 Haldane 能隙（Haldane gap）的情况，因为这说明了该算法的高效率。当 S 为整数时，一维海森堡反铁磁体等价于二维非线性 σ 模型。后者又等价于二维经典海森堡模型，该模型在任何有限温度下都没有有序态。因此，对于具有整数自旋的一维海森堡反铁磁体，我们期望得到一个无序的基态。相应地，激发能隙（应该正比于时间方向上关联长度 $\xi_\tau$ 的倒数）是有限的，这与由于戈德斯通模（Goldstone modes）而无能隙的磁有序态形成对比。这个能隙被称为 Haldane 能隙，被测量为基态和第一激发态之间的能量差 $\Delta$。然而，由于随着自旋幅度的增大，能隙呈指数级快速减小，因此对于较大的自旋，获得能隙的精确估计变得越来越困难。蒙特卡洛模拟（Todo and Kato, 2001）给出了空间自旋-自旋关联长度 ξ（定义为 $\langle S_i^z S_j^z \rangle \propto e^{-r_{ij}/\xi}$）和激发能隙 $\Delta$ 的结果：对于 $S=1$，$\xi = 6.0153(3)$，$\Delta = 0.41048(6)$；对于 $S=2$，$\xi = 49.49(1)$，$\Delta = 0.08917(4)$；对于 $S=3$，$\xi = 637(1)$，$\Delta = 0.01002(3)$。</p><h2 id=63-高温级数展开>6.3 高温级数展开<a class=anchor href=#63-%e9%ab%98%e6%b8%a9%e7%ba%a7%e6%95%b0%e5%b1%95%e5%bc%80>#</a></h2><p>在<a href=/yuulibrary/books/qmc-lattice-models/ch06.html>第6.1节</a>中，我们讨论了基于费曼路径积分（Feynman path integral）将量子问题映射到经典问题。在本节中，我们基于高温级数展开（high-temperature series expansion）推导另一种映射。最终结果是等价的。引入这第二种替代方法为下一节讨论虫洞更新（worm update）提供了一个良好的起点。</p><p>我们从截断至 M 阶的配分函数的高温级数展开开始：</p>$$
+Z_M \equiv \sum_{n=0}^{M} \frac{\beta^n}{n!} \mathrm{Tr} [(-H)^n].
+$$<p>如果希尔伯特空间的维数是有限的，该级数绝对收敛，并且当 M 增加超过某个有限值时，它以指数速度收敛。获得良好近似所需的 M 值通常为 $\beta \Lambda$ 量级，其中 $\Lambda$ 是 $-H$ 矩阵元的典型大小。</p><p>映射的第一步是引入 M 个“盒子”，每个盒子可以“包含”算子 −H。对于每个盒子，我们定义一个变量 $\gamma_{k}$ 来指定盒子的状态：$\gamma_{k} = 0$ 表示空，$\gamma_{k} = 1$ 表示被占据。接下来，我们让一个具有 n 个填充盒子的状态代表级数展开中的 n 阶项。由于将 n 个盒子填满的方法有 $M! / ((M-n)!n!)$ 种，我们使用该数目的倒数作为每个此类状态的权重。此外，因为哈密顿量是局部相互作用之和，$H = \sum_{l} H_{l}$，我们将每个盒子划分成 $N_{l}$ 个“单元”。第 l 个单元可能包含也可能不包含 $H_{l}$。通过 $\gamma_{k l} = 0$ 或 1 指定第 k 个盒子中第 l 个单元为空或填充的状态，我们将配分函数重写为</p>$$
+Z_{M} = {\sum_{\{\gamma_{k l} \}}}^{\prime} {\frac{( M - n )!} {M!}} \beta^{n} \mathrm{Tr} \left[ \prod_{k = 1}^{M} \prod_{l = 1}^{N_{l}} ( - H_{l} )^{\gamma_{k l}} \right] ,\tag{6.36}
+$$<p>其中 $n \equiv \sum_{k l} \gamma_{k l}$，求和遍历所有填充构型 $\{\gamma_{k l} \}$，上标撇号表示对所有 k 施加 $\sum_{l} \gamma_{k l} \leq 1$ 的限制。</p><h3 id=631-随机级数展开>6.3.1 随机级数展开<a class=anchor href=#631-%e9%9a%8f%e6%9c%ba%e7%ba%a7%e6%95%b0%e5%b1%95%e5%bc%80>#</a></h3><p>随机级数展开（stochastic series expansion）方法是一种蒙特卡洛算法，它在构型空间 $C \equiv \{\gamma_{k l} \}$ 中定义一个马尔可夫过程，其权重为 (6.36) 中的被加项（Sandvik and Kurkijarvi, 1991）。历史上，量子系统蒙¨特卡洛模拟首次使用的经典表示是 $S = \frac{1}{2}$ 各向同性海森堡模型的高温级数展开（Handscomb, 1962b）。随后，该方法由 Sandvik 及其合作者充分发展（Sandvik and Kurkijarvi, 1991; Sandvik, 1992, 1999）。¨</p><p>在第 4.5 节中，我们讨论了如何定义一个马尔可夫过程来对经典高温级数展开进行采样。在那里，展开将配分函数表示为闭图之和。之前的经典情形与当前量子情形的一个主要区别是，我们现在必须处理量子力学算子的非对易性：级数展开中单个项内算子的乘积顺序很重要。为了记录顺序，我们引入了一个自然离散的“顺序”空间。这个附加维度起到了与第 6.1 节路径积分形式中虚时维度类似的作用。</p><p>构造级数展开的马尔可夫采样有多种方法。但是，由于权重是非局部的，计算对 $\gamma_{k l}$ 提议改变量的接受概率通常在计算上是昂贵的。为了减少这种开支，我们通过引入“自旋”变量使权重局部化。这个技巧现在已是熟悉的了：我们在相邻算子之间插入封闭关系，得到</p>$$
+Z_{M} = \sum_{C} \sum_{G} W ( C , G ) ,\tag{6.37}
+$$<p>其中 $C \equiv ( \psi ( 1 ) , \psi ( 2 ) , \ldots , \psi ( M ) ) , G \equiv ( \gamma_{1 , 1} , \gamma_{1 , 2} , \ldots , \gamma_{M , N_{l} - 1} , \gamma_{M , N_{l}} )$，且</p>$$
+W ( C , G ) \equiv \frac{( M - n ) !} {M !} \beta^{n} \prod_{k = 1}^{M} \prod_{l = 1}^{N_{l}} \left. \psi ( k + 1 ) \left| ( - H_{l} )^{\gamma_{k l}} \right| \psi ( k ) \right. . \nonumber\tag{6.38}
+$$<p>显然，权重是局域的，除了对 $G$ 隐含的约束，即 $\textstyle \sum_{l} \gamma_{k l} \leq 1$ 和因子 $(M - n)!$。幸运的是，这些非局域性的来源只带来了相对较低的计算成本。基于随机级数展开的蒙特卡洛模拟是 $C$ 和 $G$ 乘积空间上的一个马尔可夫过程，其目标分布为 (6.38) 中定义的 $W(C, G)$。</p><p>根据这个新表达式，我们现在定义在“世界线构型” $C$ 固定时更新 $\gamma_{k l}$ 的过程。对于每个 $k$，如果第 $k$ 个盒子中没有被填充的单元，我们选择第 $l$ 个单元并以概率 $p_{l}^{( \mathrm{fill} )}$ 填充它。<sup>10</sup> 如果第 $k$ 个盒子中存在一个被填充的单元，我们以概率 $p^{( \mathrm{empty} )}$ 清空它。填充和清空概率满足细致平衡条件</p>$$
+p_{l}^{( \mathrm{fill} )} \psi ( k + 1 ) \mid \psi ( k ) = p^{( \mathrm{empty} )} \frac{\beta} {M - n} \psi ( k + 1 ) \mid ( - H_{l} ) | \psi ( k ) .
+$$<p>如果 $\psi ( k {+} 1 ) \neq \psi ( k )$，则 $p^{\mathrm{( e m p t y )}} = 0$ 满足该方程，所以我们不进行任何操作并移到下一个盒子。另一方面，如果 $\psi ( k + 1 ) = \psi ( k )$，则存在 $p_{l}^{( \mathrm{fill} )}$ 和 $p^{( \mathrm{empty} )}$ 的非平凡解。最简单的可能是</p>$$
+p_{l}^{( \mathrm{fill} )} = \frac{\beta} {M - n} \psi ( k ) \ | ( - H_{l} ) \ \middle | \ \psi ( k ) , \quad p^{( \mathrm{empty} )} = 1 .\tag{6.39}
+$$<p>这种选择在 $M$ 足够大，使得对于任意 $\psi ( k )$ 和 $\psi ( k + 1 )$ 的组合都有 $\sum_{l} p_{l}^{( \mathrm{fill} )}$ 小于或等于 1 时是可行的，也就是说，如果 $(M - n) / \beta$ 大于 $-H$ 的任何非对角矩阵元。因为模拟中实现的 $n$ 的典型值量级为 $\beta \Lambda$，其中 $\Lambda$ 是 $-H$ 的典型矩阵元的大小。$M \gg \beta \Lambda$ 是转移概率简单选择有效性和截断有效性的一个充分条件。由于 $\begin{array} {r} {\sum_{l} \bar{p}_{l}^{( \mathrm{fill} )} \le 1} \end{array}$，即使当前状态没有已填充的单元，我们也可能不选择任何单元。在这种情况下，我们直接进入下一个盒子。</p><p>一旦更新了 $G$，我们就必须更新 $C$。我们可以通过局部更新来实现这一点，即“局部地”改变“世界线”构型。然而，由于我们受到约束，$\psi ( k + 1 )$ 和 $\psi ( k )$ 只可能在一个被填充的单元处不同，因此更新不能对每个单元或盒子独立进行。一种在不违反约束的情况下更新构型的方法是，考虑位于相同空间位置的一对相邻填充单元，并尝试修改中间的（intermediate）自旋构型（图 6.5）。我们像通常一样，根据细致平衡条件确定接受尝试的概率。在本例中</p><p><img src=images/8ed8fc1335ea9cd63415e71f90a332fb9e87c7f65129f9c8cf9490c3fc2dafc9.webp alt><p class=caption>图6.5 带有局部更新的随机级数展开。阴影单元对应 $\gamma_{k l} = 1$，白色单元对应 $\gamma_{k l} = 0$。</p></p><p>算法 18 带有局部更新的随机级数展开。
+输入：一个世界线（单元）构型；
+for 每个盒子 k do
+if $\psi ( k + 1 ) \neq \psi ( k )$ then
+移动到下一个盒子；
+else
+if 盒子 k 中存在一个被填充的单元 then
+清空该单元；
+else
+以概率 (6.39) 填充第 l 个单元；
+end if
+end if
+end for
+for 每个被填充的单元 (k, l) do
+找到下一个被填充的单元 $( k^{\prime} , l )$
+以概率 (6.40) 改变两个单元之间的局部状态 $\psi_{l} ( k ) , \psi_{l} ( k + 1 ) , \dots , \psi_{l} ( k^{\prime} )$；
+end for
+返回更新后的构型。</p>$$
+p_{\mathrm{accept}} = \operatorname*{min} \left( 1 , \mathcal{R} \right) , \quad \mathcal{R} \equiv \prod_{\left( k , l \right)} \frac{\left. \psi^{\prime} ( k + 1 ) \left| \left( - H_{l} \right) \right| \psi^{\prime} ( k ) \right.} {\left. \psi ( k + 1 ) \left| \left( - H_{l} \right) \right| \psi ( k ) \right.} ,\tag{6.40}
+$$<hr><p>其中 $\psi ( k )$ 和 $\psi^{\prime} ( k )$ 分别是修改前和修改后的状态，乘积遍及所有受提议修改影响的元胞。算法18总结了这些步骤。</p><p>我们也可以在当前级数展开框架下推导环/团簇算法。为此，只需将 $- H_{l}$ 按图形算子展开：</p><p>$$</p><ul><li>H_{l} = \sum_{g} a_{l} ( g ) D_{l} ( g ) .
+$$</li></ul><p>相应地，(6.36) 变为</p>$$
+Z_{M} = \sum_{\{\psi ( k ) \}} {\sum_{\{g_{k l} \}}}^{\prime} {\frac{( M - n ) !} {M !}} \beta^{n} \prod_{k = 1}^{M} \left. \psi ( k + 1 ) \left| \prod_{l = 1}^{N_{l}} a_{l} ( g_{k l} ) D_{g_{k l}} \right| \psi ( k ) \right. ,
+$$<p>其中约定 $D_{l} ( 0 ) = 1$ 和 $a_{l} ( 0 ) = 1$。这里，$n$ 是非平凡图的总数，即 $\begin{array} {r} {n \equiv \sum_{k l} ( 1 - \delta_{g_{k l} , 0} )} \end{array}$。由此得到的环算法如算法19所述。</p><p>算法19 带环/团簇更新的随机级数展开。
+输入：一个世界线（元胞）构型；
+for 每个盒子 k do
+if $\psi ( k + 1 ) \neq \psi ( k )$ then
+移动到下一个盒子；
+else
+if 存在填充元胞 then
+清空该元胞；
+else
+以概率 (6.39) 填充第 l 个元胞；
+以概率 $\begin{array} {r} {P ( g ) = a_{l} ( g ) / \sum_{g}^{\prime} a_{l} ( g )} \end{array}$ 选择放置的图元素类型 g；
+这里，g 从非平凡且与元胞当前状态相容的图元素中选取。求和遍及所有此类图元素。
+end if
+end if
+end for
+识别环/团簇；
+for 每个环或团簇 do
+翻转该环/团簇；
+end for
+返回更新后的构型。</p><h3 id=632-连续时间极限>6.3.2 “连续时间”极限<a class=anchor href=#632-%e8%bf%9e%e7%bb%ad%e6%97%b6%e9%97%b4%e6%9e%81%e9%99%90>#</a></h3><p>现在我们考虑 M 较大时的随机级数展开。我们会看到，可以用一个统计上等价但顶点数有限的程序来替代 M 为无穷大的过程。在 M 大极限下，离散指标 k 映射为虚时 $\tau \equiv k \Delta \tau$，因子 $( M - n ) ! / M !$ 映射为 $1 / M^{n}$，从而 (6.37) 简化为</p>$$
+Z_{M} = \sum_{\{\psi ( \tau ) \}} \sum_{\{( \tau_{\nu} , l_{\nu} ) \}} ( \Delta \tau )^{n} \prod_{\nu} \left. \psi ( \tau_{\nu}^{+} ) \left| ( - H_{l_{\nu}} ) \right| \psi ( \tau_{\nu}^{-} ) \right. ,\tag{6.41}
+$$<p>其中 $\Delta \tau = \beta / M$，$ {\boldsymbol \nu} = ( \tau_{\nu} , l_{\nu} )$ 指定一个顶点（之前称为“填充元胞”）。填充概率 (6.39) 变为</p>$$
+p_{l}^{( \mathrm{fill} )} = \Delta \tau \langle \psi ( k ) | ( - H_{l} ) | \psi ( k ) \rangle .
+$$<p>我们注意到，由于 (6.39) 中的因子 $M - n$ 导致的权重非局域性消失，因为 $M - n$ 被替换为 M。另一个非局域来源，即每个 k 最多只能有一个被填充单元的约束，也消失了，因为即使放宽该约束，出现多于一个被填充单元的概率也为 $\mathcal{O} ( \Delta \tau^{2} )$，因此可以忽略。因此，在 M 趋于无穷的极限下，随机级数展开变得完全局域化。</p><p>路径积分与级数展开公式之间的对应关系现在应当很明确。要获得具有局域更新的连续时间算法，我们只需将算法 18 中的顶点分配过程替换为时空点的生成，这些点根据 $- H_{l}$ 的对角矩阵元确定的密度均匀随机分布，并将相互作用顶点放置在这些点上。翻转过程保持不变。从头开始出发于路径积分公式，我们也能得到完全相同的算法，但此处我们不做此推导。在环/团簇变体中，我们同样可以取 M 趋于无穷的极限，所得结果与算法 17 相同，而算法 17 是我们从路径积分框架中推导得到的。</p><p>由于我们在连续时间极限下得到了相同的算法，级数展开公式的实际价值在于其有限 M 的应用。虽然此时存在有限的截断误差，但只要 M 远大于 $\beta \Lambda$，我们就可以忽略它，因为在这种情况下误差是指数级小的。这与路径积分公式形成对比，在路径积分中，随着 M 的增加，离散化误差下降缓慢（多项式级）。因此，对于许多应用来说，有限 M 的随机级数展开方法是最实用的算法。使用有限且固定数量的盒子很方便，因为我们可以采用简单的数组数据结构，这使得编程比使用链表数据结构的连续时间算法简单得多。另一方面，有限 M 算法因其非局域权重、对顶点总数 n 的依赖以及一个盒子内最多只能有一个顶点的约束而难以并行化。这些问题使得难以将权重表示为局部因子的简单乘积，从而也使得将任务拆分为独立子任务变得困难。</p><h2 id=64-虫洞更新-worm-update>6.4 虫洞更新 (Worm update)<a class=anchor href=#64-%e8%99%ab%e6%b4%9e%e6%9b%b4%e6%96%b0-worm-update>#</a></h2><p>当所生成的环或团簇反映了相关的物理关联时，刚才讨论的环/团簇更新非常高效。第 6.2.3 节讨论的 XXZ 模型哈密顿量的自然图形分解就产生了这样的环或团簇。然而，在某些情况下，我们并不这么幸运。特别重要的例子包括均匀外场中的反铁磁体和受挫自旋系统。在这些情况下，直接应用该方法形成的环或团簇变得远大于关联长度，甚至在临界点之前尺寸就发散，导致模拟“冻结”。对于这些情况，基于虫洞更新的替代模拟方法可能很有用。尽管该算法在处理玻色子系统时也很有用，但我们接下来主要针对自旋模型进行描述。关于在典型玻色子哈密顿量中的应用，请参见第 6.6 节。</p><h3 id=641-冻结问题-freezing-problem>6.4.1 冻结问题 (Freezing problem)<a class=anchor href=#641-%e5%86%bb%e7%bb%93%e9%97%ae%e9%a2%98-freezing-problem>#</a></h3><p>让我们考虑一个简单的例子：一个仅由两个 $S = \frac 12$ 自旋组成的系统，它们在均匀场中反铁磁耦合，</p>$$
+{\cal H} = J \vec{S}_{1} \cdot \vec{S}_{2} - {\cal H}^{z} ( S_{1}^{z} + S_{2}^{z} ) , \quad J > 0 ,
+$$<p>看看如果在低温 $\beta J , \beta H^{z} \gg 1$ 下对其应用环更新（loop update）会发生什么。</p><p>首先，假设当前状态两个自旋都向上。由于图6.2中水平图所表示的耦合与平行自旋不兼容，我们无法分配这一图元。因此，生成的图仅由平凡图组成，即两个垂直环，每个环代表一个自旋。接下来，在环翻转阶段，我们尝试翻转每个自旋。由于每个环的体积为 $\beta$，根据第6.2.5节给出的规则，翻转该环的接受概率正比于 $e^{- \beta H^{z}}$ 。由于 $\beta H^{z} \gg 1$ ，实际上自旋永远不会翻转，状态保持不变。</p><p>现在，假设其中一个环以极低的概率翻转了，新状态变为两个反平行自旋。这一次，没有任何因素阻止分配密度为 J 的水平图元。没有图元的概率正比于 $e^{- \beta J}$ ，并且由于 $\beta J \gg 1$ ，实际上在这种条件下我们总是会分配至少一个水平图元。于是，与之前的情况相反，没有任何环是垂直直线。结果，翻转环永远不会改变总磁化强度，也不会将系统放回原来的铁磁基态。</p><p>现在很清楚，当温度远小于 J 和 H<sup>z</sup> 时，$S^{z} = 1$ 和 $S^{z} = 0$ 状态之间的跃迁永远不会发生。然而，该系统的基态取决于 J 和 H<sup>z</sup> 的相对值，并在 $H^{z} = J$ 处从单重态变为三重态。这一观察表明，在相变点附近，环更新无法识别系统的基态。</p><p>这个例子并非特例，只要存在竞争性相互作用，如反铁磁耦合和均匀磁场共存，我们就会遇到类似问题。</p><h3 id=642-定向环算法directed-loop-algorithm>6.4.2 定向环算法（Directed-loop algorithm）<a class=anchor href=#642-%e5%ae%9a%e5%90%91%e7%8e%af%e7%ae%97%e6%b3%95directed-loop-algorithm>#</a></h3><p>我们通常可以通过蠕虫算法（worm algorithm）（Prokov’ev et al., 1998; Kashurnikov et al., 1999）来避免冻结问题。在本节中，我们介绍一种称为定向环算法（directed loop algorithm）（Sandvik, 1999; Syljuasen and Sandvik, 2002）的变体。虽然最初该算法与有限 M 的级数展开公式一起使用，但为概念简洁起见，下面我们将它在无限 M（即连续虚时）框架下进行介绍。</p><p>在<a href=/yuulibrary/books/qmc-lattice-models/ch04.html>第4.5节</a>中，我们将蠕虫更新应用于伊辛模型的高温级数展开。其核心思想是打破每个站点必须被偶数条边共享的规则。在蠕虫算法中，这一规则在两个称为蠕虫头（worm head）和蠕虫尾（worm tail）的站点处被违反。通过移动头或尾来更新状态。在下面描述的量子算法中，我们在时空中的两个点上打破总 $S^{z}$ 守恒的规则。换句话说，世界线在蠕虫头和尾处终止。最初，我们在同一点或彼此接近的位置创建头和尾，然后移动它们，留下部分新的世界线或擦除现有的世界线。当头和尾相遇时，它们可以湮灭。如果它们湮灭，则生成的状态就是更新后的自旋构型。</p><p>如下所述，当头移动时，只有在被顶点（vertex）散射时才会改变运动方向。散射后，头沿散射决定的方向移动。由于这种“惯性”，定向环算法中的头绘制环的效率更高，避免了扩散性的“来回”运动，与通常的蠕虫算法相比这是一个优势。</p><p>形式上，引入蠕虫对应于在哈密顿量中添加一个源项 $\eta \sum_{i} Q_{i}$，</p>$$
+H_{\mathrm{worm}} = H - \eta \sum_{i} Q_{i} .
+$$<p>这里，$Q_{i}$ 对应于头或尾。对于自旋模型，典型的选择是</p>$$
+Q_{i} = S_{i}^{+} + S_{i}^{-} ,
+$$<p>(在 $S_{i}^{z}$ 算符对角化的基组中)。<sup>11</sup> 一般来说，$Q_{i}$ 是一个只有非对角矩阵元的厄米算符。加入源项后，级数展开形式（6.41）下的配分函数变为</p>$$
+\begin{array} {r l r} Z_{M} = \sum_{\{\psi ( \tau ) \} \} \sum_{\{\tau_{\nu} , l_{\nu} \} \} ( \Delta \tau )^{n} \prod_{\nu} \langle \psi ( \tau_{\nu}^{+} ) | ( - H_{l_{\nu}} ) | \psi ( \tau_{\nu}^{-} ) \rangle}} \\ & {} & \\ & {} & {\qquad \times ( 1 + \sum_{\stackrel{\scriptstyle ( \tau_{h} , i_{h} )} {\scriptstyle ( \tau_{h} , i_{h} ) ,} \atop{\scriptstyle ( \tau_{t} , i_{t} )}} ( \Delta \tau )^{2} \eta^{2} \langle \psi ( \tau_{h}^{+} ) | Q_{i_{h}} | \psi ( \tau_{h}^{-} ) \rangle \langle \psi ( \tau_{t}^{+} ) | Q_{i_{t}} | \psi ( \tau_{t}^{-} ) \rangle ) ,} \end{array}\tag{6.42}
+$$<p>其中 t 和 h 分别代表尾和头，$( \tau_{t} , i_{t} )$ 和 $( \tau_{h} , i_{h} )$ 是对应的位置。对 $\{\psi ( \tau ) \}$ 的求和遍及所有满足条件 $\psi ( \tau )$ 仅在顶点或蠕虫处发生变化的构型。我们将级数截断到 η 的二阶，因为最多只考虑一个蠕虫头和一个蠕虫尾。原则上，包含更多蠕虫是可能的，也可能是有用的。</p><p>略作简化后，上述配分函数表达式变为</p>$$
+Z = \sum_{C , G} W ( C , G ) ,\tag{6.43}
+$$<p>其中 ${\cal C} \equiv \{\psi ( \tau ) \} , G \equiv \{( \tau_{\nu} , l_{\nu} ) \}$ 且</p>$$
+W ( C , G ) \equiv ( \Delta \tau )^{n} \prod_{\nu} \langle \psi ( \tau_{\nu}^{+} ) | ( - H_{l_{\nu}} ) | \psi ( \tau_{\nu}^{-} ) \rangle .\tag{6.44}
+$$<p>这里，我们将头部和尾部视为特殊顶点，并将它们包含在顶点的乘积中。相应地，蠕虫的存在与否及其头部和尾部的位置现在定义在 G 中，而头部和尾部的权重则定义在 $H_{l_{\nu}}$ 中，其中 $l_{\nu}$ 是头部 $( \nu = h )$ 或尾部 $( \nu = t )$ 所在位置的指标。具体来说，当 G 中没有蠕虫时，$W ( C , G )$ 是第6.3.1节中讨论的随机级数展开的权重。如果 G 包含头部和尾部，则权重会多出一个因子，即 (6.42) 中括号内的第二项。在有向环算法的马尔可夫过程中，一个“状态”由三部分信息组成：自旋构型 C、顶点构型 G 以及头部方向 $D . ^{12}$ 我们用符号 Σ 表示这三者，即 $\Sigma \equiv ( C , G , D )$。有向环算法是 Σ 空间中的一个马尔可夫过程。</p><p>一个马尔可夫步骤由四个子步骤组成。从没有蠕虫的构型开始，第一个子步骤是顶点分配，第二个是创建蠕虫的头部和尾部，第三个是蠕虫环过程，其中头部移动直到它回到尾部。第四个也是最后一个子步骤是蠕虫头部和尾部的配对湮灭。顶点分配子步骤完全按照第6.3.2节讨论的具有局部更新的随机级数展开方式进行。也就是说，我们以密度 $\langle \psi ( \tau ) | {( - H_{l} )} | \psi ( \tau ) \rangle$ 将顶点放置在整个系统上。新内容在于有蠕虫和无蠕虫的构型之间的切换，以及带有蠕虫的构型的更新。</p><p>让我们更详细地考虑蠕虫的创建和湮灭。我们创建蠕虫的方法是首先在时空上均匀随机地选择一个点，然后尝试将头部和尾部放置在那里。该尝试以一定的概率被接受。如果被拒绝，我们将当前状态再次计为马尔可夫过程生成的一个构型。当头部回到尾部时，逆过程成为可能。此时，我们尝试同时擦除头部和尾部。该尝试以一定的概率被接受，如果被拒绝，我们反转头部方向并让其继续移动。蠕虫创建前后的构型仅在一个时空点上不同。根据 (6.42)，有蠕虫构型相对于无蠕虫构型的权重为 $( \eta \Delta \tau )^{2} \langle s_{i} | Q_{i} | \sigma \rangle \langle \sigma | Q_{i} | s_{i} \rangle$，其中 $\sigma$ 是头部和尾部之间的状态，而 $s_{i}$ 是该对之外的状态。因此，细致平衡条件为：</p>$$
+P_{\mathrm{create}} ( s_{i} , \sigma ) \frac{\Delta \tau} {N \beta} = P_{\mathrm{annihilate}} ( s_{i} , \sigma ) ( \eta \Delta \tau )^{2} \langle s_{i} | Q_{i} | \sigma \rangle \langle \sigma | Q_{i} | s_{i} \rangle .
+$$<p>$P_{\mathrm{create}} ( s_{i} , \sigma )$ 是在所选位置 $( i , \tau )$ 创建头部和尾部，且中间状态为 $\sigma$、当前局部状态 $s_{i}$ 的概率，而 $P_{\mathrm{annihilate}} ( s_{i} , \sigma )$ 是当头部回到尾部时发生配对湮灭的概率。左侧的因子 $\Delta \tau / N \beta$ 是在创建过程中选择区域 $\{( i , \tau^{\prime} ) | \tau^{\prime} \in \tau \le \tau^{\prime} < \tau + \Delta \tau \}$ 的概率。因为 $\eta$ 是一个人为场，我们可以通过将其设置得足够小使其对我们有利，从而使湮灭概率为 1。于是：</p>$$
+P_{\mathrm{create}} ( s_{i} , \sigma ) = N \beta \Delta \tau \eta^{2} \langle s_{i} | Q_{i} | \sigma \rangle \langle \sigma | Q_{i} | s_{i} \rangle .
+$$<p>如果我们选择 $\begin{array} {r} {\eta^{2} \equiv ( \operatorname*{max}_{s_{i}} \sum_{\sigma} N \beta \Delta \tau \langle s_{i} | Q_{i} | \sigma \rangle \langle \sigma | Q_{i} | s_{i} \rangle )^{- 1}} \end{array}$，则得到：</p>$$
+P_{\mathrm{create}} ( s_{i} , \sigma ) = \frac{\langle s_{i} | Q_{i} | \sigma \rangle \langle \sigma | Q_{i} | s_{i} \rangle} {\operatorname*{max}_{s_{i}} \sum_{\sigma} \langle s_{i} | Q_{i} | \sigma \rangle \langle \sigma | Q_{i} | s_{i} \rangle} , \quad P_{\mathrm{annihilate}} ( s_{i} , \sigma ) = 1 .\tag{6.45}
+$$<p>特别地，如果我们取 $Q_{i} \equiv S_{i}^{x}$ 用于 $S = \frac{1}{2} XXZ$ 模型，则 $P_{\mathrm{create}} = P_{\mathrm{annihilate}} = 1$。</p><p>稍后我们将看到，推广蠕虫产生与湮灭过程是方便的。在上述过程中，我们只有两种选择：当有一条蠕虫时，我们要么湮灭它，要么反转其头部方向。然而，若局部自由度并非二元变量，则当我们尝试产生一对蠕虫时，头部与尾部之间的状态通常有多个选择（图6.6）。此外，当尝试的湮灭被拒绝且头部转向时，其后留下的中间状态通常可能与碰撞前的状态不同。为了涵盖所有这些可能性，我们必须在更广泛的一类状态之间考虑细致平衡条件。为使讨论更简单，我们定义：</p><p><img src=images/3da69b4c7ecb4954d4215a4499e6675335d4f900354986a9a9a5f552a5f05113.webp alt><p class=caption>图6.6 当存在三种可能的局部状态时，头部（三角形）在尾部（正方形）处产生、湮灭和散射的过程。</p></p>$$
+w_{\sigma}^{\mathrm{t}} \equiv \left\{\begin{array} {l l} {( N \beta \eta^{2} \Delta \tau )^{- 1}} & {( \sigma = s_{i} )} \\ {\langle s_{i} | Q_{i} | \sigma \rangle \langle \sigma | Q_{i} | s_{i} \rangle} & {( \sigma \neq s_{i} ) ,} \end{array} \right.\tag{6.46}
+$$<p>其中 $\sigma = s_{i}$ 的情形表示无蠕虫的构型。（$w^{\mathrm{t}}$ 的上标 $\mathbf{\ddot{\Delta}} \mathbf{\Phi}^{\mathsf{S}}$ 表示在尾部处的转移。）以下我们将头部在尾部处的产生/湮灭/散射过程视为各种中间态 $\sigma$ 之间的转移。我们现在的任务是构建满足条件的转移概率 $p^{\mathrm{t}} ( \sigma^{\prime} | \sigma )$（或散射通道）<sup>13</sup>：</p>$$
+p^{\mathrm{t}} ( \sigma^{\prime} | \sigma ) w_{\sigma}^{\mathrm{t}} = p^{\mathrm{t}} ( \sigma | \sigma^{\prime} ) w_{\sigma^{\prime}}^{\mathrm{t}} .
+$$<p>我们通过首先找到一个满足条件的解 $w_{\sigma^{\prime} \sigma}^{\mathrm{t}}$ 来解决此问题：</p>$$
+w_{\sigma^{\prime} \sigma}^{\mathrm{t}} = w_{\sigma \sigma^{\prime}}^{\mathrm{t}} \geq 0 , \quad w_{\sigma}^{\mathrm{t}} = \sum_{\sigma^{\prime}} w_{\sigma^{\prime} \sigma}^{\mathrm{t}}
+$$<p>并令</p>$$
+p^{\mathrm{t}} ( \sigma^{\prime} | \sigma ) = w_{\sigma \sigma^{\prime}}^{\mathrm{t}} / w_{\sigma}^{\mathrm{t}} .\tag{6.47}
+$$<p>接下来，如果 $\sigma \neq s_{i}$，$p^{\mathrm{t}} ( \sigma | s_{i} )$ 是创建中间态 $\sigma$ 的概率；如果 $\sigma \neq s_{i}$，$p^{\mathrm{t}} ( s_{i} | \sigma )$ 是当前中间态为 $\sigma$ 时湮灭该态的概率。此外，当 $\sigma$ 和 $\sigma^{\prime}$ 均不等于 $s_{i}$ 时，$p^{\mathrm{t}} ( \sigma^{\prime} | \sigma )$ 是调转方向并将中间态切换为 $\sigma^{\prime}$ 的概率。如果我们区分头运动方向不同但构型相同的两个状态，必须指出这些过程严格来说并不满足细致平衡条件。然而，正如我们在第6.4.3节讨论的，它们确实满足时间反演对称条件，这保证了马尔可夫过程收敛到正确的目标权重分布。</p><p>接下来，我们考虑通过头的随机运动来更新虫构型。当我们创建头时，我们为其指定初始方向，使其远离尾。沿竖直线运动后，头最终到达一个顶点。在那里，头的位�和运动方向可能会改变，也可能不变。当该顶点代表一个 $m$ 体相互作用时，通常存在 $2m$ 个或更多的散射通道。例如，二体相互作用的顶点在散射后，头的位�通常有四种可能性。我们根据相应的权重在这四种可能性中随机选择。</p><p>我们现在的问题是满足顶点处头散射所得到的状态之间的时间反演对称条件。定义</p>$$
+w_{\mu} \equiv \left. \psi_{b_{l}}^{\mu} ( \tau_{\nu}^{+} ) \left| ( - H_{l} ) \right| \psi_{b_{l}}^{\mu} ( \tau_{\nu}^{-} ) \right. \left. \psi_{i_{h}}^{\mu} ( \tau_{h}^{+} ) \left| Q_{i} \right| \psi_{i_{h}}^{\mu} ( \tau_{h}^{-} ) \right. ,\tag{6.48}
+$$<p>其中 $\psi_{b_{l}}^{\mu} ( \tau_{\nu}^{+} )$ 和 $\psi_{b_{l}}^{\mu} ( \tau_{\nu}^{-} )$ 是与相互作用单元 $b_{l}$ 相关的局部状态，分别位于顶点时间位置 $\tau_{\nu}$ 的上方和下方。标记 $\mu$ 指定散射通道。符号 $\psi_{i_{h}}^{\mu} ( \tau_{h}^{+} )$ 表示头所在格点 $i_{h}$ 上的局部状态，$\tau_{h}$ 是头的时间位置，假设其靠近该顶点。为了解决我们的问题，我们完全遵循与得到(6.47)式虫创建与湮灭过程相同的讨论；即，如果定义互权重 $w_{\mu \nu}$ 使得</p>$$
+w_{\mu} = \sum_{\nu} w_{\nu \mu} , {\mathrm{~ a n d ~}} w_{\mu \nu} = w_{\nu \mu} \geq 0 ,\tag{6.49}
+$$<p>那么，由</p>$$
+p^{\mathrm{v}} ( \nu | \mu ) = w_{\nu \mu} / w_{\mu} ,\tag{6.50}
+$$<p>定义的顶点散射概率 $p^{\mathrm{v}}$ 自动满足时间反演对称条件。</p><p>定向环算法中的一个蒙特卡罗步骤如算法20所示。每步中的循环次数 $N_{\mathrm{cycle}}$ 是一个任意固定的数字。通常将其设置为使得每个时空点平均被访问一次。<sup>14</sup> 例如，在第5.2.5节"利用虫进行模拟"中讨论的 $S = 1/2$ XY 模型情况下，(6.49)式的解如图6.7所示。根据该解和(6.50)式，我们得到散射概率</p>$$
+\begin{array} {r} {p^{\mathrm{v}} ( 1 | 4 ) = p^{\mathrm{v}} ( 2 | 4 ) = \frac{1} {2} , \quad p^{\mathrm{v}} ( 4 | 1 ) = p^{\mathrm{v}} ( 4 | 2 ) = 1 ,} \end{array}
+$$<p>算法20 定向环算法的一个马尔可夫步骤。
+输入：一个世界线构型；
+对于每个无扭结的顶点，将其移除；
+对于所有 $l$，以密度 $\langle \psi ( \tau ) | {( - H_{l} )} | \psi ( \tau ) \rangle$ 均匀随机地选取虚时，并在这些时刻放置对应于 $H_{l}$ 的顶点；
+对于 $i = 1$ 到 $N_{\mathrm{cycle}}$ 执行：
+在时空空间中均匀随机地选择一个点：
+以概率 $p^{\mathrm{t}} ( \sigma | s )$ (6.47) 在该点创建一个头部和一个尾部，其中间状态为 $\sigma$；
+若该尝试被拒绝，则终止该循环；
+否则，将头部引导至远离尾部的方向；
+循环：
+让头部移动，直到它碰到一个顶点或尾部；
+若它碰到一个顶点，则以概率 $p^{\mathrm{v}} ( \nu | \mu )$ 选择散射通道 $\nu$ (6.50)，其中 $\mu$ 是顶点附近的当前局域状态；让头部散射到所选通道；
+否则，以概率 $p^{\mathrm{t}} ( \sigma^{\prime} | \sigma )$ 选择新的中间状态 $\sigma^{\prime}$，其中 $\sigma$ 是头部与尾部之间的当前中间状态；
+若 $\sigma^{\prime}$ 与对外的状态相同，则让头部和尾部湮灭，终止该循环；
+否则，翻转头部的方向，并将中间状态设为 $\sigma^{\prime}$；
+结束循环
+结束循环
+返回更新后的构型。</p><p>| |
+||
+| |
+| |
+| |
+| |</p><p>图6.7 在 $S = {\frac{1} {\gamma}}$ XY 模型中，头部在顶点处散射的权重方程 (6.49) 的解。每个单元格下部的公式是 (6.49) 中定义的 $w_{\boldsymbol{\mu \nu}}$。阴影条目表示禁止的散射。（为简洁起见，耦合常数 $J^{x y}$ 记为 J。）</p><p>并且 $p^{\mathrm{v}} ( \mu | \nu ) = 0 $，否则。这个解导致了第5.2.5节中描述的算法。</p><h3 id=643-细致平衡条件的违反>6.4.3 细致平衡条件的违反<a class=anchor href=#643-%e7%bb%86%e8%87%b4%e5%b9%b3%e8%a1%a1%e6%9d%a1%e4%bb%b6%e7%9a%84%e8%bf%9d%e5%8f%8d>#</a></h3><p>定向环算法不满足细致平衡条件，因为头部总是沿着当前方向移动，不允许向后运动。<sup>15</sup> 例如，在定向环模拟中，令 $C$ 和 $C^{\prime}$ 是按此顺序出现的两个后续状态。注意，头部的方向也是状态的一部分。反向过程 $C^{\prime} \rightarrow C$ 不可能发生，因为 $C^{\prime}$ 中头部的方向使其远离其在 $C$ 中的位置。这明显违反了细致平衡。因此，我们需要额外的因素来确保过程收敛到正确的热力学分布。</p><p>由于头部运动违反了细致平衡条件，我们需要直接证明平稳条件（如<a href=/yuulibrary/books/qmc-lattice-models/ch02.html>第2.6节</a>所述），以显示蒙特卡洛模拟收敛到正确的平稳分布。在当前情况下，平稳条件表述为</p>$$
+\sum_{\Sigma} {P ( \Sigma^{\prime} | \Sigma ) W ( \Sigma )} = W ( \Sigma^{\prime} ) .
+$$<p>让我们引入“时间反演”算符“¯”，其定义为：$\bar{\Sigma}$ 与 $\Sigma$ 相同，但头部的方向反转。（如果 $\Sigma$ 是无虫状态，则 $\bar{\Sigma} = \Sigma$。）我们首先注意到，在第6.4.2节中，我们调整了转移概率，使得“时间反演对称性”</p>$$
+P ( \bar{\Sigma} | \bar{\Sigma}^{\prime} ) W ( \bar{\Sigma}^{\prime} ) = P ( \Sigma^{\prime} | \Sigma ) W ( \Sigma )\tag{6.51}
+$$<p>成立。从第6.4.2节对定向环算法的描述中也可以看出，目标权重 W 是“时间反演不变的”，</p>$$
+W ( {\bar{\Sigma}} ) = W ( \Sigma ) .\tag{6.52}
+$$<p>由这些条件可推导出平稳条件：</p>$$
+\sum_{\Sigma} P ( \Sigma^{\prime} | \Sigma ) W ( \Sigma ) = \sum_{\Sigma} P ( \bar{\Sigma} | \bar{\Sigma}^{\prime} ) W ( \bar{\Sigma}^{\prime} ) = W ( \bar{\Sigma}^{\prime} ) = W ( \Sigma^{\prime} ) .
+$$<p>因此，<a href=/yuulibrary/books/qmc-lattice-models/ch02.html>第2.6节</a>提出的定理保证了收敛性。</p><p>事实上，如果我们在有向环算法中忽略所有中间状态，当它从一个无虫状态过渡到另一个无虫状态时，它满足细致平衡。例如，让我们考虑两个无虫状态 $\Sigma$ 和 $\Sigma^{\prime}$，以及一个从 $\Sigma$ 开始到 $\Sigma^{\prime}$ 结束的状态序列：$\Sigma_{0}, \Sigma_{1}, \ldots, \Sigma_{n}$，其中 $\Sigma_{0} = \Sigma$ 且 $\Sigma_{n} = \Sigma^{\prime}$。我们可以利用时间反演对称性条件（6.51）和（6.52）来变形沿此路径的平衡概率流。<sup>16</sup> 通过对所有中间状态和路径长度求和，我们得到</p>$$
+\tilde{P} ( \Sigma^{\prime} | \Sigma ) {\cal W} ( \Sigma ) = \tilde{P} ( \Sigma | \Sigma^{\prime} ) {\cal W} ( \Sigma^{\prime} ) ,
+$$<p>其中 $\tilde{P}$ 是“重正化”转移概率（renormalized transition probability），</p>$$
+\tilde{P} ( \Sigma^{\prime} | \Sigma ) \equiv \sum_{n} \sum_{{\bf \Pi}_{{\bf \Pi}_{n} , \Pi_{{\bf \Pi}} , \Pi_{n - 1}} \atop{\bf \Pi}_{\mathrm{( w i t h ~ w o r m )}}} P ( \Sigma^{\prime} | \Sigma_{n - 1} ) \cdot \cdot \cdot P ( \Sigma_{2} | \Sigma_{1} ) P ( \Sigma_{1} | \Sigma ) .
+$$<p><sup>16</sup> 例如，在 $n = 3$ 的情况下，</p>$$
+\begin{array} {r l} & {P ( \Sigma^{\prime} | \Sigma_{2} ) P ( \Sigma_{2} | \Sigma_{1} ) P ( \Sigma_{1} | \Sigma ) W ( \Sigma ) = P ( \Sigma^{\prime} | \Sigma_{2} ) P ( \Sigma_{2} | \Sigma_{1} ) P ( \Sigma | \bar{\Sigma}_{1} ) W ( \Sigma_{1} )} \\ & {\qquad = P ( \Sigma^{\prime} | \Sigma_{2} ) P ( \bar{\Sigma}_{1} | \bar{\Sigma}_{2} ) P ( \Sigma | \bar{\Sigma}_{1} ) W ( \Sigma_{2} ) = P ( \bar{\Sigma}_{2} | \Sigma^{\prime} ) P ( \bar{\Sigma}_{1} | \bar{\Sigma}_{2} ) P ( \Sigma | \bar{\Sigma}_{1} ) W ( \Sigma^{\prime} )} \\ & {\qquad = P ( \Sigma | \bar{\Sigma}_{1} ) P ( \bar{\Sigma}_{1} | \bar{\Sigma}_{2} ) P ( \bar{\Sigma}_{2} | \Sigma^{\prime} ) W ( \Sigma^{\prime} ) ,} \end{array}
+$$<p>其中 $\Sigma$ 和 $\Sigma^{\prime}$ 是无虫构型，因此 $\Sigma = \bar{\Sigma}$ 且 $\Sigma^{\prime} = \bar{\Sigma}^{\prime}$。从这个例子可以清楚看出，对于任意 $n$，结果也是如此。</p><h3 id=644-关联函数correlation-functions>6.4.4 关联函数（Correlation functions）<a class=anchor href=#644-%e5%85%b3%e8%81%94%e5%87%bd%e6%95%b0correlation-functions>#</a></h3><p>虫算法和有向环算法在临界点附近高效的原理类似。在这些算法中，关联函数（correlation function）的估计器（estimator）是头部访问某一特定位置的频率。例如，要计算关联函数</p>$$
+\Gamma ( Y , X ) \equiv \langle{\mathcal T} S^{x} ( Y ) S^{x} ( X ) \rangle
+$$<p>其中 $\tau$ 表示虚时有序乘积（imaginary-time ordered product），我们统计头部相对于尾部经过位置 $\pm ( Y - X )$ 的次数。在环算法和有向环算法等价，且有向环算法中头部的轨迹在统计上与环算法中的环相同的情形下，这个估计器是很自然的。接下来，我们将证明，即使有向环算法与环算法不等价，上述估计器仍然有效。</p><p>我们从（6.42）和（6.44）出发，其中 $Q \equiv S^{x}$。关联函数可以表示为</p>$$
+( \Delta \tau \eta )^{2} \Gamma ( Y , X ) = \frac{\sum_{\Sigma^{\prime} : X , Y} W ( \Sigma^{\prime} )} {\sum_{\Sigma^{\prime} : \mathrm{noworm}} W ( \Sigma^{\prime} ) ,}
+$$<p>其中 $\Sigma = ( C , G , D )$ 代表马尔可夫链中的一个状态，$W ( \Sigma )$ 是按（6.44）定义的虫态或无虫态的权重。分子是对头部在 Y 且尾部在 X（或反之亦然）的状态求和。由于在蒙特卡洛模拟中，我们遇到状态 $\Sigma$ 的频率与 $W ( \Sigma )$ 成正比，我们可以将关联函数重写为</p>$$
+\Gamma ( Y , X ) = \frac{1} {\eta^{2}} \frac{\langle \Delta_{Y , X} ( \Sigma ) \rangle_{\mathrm{{M C}}}} {\langle \Delta_{\emptyset} ( \Sigma ) \rangle_{\mathrm{{M C}}}} ,
+$$<p>其中 $\Delta_{Y , X} ( \Sigma ) \left( \Delta \tau \right)^{2} = 1$ 当且仅当一个断点在以 $X$ 为中心的间隔 $\Delta \tau$ 内，另一个断点在以 $Y$ 为中心的间隔 $\Delta \tau$ 内。现在，我们得到</p>$$
+\begin{array} {l} {{\Gamma ( R ) \equiv \displaystyle \frac{1} {N \beta} \int d X d Y \Gamma ( Y , X ) \delta ( R - ( Y - X ) )}} \\ {{\displaystyle ~ = \frac{1} {N \beta \eta^{2}} \frac{\int d X \langle \Delta_{X + R , X} ( \Sigma ) \rangle_{\mathrm{{MC}}}} {\langle \Delta_{\emptyset} ( \Sigma ) \rangle_{\mathrm{{MC}}}}}} \\ {{\displaystyle ~ = \frac{1} {N \beta \eta^{2}} \langle n ( R ) \rangle_{\mathrm{{MC}}} ,}} \end{array}
+$$<p>其中 $n ( R )$ 是头在一个循环过程中经过相对尾部位矢为 $R \mathrm{或} - R$ 的点的平均次数。$^{17}$</p><h3 id=645-xxz-模型>6.4.5 XXZ 模型<a class=anchor href=#645-xxz-%e6%a8%a1%e5%9e%8b>#</a></h3><p>在本节中，我们明确描述 $S = \frac{1}{2}$ XXZ 模型情况下的有向环更新。为避免对维度或晶格几何的显式依赖，我们使用配对哈密顿量</p>$$
+\begin{array} {r} {H_{i j} = - J^{x y} \big ( S_{i}^{x} S_{j}^{x} + S_{i}^{y} S_{j}^{y} \big ) - J^{z} S_{i}^{z} S_{j}^{z} - \frac{1} {2} h ( S_{i}^{z} + S_{j}^{z} ) - E_{0}} \end{array}\tag{6.53}
+$$<p>其中交换耦合 $J^{x y} > 0$，配对磁场 $h > 0$。配对磁场是每个相互作用自旋对所对应的磁场，例如，对于 d 维超立方格点，$h = H^{z} / d$。我们引入常数 $E_{0}$ 以确保 $H_{i j}$ 的对角元为负。该模型的参数空间划分为六个区域，如图 6.8 所示。在求解 (6.49) 时，对于区域 I，我们选择常数 $E_{0} = J^{z} / 4$；对于区域 $\mathrm{II}_{1}$ 和 $\mathrm{II}_{2}$，选择 $E_{0} = ( J^{x y} - h ) / 4 + h / 2$；对于区域 $\operatorname{III}_{1}$、$\operatorname{III}_{2}$ 和 $\mathrm{III}_{3}$，选择 $E_{0} = - J^{z} / 4 + h / 2$。</p><p>在无外场的 XY 模型 $( J^{z} = 0 , h = 0 )$ 这一特殊情形下，我们得到了与第 5.2.6 节和 6.4.2 节中"蠕虫模拟（Simulation with Worms）"相同的结果。我们通过下文讨论的粗粒化（coarse-graining）方案，利用 $S = {\frac{1}{2}}$ 的情形来构造一般 S 下的顶点密度和散射概率。结果汇总于表 6.1。在此表中令 S 等于 $\frac{1}{2}$，即可得到 $S = \frac{1}{2}$ 的参数。表 6.1 列出了三个散射方向的顶点散射概率。箭头的方向表示散射方向，假设头部从左下角进入顶点。例如，符号 $p^{\mathrm{v}} ( \nearrow | \mu )$ 表示当顶点处的电流构型（current configuration）为 $\mu$ 时，从左上角向右下角散射的概率。类似地，另外两个符号 $p^{\mathrm{v}} ( \downarrow | \mu )$ 和 $p^{\mathrm{v}} ( \to | \mu )$ 分别表示向后散射和水平散射的概率。</p><p><img src=images/2b659755023db37d128d4c52f34e9d7f68c6d9a753d98033c6baf5a4f9e35962.webp alt><p class=caption>图 6.8 XXZ 模型的"算法相图"（algorithmic phase diagram）。</p></p><p class=caption>表 6.1 具有任意 S 的量子 XXZ 自旋模型粗粒化算法的顶点密度 ρ 和散射概率 P(
+|)。"配对磁场" h 的定义为：对于每个 $S = \frac{1}{2}$ 自旋，其所有相互作用键上 h 的总和等于 $H^{z}$，例如，对于 d 维超立方格点，$h = H^{z} / ( 2 d S )$。仅显示非平凡散射的概率。（对于表中未列出的初始构型 µ，非平凡散射概率为零，即头部始终直线穿过顶点。）${\overline{{l}}} \equiv 2 S - l , {\overline{{m}}} \equiv 2 S - m$</p><p>情形 I $( h - J^{z} \leq - J^{x y} )$
+| |
+||
+| $p^{\mathrm{v}} ( \downarrow | \mu )$ µ | $p^{\mathrm{v}} ( \nearrow | \mu )$ |
+| $\left( \begin{array} {l l} {{l}} & {{m}} \\ {{l_{-}}} & {{m}} \end{array} \right)$ $\frac{\overline{{{m}}} ( - J^{x y} + J^{z} - h )} {2 C}$ | $\frac{\overline{{m}} J^{x y}} {2 C}$ |
+| $\left( \begin{array} {l l} {\boldsymbol{l}} & {\boldsymbol{m}} \\ {\boldsymbol{l}_{+}} & {\boldsymbol{m}} \end{array} \right)$ $\frac{m ( - J^{x y} + J^{z} + h )} {2 C}$ | $\frac{m J^{x y}} {2 C}$ |
+| $\left( \begin{array} {l l} {{l + 1}} & {{m}} \\ {{l_{-}}} & {{m + 1}} \end{array} \right)$ 0 | $\frac{1} {\overline{{l}}}$ |
+| $\left( \begin{array} {l l} {l - 1} & {m} \\ {l_{+}} & {m - 1} \end{array} \right)$ 0 | 1 1 |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| |
+| $p^{\mathrm{v}} ( \downarrow | \mu )$ | | $p^{\mathrm{v}} ( \nearrow | \mu )$ | $p^{\mathrm{v}} ( \to | \mu )$ |
+| | 0 | $\frac{\overline{{m}} ( J^{x y} + J^{z} - h )} {4 A}$ | 0 |
+| | $\frac{m ( - J^{x y} + J^{z} + h )} {2 A}$ | $\frac{m J^{x y}} {2 A}$ | $\frac{\overline{{{m}}} ( J^{x y} - J^{z} + h )} {4 A}$ |
+| 0 |
+| |
+| |
+| |
+| $p^{\mathrm{v}} ( \to | \mu )$ |
+| $\frac{m J^{x y}} {2 B}$ |
+| $\frac{\overline{{m}} J^{x y}} {2 B}$ |
+| $\frac{1} {\overline{{l}}}$ |
+| $\frac{1} {l}$ |
+| |
+| |
+| $p^{\mathrm{v}} ( \to | \mu )$ |
+| |
+| 0 | | $\frac{m ( J^{x y} - J^{z} - h )} {4 B}$ |
+| |
+| |</p><p class=caption>表 6.1（续）</p><p>情形 III<sub>3</sub> $( J^{x y} \leq h + J^{z} , J^{x y} \leq h - J^{z} )$
+| |
+||
+| µ | $p^{\mathrm{v}} ( \downarrow | \mu )$ | $p^{\mathrm{v}} ( \nearrow | \mu )$ | $p^{\mathrm{v}} ( \to | \mu )$ |
+| $\left( \begin{array} {l l} {{l}} & {{m}} \\ {{l_{-}}} & {{m}} \end{array} \right)$ | 0 | 0 | 0 |
+| | $m ( - J^{x y} + J^{z} + h )$ | | |
+| $\left( \begin{array} {l l} {\boldsymbol{l}} & {\boldsymbol{m}} \\ {\boldsymbol{l}_{+}} & {\boldsymbol{m}} \end{array} \right)$ | $\frac{m ( - J^{\sim y} + J^{\sim} + n )} {2 B}$ | $\frac{m J^{x y}} {2 B}$ | $\frac{\overline{{m}} J^{x y}} {2 B}$ |
+| | | | |
+| $\left( \begin{array} {l l} {{l + 1}} & {{m}} \\ {{l_{-}}} & {{m + 1}} \end{array} \right)$ | 0 | $\frac{1} {\overline{{l}}}$ | 0 |
+| $\left( \begin{array} {l l} {l - 1} & {m} \\ {l_{+}} & {m - 1} \end{array} \right)$ | | | |
+| | 0 | 0 | $\frac{1} {l}$ |
+| | | | |</p><p>说明定向环回算法（directed-loop algorithm）实用性的一个例子是计算反铁磁海森堡链的磁化强度作为均匀外磁场的函数。正如我们在第6.4.1节中讨论的，与交换耦合相竞争的磁场会在环回算法中引起冻结问题，因此该方法无法用于计算低温下的磁化曲线。利用定向环回算法，Syljuasen 和 Sandvik (2002) 使用合理的计算时间获得了精确数据。然而，他们的结果也表明，在连续磁化平台之间的中间区域，自相关时间随系统尺寸增大而增加，这表明尽管蠕虫算法（worm algorithm）缓解了减速现象，但并未完全消除。迄今为止，该问题尚未有完全解决方案。</p><p>现在，让我们考虑利用对 $\begin{array} {r} {S = {\frac{1} {2}}} \end{array}$ 得到的散射概率来求解一般 S 的散射概率问题。原则上，我们可以直接求解 (6.49)，但解并不唯一，所得算法的效率在很大程度上取决于我们选择哪个解。</p><p>下面我们给出另一种基于分裂自旋表示（split-spin representation）（第6.2.6节）的方法的结果。我们可以用 2S 个泡利自旋（Pauli spins）重述 $\begin{array} {r} {S > {\frac{1} {2}}} \end{array}$ 的模型：$S_{i} \textstyle \sum_{\mu} \sigma_{i \mu}$。这导致了一个算法，其中头部在每个位点的 2S 条垂直线的时空流形中移动。现在假设我们将模拟可视化并制作实时动画。然后，想象我们在低分辨率显示器上观看它。2S 条线会模糊并看起来像一条粗线。在模糊的图像中，我们无法分辨头部 µ 在 2S 条线中的哪一条上。我们只能分辨它在哪个位点 i 和什么时间 τ。类似地，我们无法分辨特定顶点在 2S 条线中的哪一条上，但同样可以识别位点和时间。假设模糊图像中的单条线在原始图像中 2S 条线上自旋向上多于自旋向下时显得更亮，即我们有 $2 S + 1$ 个亮度级别（可在显示器上区分）。头部将该线的亮度级别改变一个单位。</p><p><img src=images/28160793a87bd8885073a6e9b80192048e429822e29115fbf6efb06d5ddc7a26.webp alt><p class=caption>图6.9 在“模糊”算法中头部散射概率的推导。µ 和 ν 是模糊图像中的初态和末态，而 $\tilde{\mu}$ 和 ν‾ 是分裂自旋图像中对应的状态。第一个和最后一个图中垂直线旁的数字代表该线的“亮度”。</p></p><p>Harada 和 Kawashima (2002) 指出，这种模糊动画可以在不先生成清晰图像并在低分辨率显示器上观看的情况下生成。相反，我们可以直接用亮度定义的转移矩阵集合来设置模拟。还要注意，出于所有实际目的，我们需要的只是模糊动画。简而言之，分裂自旋表示对于描述算法或编写计算机代码并非必需，但如下文所述，它对算法的推导很有用。</p><p>通过定义适当的散射概率，可以直截了当地实现分裂自旋的想法。作为例子，我们考虑 $S = 1$ 反铁磁海森堡模型。设子头刚刚击中一个状态为 $\mu$ 的顶点（图6.9中的第一个示意图）。散射最终状态为最后一个图的概率为</p>$$
+p^{\mathrm{v}} ( \nu | \mu ) = \sum_{\tilde{\mu} \tilde{\nu}} \Delta ( \nu | \tilde{\nu} ) p^{\mathrm{v}} ( \tilde{\nu} | \tilde{\mu} ) P^{( \mathrm{clarify} )} ( \tilde{\mu} | \mu ) .\tag{6.54}
+$$<p>原始清晰图像 $\tilde{\mu}$ 与模糊图像 $\mu$ 相关联的概率 $P^{( \mathrm{clarify} )} ( \tilde{\mu} | \mu )$ 与原始图像的权重成正比，</p>$$
+P^{( \mathrm{clarify} )} ( \tilde{\mu} | \mu ) = \frac{\tilde{w} ( \tilde{\mu} ) \Delta ( \mu | \tilde{\mu} )} {\sum_{\tilde{\mu}} \tilde{w} ( \tilde{\mu} ) \Delta ( \mu | \tilde{\mu} )} ,
+$$<p>其中当且仅当 $\mu$ 是原始图像 $\tilde{\mu}$ 的模糊图像时，$\Delta ( \mu | \tilde{\mu} ) = 1$。权重 $\tilde{w} ( \tilde{\mu} )$ 是分裂自旋表示中的权重，</p>$$
+\tilde{w} ( \tilde{\mu} ) = \sum_{\alpha \beta} \left. \sigma_{i \alpha}^{\prime} \sigma_{j \beta}^{\prime} \left| \left( - H_{i \alpha , j \beta} \right) \right| \sigma_{i \alpha} \sigma_{j \beta} \right. .
+$$<p>概率 $p^{\mathrm{v}}$ 是头在分裂自旋表示（即清晰图像）中的散射概率。这里我们没有显式引入虫权重<sup>18</sup>。</p><p>类似地，我们通过对分裂自旋表示中相应过程进行模糊化，得到虫的创建/湮灭概率。在 $S = {\frac{1} {2}}$ 模型中，如果所选点的当前局部自旋状态为 $+ \frac 12$，我们将对应算符 $S^{+}$ 的头放在对应 $S^{-}$ 的头之上（从而将两者之间的局部自旋状态切换为 $- \frac{1} {2}$）。如果局部自旋状态为 $- \frac 12$，则做相反的操作。经过粗粒化后，这些放置方式相当于以下情况：当局部自旋状态为 $l$ 时，在 $S^{-}$ 头上方创建 $S^{+}$ 头的概率为 $l / 2 s$；否则，我们在 $S^{+}$ 上方创建 $S^{-}$。对于虫的湮灭，如果相遇前 $S^{+}$ 在 $S^{-}$ 上方且区间外的局部自旋状态为 $l$（两者之间的局部自旋状态为 $l - 1$），则两个头位于同一条线上的概率为 $l^{- 1}$，这就是湮灭概率。相反，如果相遇前 $S^{+}$ 在 $S^{-}$ 下方，则概率为 $( 2 S - l )^{- 1}$。</p><p>最后，我们按如下方式分配顶点密度：考虑一个区间，其中两个位点之一的局部自旋状态为 $l$，另一个为 $m$。在原始（分裂自旋）图像中，我们在由 $( i \mu )$ 和 $( j \nu )$ 指定的两条竖直线之间分配密度为 $\langle \sigma_{i \mu}^{\prime} , \sigma_{j \nu}^{\prime} | ( - H_{i \mu , j \nu} ) | \sigma_{i \mu} , \sigma_{j \nu} \rangle$ 的顶点。因此，在模糊图像中，我们分配密度为</p>$$
+\rho = \sum_{\alpha \beta} \langle s_{i \alpha} , s_{j \beta} | \left( - H_{i \alpha , j \beta} \right) | s_{i \alpha} , s_{j \beta} \rangle = l m \rho_{+ +} + l \bar{m} \rho_{+ -} + \bar{l} m \rho_{- +} + \bar{l} \bar{m} \rho_{--} ,
+$$<p>其中 $\rho_{\pm \pm}$ 是局域自旋态为 $( \pm \frac{1}{2} , \pm \frac{1}{2} )$ 的 $S = \frac{1}{2}$ 模型中的顶点密度。</p><p>得到的顶点密度和散射概率如表6.1所示。注意，这里 $h$ 是每个泡利自旋对（Pauli-spin pair）的磁场，例如，对 $d$ 维超立方晶格，$h = H^{z} / (2dS)$。从哈密顿量的标准定义中减去的偏移能量 $E_{0}$ 为：对于区域I和V为 $(J^{z} - h) S^{2} + hS$；对于区域II、III和IV为 $-J^{xy} S^{2} + hS$；对于区域VI为 $J^{xy} S^{2} + h(S - 2S^{2})$。</p><h3 id=646-即时顶点生成>6.4.6 即时顶点生成<a class=anchor href=#646-%e5%8d%b3%e6%97%b6%e9%a1%b6%e7%82%b9%e7%94%9f%e6%88%90>#</a></h3><p>第6.4.2节描述了在级数展开经典化框架内的一种虫更新方法，其中顶点分配和虫更新是两个独立的过程。在本小节中，我们描述了在世界线蒙特卡洛模拟中引入虫的另一种方式，即“即时”（on the fly）生成相互作用顶点。得到的算法与原始虫算法（Prokov’ev et al., 1998）非常相似；然而，我们这里给出的算法是有向环算法（directed-loop algorithm）的推广，因此具有有向头运动。这种“有向性”通过防止头不必要的扩散运动来节省计算时间。与有向环算法相比，即时算法具有与传统虫算法相同的优势；即它只需要计算机内存来存储世界线，而无需存储“空白空间”。这一优势在通常应用于冷原子系统的极稀薄玻色气体情形中尤为显著。</p><p>基本思想非常简单。我们本质上执行与第6.4.2节描述的连续时间有向环算法相同的操作，但我们仅在头附近的一个受限区域内应用顶点生成过程（Kato and Kawashima, 2009）。更具体地说，我们考虑所有涉及头（或头当前所在位置）的相互作用项 $H_{l}$。对于由头本身及其前方的扭结（kink）界定的虚时间区间 $I$，我们尝试按照第6.4.2节描述的规则为每个相互作用项放置一个顶点；也就是说，我们通过一个速率等于 $H_{l}$ 的对角矩阵元的泊松过程（Poisson process）来放置它。在这些顶点中，我们选取离头最近的那一个。如第6.4.2节所述，我们将头移动到该顶点，并让其以与传统有向环算法完全相同的方式散射。一旦散射完成，顶点就被擦除，我们重复这一过程，直到头与尾湮灭。有可能在头的当前位置和下一个扭结之间没有放置新的顶点。在这种情况下，我们简单地将头移动到界定区间 $I$ 的扭结处，并让其在那里散射，再次遵循与之前相同的规则。</p><p>虽然这个过程给出了正确的结果，但我们可以通过跳过所有“前向散射”来改进它。在我们刚刚描述的过程中，在每个顶点处，头都有一定概率在空间位置或运动方向不变的情况下向前散射。因此，当这个概率接近1时，我们被迫多次生成随机数并做出随机决策，而世界线构型却没有任何改变，直到最终发生某种非前向散射。为了避免这种重复的计算成本，我们可以计算第一个散射时间 $\tau_{l}$，即如果没有其他更早的散射发生，由 $H_{l}$ 表征的顶点应该发生（非前向）散射的时刻。在为所有相互作用生成 $\tau_{l}$ 后，我们选择最小的一个，比如 $\tau_{l^{*}}$，让头前进到 $\tau_{l^{*}}$，并在对应于 $H_{l^{*}}$ 的顶点处散射。通过这种方式，我们节省了处理前向散射的计算成本。</p><hr><p>一种效果相同但更优的方法是使用“总”散射率生成第一个散射时间，即所有顶点散射率之和，然后确定哪个是散射顶点。这一过程对于每次实际非前向散射仅需进行一次泊松过程。这项任务稍微复杂，因为与当前自旋相互作用的自旋状态在虚时中变化，这进而使得区间 $I$ 中的衰减率非均匀。</p><p>针对这一问题有两个简单的解决方案。其一是改变 $I$ 的定义。到目前为止，我们将 $I$ 定义为由下一个未来扭结所界定的区间。相反，我们可以将 $I$ 定义为由头环境发生变化的点所界定的区间。换句话说，我们可以将 $I$ 定义为具有恒定“分子场”的最大区间。尽管新定义下的 $I$ 比之前定义的更短，但新定义符合当前目的。现在这一过程变得非常简单。我们首先生成一个均匀随机数 $\zeta$，并令 $\tau_{\mathrm{first}}$ 为</p>$$
+\tau_{\mathrm{first}} = - \log \zeta / a\tag{6.55}
+$$<p>其中 $a$ 为总散射幅度。然后让头前进 $\tau_{\mathrm{{f i r s t}}}$。总散射幅度是所有通道的非前向散射幅度之和，即</p>$$
+a \equiv \sum_{l} a_{l} p_{l}^{\mathrm{n . f .}} ,\tag{6.56}
+$$<p>其中求和遍及哈密顿量中当前格点涉及的所有相互作用项，$a_{l}$ 是在头正前方计算的 $- H_{l}$ 的矩阵元，</p>$$
+a_{l} \equiv \langle \psi ( \tau ) | ( - H_{l} ) | \psi ( \tau ) \rangle ,
+$$<p>而 $p_{l}^{\mathrm{n . f .}}$ 是代表 $H_{l}$ 的顶点处的非前向散射概率。具体地，$p_{l}^{\mathrm{n . f .}} \equiv 1 - p_{l}^{\mathrm{v}} ( \uparrow | \mu )$，其中 $\mu$ 是头当前位置正前方的局部状态。<sup>19</sup> 接下来，我们选择实际发生散射的相互作用项 $l$，其概率为</p>$$
+p_{l} \equiv \frac{a_{l} p_{l}^{\mathrm{n . f .}}} {a} .
+$$<p>然后，我们在头正前方放置一个对应于 $H_{l}$ 的顶点，并让其在那里散射。在此散射中，只应考虑非前向散射，因为前向散射已通过我们跳过区间 $\tau_{\mathrm{{f i r s t}}}$ 这一事实被考虑在内。换句话说，我们应该使用修改后的散射概率，</p>$$
+p^{\mathrm{v} \prime} ( \nu | \mu ) \equiv \frac{p^{\mathrm{v}} ( \nu | \mu )} {p_{l}^{\mathrm{n . f .}}} ,\tag{6.57}
+$$<p>其中 $p^{\mathrm{v}} ( \nu | \mu )$ 是之前引入的、针对 $H_{l}$ 顶点的标准过程(6.50)中从初始状态 $\mu$ 到末状态 $\nu$ 的散射概率。</p><p>另一个解决时变散射率问题的方法是通过修改上述过程来实现。我们将 (6.55) 中（通常现在是时变的）散射率 $a$ 替换为其最大值 $a_{\mathrm{max}}$ ，计算</p>$$
+\tau_{\mathrm{first}} = - \log \zeta / a_{\mathrm{max}} ,\tag{6.58}
+$$<hr><p>然后通过以一定概率拒绝所提议的散射来补偿这种过高估计。更精确地说，$a_{\mathrm{max}}$ 是任何与构型无关的常数，且大于 (6.56) 中的散射率。在新的方案中，我们不是在时间 $\tau + \tau_{\mathrm{first}}$ 处放置一个顶点，而是只放置一个该顶点的“标记”。我们将头部移动到该点，并通过 (6.56) 计算总散射率 $a$。然后，以概率 $1 - a / a_{\mathrm{max}}$ 选择前向散射。否则，我们以概率 (6.57) 选择散射通道。算法 21 中采用了这种变体。</p><p>由于针对一般模型的最终算法看起来很复杂，将其专门化到 $S ~ = ~ {\textstyle{\frac{1} {2}}} ~ X Y$ 模型这一简单情况可能会有所帮助。我们首先通过调整 $\eta$ 的值，使 (6.46) 中的 $w_{\mathrm{worm}} ( \sigma )$ 在所有情况下都相同，$\eta$ 决定了虫子的产生和湮灭概率，使得两者都为单位值。相互作用在每个键上的散射率始终是 ${\scriptstyle{\frac{1} {4}}} J^{x y}$，这使得 (6.58) 中的 $a$ 为 ${\frac{1} {4}} z J^{x y}$，其中 $z$ 是配位数。由于 $a$ 不依赖于构型，我们取 $a_{\mathrm{max}} = a$，从而避免了在标记处选择前向散射。如果顶点上没有扭结，其散射概率为 1；而对于扭结处的散射，对角散射和水平散射的概率为 $\frac{1} {2}$。如算法 22 所示，所得算法比通用算法要简单一些。</p><h2 id=65-趋向零温>6.5 趋向零温<a class=anchor href=#65-%e8%b6%8b%e5%90%91%e9%9b%b6%e6%b8%a9>#</a></h2><p>在第三部分中，我们将讨论专门设计用于模拟零温下系统的算法。我们现在简要讨论如何使用有限温度蒙特卡洛方法来研究零温性质。一种直接的方法是在非零但足够低（使得系统行为近似为零温行为）的温度下运行模拟。当基态和第一激发态之间存在有限能隙时，这种方法通常是成功的。研究激发能隙趋近于零的系统需要更复杂的技术。特别重要的是，将有限温度量子蒙特卡洛模拟应用于研究量子临界现象。</p><p>算法 21 带有“即时”顶点生成的有向环算法中的一个循环。
+输入：一个没有虫子的世界线构型；
+在时空上均匀随机地选取一个点；
+以概率 $p^{\mathrm{t}} ( \sigma | s )$（$s$ 是当前状态）（6.47）选取 $\sigma$；
+如果 $\sigma = s$，则
+返回；
+否则
+创建一个头部和一个尾部，中间态为 $\sigma$；
+引导头部远离尾部；
+结束如果
+循环
+通过 (6.58) 生成 $\tau_{\mathrm{{f i r s t}}}$；
+在 $\tau + \tau_{\mathrm{first}}$ 处放置一个“标记”
+将头部移动到它遇到的第一个对象的位置；
+如果下一个对象是标记，则
+在新位置计算由 (6.56) 定义的 $a$；
+以概率 $1 - a / a_{\mathrm{max}}$ 决定是否发生前向散射；
+如果前向散射，则
+返回到循环开始处；
+否则
+以概率 $p_{l} \equiv a_{l} p_{l}^{\mathrm{n . f .}} / a$ 选择相互作用项 $l$
+将对应于 $H_{l}$ 的顶点正好放置在头部前方；
+结束如果
+以概率 $p^{\mathrm{v} /} ( \nu | \mu )$ (6.57)，让头部散射到通道 $\nu$；
+否则如果下一个对象是扭结，则
+以概率 $p^{\mathrm{v}} ( \nu | \mu )$ (6.50)，让头部散射到通道 $\nu$；
+否则如果，则
+以概率 $p^{\mathrm{t}} ( \sigma^{\prime} | \sigma )$ (6.47) 生成 $\sigma^{\prime}$，其中 $\sigma$ 是头部和尾部之间的当前中间态；
+如果 $\sigma^{\prime}$ 等于头部后方的状态，则
+让头部和尾部湮灭；
+终止循环；
+否则
+反转头部方向，并将中间态设为 $\sigma^{\prime}$
+结束如果
+结束如果
+结束循环
+返回更新后且没有虫子的世界线构型。</p><p><strong>算法22</strong> 针对 $S = \frac{1}{2} X Y$ 模型的算法21的专门化。</p><p>输入：一个没有虫子的世界线构型；
+在时空中均匀随机选取一个点；
+创建头部和尾部；
+令头部远离尾部；
+循环
+生成一个随机数 $\zeta$；
+$\tau_{\mathrm{first}} = -\log \zeta / \left( \frac{1}{4} z J^{xy} \right)$；
+将标记放置在与当前位置相距 $\tau_{\mathrm{first}}$ 的位置；
+让头部前进，直到遇到标记、扭结或尾部；
+如果遇到标记，则
+以相等的概率从当前格点 $i$ 的近邻中选取一个格点 $j$；
+在与头部紧邻的前方放置对应 $H_{ij}$ 的顶点；
+如果 $i$ 和 $j$ 上的自旋平行，则
+让头部发生对角散射；
+否则
+让头部发生水平散射；
+结束如果
+否则，如果遇到扭结，则
+以 $\frac{1}{2}$ 的概率让头部发生对角散射或水平散射；
+否则，如果遇到尾部，则
+让头部和尾部湮灭；
+终止循环；
+结束如果
+结束循环
+返回更新后的构型。</p><h3 id=651-外推至零温>6.5.1 外推至零温<a class=anchor href=#651-%e5%a4%96%e6%8e%a8%e8%87%b3%e9%9b%b6%e6%b8%a9>#</a></h3><p>一个具有有限维希尔伯特空间的系统，其基态能量与第一激发态能量之间总是存在一个有限差值 $\Delta E$。在这种情况下，任意可观测量 $Q$ 的期望值必须具有随温度变化的依赖关系，其形式为</p>$$
+\begin{array} {r} {\langle Q \rangle \sim Q_{0} + \mathcal{O} ( e^{- \Delta E / k T} ) ,} \end{array}\tag{6.59}
+$$<p>在温度区间 $0 ~ < ~ k T ~ \ll ~ \Delta E$ 内。这里，$Q_{0}$ 是可观测量 Q 在零温下的期望值。因此，如果能隙不是很小，我们可以通过本章讨论的某种量子蒙特卡罗算法来估算该期望值。我们只需达到一个远大于 $( \Delta E )^{- 1}$ 的 $\beta$ 值。如果这是可行的，那么我们可以将结果视为零温结果。更优的做法是在不同温度下进行模拟，并利用公式 (6.59) 将结果外推至零温。</p><p>然而，能隙 $\Delta E$ 的大小通常是事先未知的。它取决于系统的性质，并可能在热力学极限 $L \to \infty$ 下趋近于零。趋近于零可能与自发对称性破缺的发生有关。如果表征对称性破缺的序参量与哈密顿量对易，那么即使系统尺寸有限，基态也是简并的。一个简单的例子是铁磁性的、类似伊辛的 XXZ 模型 $( 0 ~ < ~ | J^{x y} | ~ < ~ J^{z} )$，其基态是“全上”或“全下”态。序参量是均匀磁化强度 $M \equiv \sum S_{i}^{z}$，它与哈密顿量对易。因此，简并是严格的。在这种情况下，如果我们应用上述方法，能隙就是二重简并基态与第一激发态之间的能量差。由于这个能隙是 $\mathcal{O} ( J^{z} - J^{x y} )$，在 $k T \ll \Delta E$ 的条件下进行模拟是相当直接的。因此，从低温但有限温度的模拟中获得零温性质是可行的。</p><p>一个更非平凡的例子是二分格点上的易轴反铁磁 XXZ 模型。其基态是奈尔态（Néel state），因此在热力学极限下是二重简并的。序参量是交错磁化强度 $M_{s} ~ \equiv ~ \sum \epsilon_{i} S_{i}^{z}$，其中对于在一个子格点上的 i，$\epsilon_{i} ~ = ~ 1$，对于在另一个子格点上的 i，$\epsilon_{i} ~ = ~ -1$。除非 $\begin{array} {r l} {J^{x y} {}} & {{} = {} ~ 0} \end{array}$（我们假设非此情况），否则这个序参量不与哈密顿量对易。因此，基态不一定是简并的，实际上，对于任何具有偶数个自旋的有限系统，基态是非简并的。我们将有限系统的基态符号化地写为 $| + \rangle \equiv ( | \cdots \uparrow \downarrow \uparrow \downarrow \cdots \rangle + | \cdots \downarrow \uparrow \downarrow \uparrow \cdots \rangle ) / \sqrt{2}$，其中 $| \cdots \uparrow \downarrow \uparrow \downarrow \cdots \rangle$ 是正交错磁化强度的态（并非该表达式可能错误暗示的完美、完全极化的奈尔态），而 $| \cdots \downarrow \uparrow \downarrow \uparrow \cdots \rangle$ 是通过翻转所有自旋从另一个态得到的简并态。那么第一激发态就是 $| - \rangle \equiv ( | \cdots \uparrow \downarrow \uparrow \downarrow \cdots \rangle - | \cdots \downarrow \uparrow \downarrow \uparrow \cdots \rangle ) / \sqrt{2}$，具有指数小的激发能 $\Delta E \propto | J^{x y} / J^{z} | ^{N}$。为了选出在有限系统中唯一的基态，温度必须低于这个指数小的能级。然而，我们通常不需要达到如此低的温度，因为大多数感兴趣的量，例如能量和磁化率，并不取决于系统处于这两个态中的哪一个。因此，只要温度低于第二激发能级，观测值就不会强烈依赖于温度。</p><p>更微妙的情况来自于连续对称性的自发破缺。在这种情况下，戈德斯通定理（Goldstone's theorem） (Nambu, 1960; Goldstone, 1961)</p><hr><p>预言了准粒子——南部-戈德斯通玻色子（Nambu-Goldstone boson）的存在，它们代表长波激发。南部-戈德斯通玻色子的激发能是无能隙的，通常具有波数的代数依赖关系，即 $\epsilon_{k} \propto k^{\mu}$，其中 $\mu$ 为正整数。例如，在二维或更高维度中，铁磁海森堡模型会自发破缺 $O(3)$ 对称性。磁振子激发的色散关系为 $\epsilon_{k} \sim J a^{2} k^{2}$，其中 $a$ 为晶格常数。在线性尺寸为 $L$ 的有限系统中，最小非零波数为 $k_{1} \equiv \pi / L$，因此第一激发能隙为 $\Delta E \sim J ( \pi a / L )^{2}$ 。因此，为了探测零温，我们需要将模拟温度推至足够低，使得 $\beta J \gg J / ( \Delta E ) \sim ( L / a )^{2}$ 才能获得基态。对于反铁磁海森堡模型，磁振子激发为 $\epsilon_{k} \sim J a k$ 。相应地，有效“零温”模拟的条件是 $\beta J \gg L / a$。</p><h3 id=652-量子相变>6.5.2 量子相变<a class=anchor href=#652-%e9%87%8f%e5%ad%90%e7%9b%b8%e5%8f%98>#</a></h3><p>多体问题展现出无法从单个自由度的行为进行预测的现象。然而，当我们关注临界现象时，常常会发现这些行为与相互作用的细节无关。能够利用模拟来探究这种普适性正是这些研究极具价值的原因。现实系统中的相互作用种类繁多，其模拟看似一项艰巨的任务。一种常见的策略是从简化模型入手，识别出临界现象，然后再考虑各种修正项的影响。</p><p>在量子系统中，临界现象同样重要，并且往往比经典系统中的临界现象更有趣。在低温极限下，可以观察到量子系统特有的临界现象。我们可以从路径积分表示来论证这一点，该表示将一个 $d$ 维量子系统映射到一个 $(d+1)$ 维经典系统。然而，我们不能使用上一小节讨论的策略来研究零温量子临界现象，因为在量子临界点处系统通常具有无能隙的激发，因此缺乏一个有限的能量尺度来标记进入“零温区域”。相反，在量子临界点附近，能隙随系统尺寸呈代数形式变化，导致有限温度误差随系统尺寸减小得很慢。</p><p>让我们考虑一维横场伊辛模型的物理性质，其计算方面已在第5.2.2节讨论过。方程(5.6)给出了到各向异性二维经典伊辛模型的映射。该量子模型对于绕 $x$ 轴的 180 度旋转仍然具有对称性。这种对称性称为 $Z_{2}$ 对称性。在零温和 $H^{x} = 0$ 时，该量子模型展现出长程有序，即 $Z_{2}$ 对称性被自发破缺。虽然 $H^{x} = 0$ 时的基态是沿 $+z$ 或 $-z$ 方向完全极化的，但一旦我们引入一个有限的横向磁场，这个状态就不再是哈密顿量的本征态。哈密顿量中第一项和第二项的非对易性所产生的量子涨落导致了这种变化。目前尚不清楚这些量子涨落是会破坏长程有序，还是仅仅削弱它。如我们在第5.2.2节中所讨论的，当我们增加横向场时，横场伊辛模型最终会从有序相转变到无序相。</p><p>在第5.2.2节中，我们将一维横场伊辛模型映射到具有各向异性耦合的二维经典伊辛模型 (5.19)</p>$$
+K^{x} = \Delta \tau J^{z} , K^{\tau} = - 2 \ln \frac{\Delta \tau H^{x}} {2} .
+$$<p>这个映射将二维经典各向异性伊辛模型 (Baxter, 1982)的临界行为与一维量子模型的临界行为联系了起来。特别地，它确立了一维量子模型在满足下式时处于临界状态：</p>$$
+\sinh \frac{K^{x}} 2 \sinh \frac{K^{\tau}} 2 = 1 .\tag{6.60}
+$$<p>将上面引用的 $K^{x}$ 和 $K^{\tau}$ 的表达式代入 (6.60) 并取经典映射变得精确的极限 $\Delta \tau \to 0$，我们得到了临界场的精确值</p>$$
+H_{c}^{x} = \frac{1} {2} J^{z} .
+$$<p>然而，这一结论仅在正确取热力学极限时才成立，而要做到这一点我们必须小心，因为经典系统的热力学极限并不一定对应于量子系统的热力学极限。更具体地说，如果我们保持 $\beta$ 固定，原始一维量子模型的热力学极限对应于二维经典模型在无限长宽比极限下的行为，其中空间方向的尺寸 $L$ 趋于无穷大，而时间方向的尺寸（即 $\beta$）保持有限。只有当量子系统的温度趋于零时，等效经典系统的尺寸才在两个方向上都变得无穷大。因此，在本例中，经典映射仅保证了零温相变存在临界点。</p><p>通常，当我们增加时间方向的尺寸时，会观察到从 $d$ 维行为到 $( d + 1 )$ 维行为的交叉（crossover）。当 $( d + 1 )$ 维系统中时间方向上的关联长度变得与系统在时间方向的尺寸相当时，就会发生这种交叉，即</p>$$
+\begin{array} {r} {\xi_{t} \propto | H^{x} - H_{c}^{x} | ^{- z \nu} \sim \beta ,} \end{array}
+$$<p>其中 $\nu$ 是表征量子临界点附近关联长度发散程度的临界指数（critical exponent），$z$ 是将长度尺度与时间尺度联系起来的指数，称为动力学临界指数（dynamical critical exponent）。对于横向场伊辛模型，$z = 1$。如果 $\xi_{t} \ll \beta$，系统的行为与 $(d + 1)$ 维系统相同，因为关联长度与无限大尺寸系统中的一样长。另一方面，如果 $\xi_{t} \gg \beta$，则沿时间方向的变化为零，因此系统表现为 $d$ 维系统。这一一般性结论也适用于横向场伊辛模型，由此可知，在满足下式的区域内，该模型在量子临界点附近表现为 $d$ 维系统：</p>$$
+T > T^{*} ( H^{x} ) \propto | H^{x} - H_{c}^{x} | ^{z \nu} .
+$$<p>如果 (d \ge 2)，d 维经典系统本身会发生相变，关联长度在转变温度附近发散。这种有限温度相变属于 d 维伊辛普适类。在这种情况下，从 (d + 1) 维行为到 d 维行为的交叉变成了真正的相变，从而得到图 6.10 示意绘制的相图。</p><p>对于横场伊辛模型，从映射中可以明显看出，虚时方向除了一个称为“光速”（或声速）的缩放因子外，与空间方向等效。这就是为什么该模型有 (z = 1)。然而，这种等效性并非普遍成立。有些情况下，时间轴的维度与空间轴的维度并不相同。</p><h3 id=653-有限尺寸标度>6.5.3 有限尺寸标度<a class=anchor href=#653-%e6%9c%89%e9%99%90%e5%b0%ba%e5%af%b8%e6%a0%87%e5%ba%a6>#</a></h3><p>重正化群的知识对于理解临界现象不可或缺。对量子系统的数值研究非常重要的一点是，这种方法使得我们可以对零温临界点进行有限尺寸标度分析。利用有限尺寸标度，我们能够通过有限温度下的数值模拟来表征零温临界点。关于这个主题有很多教科书（例如，Ma, 1985; Cardy, 1996; Nishimori and Ortiz, 2010），因此我们仅简要概述该方法。</p><p>设表征热力学状态的参数为 (t , h , g , . . . ,)，系统尺寸为 L。以伊辛模型为例，t 是温度与临界温度的偏差，h 是磁场。系统的总自由能 F 是这些参数的函数：</p><p><img src=images/f288875f38bebe1e1f85889d5639ad982ca4ad1ef425566bab9a5b12035ffc9b.webp alt><p class=caption>图 6.10 横场伊辛模型示意图相图。有限温度相变仅存在于二维或更高维。当在非零温度下穿过相边界时（虚线箭头），临界现象属于 d 维经典伊辛普适类。当在零温下穿过时（实线箭头），它属于 (d + 1) 维经典伊辛普适类。在一维中，有一条交叉线而不是转变线。</p></p>$$
+F ( t , h , g , \ldots , L ) .
+$$<p>假设系统在尺度为 b 的重正化变换下保持不变，并且参数变换为</p>$$
+t \to t b^{y_{t}} , \quad h \to h b^{y_{h}} , \quad g \to g b^{y_{g}} , \quad \dots .\tag{6.61}
+$$<p>虽然一般来说，我们必须重新定义参数才能使这些变换精确成立，但这里我们简单地假设 (6.61) 是满足的。那么，我们说 (y_{p} \ ( p =) (t , h , g , \ldots )) 是场 (p) 的标度特征值（scaling eigenvalue），并且与 (p) 共轭的算符 (Q) 的标度维数（scaling dimension）为 (x_{Q} \equiv d - y_{p})。例如，两点关联函数的渐近行为是</p>$$
+\langle Q ( x ) Q ( y ) \rangle \propto \frac{1} {| x - y | ^{2 x_{Q}}} .
+$$<p>如果 (y_{p} > 0)，我们说标度场 (p)（或算符 (Q)）是相关的（relevant）。另一方面，如果 (y_{p} &lt; 0)，则它是无关的（irrelevant）。</p><p>当参数满足标度变换 (6.61) 时，自由能满足</p>$$
+F ( t , h , g , \ldots , L ) = F ( t b^{y_{t}} , h b^{y_{h}} , g b^{y_{g}} , \ldots , L / b ) .
+$$<p>通过设定 (L / b = \Lambda) 并消去 b，我们得到</p>$$
+F ( t , h , g , \ldots , L ) = F ( t ( L / \Lambda )^{y_{t}} , h ( L / \Lambda )^{y_{h}} , g ( L / \Lambda )^{y_{g}} , \ldots , \Lambda ) .
+$$<p>如果我们现在将 (\Lambda) 视为常数，可以消去它，从而得到有限尺寸标度公式（Fisher and Barber, 1972）</p>$$
+F ( t , h , g , . . . , L ) = \tilde{F} ( t L^{y_{t}} , h L^{y_{h}} , g L^{y_{g}} , . . . ) .\tag{6.62}
+$$<p>从这个表达式出发，热力学极限下的标度形式首先通过将 (6.62) 变形为</p>$$
+f ( t , h , g , \ldots , L ) = F / L^{d} = t^{d / y_{t}} {\tilde{f}} ( t L^{y_{t}} , h t^{- y_{h} / y_{t}} , g t^{- y_{g} / y_{t}} , \ldots )
+$$<p>然后在固定 t 的情况下取极限 (L \to \infty)，得到自由能密度的如下公式：</p>$$
+f ( t , h , g , \cdot \cdot \cdot ) = t^{d / y_{t}} f ( h t^{- y_{h} / y_{t}} , g t^{- y_{g} / y_{t}} , \cdot \cdot \cdot ) .\tag{6.63}
+$$<p>最后一步是合理的，因为$f$必须收敛到某个与$L$无关的有限值。方程(6.63)被称为自由能的标度形式。</p><p>通过考虑充分大的$L$，我们可以忽略对无关参数的依赖。例如，在二维伊辛模型临界点的情况下，只有两个相关的标度场，一个与远离临界温度$T_{c}$的温度差$T - T_{c}$相关，另一个与磁场$H$相关。因此，我们将(6.62)中的$t$和$h$分别等同于这些场，得到渐近正确的标度形式，</p>$$
+F ( T , h , L ) \approx F ( t L^{y_{t}} , h L^{y_{h}} ) \quad ( \mathrm{伊辛~模型} ) .\tag{6.64}
+$$<p>其他量的标度形式可以通过对等式两边关于相关标度场求导得到。例如，对于零场磁化率，对(6.64)关于$H$（或$h$）求两次导数，可得</p>$$
+\begin{array} {l} {{\chi ( T , L ) \approx - L^{- d} \left. \frac{\partial^{2} F ( ( t L^{y_{t}} , h L^{y_{h}} )} {\partial h^{2}} \right| _{h = 0}}} \\ {{\displaystyle = L^{- d + 2 y_{h}} \tilde{\chi} ( ( T - T_{c} ) L^{y_{t}} ) \quad \mathrm{( 伊辛~模型 )} ,}} \end{array}\tag{6.65}
+$$<p>其中${\tilde{\chi}} ( X ) \equiv - ( \partial^{2} F ( X , Y ) / \partial Y^{2} )_{Y = 0}$。根据这个热力学关系，可得$\gamma = ( 2 y_{h} - d ) / y_{t}$，其中$\gamma$是表征相变点处磁化率发散临界指数。</p><p>像(6.64)和(6.65)这样的方程在分析数值模拟结果时至关重要。我们可以通过将计算结果拟合到这些公式来识别主导相变的不动点。例如，假设我们对伊辛模型在不同的$T$和$L$值下进行蒙特卡洛模拟。这样将得到许多$\chi ( T , L )$的估计值。然后，如果我们绘制$\chi ( T , L ) / L^{2 y_{h} - d}$关于$( T - T_{c} ) L^{y_{t}}$的图像，只要$L$足够大，所有数据点，无论系统大小如何，都将落在同一条曲线$Y = \tilde{\chi} ( X )$上。当然，在大多数情况下，我们不知道$y_{t}$、$y_{h}$和$T_{c}$的正确值。因此，我们需要做一些猜测。为了获得正确值，我们调整猜测值，直到所有数据点都坍塌到同一条曲线上。<sup>20</sup></p><p>经过两点修改，我们可以将上述有限尺寸标度应用于量子系统。第一个修改是将$F \equiv - k T \log Z$替换为$\Phi \equiv - \log Z$。这是一个自然的步骤，因为在有限尺寸标度中，虚时轴被当作另一个方向来处理，因此我们应该移除归一化因子$1 / \beta$，以使空间和时间之间的等价性变得明显。第二个修改是引入动力学临界指数$z$，它是虚时的维度。</p><p>在上一节讨论的横场伊辛模型的情况下，虚时轴除了一个常数因子外，与任何空间轴等价，这意味着洛伦兹不变性，即$z = 1$。在这种情况下，我们可以将虚时视为一个额外的长度尺度，并且在研究量子临界现象时，只需将上述有限尺寸标度中的$d$替换为$d + 1$来应用。在这样做时，我们需要通过随系统尺寸$L$变化而改变逆温度$\beta$来固定纵横比。然而，在某些情况下，虚时方向与空间方向并不等价。为了将有限尺寸标度分析推广到这些情况，我们通过将逆温度作为另一个参数添加到(6.62)中来进行推广，</p>$$
+\Phi ( t , . . . , \beta , L ) = \Phi ( t L^{y_{t}} , . . . , \beta / L^{z} ) ,\tag{6.66}
+$$<hr><p>其中 $t = q - q_{c}$ 衡量距离量子临界点 $q = q_{c}$ 的距离。尽管这个方程包含有限的逆温度，但它描述的却是零温相变。通过将模拟数据拟合到这些形式，我们得到了动力学标度指数 z 以及 $y_{t}$ 和 $q_{c}$。</p><h2 id=66-应用于玻色子系统>6.6 应用于玻色子系统<a class=anchor href=#66-%e5%ba%94%e7%94%a8%e4%ba%8e%e7%8e%bb%e8%89%b2%e5%ad%90%e7%b3%bb%e7%bb%9f>#</a></h2><p>本节中，我们简要讨论将量子自旋格点算法应用于玻色子格点模型。对玻色子格点模型的研究兴趣源于各种低温实验（Anderson 等人，1995），这些实验利用电磁阱中的原子观测到了玻色-爱因斯坦凝聚（Bose-Einstein condensation）。这一现象以及超流现象长期以来一直由连续介质中的系统进行建模，事实上，连续介质中的量子蒙特卡罗方法也已用于研究这两个现象有一段时间了。改变游戏规则的是实现了光学晶格的实验，该晶格通过驻波将玻色子原子捕获在周期势阱中（Greiner等人，2002）。其结果几乎是玻色-哈伯德格点模型的理想实现：虽然被捕获的玻色子原子会凝聚，但它们仍然非常稀薄。稀薄性使得原子间相互作用的 δ 函数描述变得合理，并且由于波函数的重叠，原子可以从一个格点势阱跳到（隧穿）另一个格点。（然而，在光学晶格中，超冷原子之间的平均距离比固体中最近邻格点之间的平均距离大一千倍。）</p><p>玻色-哈伯德模型</p>$$
+H = - t \sum_{\langle i j \rangle} ( b_{i}^{\dagger} b_{j} + \mathrm{h . c .} ) - \frac{U} {2} \sum_{i} n_{i} ( n_{i} - 1 ) - \mu \sum_{i} n_{i} ,\tag{6.67}
+$$<p>其中 $n \equiv b_{i}^{\dagger} b_{i}$，是与光学晶格系统相关的最简单的相互作用玻色子系统。当被视为连续空间系统的近似时，它表示一个具有短程排斥相互作用的系统，其中仅s波散射是相关的。然而，与作为连续介质的近似不同，该模型更直接地代表了被束缚在光学晶格中的玻色子原子。</p><p>使用第6.4.2节的虫算法研究不同维度、格点几何、非均匀性等条件下的玻色-哈伯德模型是直接了当的。假设局部基矢是局部玻色子占据本征态 $\left| n_{i} \right.$ 的乘积基矢，并且源算符定义为 $Q_{i} = b_{i}^{\dagger} + b_{i}$。那么，我们就有三个可以通过虫的创建/湮灭过程相互到达的状态：无虫状态（0状态）和两个有虫状态。在虫状态中，虫头与虫尾之间的局部占据数比原始状态大（+状态）或小（−状态）。根据第6.4.2节给出的一般性描述，我们调整无虫状态的权重 w(0) 以方便自己，并设定虫状态的权重为</p>$$
+w ( + ) = | \langle n + 1 | Q_{i} | n \rangle | = n + 1 {\mathrm{~ a n d ~}} w ( - ) = | \langle n - 1 | Q_{i} | n \rangle | = n .
+$$<p>| |
+||
+| 初始状态 | 权重 |
+| n | 1 | 0 | 0 | 1 |
+| $\begin{array} {c} {{n}} \\ {{n - 1}} \\ {{n}} \end{array}$ | n | 0 | 0 | 1 |
+| $\begin{array} {c} {{n}} \\ {{n + 1 {\displaystyle \sum_{n}^{\dag}}}} \end{array}$ | n+1 | $\frac{1} {n + 1}$ | $\frac{n} {n + 1}$ | 0 |</p><p>图 6.11 占据数表示下格点玻色子系统中虫的创建与湮灭。阴影单元格对应禁止的转移。图中的三角形和矩形分别代表虫头和虫尾，每个三角形指向虫头运动的方向（在此处显示的示例中始终向上）。</p><p>通过设定 $w ( 0 ) = 1$，我们容易得到</p>$$
+w ( 0 , + ) = w ( + , 0 ) = 1 , \quad w ( - , + ) = w ( + , - ) = n ,
+$$<p>作为满足 (6.12) 的一个解。（其他权重为零。）这个解给出了</p>$$
+p ( + | 0 ) = 1 , \quad p ( 0 | + ) = \frac{1} {n + 1} , \quad p ( + | - ) = 1 , \quad p ( - | + ) = \frac{n} {n + 1} ,
+$$<p>如图6.11所示。特别地，+虫（图6.11的底行或最后一列）的创生和湮灭概率分别为1和$1 / ( n + 1 )$。−虫永远不会通过直接过程被创生或湮灭。它们作为头部运动的结果出现或消失。<sup>21</sup></p><p>该算法能够精确估算玻色-哈伯德模型（Bose-Hubbard model）以及其他晶格玻色子模型的各种量。例如，我们可能想知道该模型最基本的性质，即其相图。找到相图相当于计算给定跳变常数t时的临界化学势$\mu_{c}$，我们可以使用第6.5.3节讨论的有限尺寸标度方法（finite-size scaling method）来数值确定临界点。为了执行标度，我们在控制参数$( \mu ,$在当前情况下)的不同值下进行蒙特卡洛模拟。然而，当对应的项与整个哈密顿量对易时，就像当前情况下的化学势项一样，任务就简化了。在这种情况下，控制项对应一个明确的量子数，我们可以根据其值对所有状态进行分类。因此，对于任意$\mu^{*}$，由量子数N表征的最低态的能量为</p>$$
+E_{N} ( \mu ) = E_{N} ( \mu^{*} ) - ( \mu - \mu^{*} ) N .
+$$<p>如果基态位于$N = N_{0}$扇区，而其激发态位于$N = N_{1}$扇区，则激发能隙为</p>$$
+\Delta ( \mu ) = \Delta ( \mu^{*} ) - ( \mu - \mu^{*} ) \Delta N
+$$<p>其中$\Delta N \equiv N_{1} - N_{0}$。假设$\mu_{c}$是临界值，且对于某个$N_{1}$能隙闭合。那么，通过选择$\mu^{*} = \mu_{c} ,$我们得到</p>$$
+\Delta ( \mu ) = - ( \mu - \mu_{c} ) \Delta N .
+$$<p>此方程告诉我们，要估计$\mu_{c} .$，我们只需估计某个$\mu$处的$\Delta ( \mu )$，即$\mu_{c} \equiv \mu + \Delta ( \mu ) / \Delta N$。该估计应独立于我们对$\mu$的选择。</p><p>为了利用这一物理特性，我们至少必须知道在预期的临界点处，对于哪个量子数$N_{1}$能隙会闭合。在玻色-哈伯德模型的莫特绝缘体/超流相变中，N是总粒子数，而$N_{0} ~ = ~ n V$，其中V是第n个莫特绝缘体相中的格点数。假设我们从第n个莫特区域内的某点开始增加化学势。一旦进入超流相，系统就变得可压缩，我们不需要额外能量将额外粒子挤入系统。这种可压缩性也意味着，随着粒子数的增加，能隙最终在$\mu_{c}$处消失，我们可以取$N_{1} = N_{0} + 1$。因此，对应的能隙$\epsilon_{p} ( \mu ) \equiv E_{N + 1} - E_{N} = - ( \mu - \mu_{c} )$是$\mu$处的粒子激发能，而$\mu_{c} \equiv \mu + \epsilon_{p} ( \mu )$是到粒子凝聚的超流相的相边界。类似地，$\epsilon_{h} ( \mu ) \equiv E_{N - 1} - E_{N} = ( \mu - \mu_{c}^{\prime} )$是$\mu$处的空穴激发能，而$\mu_{c}^{\prime} \equiv \mu - \epsilon_{h} ( \mu )$是到空穴凝聚的超流相的相边界。在t很大时，粒子凝聚态和空穴凝聚态之间的区别消失，这两个状态实际上相互连接，没有相边界。</p><p>图6.12展示了在简单立方晶格上，通过蒙特卡洛模拟（Kato和Kawashima, 2010）使用与前面讨论的算法基本等效的算法得到的玻色-哈伯德模型相图。激发能隙通过研究关联函数的虚时依赖性进行估计，使用</p><p><img src=images/f3740e945fc167367dd6430c4824dd90ac3da3ac5820e07a05f88121fbc2baae.webp alt><p class=caption>图6.12 基于Kato和Kawashima (2010)中蒙特卡洛模拟结果，获得的简单立方晶格上玻色-哈伯德模型的零温相图。</p></p>$$
+\langle b ( q , \tau ) b^{\dagger} ( q , 0 ) \rangle \propto e^{- \epsilon_{p} ( q , \mu ) \tau}
+$$<p>用于计算波数$q$处的粒子激发能，以及</p>$$
+\langle b^{\dagger} ( q , \tau ) b ( q , 0 ) \rangle \propto e^{- \epsilon_{h} ( q , \mu ) \tau}
+$$<p>用于空穴激发能。</p><p>用于空穴激发能。图6.12研究了线性尺寸$L =$ 8、12和16的三个系统，温度足够低，因此在图中采用的尺度上未观察到显著的温变依赖性。尺寸依赖性和统计误差小于线宽。</p><p>类似的量子蒙特卡洛方法也正被用于更接近实际光学晶格实验（即具有空间非均匀化学势）的模拟中。最近的一个例子是实验与模拟的对比，两者都囚禁了大约$3 \times 10^{5}$个粒子（Trotzky等人，2010年）。动量的分布函数被测量并计算，两者在多种温度和不同势阱深度下吻合。这些结果展示了玻色-哈伯德模型模拟对光学晶格问题的预测能力。</p><p>除了光学晶格中的冷原子之外，玻色-哈伯德模型或其变体还有许多物理应用，量子蒙特卡洛模拟正在揭示该模型丰富的物理内涵。例如，对超流（pair-superfluidity）是一种类似于超导的现象：两种不同类型的玻色子形成一个准粒子，准粒子凝聚而单一粒子不凝聚。换言之，当我们有两种由$b_{1}$和$b_{2}$表示的粒子时，$\langle b_{1} b_{2} \rangle \neq 0$，而$\langle b_{1} \rangle = \langle b_{2} \rangle = 0$。超逆流（supercounter-flow）是一种类似的现象，其中$b_{2}$被$b_{2}^{\dagger}$替代：即一种粒子伴随另一种粒子的空穴来形成凝聚的准粒子。当同种粒子之间的排斥力足够强时，玻色系统可能表现出对超流或超逆流状态（Kuklov和Svistunov，2003年）。模拟（Kuklov等人，2004年）在正方晶格上的双组分玻色-哈伯德模型中发现了这些现象。超固体（supersolidity）指的是密度波（对角序）和超流（非对角序）共存的状态。尽管自从首次理论推测（Andreev和Lifshitz，1969年）以来人们对此状态进行了长期探索，但在任何真实物理系统中至今仍未获得确凿证据（Kim和Chan，2012年）。然而，模拟发现，在三角晶格上具有最近邻排斥的硬芯（$U = \infty$）玻色-哈伯德模型清晰地展示了两种序的共存（Boninsegni和Prokof'ev，2005年）。对这一现象的简单解释是，多数粒子维持了晶体组分，而剩余粒子则作为载流超流的间隙原子。然而，对于立方晶格上具有最近邻排斥的玻色-哈伯德模型，这种简单的双组分图像似乎不成立。蒙特卡洛模拟显示，即使在半满填充下也存在超固体性（Ohgoe等人，2012年），此时除了由涨落产生的粒子外，不存在间隙原子或剩余粒子。</p><h2 id=延伸阅读>延伸阅读<a class=anchor href=#%e5%bb%b6%e4%bc%b8%e9%98%85%e8%af%bb>#</a></h2><p>M. P. A. Fisher, P. B. Weichman, G. Grinstein, and D. S. Fisher, “Boson localization and the superfluid-insulator transition,” Physical Review B 40, 546–70 (1989).</p><p>D. M. Ceperley, “Path integrals in the theory of condensed helium,” Review of Modern Physics 67, 279 (1995).</p><p>J. Cardy, <em>Scaling and Renormalization in Statistical Physics</em> (Cambridge University Press, 1996).</p><p>N. Kawashima and K. Harada, “Recent developments of worldline Monte Carlo methods,” J. Phys. Soc. Japan 73, 1379 (2004).</p><p>A. Leggett, <em>Quantum Liquids: Bose Condensation and Cooper Pairing in Condensed-Matter Systems</em> (Oxford University Press, 2006).</p><p>A. W. Sandvik, “Computational studies of quantum spin systems,” in Lectures on the Physics of Strongly Correlated Systems XIV, ed. A. Avella and F. Mancini, AIP Conference Proceedings, 1297, 135 (2010).</p><h2 id=习题>习题<a class=anchor href=#%e4%b9%a0%e9%a2%98>#</a></h2><p>6.1 一般环/团簇更新中的细致平衡。给出一个环/团簇更新的例子，当将其视为联合空间 $\Sigma \times \Gamma$ 中的马尔可夫过程时，细致平衡条件不成立。</p><p>6.2 伊辛三角形。考虑三个反铁磁耦合的伊辛自旋，并对其应用 Swendsen-Wang 算法。如果温度远低于耦合常数，系统需要多久才能弛豫到平衡分布？</p><p>6.3 伊辛极限下的环/团簇更新。考虑零场下 $S = {\frac{1}{2}}$ 伊辛型 XXZ 模型 $( J^{xy} \gg J^{z} > 0 )$ 。推导图元密度的显式公式。证明在 $J^{xy} / J^{z} \to 0$ 的极限下，该算法简化为传统的 Swendsen-Wang 算法。</p><p>6.4 Griffiths 不等式。利用 Fortuin 和 Kasteleyn 对铁磁伊辛模型配分函数的图形表示以及两点关联函数的图形可观测量，证明无论 $i, j, k, l$ 如何选择，增加耦合常数 $J_{kl}^{z}$ 总会使关联函数 $\langle S_{i} S_{j} \rangle$ 增大。对量子自旋模型提出一个类似的命题并加以证明。</p><p>6.5 一维伊辛模型中的自旋子。计算具有周期性边界条件、长度 $L \ (\gg \ 1)$ 的一维伊辛模型的能量期望值。注意能隙为 $J^{z}$，因为第一激发态包含两个畴壁，每个畴壁的能量成本为 $J^{z}/2$。（此处使用 $S_{i} = \pm \frac{1}{2}$ 约定。）当 $0 < T \ll J^{z} / \log L$ 时，确认公式 (6.59)。另外，对于 $J^{z} / \log L \ll T \ll J^{z}$ 的情况，确认 (6.59) 中的 $\Delta E$ 应为 $J^{z}/2$ 而非 $J^{z}$。如何解释这个表面上的悖论？</p><p>6.6 单点问题。假设我们希望将图 6.11 描述的算法应用于一个单点问题。设化学势的影响通过到达下一个散射体的概率形式来体现。在目前的情况下，下一个散射体是尾部。因此，假设到达尾部并使粒子数增加 1 的概率为 $e^{- \beta \mu}$。（减少粒子数的移动总是被接受。）通过直接检验，证明这个过程产生正确的粒子数分布：$p_{n} \propto e^{- \mu n}$</p><hr></article><footer class=book-footer><div class=book-footer-inner><div class=footer-text>本站由 <a href=https://gohugo.io target=_blank rel=noopener>Hugo</a> + <a href=https://github.com/alex-shpak/hugo-book target=_blank rel=noopener>Hugo Book</a> 主题构建，托管于 GitHub Pages。书籍通过 MinerU VLM 提取排版，AI 辅助翻译校对。</div><div class=footer-bottom>&copy; 2026 Yuunagi Library</div></div><div class="flex flex-wrap justify-between"><div><a href=/yuulibrary/books/qmc-lattice-models/part-2.html class="flex align-center"><img src=/yuulibrary/icons/backward.svg class=book-icon alt=Backward>
+<span>第二部分 · 有限温度</span></a></div><div><a href=/yuulibrary/books/qmc-lattice-models/ch07.html class="flex align-center"><span>第7章 · 行列式方法</span>
+<img src=/yuulibrary/icons/forward.svg class=book-icon alt=Forward></a></div></div><div class="book-copyright flex justify-center"><small>Yuunagi Library - © Yuunagi</small></div><script>(function(){document.querySelectorAll("pre:has(code)").forEach(e=>{e.addEventListener("click",e.focus),e.addEventListener("copy",function(t){if(t.preventDefault(),navigator.clipboard){const t=window.getSelection().toString()||e.textContent;navigator.clipboard.writeText(t)}})})})()</script></footer><label for=menu-control class="hidden book-menu-overlay"></label></div><aside class=book-toc><div class=book-toc-content><nav id=TableOfContents><ul><li><a href=#61-费曼路径积分>6.1 费曼路径积分</a><ul><li><a href=#611-路径积分表示中的世界线>6.1.1 路径积分表示中的世界线</a></li></ul></li><li><a href=#62-环团簇更新>6.2 环/团簇更新</a><ul><li><a href=#621-从伊辛模型到量子模型>6.2.1 从伊辛模型到量子模型</a></li><li><a href=#622-局部算法-vs-环团簇算法>6.2.2 局部算法 vs. 环/团簇算法</a></li><li><a href=#623-连续虚时环算法>6.2.3 连续虚时环算法</a></li></ul></li><li><a href=#63-低温模拟与基态性质>6.3 低温模拟与基态性质</a><ul><li><a href=#631-基态投影方法>6.3.1 基态投影方法</a></li><li><a href=#632-量子临界点附近的行为>6.3.2 量子临界点附近的行为</a></li></ul></li><li><a href=#64-worm更新>6.4 Worm更新</a><ul><li><a href=#641-虫算法的基本思想>6.4.1 虫算法的基本思想</a></li><li><a href=#642-自旋-自旋关联函数的测量>6.4.2 自旋-自旋关联函数的测量</a></li><li><a href=#643-与环团簇算法的关系>6.4.3 与环/团簇算法的关系</a></li></ul></li><li><a href=#65-玻色子晶格模型>6.5 玻色子晶格模型</a><ul><li><a href=#651-从自旋到玻色子>6.5.1 从自旋到玻色子</a></li><li><a href=#652-环团簇算法在玻色子系统中的应用>6.5.2 环/团簇算法在玻色子系统中的应用</a></li><li><a href=#653-主要应用示例>6.5.3 主要应用示例</a></li></ul></li><li><a href=#附录>附录</a></li><li><a href=#62-环团簇更新-1>6.2 环/团簇更新</a><ul><li><a href=#621-一般框架>6.2.1 一般框架</a></li><li><a href=#622-连续时间环团簇更新>6.2.2 连续时间环/团簇更新</a></li><li><a href=#623-xxz模型>6.2.3 XXZ模型</a></li><li><a href=#624-关联函数>6.2.4 关联函数</a></li><li><a href=#625-磁场>6.2.5 磁场</a></li><li><a href=#626-大自旋>6.2.6 大自旋 $S > \frac{1} {2}$</a></li></ul></li><li><a href=#63-高温级数展开>6.3 高温级数展开</a><ul><li><a href=#631-随机级数展开>6.3.1 随机级数展开</a></li><li><a href=#632-连续时间极限>6.3.2 “连续时间”极限</a></li></ul></li><li><a href=#64-虫洞更新-worm-update>6.4 虫洞更新 (Worm update)</a><ul><li><a href=#641-冻结问题-freezing-problem>6.4.1 冻结问题 (Freezing problem)</a></li><li><a href=#642-定向环算法directed-loop-algorithm>6.4.2 定向环算法（Directed-loop algorithm）</a></li><li><a href=#643-细致平衡条件的违反>6.4.3 细致平衡条件的违反</a></li><li><a href=#644-关联函数correlation-functions>6.4.4 关联函数（Correlation functions）</a></li><li><a href=#645-xxz-模型>6.4.5 XXZ 模型</a></li><li><a href=#646-即时顶点生成>6.4.6 即时顶点生成</a></li></ul></li><li><a href=#65-趋向零温>6.5 趋向零温</a><ul><li><a href=#651-外推至零温>6.5.1 外推至零温</a></li><li><a href=#652-量子相变>6.5.2 量子相变</a></li><li><a href=#653-有限尺寸标度>6.5.3 有限尺寸标度</a></li></ul></li><li><a href=#66-应用于玻色子系统>6.6 应用于玻色子系统</a></li><li><a href=#延伸阅读>延伸阅读</a></li><li><a href=#习题>习题</a></li></ul></nav></div></aside></main></body></html>
