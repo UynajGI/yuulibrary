@@ -64,7 +64,7 @@ PDF/EPUB/DOCX/FB2/TXT 源
 ### 关键约定
 
 - **`_index.md`**(不是普通 `.md`):单篇论文一个 section
-- **`category` 是 arXiv 一级分类数组**(如 `["quant-ph"]`、`["quant-ph", "cond-mat"]`),查 `data/arxiv_categories.json`。多归属
+- **`category` 是 arXiv 一级分类数组（如 `["quant-ph"]`、`["quant-ph", "cond-mat"]`），查 `data/arxiv_categories.json`。子类（如 `physics.chem-ph`）必须映射到父类（`physics`），多归属**(如 `["quant-ph"]`、`["quant-ph", "cond-mat"]`),查 `data/arxiv_categories.json`。多归属
 - **全部图片带上**:论文全文翻译了,图片是正文一部分
 - **LaTeX 公式 100% 原样**:翻译时不动 `$...$` / `$$...$$` / `\tag{N}`。**不要用 `\[...\]` / `\(...\)`**——KaTeX 不渲染
 - **🔴 日期**:同书,`date` 写当天带时区
@@ -135,3 +135,4 @@ PDF/EPUB/DOCX/FB2/TXT 源
 | `add-book-to-library/scripts/validate_book.py` | 38 项机械验证(12 Error + 21 Warning + 5 Review) |
 | `add-book-to-library/scripts/test_translate.py` | 翻译脚本纯函数回归测试(34 用例,零依赖) |
 | `add-paper-to-library/scripts/generate_paper_note.py` | 论文结构化分析(ReAct 7 栏目)+ cross-link + 组装 `_index.md` |
+| `add-paper-to-library/scripts/check_paper_categories.py` | 论文分类校验：确保 `category` 值为 arXiv 一级（不含 `.`），lefthook paper-validate 自动运行 |

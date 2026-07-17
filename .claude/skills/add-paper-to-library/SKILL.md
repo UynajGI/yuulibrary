@@ -56,6 +56,7 @@ weight: 3                   # 比已有 papers/ 最大 weight +1
 **🔴 category 规则**：
 - **数组，多归属**——一篇论文可以身兼多类：`["quant-ph", "cond-mat"]`
 - **只用 arXiv 一级分类**（`quant-ph`, `cond-mat`, `physics`, `math-ph`, `cs`, `q-fin`, `hep-th`, `gr-qc`, `stat`, `q-bio`, `nlin` 等），完整列表见 `.claude/skills/add-paper-to-library/data/arxiv_categories.json`（symlink → `data/arxiv_categories.json`，Hugo 读取用）
+- **🔴 子类必须映射到父类**：arXiv API 返回的 primary category 可能是子类（如 `physics.chem-ph`、`cond-mat.mtrl-sci`、`stat.ML`、`cond-mat.mes-hall`、`cs.AI`），**必须取 `.` 前面的部分作为父类**写入 `category`。例如 `physics.chem-ph` → `physics`，`cond-mat.mtrl-sci` → `cond-mat`，`stat.ML` → `stat`。**绝对不要在 `data/arxiv_categories.json` 或 `papershelf.html` 中添加子类条目**——这两个文件只维护一级分类。
 - 非 arXiv 领域（金融、哲学等）用自定义 key：`finance`, `philosophy`, `personal-dev`, `history`
 - **查 arXiv 自动填**：有 DOI → 查 arXiv API 拿 primary category → 写进 `meta.json`。人工只在非 arXiv 论文时介入
 ---
