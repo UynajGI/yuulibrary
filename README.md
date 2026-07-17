@@ -2,7 +2,7 @@
 
 # 📚 Yuunagi Library
 
-**个人的数字图书馆**
+**无向量个人知识图书馆**
 
 Hugo + Hugo Book 主题多书站点 · 部署于 GitHub Pages
 

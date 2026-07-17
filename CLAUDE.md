@@ -16,7 +16,17 @@ hugo server -p 1314 --bind 127.0.0.1    # 本地预览(http://localhost:1314/yuu
 hugo --gc --minify                        # 生产构建到 public/
 python3 scripts/build_pageindex.py        # 构建 PageIndex 索引(hugo 前必须跑)
 bash scripts/release.sh                   # 算下一个发布 tag(只读)
+node tests/retrieval/harness.js           # 跑检索 golden benchmark(148 题,零依赖)
 ```
+
+## 检索 benchmark
+
+`tests/retrieval/` 是 RAG 检索核心的 golden 评测集(148 题 × 12 类)。改 `retrieval.js` / `build_pageindex.py` 的检索逻辑后必须重跑,对比 `RESULTS.md` 的分数趋势。
+
+- `node tests/retrieval/harness.js` — 全量,打印 Recall@10 / MRR@10 / no_answer 准确率
+- `node tests/retrieval/harness.js --filter cross_language --verbose` — 只跑某类 + 逐题详情
+- `NO_INVERTED=1 node tests/retrieval/harness.js` — 回退线性 BM25(对比倒排 vs 线性)
+- 加题:编辑 `golden.json`,字段 `id/category/query/expect_doc_ids/confidence(hard|soft)`
 
 ## 添加新书
 
@@ -41,7 +51,7 @@ bash scripts/release.sh                   # 算下一个发布 tag(只读)
 1. 去重(`grep -ril "<作者>" content/papers/`)→ PDF 归档到 `pdfs/papers/`
 2. **优先复用已有 MinerU 提取**(`find ~ -name "*.md" | xargs grep "<标题>"`),没有再提取
 3. **全部图片带上** → `content/papers/<slug>/images/`,`convert_to_webp.sh` 批量转 WebP
-4. `content/papers/<slug>/_index.md`(**必须 `_index.md`**),front matter 全齐:`title`(中文)/`description`/`date`/`author`/`year`/`category`(数组)/`tags`/`links`/`weight`。**`category` 是 arXiv 一级分类数组**(查 `data/arxiv_categories.json`)
+4. `content/papers/<slug>/_index.md`(**必须 `_index.md`**),front matter 全齐:`title`(中文)/`description`/`date`/`author`/`year`/`category`(数组)/`tags`/`links`/`weight`。**`category` 值一律不得含 `.`**——arXiv 子类（如 `physics.chem-ph`）必须用父类（`physics`），自定义分类（`finance`/`philosophy` 等）本来就没有点。查 `data/arxiv_categories.json` 确认合法 key。绝对不要在 `data/arxiv_categories.json` 或 `papershelf.html` 中添加子类条目
 5. **翻译 + 结构化分析用 workflow 脚本**(不召唤 subagent):
    - `clean_markdown.py` — 统一清洗
    - `translate_chapters.py <file.md>` — 翻译(输出 `.zh.md`,不碰源文件;**翻译后 `restore_images()` 自动补回丢失图片**)
