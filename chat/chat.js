@@ -194,8 +194,28 @@
 
   async function* streamText(opts) {
     const req = buildRequest(opts);
-    const resp = await fetch(req.url, { method: "POST", headers: req.headers, body: req.body });
+    // #4 AbortController：流式请求可取消（停止/新会话/重发）。signal 由调用方传入。
+    const resp = await fetch(req.url, {
+      method: "POST",
+      headers: req.headers,
+      body: req.body,
+      signal: opts.signal,
+    });
     yield* readSSE(resp);
+  }
+
+  // #4 全局流控制器：同一时刻只允许一个活跃流。新请求前 abort 旧的，
+  // stop 按钮关闭它，newSession/restore/closeChat 也会 abort。
+  let _activeController = null;
+  function abortActiveStream() {
+    if (_activeController) {
+      try {
+        _activeController.abort();
+      } catch (_) {
+        /* ignore */
+      }
+      _activeController = null;
+    }
   }
 
   // 轻量非流式 LLM 调用（给 rewrite_query / llmRerank 用，不需要流式/thinking/tools）
@@ -318,13 +338,15 @@
     loadInvertedIndex().catch(() => {});
   }
 
-  // 倒排索引较大（gzip ~16MB），延迟加载并在就绪后切换检索路径。
+  // 倒排索引较大（inverted 61M + chunks 45M），延迟加载并在就绪后切换检索路径。
+  // 持久化到 IndexedDB（按 ETag 失效）：二次访问不再下载/解析 106MB JSON，
+  // 冷启动从几秒降到几十毫秒。无 IDB（隐私模式）或无缓存时回退直接 fetch。
   async function loadInvertedIndex() {
     if (invertedReady) return;
     try {
       const [inv, chunks] = await Promise.all([
-        fetch(`${PAGEINDEX}/inverted-index.json`).then((r) => r.json()),
-        fetch(`${PAGEINDEX}/chunks.json`).then((r) => r.json()),
+        fetchIndexCached("inverted-index.json"),
+        fetchIndexCached("chunks.json"),
       ]);
       invertedIndex = inv.postings || {};
       chunkStats = R.buildChunkStats(chunks);
@@ -332,6 +354,78 @@
     } catch (_) {
       invertedReady = true; // 标记已尝试，避免重试
     }
+  }
+
+  // ── IndexedDB 缓存层 ──────────────────────────────────────────────────────
+  // 存储结构：store "indices" → { url, etag, data }。etag 为失效判据：
+  // 命中缓存时带 If-None-Match 请求，304 复用缓存，200 更新缓存。
+  // 无 ETag 时退化为直接返回缓存（首次写入后永久复用，直到手动清缓存）。
+  let _idb = null; // 懒开
+  function openIndexDB() {
+    if (_idb !== null) return _idb; // 已尝试过（含失败→false）
+    try {
+      if (!("indexedDB" in window)) return (_idb = false);
+      const req = indexedDB.open("yuu_chat_index", 1);
+      _idb = new Promise((resolve) => {
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains("indices")) {
+            db.createObjectStore("indices", { keyPath: "url" });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+      });
+      return _idb;
+    } catch (_) {
+      _idb = false;
+      return _idb;
+    }
+  }
+  async function idbGet(url) {
+    const db = await openIndexDB();
+    if (!db) return null;
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction("indices", "readonly");
+        const r = tx.objectStore("indices").get(url);
+        r.onsuccess = () => resolve(r.result || null);
+        r.onerror = () => resolve(null);
+      } catch (_) {
+        resolve(null);
+      }
+    });
+  }
+  async function idbPut(url, etag, data) {
+    const db = await openIndexDB();
+    if (!db) return;
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction("indices", "readwrite");
+        tx.objectStore("indices").put({ url, etag, data });
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve(); // 配额/错误静默（缓存只是优化）
+      } catch (_) {
+        resolve();
+      }
+    });
+  }
+
+  // 带缓存的索引 fetch：优先 IndexedDB + 条件请求（If-None-Match）。
+  // 失败回退直接 fetch（与原行为一致）。
+  async function fetchIndexCached(filename) {
+    const url = `${PAGEINDEX}/${filename}`;
+    const cached = await idbGet(url);
+    const headers = {};
+    if (cached?.etag) headers["If-None-Match"] = cached.etag;
+    const resp = await fetch(url, { headers });
+    if (resp.status === 304 && cached) return cached.data; // 未变，复用缓存
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    // 有 ETag 才缓存（无 ETag 时条件请求无意义，但首次仍存以便离线复用）
+    const etag = resp.headers.get("ETag") || cached?.etag || "";
+    if (etag) idbPut(url, etag, data).catch(() => {});
+    return data;
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -967,11 +1061,29 @@ ${toc.text}
       .replace(/^### (.+)$/gm, "<h4>$1</h4>")
       .replace(/^## (.+)$/gm, "<h3>$1</h3>")
       .replace(/^# (.+)$/gm, "<h2>$1</h2>");
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+    html = html.replace(
+      /\[([^\]]+)\]\(([^)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
     html = html.replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br>");
     // 恢复 display math（\n→<br> 之后再放回去，保持完整）
     html = html.replace(/\uF8FFMATH(\d+)\uF8FF/g, (_, i) => mathBlocks[parseInt(i)]);
-    return `<p>${html}</p>`;
+    html = `<p>${html}</p>`;
+    // #2 XSS 防护：模型输出按不可信处理，DOMPurify 消毒后再写 innerHTML。
+    // 过滤 javascript:/vbscript:/data: scheme、事件处理器属性（onerror 等）、
+    // 危险标签（script/iframe/object）。保留 target（链接新窗口）+ class（KaTeX）。
+    // DOMPurify 未加载时（CDN 失败）退化为转义危险标签，宁可不渲染也不 XSS。
+    if (typeof DOMPurify !== "undefined" && DOMPurify.sanitize) {
+      return DOMPurify.sanitize(html, {
+        ADD_ATTR: ["target", "rel"],
+        // 禁止危险 URI scheme（DOMPurify 默认已禁，显式更清晰）
+        ALLOWED_URI_REGEXP: /^(?!(?:javascript|vbscript|file|data):)/i,
+      });
+    }
+    // 兜底（无 DOMPurify）：至少移除 <script>/onXXX=，降级而非 XSS
+    return html
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "");
   }
   function escHtml(s) {
     return s.replace(
@@ -1053,6 +1165,7 @@ ${toc.text}
     const sessions = loadArchivedSessions(),
       s = sessions.find((x) => x.id === id);
     if (!s) return;
+    abortActiveStream(); // #4 切换会话前停掉在飞的流
     if (chatHistory.length) archiveCurrentSession();
     chatHistory = s.messages;
     saveSession();
@@ -1194,17 +1307,11 @@ ${toc.text}
     composerInput = root.querySelector(".yuu-ai-composer textarea");
     sendBtn = root.querySelector(".yuu-ai-send");
 
-    // Single delegated event listener — data-action based
+    // Single delegated event listener — data-action + data-prompt based
+    // （#13：data-prompt 走 delegation，动态建议按钮重建后仍可点）
     root.addEventListener("click", handleAction);
     // 动态建议问题：根据当前页面上下文生成，无上下文则保留默认
     injectDynamicSuggestions();
-    // Prompt suggestion clicks
-    root.querySelectorAll("[data-prompt]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        composerInput.value = btn.dataset.prompt;
-        handleSend();
-      });
-    });
     // Enter to send
     composerInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
@@ -1241,6 +1348,7 @@ ${toc.text}
     loadIndexes().catch(() => {});
   }
   function closeChat() {
+    abortActiveStream(); // #4 关闭面板时停掉在飞的流（避免后台空转 + DOM 写到已隐藏面板）
     root.dataset.state = "closed";
   }
   function openDrawer(name) {
@@ -1265,6 +1373,7 @@ ${toc.text}
     messagesEl.innerHTML = "";
   }
   function newSession() {
+    abortActiveStream(); // #4 新会话前停掉旧流
     archiveCurrentSession();
     chatHistory = [];
     saveSession();
@@ -1277,6 +1386,14 @@ ${toc.text}
   // ══════════════════════════════════════════════════════════════════════════
 
   function handleAction(event) {
+    // #13 data-prompt delegation：动态建议按钮（injectDynamicSuggestions 重建后
+    // 原逐按钮绑定的监听失效，改用 delegation 统一处理，新旧按钮都能点）
+    const promptBtn = event.target.closest("[data-prompt]");
+    if (promptBtn) {
+      composerInput.value = promptBtn.dataset.prompt;
+      handleSend();
+      return;
+    }
     const action = event.target.closest("[data-action]")?.dataset.action;
     if (!action) return;
     if (action === "open") openChat();
@@ -1286,6 +1403,7 @@ ${toc.text}
     else if (action === "settings") openDrawer("settings");
     else if (action === "close-drawer") closeDrawer();
     else if (action === "send") handleSend();
+    else if (action === "stop") abortActiveStream(); // #4 停止生成
   }
 
   function renderHistoryList(list) {
@@ -1485,18 +1603,34 @@ ${toc.text}
     const el = document.createElement("div");
     el.className = `yuu-ai-message ${role}`;
     if (role === "assistant") {
-      el.innerHTML = `<div class="yuu-msg-content">${text}</div>`;
+      // #6 历史恢复渲染：assistant 内容走 renderMarkdown + KaTeX，
+      // 不再直接拼原始 markdown（否则重载/归档恢复时显示字面 **、$$、[1](...)）
+      const content = document.createElement("div");
+      content.className = "yuu-msg-content";
+      content.innerHTML = renderMarkdown(text || "");
+      el.appendChild(content);
+      reRenderKatex(content);
     } else {
       el.textContent = text;
     }
     messagesEl.appendChild(el);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
+    forceScrollToBottom(); // 新消息到来 → 强制跟随到底（重置用户上滑状态）
     return role === "assistant" ? el.querySelector(".yuu-msg-content") : el;
   }
 
   function setBusy(busy) {
-    sendBtn.disabled = busy;
     composerInput.disabled = busy;
+    // #4 流式时 send 按钮变为"停止"形态（可点击 → abortActiveStream），
+    // 不 disable，让用户能中途停止。停止后恢复为 send。
+    if (busy) {
+      sendBtn.dataset.action = "stop";
+      sendBtn.classList.add("yuu-ai-stop");
+      sendBtn.setAttribute("aria-label", "停止生成");
+    } else {
+      sendBtn.dataset.action = "send";
+      sendBtn.classList.remove("yuu-ai-stop");
+      sendBtn.setAttribute("aria-label", "发送");
+    }
   }
 
   function reRenderKatex(el) {
@@ -1509,6 +1643,10 @@ ${toc.text}
           { left: "\\(", right: "\\)", display: false },
           { left: "$", right: "$", display: false },
         ],
+        // #12 与 head.html 全站配置一致：跳过代码块/行内代码里的 $（避免 JS 的 $var、
+        // shell 的 $1、正则的 $ 被误当数学渲染成 katex-error）
+        ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"],
+        ignoredClasses: ["pseudocode"],
         throwOnError: false,
       });
     } catch (_) {
@@ -1516,29 +1654,89 @@ ${toc.text}
     }
   }
 
-  // 节流版 KaTeX：流式输出期间每 300ms 最多渲染一次，避免每个 token 都重渲染导致卡顿。
-  let _katexTimer = null,
-    _katexPending = null;
-  function reRenderKatexThrottled(el) {
-    _katexPending = el;
-    if (!_katexTimer) {
-      _katexTimer = setTimeout(() => {
-        _katexTimer = null;
-        if (_katexPending) reRenderKatex(_katexPending);
-        _katexPending = null;
-      }, 300);
-    }
+  // 节流版 KaTeX：已被 createStreamRenderer 的整体渲染节流取代（renderer 内部
+  // 在每次 apply 时调 reRenderKatex）。保留 reRenderKatex 供历史恢复 / debug 路径用。
+
+  // ── 流式渲染节流（#3）：把"重新生成 HTML + 写 DOM + KaTeX"合并节流 ──────────
+  // 原 bug：每个 token 都全量 renderMarkdown + innerHTML 替换 + KaTeX 重扫，
+  // 长答案下 O(n²) 开销 + 每 token 强制 reflow。
+  // 改进：前沿节流 80ms（首 token 立即显示，后续累积合并），尾沿 flush 保证最后一帧。
+  // 状态闭包绑定单个 contentEl，避免多消息串扰。
+  // state: { thinking, text, toolTrail } —— 流循环更新这些字段，renderer 读它们渲染。
+  const STREAM_RENDER_MS = 80;
+  function createStreamRenderer(contentEl, state) {
+    let timer = null;
+    let lastHTML = "\u0000"; // 哨兵，保证首次必渲染
+    let pendingTail = false; // 尾沿待渲染
+    const apply = () => {
+      timer = null;
+      const html = renderThinkingAndText(state.thinking, state.text, state.toolTrail);
+      if (html === lastHTML) {
+        pendingTail = false;
+        return;
+      }
+      lastHTML = html;
+      contentEl.innerHTML = html;
+      reRenderKatex(contentEl);
+      scrollToBottomAuto();
+      // 若期间又有新 token（schedule 设了 pendingTail），续一帧
+      if (pendingTail) {
+        pendingTail = false;
+        timer = setTimeout(apply, STREAM_RENDER_MS);
+      }
+    };
+    return {
+      schedule() {
+        if (timer) {
+          pendingTail = true; // 已有定时器在等，标记尾沿
+          return;
+        }
+        timer = setTimeout(apply, STREAM_RENDER_MS);
+      },
+      flush() {
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+        pendingTail = false;
+        apply();
+      },
+      dispose() {
+        if (timer) clearTimeout(timer);
+        timer = null;
+      },
+    };
   }
-  // 冲刷待渲染的 KaTeX（流式结束时调用）
-  function reRenderKatexFlush() {
-    if (_katexTimer) {
-      clearTimeout(_katexTimer);
-      _katexTimer = null;
-    }
-    if (_katexPending) {
-      reRenderKatex(_katexPending);
-      _katexPending = null;
-    }
+
+  // ── 智能滚动（#15）：rAF 合并 + 近底才自动滚（用户上滑读历史时不打断）──────
+  let _userPinnedToBottom = true; // 用户在底部 → 自动跟随；上滑则停跟随
+  function initAutoScroll() {
+    if (!messagesEl) return;
+    if (messagesEl._yuuScrollBound) return;
+    messagesEl._yuuScrollBound = true;
+    messagesEl.addEventListener("scroll", () => {
+      const threshold = 80;
+      _userPinnedToBottom =
+        messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < threshold;
+    });
+  }
+  let _scrollRaf = null;
+  function scrollToBottomAuto() {
+    if (!_userPinnedToBottom) return; // 用户上滑，不抢滚动
+    if (_scrollRaf) return; // 已有一次 rAF 排队，合并
+    _scrollRaf = requestAnimationFrame(() => {
+      _scrollRaf = null;
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    });
+  }
+  // 强制滚到底（发送/新消息时，重置跟随状态）
+  function forceScrollToBottom() {
+    _userPinnedToBottom = true;
+    if (_scrollRaf) cancelAnimationFrame(_scrollRaf);
+    _scrollRaf = requestAnimationFrame(() => {
+      _scrollRaf = null;
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    });
   }
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -1630,9 +1828,15 @@ ${toc.text}
     chatHistory.push({ role: "user", content: query });
     saveSession();
 
+    // #4 重发时 abort 旧流（防双流串扰）；为本请求建独立 controller
+    abortActiveStream();
+    const controller = new AbortController();
+    _activeController = controller;
+
     try {
       await loadIndexes();
     } catch (_) {
+      _activeController = null;
       return;
     }
 
@@ -1664,22 +1868,23 @@ ${toc.text}
     const nextSourceNum = [0]; // 已分配的最大编号（mutable）
 
     try {
+      initAutoScroll();
+      // 流式渲染节流（#3）：state 被 renderer 读取，流循环只更新 state + schedule
+      const streamState = { thinking: "", text: "", toolTrail };
+      const renderer = createStreamRenderer(contentEl, streamState);
       const agentStart = Date.now();
       for (let loop = 0; loop < MAX_LOOPS; loop++) {
         // 总时间预算：超过 120 秒强制跳出（防 LLM/网络挂起永久卡死 UI）
         if (Date.now() - agentStart > 120000) {
-          contentEl.innerHTML = renderThinkingAndText(
-            finalThinking,
-            "<em>检索超时，正在用已获取的内容生成回答……</em>",
-            toolTrail
-          );
+          streamState.text = "<em>检索超时，正在用已获取的内容生成回答……</em>";
+          renderer.flush();
           break;
         }
         let roundText = "";
         let roundThinking = "";
         let toolCalls = null;
         let stopReason = null;
-        // 流式渲染本轮
+        // 流式渲染本轮：更新 state + schedule（节流合并，不再每 token 重渲染）
         for await (const chunk of streamText({
           provider: cfg.provider,
           model: cfg.model,
@@ -1690,24 +1895,26 @@ ${toc.text}
           tools: LIBRARY_TOOLS,
           thinking: thinkingOn,
           maxTokens: thinkingOn ? 8192 : 4096,
+          signal: controller.signal,
         })) {
           if (chunk.type === "thinking") {
             roundThinking += chunk.text;
             finalThinking += chunk.text;
-            contentEl.innerHTML = renderThinkingAndText(finalThinking, roundText, toolTrail);
+            streamState.thinking = finalThinking;
+            streamState.text = roundText;
+            renderer.schedule();
           } else if (chunk.type === "text") {
             roundText += chunk.text;
             finalText = roundText;
-            contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
-            reRenderKatexThrottled(contentEl);
+            streamState.text = finalText;
+            renderer.schedule();
           } else if (chunk.type === "tool_calls") {
             toolCalls = chunk.calls;
           } else if (chunk.type === "stop") {
             stopReason = chunk.reason;
           }
-          messagesEl.scrollTop = messagesEl.scrollHeight;
         }
-        reRenderKatexFlush();
+        renderer.flush();
 
         // 没有工具调用 → 本轮是最终回答，退出循环
         if (stopReason !== "tool_calls" || !toolCalls?.length) break;
@@ -1729,11 +1936,13 @@ ${toc.text}
           } catch (_) {
             /* ignore */
           }
-          // UI: 显示工具调用过程
+          // UI: 显示工具调用过程（更新 state + 立即 flush，工具步是低频事件）
           toolTrail.push(
             `<div class="yuu-tool-step">🔍 检索: <code>${escHtml(args.query || tc.arguments)}</code></div>`
           );
-          contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
+          streamState.thinking = finalThinking;
+          streamState.text = finalText;
+          renderer.flush();
           if (tc.name === "search_library") didSearch = true;
 
           const toolResult = await executeTool(
@@ -1760,11 +1969,8 @@ ${toc.text}
           });
         }
         // 下一轮提示
-        contentEl.innerHTML = renderThinkingAndText(
-          finalThinking,
-          "<em>已检索，正在综合回答……</em>",
-          toolTrail
-        );
+        streamState.text = "<em>已检索，正在综合回答……</em>";
+        renderer.flush();
         finalText = "";
       }
 
@@ -1799,11 +2005,8 @@ ${toc.text}
       // tool 消息后跟 assistant 消费；tools:undefined 时某些 provider 会报错或空返）。
       // 构造干净对话：system + 原始 query + 一条合并所有检索结果的 user 消息。
       if (!finalText.trim() && allContexts.length) {
-        contentEl.innerHTML = renderThinkingAndText(
-          finalThinking,
-          "<em>检索完成，正在综合回答……</em>",
-          toolTrail
-        );
+        streamState.text = "<em>检索完成，正在综合回答……</em>";
+        renderer.flush();
         // 合并所有检索结果为一条文本（复用稳定编号）
         const ctxBlocks = allContexts
           .map((c) => {
@@ -1837,8 +2040,8 @@ ${ctxBlocks}`,
           if (!finalText.trim()) {
             finalText =
               "已检索到相关内容，但生成回答超时。请尝试换个问法，或直接在书架中浏览相关章节。";
-            contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
-            reRenderKatex(contentEl);
+            streamState.text = finalText;
+            renderer.flush();
           }
         }, 30000);
         try {
@@ -1852,19 +2055,20 @@ ${ctxBlocks}`,
             tools: undefined,
             thinking: false,
             maxTokens: 4096,
+            signal: controller.signal,
           })) {
             if (chunk.type === "text") {
               summaryText += chunk.text;
               finalText = summaryText;
-              contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
-              reRenderKatexThrottled(contentEl);
+              streamState.text = finalText;
+              renderer.schedule();
             }
           }
         } catch (_) {
           /* 收尾失败不影响主流程，下面有兜底 */
         }
         clearTimeout(summaryTimeout);
-        reRenderKatexFlush();
+        renderer.flush();
       }
 
       // 最终兜底：如果所有路径都没产出文本，给用户明确提示（不能卡在空白）
@@ -1874,8 +2078,8 @@ ${ctxBlocks}`,
         } else {
           finalText = "未找到相关内容。可以在书架中浏览，或换关键词重试。";
         }
-        contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
-        reRenderKatexFlush();
+        streamState.text = finalText;
+        renderer.flush();
       }
 
       // 引用注入：用稳定 displayNum 构建 refMap（与模型看到的 [N] 严格对应）
@@ -1891,27 +2095,55 @@ ${ctxBlocks}`,
         }
       }
 
-      // debug 卡片（如果有 context）
+      // debug 卡片（如果有 context）—— debug 模式直接写 innerHTML（含 debug 卡片，
+      // 不走 renderer 的 renderThinkingAndText），随后补一次 KaTeX
       if (debugOn && allContexts.length) {
         const debugHits = allContexts.slice(0, 12).map((c, i) => ({
           node: { doc_id: c.docTitle, node_id: c.nodeId, breadcrumb: c.breadcrumb },
           score: "?",
         }));
+        streamState.text = finalText;
+        streamState.thinking = finalThinking;
         contentEl.innerHTML =
           renderThinkingAndText(finalThinking, finalText, toolTrail) +
           renderDebugCard(debugHits, allContexts.slice(0, 8), systemPrompt, "agent");
+        reRenderKatex(contentEl);
       } else {
-        contentEl.innerHTML = renderThinkingAndText(finalThinking, finalText, toolTrail);
+        streamState.text = finalText;
+        streamState.thinking = finalThinking;
+        renderer.flush();
       }
-      reRenderKatexFlush();
 
       chatHistory.push({ role: "assistant", content: finalText });
       if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
       saveSession();
     } catch (e) {
-      contentEl.innerHTML += `<br><span style="color:#dc2626">错误: ${escHtml(e.message)}</span>`;
+      // #5 状态同步：出错时不能让 user turn 孤悬、assistant 气泡显示错误但 history 没有。
+      const aborted = e && (e.name === "AbortError" || /aborted/i.test(e.message || ""));
+      // 被"新会话/重发"取代（controller 已不是当前）→ 不写 history（新会话已接管）
+      const superseded = _activeController !== controller;
+      if (aborted && superseded) {
+        // 流被新请求/新会话主动 abort，新上下文已接管，本气泡静默退出
+      } else if (aborted) {
+        // 用户主动停止：保留已产出的部分，没有则给停止提示
+        const stopText = finalText.trim() ? finalText + "\n\n_[已停止]_" : "_[已停止]_";
+        chatHistory.push({ role: "assistant", content: finalText.trim() ? finalText : stopText });
+        if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+        saveSession();
+      } else {
+        // 真实错误：记录错误文本（含已产出部分）
+        contentEl.innerHTML += `<br><span style="color:#dc2626">错误: ${escHtml(e.message)}</span>`;
+        const errText = finalText.trim()
+          ? finalText + `\n\n错误: ${e.message}`
+          : `错误: ${e.message}`;
+        chatHistory.push({ role: "assistant", content: errText });
+        if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+        saveSession();
+      }
+    } finally {
+      if (_activeController === controller) _activeController = null; // 只清自己的
+      setBusy(false);
     }
-    setBusy(false);
   }
 
   // ══════════════════════════════════════════════════════════════════════════
