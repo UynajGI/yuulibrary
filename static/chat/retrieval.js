@@ -159,12 +159,25 @@
   const FIELDS = ["title", "breadcrumb", "terms", "summary"];
 
   // 纯函数版：接收 nodeIndex，返回 stats（不写闭包）。
+  // #9 同时给每 node 预挂 _tf（per-field TF map）+ _pos（first-position map）+
+  // _len（per-field token 长度），让 bm25Score / search 复用，避免查询期重复 tokenize。
   function buildBM25Stats(nodeIndex) {
     if (!nodeIndex) return null;
     const nodes = nodeIndex.nodes || [];
     const df = new Map(); // document frequency per token
     let totalLen = 0;
     const fieldLen = { title: 0, breadcrumb: 0, terms: 0, summary: 0 };
+    // 预计算 per-node tf + first-position（一次遍历，查询期复用）
+    const tfMapAndPos = (toks) => {
+      const tf = new Map();
+      const pos = new Map();
+      for (let i = 0; i < toks.length; i++) {
+        const t = toks[i];
+        tf.set(t, (tf.get(t) || 0) + 1);
+        if (!pos.has(t)) pos.set(t, i);
+      }
+      return { tf, pos };
+    };
     for (const node of nodes) {
       const fieldText = {
         title: node.title || "",
@@ -172,14 +185,23 @@
         terms: (node.terms || []).join(" "),
         summary: node.summary || node.excerpt || "", // fallback 旧索引
       };
+      const nodeTf = {};
+      const nodePos = {};
+      const nodeLen = {};
       for (const f of FIELDS) {
         const toks = tokenize(fieldText[f]);
         fieldLen[f] += toks.length;
-        for (const t of new Set(toks)) df.set(t, (df.get(t) || 0) + 1);
+        nodeLen[f] = toks.length;
+        const fp = tfMapAndPos(toks);
+        nodeTf[f] = fp.tf;
+        nodePos[f] = fp.pos;
+        for (const t of nodeTf[f].keys()) df.set(t, (df.get(t) || 0) + 1); // unique tokens of this field
       }
-      totalLen += tokenize(
-        fieldText.title + fieldText.breadcrumb + fieldText.terms + fieldText.summary
-      ).length;
+      node._tf = nodeTf;
+      node._pos = nodePos;
+      node._len = nodeLen;
+      // totalLen 用字段长度之和（避免重复 tokenize 拼接串，消除字段边界伪 token）
+      totalLen += nodeLen.title + nodeLen.breadcrumb + nodeLen.terms + nodeLen.summary;
     }
     const N = nodes.length || 1;
     return {
@@ -197,6 +219,27 @@
 
   function bm25Score(queryTokens, node, stats, weights) {
     let total = 0;
+    // #9 优先用预计算的 _tf（buildBM25Stats 挂的）；无则降级 tokenize（兼容外部 node）
+    const tf = node._tf;
+    if (tf) {
+      for (const f of FIELDS) {
+        const tfMap = tf[f];
+        if (!tfMap) continue;
+        const docLen = node._len?.[f] || 0;
+        const avgLen = stats.fieldAvgLen[f] || 1;
+        for (const qt of queryTokens) {
+          const tfreq = tfMap.get(qt) || 0;
+          if (!tfreq) continue;
+          const dfq = stats.df.get(qt) || 0;
+          const idf = Math.log(1 + (stats.N - dfq + 0.5) / (dfq + 0.5));
+          const norm = 1 - BM25_B + BM25_B * (docLen / (avgLen || 1));
+          const w = weights ? weights.get(qt) || 0 : 1;
+          total += idf * ((tfreq * (BM25_K + 1)) / (tfreq + BM25_K * norm)) * FIELD_BOOST[f] * w;
+        }
+      }
+      return total;
+    }
+    // 降级路径：无预计算（外部传入未过 buildBM25Stats 的 node）
     const fieldText = {
       title: node.title || "",
       breadcrumb: (node.breadcrumb || []).join(" "),
@@ -223,6 +266,41 @@
     return total;
   }
 
+  // #11 单 CJK 字符回退：query 仅含 1 个 CJK 字符（或多个但都无法 2-gram）时，
+  // tokenizeUnique 返回空。此函数对 title/breadcrumb/summary 做子串匹配，
+  // 按命中字段权重打分（title>bread crumb>summary）。不依赖倒排 postings。
+  function searchSingleCJK(query, nodeIndex, topK = 50) {
+    const nodes = nodeIndex.nodes || [];
+    const cjk = (query.match(/[一-鿿]/g) || []).join("");
+    if (!cjk) return []; // 非 CJK 单字符（英文/数字）不回退
+    const scored = [];
+    for (const node of nodes) {
+      const title = node.title || "";
+      const bc = (node.breadcrumb || []).join(" ");
+      const summ = node.summary || node.excerpt || "";
+      let score = 0;
+      const positions = {};
+      if (title.includes(cjk)) {
+        score += 6;
+        positions[cjk] = { title: title.indexOf(cjk) };
+      }
+      if (bc.includes(cjk)) {
+        score += 3;
+        if (!positions[cjk]) positions[cjk] = {};
+        positions[cjk].breadcrumb = bc.indexOf(cjk);
+      }
+      if (summ.includes(cjk)) {
+        score += 2;
+        if (!positions[cjk]) positions[cjk] = {};
+        positions[cjk].summary = summ.indexOf(cjk);
+      }
+      if (score > 0)
+        scored.push({ node, score: Math.round(score * 100) / 100, tokens: [cjk], positions });
+    }
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, topK);
+  }
+
   // 纯函数 search：接收 nodeIndex + stats（stats 可省略，内部按需构建）。
   // 返回 [{node, score, tokens, positions}]，已按 score 降序 + per-doc 截断。
   function search(query, nodeIndex, stats, topK = 50) {
@@ -230,7 +308,11 @@
     if (!stats) stats = buildBM25Stats(nodeIndex);
     // 候选收集用 unique（成员关系即可）；bm25Score 内部用带频次 tokenize（真实 TF）
     let tokens = tokenizeUnique(query);
-    if (!tokens.length) return [];
+    // #11 单 CJK 字符回退：2-gram 分词对单字返回空（"自" → []），导致零结果。
+    // 兜底：单字查询时对 title/breadcrumb/summary 做子串线性匹配（不依赖倒排 postings）。
+    if (!tokens.length) {
+      return searchSingleCJK(query, nodeIndex, topK);
+    }
     tokens = expandQuery(tokens, query);
     const scored = [];
     for (const node of nodeIndex.nodes) {
@@ -238,19 +320,33 @@
       if (s > 0) {
         const score = Math.round(s * 100) / 100;
         // 附加 query token 在各字段的位置（供 lexicalRerank 算 proximity）
+        // #9 优先用预存 _pos（buildBM25Stats 挂的）；无则降级 tokenize
         const positions = {};
-        const fieldTokens = {
-          title: tokenize(node.title || ""),
-          breadcrumb: tokenize((node.breadcrumb || []).join(" ")),
-          terms: tokenize((node.terms || []).join(" ")),
-          summary: tokenize(node.summary || node.excerpt || ""),
-        };
-        for (const qt of tokens) {
-          for (const f in fieldTokens) {
-            const idx = fieldTokens[f].indexOf(qt);
-            if (idx >= 0) {
-              if (!positions[qt]) positions[qt] = {};
-              positions[qt][f] = idx;
+        const np = node._pos;
+        if (np) {
+          for (const qt of tokens) {
+            for (const f of FIELDS) {
+              const idx = np[f]?.get(qt);
+              if (idx !== undefined) {
+                if (!positions[qt]) positions[qt] = {};
+                positions[qt][f] = idx;
+              }
+            }
+          }
+        } else {
+          const fieldTokens = {
+            title: tokenize(node.title || ""),
+            breadcrumb: tokenize((node.breadcrumb || []).join(" ")),
+            terms: tokenize((node.terms || []).join(" ")),
+            summary: tokenize(node.summary || node.excerpt || ""),
+          };
+          for (const qt of tokens) {
+            for (const f in fieldTokens) {
+              const idx = fieldTokens[f].indexOf(qt);
+              if (idx >= 0) {
+                if (!positions[qt]) positions[qt] = {};
+                positions[qt][f] = idx;
+              }
             }
           }
         }
@@ -294,15 +390,28 @@
       fieldLen.breadcrumb += bcToks.length;
       fieldLen.body += bodyToks.length;
       // 预计算每字段的 TF map（查询期 bm25ScoreChunk 直接查表，不再 tokenize）
-      const tfMap = (map, toks) => {
-        for (const t of toks) map.set(t, (map.get(t) || 0) + 1);
-        return map;
+      // #7 同时预存 first-position（供 searchInverted 的 positions 通道，
+      // 避免查询期对每个命中 chunk 重新 tokenize 3 字段）
+      const tfMapAndPos = (toks) => {
+        const tf = new Map();
+        const pos = new Map(); // token → first index
+        for (let i = 0; i < toks.length; i++) {
+          const t = toks[i];
+          tf.set(t, (tf.get(t) || 0) + 1);
+          if (!pos.has(t)) pos.set(t, i);
+        }
+        return { tf, pos };
       };
+      const titleFP = tfMapAndPos(titleToks);
+      const bcFP = tfMapAndPos(bcToks);
+      const bodyFP = tfMapAndPos(bodyToks);
       ch._tf = {
-        title: tfMap(new Map(), titleToks),
-        breadcrumb: tfMap(new Map(), bcToks),
-        body: tfMap(new Map(), bodyToks),
+        title: titleFP.tf,
+        breadcrumb: bcFP.tf,
+        body: bodyFP.tf,
         _len: { title: titleToks.length, breadcrumb: bcToks.length, body: bodyToks.length },
+        // first-position map（#7：查询期复用，不再重复 tokenize）
+        _pos: { title: titleFP.pos, breadcrumb: bcFP.pos, body: bodyFP.pos },
       };
       // 合并去重后算 DF（一个 chunk 内某 token 只算 1 次，无论在几个字段出现）
       const allToks = new Set([...titleToks, ...bcToks, ...bodyToks]);
@@ -351,6 +460,44 @@
     return total;
   }
 
+  // #11 单 CJK 字符回退（chunk 版）：对 chunk 的 title/breadcrumb/body 做子串匹配。
+  function searchSingleCJKChunk(query, chunkStats, topK = 50) {
+    const list = chunkStats.chunks || [];
+    const cjk = (query.match(/[一-鿿]/g) || []).join("");
+    if (!cjk) return [];
+    const scored = [];
+    for (const ch of list) {
+      const title = ch.title || "";
+      const bc = (ch.breadcrumb || []).join(" ");
+      const body = ch.body || "";
+      let score = 0;
+      if (title.includes(cjk)) score += 6;
+      if (bc.includes(cjk)) score += 3;
+      if (body.includes(cjk)) score += 1; // body 命中权重低（常见字到处都是）
+      if (score > 0) {
+        const node = {
+          doc_id: ch.doc_id,
+          node_id: ch.node_id,
+          title: ch.title,
+          breadcrumb: ch.breadcrumb,
+          url: "",
+          terms: [],
+          summary: body.slice(0, 200),
+          line_num: ch.line_num,
+        };
+        scored.push({
+          node,
+          score: Math.round(score * 100) / 100,
+          tokens: [cjk],
+          positions: {},
+          chunk: ch,
+        });
+      }
+    }
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, topK);
+  }
+
   // searchInverted：用倒排 postings 检索，只遍历含 query token 的 chunk。
   // postings: {token: [[cid_num, tf], ...]}
   // chunkStats: buildChunkStats() 的返回（含 chunks 数组，按 cid_num 索引）
@@ -360,7 +507,10 @@
     if (!postings || !chunkStats) return [];
     // 候选收集用 unique（成员关系即可）；打分用带频次 tokenize（真实 TF）
     const origTokens = tokenizeUnique(query);
-    if (!origTokens.length) return [];
+    // #11 单 CJK 字符回退（与 search 一致）：单字无 2-gram → 对 chunk 子串线性匹配
+    if (!origTokens.length) {
+      return searchSingleCJKChunk(query, chunkStats, topK);
+    }
     const { tokens, weights } = expandQueryWeighted(origTokens, query);
 
     // 收集候选 chunk_id → 命中 token 数
@@ -408,19 +558,18 @@
           line_num: chunk.line_num,
         };
         // positions：token 在 title/breadcrumb/body 中的首次位置
+        // #7 复用 buildChunkStats 预存的 _pos（不再每个 chunk 重新 tokenize 3 字段）
         const positions = {};
-        const titleToks = tokenize(chunk.title || "");
-        const bcToks = tokenize((chunk.breadcrumb || []).join(" "));
-        const bodyToks = tokenize(chunk.body || "");
+        const pos = chunk._tf?._pos;
         for (const qt of tokens) {
-          const ti = titleToks.indexOf(qt),
-            bi = bcToks.indexOf(qt),
-            si = bodyToks.indexOf(qt);
-          if (ti >= 0 || bi >= 0 || si >= 0) {
+          const ti = pos?.title.get(qt),
+            bi = pos?.breadcrumb.get(qt),
+            si = pos?.body.get(qt);
+          if (ti !== undefined || bi !== undefined || si !== undefined) {
             positions[qt] = {};
-            if (ti >= 0) positions[qt].title = ti;
-            if (bi >= 0) positions[qt].breadcrumb = bi;
-            if (si >= 0) positions[qt].summary = si; // 复用 summary 字段位
+            if (ti !== undefined) positions[qt].title = ti;
+            if (bi !== undefined) positions[qt].breadcrumb = bi;
+            if (si !== undefined) positions[qt].summary = si; // 复用 summary 字段位
           }
         }
         scored.push({ node, score, tokens, positions, chunk });
@@ -449,10 +598,11 @@
   // ══════════════════════════════════════════════════════════════════════════
 
   // 路 A：title exact / phrase 匹配。rawQuery 的连续片段在 title/breadcrumb 出现 → 高 boost。
-  // 复用 searchInverted 的候选，但只保留 title/breadcrumb 命中的，按 phrase 覆盖率排序。
-  function searchTitlePhrase(query, postings, chunkStats, topK = 20) {
+  // #8 复用 pathB 的候选（避免重跑 searchInverted 的 tokenize/打分）。
+  // candidates 可选：传入则复用，不传则内部 fallback 调 searchInverted（兼容旧调用）。
+  function searchTitlePhrase(query, postings, chunkStats, topK = 20, candidates) {
     if (!postings || !chunkStats) return [];
-    const all = searchInverted(query, postings, chunkStats, topK * 3);
+    const all = candidates || searchInverted(query, postings, chunkStats, topK * 3);
     const raw = (query || "").toLowerCase();
     const cjkPart = (raw.match(/[一-鿿]+/g) || []).join("");
     const enTokens = raw.match(/[a-z][a-z0-9]{1,}/g) || [];
@@ -566,8 +716,8 @@
     if (!postings || !chunkStats) return [];
     // 路 B：BM25F body（主路，含同义词扩展 + 加权）
     const pathB = searchInverted(query, postings, chunkStats, Math.max(topK, 50));
-    // 路 A：title phrase
-    const pathA = searchTitlePhrase(query, postings, chunkStats, 20);
+    // 路 A：title phrase（#8 复用 pathB 候选，避免重跑 searchInverted 的 tokenize/打分）
+    const pathA = searchTitlePhrase(query, postings, chunkStats, 20, pathB);
     // 路 E：doc title / TOC 路由
     const pathE = searchDocRoute(query, globalIndex, postings, chunkStats, 20);
     // RRF 融合（B 权重最高，A/E 补充）
@@ -817,6 +967,8 @@
     buildBM25Stats,
     bm25Score,
     search,
+    searchSingleCJK,
+    searchSingleCJKChunk,
     buildChunkStats,
     bm25ScoreChunk,
     searchInverted,
