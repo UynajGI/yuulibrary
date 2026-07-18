@@ -438,6 +438,7 @@
   const {
     tokenize,
     bm25Score: _bm25ScorePure,
+    bm25ScoreChunk: _bm25ScoreChunkPure,
     lexicalRerank,
     rm3Expand,
     mmrSelect,
@@ -454,7 +455,23 @@
   }
 
   function bm25Score(queryTokens, node) {
+    // 防御：stats 未构建时惰性构建（避免倒排路径下 RM3 重打分读到 null 崩溃）
+    if (!bm25Stats && nodeIndex) bm25Stats = R.buildBM25Stats(nodeIndex);
+    if (!bm25Stats) return 0;
     return _bm25ScorePure(queryTokens, node, bm25Stats);
+  }
+
+  // 倒排路径专用：用 chunkStats 对 chunk 打分（合成 node 无 _tf，必须走 chunk 打分器）
+  function bm25ScoreChunk(queryTokens, chunk) {
+    if (!chunkStats) return 0;
+    return _bm25ScoreChunkPure(queryTokens, chunk, chunkStats);
+  }
+
+  // RM3 重打分：根据 hit 来源选打分器。倒排路径的 hit 含 .chunk（合成 node 无 _tf），
+  // 必须用 chunk 打分；nodeIndex 路径的 hit 用 node 打分。
+  function rescoreHit(queryTokens, hit) {
+    if (hit.chunk) return bm25ScoreChunk(queryTokens, hit.chunk);
+    return bm25Score(queryTokens, hit.node);
   }
 
   function search(query, topK = 50) {
@@ -599,8 +616,9 @@
     const expandedTokens = rm3Expand(origTokens, hits);
     if (expandedTokens.length > origTokens.length) {
       // 用扩展 tokens 重新打分（只对已召回的 hits，不重新遍历全库）
+      // 按路径选打分器：倒排 hit 含 .chunk 用 chunk 打分；nodeIndex hit 用 node 打分
       for (const h of hits) {
-        h.score = Math.round(bm25Score(expandedTokens, h.node) * 100) / 100;
+        h.score = Math.round(rescoreHit(expandedTokens, h) * 100) / 100;
       }
       hits = hits.filter((h) => h.score > 0).sort((a, b) => b.score - a.score);
     }
